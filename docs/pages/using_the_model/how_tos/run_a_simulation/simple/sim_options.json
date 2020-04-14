@@ -1,0 +1,12 @@
+{
+  "options": {
+    "particle_no": 43,
+    "repeats": 1,
+    "max_executable_time": 4800,
+    "multi_threading": 1,
+    "dump_mode": 1,
+    "delta_G0": -54e-21,
+    "max_rate_value": 1e4,
+    "min_rate_value": 1e-1
+  }
+}

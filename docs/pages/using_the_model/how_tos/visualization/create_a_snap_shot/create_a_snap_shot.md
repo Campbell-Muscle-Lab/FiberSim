@@ -24,7 +24,7 @@ As stated above, this demo relies on the half-sarcomere dump files of the [Simpl
 
 ### Simulation Options Required to Visualize the Model
 
-To visualize a model, you must include the `"dump_mode": 1` and the `"log_folder"` simulation options in the options JSON file. These options tell FiberSim to dump the half-sarcomere status files and tells FiberSim where to put those files.
+To visualize a model, you must include the `"dump_mode": 1` and the `"log_folder"` options in the simulation options JSON file. These options tell FiberSim to dump the half-sarcomere status files and tells FiberSim where to put those files.
 
 ## Creating the Visualization Instructions
 
