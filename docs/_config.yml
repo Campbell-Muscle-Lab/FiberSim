@@ -1,0 +1,9 @@
+remote_theme: pmarsceill/just-the-docs
+
+footer_content: "Written by the Campbell Muscle Lab"
+
+aux_links:
+  "FiberSim on GitHub":
+    - "//github.com/campbell-muscle-lab/FiberSim/"
+
+title: "FiberSim"

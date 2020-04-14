@@ -503,3 +503,7 @@ static
 
 ## Visual Studio Code User Configuration File
 .vscode/
+
+# GitHub Pages
+_site/
+Gemfile.lock
