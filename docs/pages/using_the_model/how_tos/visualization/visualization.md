@@ -16,7 +16,9 @@ has_children: True
 
 Visualizing mathematical models can be invaluable for debugging the model, gaining insight into the model, or simply creating figures for publications. 
 
-We've developed a pipeline for visualizing the FiberSim model using Blender 2.80 to fit these needs. Blender is an incredibly powerful open source 3D animation suite that supports multiple levels of the 3D model creation process.
+We've developed a pipeline for visualizing the FiberSim model using Blender 2.80 to fit these needs. Blender is an incredibly powerful open source 3D animation suite that supports multiple levels of the 3D model creation process. We created the following animation (inspired by Star Wars!) using the visualization pipeline.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/LMyyscEcL6I" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Running the Blender Visualization Pipeline
 
