@@ -1,0 +1,51 @@
+{
+  "dump_file_root": "output\\log\\hs_status\\hs_0_time_step_",
+  "blender_file_path": "C:\\Program Files\\Blender Foundation\\Blender\\blender.exe",
+  "dump_file_start": 1,
+  "dump_file_end": 4,
+  "output_file_directory": "output\\renders",
+  "output_file_root": "model",
+  "render_level": 0,
+  "render_mode": 1,
+  "render_quality": "medium",
+  "no_render": false,
+  "filaments_to_hide": [],
+  "camera": [
+    {
+      "location": {
+        "x": 1573.9025,
+        "y": 1.4999999999999998,
+        "z": 5.799965909090909
+      },
+      "rotation": {
+        "x": 85.0,
+        "y": 0.0,
+        "z": 90.0
+      }
+    },
+    {
+      "location": {
+        "x": 1572.805,
+        "y": 1.4999999999999998,
+        "z": 5.7908409090909085
+      },
+      "rotation": {
+        "x": 85.0,
+        "y": 0.0,
+        "z": 90.0
+      }
+    },
+    {
+      "location": {
+        "x": 1571.7075,
+        "y": 1.4999999999999998,
+        "z": 5.7817159090909085
+      },
+      "rotation": {
+        "x": 85.0,
+        "y": 0.0,
+        "z": 90.0
+      }
+    }
+  ]
+}
