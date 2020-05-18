@@ -1,12 +1,14 @@
 {
   "options": {
+    "log_folder": ".\\output\\log",
+    "dump_hs_status": 1,
     "particle_no": 43,
-    "repeats": 1,
+    "no_of_repeats": 5,
     "max_executable_time": 4800,
-    "multi_threading": 1,
+    "multithreading": 1,
     "dump_mode": 1,
     "delta_G0": -54e-21,
-    "max_rate_value": 1e4,
-    "min_rate_value": 1e-1
+    "max_rate": 1e4,
+    "x_pos_rel_tol": 1e-3
   }
 }
