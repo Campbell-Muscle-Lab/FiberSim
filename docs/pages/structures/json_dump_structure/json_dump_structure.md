@@ -1,8 +1,7 @@
 ---
 title: JSON Dump Structure
-parent: Overview
-grand_parent: Core Model
-nav_order: 3
+parent: Structures
+nav_order: 1
 ---
 
 # The JSON Dump Structure
@@ -10,6 +9,10 @@ nav_order: 3
 
 * TOC
 {:toc}
+
+## Overview
+
+This page is meant to serve as a quick overview of the JSON file structure that the Campbell Muscle Lab uses quite frequently. If you would like a more thorough overview of the JSON file structure, including how to read/write JSON files in Matlab and Python, see [this link](https://campbell-muscle-lab.github.io/howtos_json).
 
 ## What Exactly is a JSON?
 

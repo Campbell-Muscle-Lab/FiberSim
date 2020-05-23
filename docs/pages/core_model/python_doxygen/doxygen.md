@@ -1,10 +1,10 @@
 ---
-title: Doxygen
-parent: Using the Model
+title: Python Doxygen Documentation
+parent: Core Model
 nav_order: 2
 ---
 
-# Python Documentation
+# Python Doxygen Documentation
 
 We provide code documentation at [this link](). 
 

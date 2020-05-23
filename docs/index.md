@@ -4,4 +4,6 @@ permalink: /
 nav_order: 1
 ---
 
-This is the home page!
+![Render of FiberSim](FiberSim_render.png)
+
+This is the home page for the FiberSim software package.

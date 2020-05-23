@@ -1,8 +1,7 @@
 ---
 title: Visualization
 nav_order: 3
-parent: How To's
-grand_parent: Using the Model
+parent: Demos
 has_children: True
 ---
 
@@ -35,7 +34,7 @@ The general process for visualizing a FiberSim simulation is as follows:
 
 The visualization pipeline relies on a user-defined instruction file for the visualization pipeline's parameters. The instruction file utilizes the JSON file format since it is an easily readable and user-friendly format. We recommend downloading and installing Visual Studio Code for instruction file creation. It is entirely free and highlights any errors that may be made in the instruction file.
 
-For more information on the JSON file format and how it is used in FiberSim, see the [JSON Dump Structure Page](../../../core_model/overview/json_dump_structure/json_dump_structure.html).
+For more information on the JSON file format and how it is used in FiberSim, see the [JSON Dump Structure Page](../../../structures/json_dump_structure/json_dump_structure.md).
 
 As mentioned previously, there are two approaches to visualization that you can take. You can visualize a single snapshot or you can render multiple snapshots and make them into an animation. The two approaches require instruction files that are similar but have slight differences. For simplicity's sake, we'll start out with describing the structure of the single snapshot instruction file.
 

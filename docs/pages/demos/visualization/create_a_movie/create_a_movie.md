@@ -1,6 +1,7 @@
 ---
 title: Create a Movie
 parent: Visualization
+grand_parent: Demos
 nav_order: 2
 ---
 

@@ -1,6 +1,7 @@
 ---
 title: Create a Snap Shot
 parent: Visualization
+grand_parent: Demos
 nav_order: 1
 ---
 

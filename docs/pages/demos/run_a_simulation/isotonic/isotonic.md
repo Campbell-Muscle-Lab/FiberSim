@@ -1,6 +1,7 @@
 ---
 title: Isotonic
 parent: Run a Simulation
+grand_parent: Demos
 nav_order: 3
 ---
 

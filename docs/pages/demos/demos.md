@@ -1,11 +1,10 @@
 ---
-title: How To's
-parent: Using the Model
+title: Demos
 has_children: True
-nav_order: 1
+nav_order: 4
 ---
 
-# How To's
+# Demos
 {:.no_toc}
 
 * TOC

@@ -1,5 +1,5 @@
 ---
-title: Doxygen
+title: C++ Doxygen Documentation
 parent: Core Model
 nav_order: 2
 ---

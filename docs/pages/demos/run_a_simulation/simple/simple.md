@@ -1,6 +1,7 @@
 ---
 title: Simple
 parent: Run a Simulation
+grand_parent: Demos
 nav_order: 1
 ---
 
@@ -63,7 +64,7 @@ C:\temp\FiberSim_demos\
 
 ### Creating the Batch File
 
-Now that we have all of the necessary instruction files on the local machine, we can focus on how we actually *run* the FiberSim simulation. FiberSim is ran with 'batch' JSON files that describe the simulation(s) that you're wishing to run. A 'batch' file lists the FiberSim executable, the instruction files for the simulation(s), and the results file(s) for the simulation(s) you're running. If you'd like another rundown on the structure of JSON files, see [this link](../../../../core_model/overview/json_dump_structure/json_dump_structure.md).
+Now that we have all of the necessary instruction files on the local machine, we can focus on how we actually *run* the FiberSim simulation. FiberSim is ran with 'batch' JSON files that describe the simulation(s) that you're wishing to run. A 'batch' file lists the FiberSim executable, the instruction files for the simulation(s), and the results file(s) for the simulation(s) you're running. If you'd like another rundown on the structure of JSON files, see [this link](../../../../structures/json_dump_structure/json_dump_structure.md).
 
 The structure of the batch file is shown below:
 

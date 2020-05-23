@@ -1,7 +1,6 @@
 ---
 title: Run a Simulation
-parent: How To's
-grand_parent: Using the Model
+parent: Demos
 has_children: True
 nav_order: 1
 ---
