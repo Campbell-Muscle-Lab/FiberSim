@@ -59,42 +59,13 @@ C:\temp\FiberSim_demos\
                       |        |- sim_options.json
                       |        |- model.json
                       |        |- protocol.txt
-                      |        |- batch.txt
 ```
 
 ### Creating the Batch File
 
-Now that we have all of the necessary instruction files on the local machine, we can focus on how we actually *run* the FiberSim simulation. FiberSim is ran with 'batch' JSON files that describe the simulation(s) that you're wishing to run. A 'batch' file lists the FiberSim executable, the instruction files for the simulation(s), and the results file(s) for the simulation(s) you're running. If you'd like another rundown on the structure of JSON files, see [this link](../../../../structures/json_dump_structure/json_dump_structure.md).
+Now that we have all of the necessary instruction files on the local machine, we can focus on how we actually *run* the FiberSim simulation. FiberSim is ran with 'batch' JSON files that describe the simulation(s) that you are wishing to run. We have included the batch file for running this simulation below, but if you would like to learn more about FiberSim batch files, follow [this link](../../../structures/batch/batch.md).
 
-The structure of the batch file is shown below:
-
-```json
-{
-    "FiberSim_batch": {
-        "job": [
-            {
-                "model_file_string": "FILE\\PATH",
-                "options_file_string": "FILE\\PATH",
-                "protocol_file_string": "FILE\\PATH",
-                "results_file_string": "FILE\\PATH"
-            },
-            .
-            .
-            .
-            {
-                "model_file_string": "FILE\\PATH",
-                "options_file_string": "FILE\\PATH",
-                "protocol_file_string": "FILE\\PATH",
-                "results_file_string": "FILE\\PATH"
-            }
-        ]
-    }
-}
-```
-
-The batch file describes a `job` array that includes an object for each individual simulation that you would like to run. This array can include a single object (one group of instruction files and result file) if you would like to run one simulation, or multiple objects if you would like to run more than one simulation. The latter is quite helpful when you would like to simulate families of simulations with the same model file, as is the case when generating tension-pCa curves.
-
-As such, the structure for our batch file will be the following (with changes to reflect where you have chosen to store your `FiberSim_demos` directory on your machine):
+The structure for our batch file will be the following (with changes to reflect where you have chosen to store your `FiberSim_demos` directory on your machine):
 
 ```json
 {
@@ -111,7 +82,7 @@ As such, the structure for our batch file will be the following (with changes to
 }
 ```
 
-Save this in `batch.txt` in your local `FiberSim_demos` directory.
+Save this in `batch.json` in your local `FiberSim_demos` directory.
 
 ## Running FiberSim Batches
 
