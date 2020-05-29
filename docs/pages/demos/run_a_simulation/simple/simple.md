@@ -46,7 +46,7 @@ For the sake of focusing on running FiberSim and not on the creation of instruct
 
 + [Model File](model.json)
 + [Options File](sim_options.json)
-+ [Protocol File](protocol_file.txt)
++ [Protocol File](protocol.txt)
 
 Your directory structure should now look like:
 
