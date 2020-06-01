@@ -75,7 +75,7 @@ The structure for our batch file will be the following (with changes to reflect 
                 "model_file_string": "C:\\temp\\FiberSim_demos\\demo_simple\\model.json",
                 "options_file_string": "C:\\temp\\FiberSim_demos\\demo_simple\\sim_options.json",
                 "protocol_file_string": "C:\\temp\\FiberSim_demos\\demo_simple\\protocol.txt",
-                "results_file_string": "C:\\temp\\FiberSim_demos\\demo_simple\\results.txt"
+                "results_folder": "C:\\temp\\FiberSim_demos\\demo_simple\\results"
             }
         ]
     }
@@ -110,4 +110,4 @@ To run the FiberSim batch job, do the following from the `FiberSim_demos\demo_si
     python <FIBERSIM_REPO_LOCATION>\Python\FiberSim_utilities.py run_batch batch.json
     ```
     
-    Once you hit <kbd>Enter</kbd> on your keyboard, FiberSim will begin setting up and running the simulation you have prepared. FiberSim will print out information pertaining to your simulation to the Anaconda Prompt you have opened. Once it is finished, you can view the results in the newly created `results.txt` file and the dump files located in the `log` folder in the `demo_simple` folder.
+    Once you hit <kbd>Enter</kbd> on your keyboard, FiberSim will begin setting up and running the simulation you have prepared. FiberSim will print out information pertaining to your simulation to the Anaconda Prompt you have opened. Once it is finished, you can view the results in the newly created `results` folder and the dump files located in the `log` folder in the `demo_simple` folder.

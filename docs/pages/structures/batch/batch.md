@@ -28,7 +28,7 @@ The structure of the batch file is simple and extensible. There is a `job` JSON 
                 "model_file_string": "FILE\\PATH",
                 "options_file_string": "FILE\\PATH",
                 "protocol_file_string": "FILE\\PATH",
-                "results_file_string": "FILE\\PATH"
+                "results_folder": "FOLDER\\PATH"
             },
             .
             .
@@ -37,7 +37,7 @@ The structure of the batch file is simple and extensible. There is a `job` JSON 
                 "model_file_string": "FILE\\PATH",
                 "options_file_string": "FILE\\PATH",
                 "protocol_file_string": "FILE\\PATH",
-                "results_file_string": "FILE\\PATH"
+                "results_folder": "FOLDER\\PATH"
             }
         ]
     }
@@ -46,7 +46,7 @@ The structure of the batch file is simple and extensible. There is a `job` JSON 
 
 As you can see:
   + the `job` array contains a single JSON object for each simulation that you wish to run.
-  + `job` objects are self-contained, meaning they describe all of the instruction files needed for a single simulation.
+  + `job` objects are self-contained, meaning they describe all of the instruction files and folders needed for a single simulation.
   + It's simple to run many jobs at a time. This quite helpful when you would like to simulate families of simulations with the same model file, as is the case when generating tension-pCa curves.
 
 ## Running FiberSim Batches
@@ -64,4 +64,4 @@ To run a FiberSim batch job, do the following from the directory that contains y
     python <FIBERSIM_REPO_LOCATION>\Python\modules\FiberSim_utilities.py run_batch batch.json
     ```
     
-    Once you hit <kbd>Enter</kbd> on your keyboard, FiberSim will begin setting up and running the simulation you have prepared. FiberSim will print out information pertaining to your simulation to the Anaconda Prompt you have opened. Once it is finished, you can view the results in the newly created results file indicated by the `results_file_string` in the batch file you created.
+    Once you hit <kbd>Enter</kbd> on your keyboard, FiberSim will begin setting up and running the simulation you have prepared. FiberSim will print out information pertaining to your simulation to the Anaconda Prompt you have opened. Once it is finished, you can view the results in the newly created results folder indicated by the `results_folder` key in the batch file you created.
