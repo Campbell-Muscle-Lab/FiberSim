@@ -35,6 +35,12 @@ If you read the documentation, you will see that FiberSim is composed of several
   + a new figure popping up
 + Close the figure to return focus to the terminal window
 
+## Video
+
+Click on the screenshot below for a video demo
+
+<a href="https://drive.google.com/file/d/1IqP5XdBfmSc9TSxgKWQoyXUfLmr64CJ4/view?usp=sharing">
+![Video screenshot](single_run_screenshot.png)</a>
 
 
 

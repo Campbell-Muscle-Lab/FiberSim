@@ -7,6 +7,11 @@ has_children: True
 # Installation
 {:.no_toc}
 
+Dylan - we need stuff here about how to
++ activate
++ update 
+Python environment
+
 * TOC
 {:toc}
 
