@@ -1,7 +1,8 @@
 ---
 title: Multiple run
-has_children: true
+has_children: false
 parent: Getting started
+grant_parent: Demos
 nav_order: 2
 ---
 
