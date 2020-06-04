@@ -2,7 +2,7 @@
 title: Multiple run
 has_children: false
 parent: Getting started
-grant_parent: Demos
+grand_parent: Demos
 nav_order: 2
 ---
 
