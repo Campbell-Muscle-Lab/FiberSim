@@ -1,13 +1,5 @@
 {
   "options": {
-    "log_folder": "c:\\temp\\log_58_step",
-    "dump_hs_status": 0,
-    "particle_no": 43,
-    "no_of_repeats": 5,
-    "max_executable_time": 4800,
-    "multithreading": 1,
-    "dump_mode": 1,
-    "delta_G0": -54e-21,
     "max_rate": 1e4,
     "x_pos_rel_tol": 1e-3
   }

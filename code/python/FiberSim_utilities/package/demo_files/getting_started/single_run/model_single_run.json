@@ -5,7 +5,7 @@
     "initial_hs_length": 1615,
     "m_filament_density": 0.25e15},
   "thick_structure": {
-      "m_n": 9,
+      "m_n": 25,
       "m_crowns_per_filament": 54,
       "m_hubs_per_crown": 3,
       "m_myosins_per_hub": 2,

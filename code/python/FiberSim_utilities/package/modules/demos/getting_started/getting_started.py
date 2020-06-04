@@ -5,6 +5,7 @@ Entry point for FiberSim_utilities
 
 import sys
 from package.modules.demos.getting_started.single_run.single_run import demo_single_run
+from package.modules.demos.getting_started.multiple_run.multiple_run import demo_multiple_run
 
 def parse_inputs(inputs):
     # Get the number of arguments
@@ -13,6 +14,8 @@ def parse_inputs(inputs):
     if (no_of_arguments > 2):
         if (inputs[3] == "single_run"):
             demo_single_run()
+        if (inputs[3] == "multiple_run"):
+            demo_multiple_run()            
 
 if __name__ == "__main__":
     parse_inputs()
