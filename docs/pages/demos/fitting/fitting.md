@@ -2,6 +2,7 @@
 title: Fitting
 has_children: True
 parent: Demos
+nav_order: 5
 ---
 
 # Fitting
