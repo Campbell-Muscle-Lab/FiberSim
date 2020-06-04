@@ -1,6 +1,6 @@
 {
   "options": {
-    "log_folder": ".\\output\\log",
+    "log_folder": ".\\log",
     "dump_hs_status": 1,
     "particle_no": 43,
     "no_of_repeats": 5,
