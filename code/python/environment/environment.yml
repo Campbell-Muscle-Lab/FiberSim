@@ -157,5 +157,5 @@ dependencies:
     - jgrapht==0.0.2
     - pyswarms==1.1.0
     - tqdm==4.43.0
-prefix: C:\Users\kscamp3\.conda\envs\FiberSim
+prefix: C:\Users\kscamp3\AppData\Local\Continuum\anaconda3\envs\FiberSim
 
