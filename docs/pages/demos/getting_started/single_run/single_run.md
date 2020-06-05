@@ -14,13 +14,14 @@ This demo shows you how to run a single simulation in FiberSim.
 
 ## Background
 
-If you read the documentation, you will see that the FiberSim suite is composed of
-+ the [core model - link to be fixed](../core_model/core_model.html)
+You will see from this website that the FiberSim suite is composed of two main components
+
++ [FiberCpp](../../../FiberCpp/FiberCpp.html)
   + which
     + implements the calculations underlying the simulation
     + is written in C++ for speed
     + is a low-level console application stored as `FiberSim.exe` in `repo/bin`
-+ the [utilities - link to be fixed](../inteface/interface.html)
++ [FiberPy](../../../FiberPy/FiberPy.html)
   + which
     + make it easier to
       + run simulations
