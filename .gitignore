@@ -27,7 +27,7 @@ x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
-#[Bb]in/ - needed to distrbute binary
+#[Bb]in/ - needed to distribute binary
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
@@ -373,7 +373,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+#lib/ - needed to include the gsl libraries
 lib64/
 parts/
 sdist/

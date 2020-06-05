@@ -287,7 +287,7 @@ void FiberSim_model::write_FiberSim_model_to_file(void)
 
     // Code
     sprintf_s(output_file_string, _MAX_PATH, "%s\\%s",
-        p_fs_options->log_folder, "FiberSim_model.log");
+        p_fs_options->log_folder, "FiberSim_model.json");
 
     errno_t err = fopen_s(&output_file, output_file_string, "w");
     if (err != 0)
