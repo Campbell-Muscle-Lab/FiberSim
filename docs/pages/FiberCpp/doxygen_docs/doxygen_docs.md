@@ -1,5 +1,6 @@
 ---
 title: Doxygen docs
+parent: FiberCpp
 has_children: false
 nav_order: 3
 ---
