@@ -12,7 +12,7 @@ The main components are:
 + [FiberCpp](pages/FiberCpp/FiberCpp.html) - the core model which implements the calculations underlying the simulations
 + [FiberPy](pages/FiberPy/FiberPy.html) - code that makes it easier to use the software to perform numerical experiments.
 
-The [demos](pages/demos/demos.html) show how to visualize the model, as in the picture below.
+The [demos](pages/demos/demos.html) show how to run simulations and visualize the model, as in the picture below.
 
 ![Render of FiberSim](FiberSim_render.png)
 
