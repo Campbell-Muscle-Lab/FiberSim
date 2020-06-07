@@ -48,8 +48,8 @@ The batch process and simulation options are included at the bottom of this page
 + Start Anaconda Navigator
 + Select the Environments tab (left-hand side)
 + Open a FiberSim terminal
-+ Change directory to `repo/code/python/FiberSim_utilities`
-+ Type `python FiberSim_utilities.py demos getting_started single_run`
++ Change directory to `<repo>/code/FiberPy/FiberPy`
++ Type `python FiberPy.py demos getting_started single_run`
 + You should see
   + some text appearing in the terminal window
   + a new figure popping up
