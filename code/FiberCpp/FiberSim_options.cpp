@@ -60,7 +60,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
         }
 
         // Create the log file
-        sprintf_s(log_file_string, _MAX_PATH, "%s\\log_file.log", log_folder);
+        sprintf_s(log_file_string, _MAX_PATH, "%s/log_file.log", log_folder);
         errno_t err = fopen_s(&log_file, log_file_string, "w");
         if (err != 0)
         {
@@ -76,7 +76,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
         // Check whether we need another folder for the hs_status files
         if (dump_hs_status)
         {
-            sprintf_s(hs_status_folder, _MAX_PATH, "%s\\%s", log_folder, "hs_status");
+            sprintf_s(hs_status_folder, _MAX_PATH, "%s/%s", log_folder, "hs_status");
             if (create_directory(hs_status_folder))
             {
                 printf("HS status folder created at :%s\n", hs_status_folder);

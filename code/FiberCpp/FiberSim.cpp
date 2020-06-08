@@ -4,15 +4,16 @@
  * @author  Ken Campbell
  */
 
-#include <iostream>
-
 #include <stdio.h>
-#include <gsl/gsl_sf_bessel.h>
+#include <iostream>
+#include <filesystem>
 
 #include "muscle.h"
 
 // Pointers
 muscle* p_muscle;       /**< pointer to a muscle */
+
+using namespace std::filesystem;
 
 int main(int argc, char* argv[])
 {
@@ -22,14 +23,6 @@ int main(int argc, char* argv[])
  */
 
     std::cout << "Hello World!\n";
-    
-    double x = 5.0;
-
-/**
- a test of GSL
- */
-    double y = gsl_sf_bessel_J0(x);
-    printf("J0(%g) = %.18e\n", x, y);
 
     // Variables
     char model_file_string[_MAX_PATH];
@@ -46,8 +39,11 @@ int main(int argc, char* argv[])
     // Make a muscle
     p_muscle = new muscle(model_file_string, options_file_string);
 
+    // Create a path to the results folder
+    path results_path(results_folder);
+
     // Run the protocol
-    p_muscle->implement_protocol(protocol_file_string, results_folder);
+    p_muscle->implement_protocol(protocol_file_string, results_path);
 
     // Tidy up
     delete p_muscle;

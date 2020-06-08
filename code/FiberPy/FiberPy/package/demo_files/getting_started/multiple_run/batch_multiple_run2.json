@@ -1,0 +1,35 @@
+{
+    "FiberSim_batch": {
+        "FiberSim_exe_path": "../../../bin/FiberSim.exe",
+        "job":[
+            {
+                "input_folder": "package/demo_files/getting_started/multiple_run/90",
+                "model_file_string": "model_multiple_run.json",
+                "options_file_string": "options_multiple_run.json",
+                "protocol_file_string": "pCa90_protocol.txt",
+                "output_folder": "package/demo_files/temp/multiple_run/90"
+            },
+            {
+                "input_folder": "package/demo_files/getting_started/multiple_run/60",
+                "model_file_string": "model_multiple_run.json",
+                "options_file_string": "options_multiple_run.json",
+                "protocol_file_string": "pCa60_protocol.txt",
+                "output_folder": "package/demo_files/temp/multiple_run/60"
+            },
+            {
+                "input_folder": "package/demo_files/getting_started/multiple_run/58",
+                "model_file_string": "model_multiple_run.json",
+                "options_file_string": "options_multiple_run.json",
+                "protocol_file_string": "pCa58_protocol.txt",
+                "output_folder": "package/demo_files/temp/multiple_run/58"
+            },
+            {
+                "input_folder": "package/demo_files/getting_started/multiple_run/45",
+                "model_file_string": "model_multiple_run.json",
+                "options_file_string": "options_multiple_run.json",
+                "protocol_file_string": "pCa45_protocol.txt",
+                "output_folder": "package/demo_files/temp/multiple_run/45"
+            }
+        ]
+    }
+}

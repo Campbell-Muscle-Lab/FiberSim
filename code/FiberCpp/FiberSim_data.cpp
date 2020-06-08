@@ -93,20 +93,22 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 	}
 
 	// Make a new clean version of the results directory
+	path results_file_path(output_file_string);
 
-	path results_file_string(output_file_string);
-	if (is_directory(results_file_string.parent_path()))
+	if (is_directory(results_file_path.parent_path()))
 	{
-		// Remove the directory as well as files
-		remove_all(results_file_string.parent_path());
+		std::cout << "\nAttempting to remove results directory: " << results_file_path.parent_path().string() << "\n";
+		remove_all(results_file_path.parent_path());
+		std::cout << "Results directory removed: " << results_file_path.parent_path().string() << "\n";
 	}
-	if (create_directory(results_file_string.parent_path()))
+
+	if (create_directories(results_file_path.parent_path()))
 	{
-		std::cout << "Results folder created: " << results_file_string.parent_path() << "\n";
+		std::cout << "\nResults folder created: " << results_file_path.parent_path().string() << "\n";
 	}
 	else
 	{
-		std::cout << "Results folder could not be created: " << results_file_string.parent_path() << "\n";
+		std::cout << "\nError: Results folder could not be created: " << results_file_path.parent_path().string() << "\n";
 		exit(1);
 	}
 
@@ -117,6 +119,10 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 		printf("Results file: %s\ncould not be opened\n",
 			output_file_string);
 		exit(1);
+	}
+	else
+	{
+		std::cout << "\nWriting data to: " << results_file_path.string() << "\n";
 	}
 
 	// Write header
@@ -182,4 +188,6 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 
 	// Tidy up
 	fclose(output_file);
+
+	std::cout << "Finished writing data to: " << results_file_path.string() << "\n";
 }

@@ -6,6 +6,8 @@
  * @author  Ken Campbell
  */
 
+#include <filesystem>
+
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
 
@@ -17,6 +19,7 @@ class FiberSim_options;
 class FiberSim_data;
 class half_sarcomere;
 
+using namespace std::filesystem;
 
 class muscle
 {
@@ -49,7 +52,7 @@ public:
     * @param set_protocol_file_string[] a char array with the file string for the protocol
     * @return void
     */
-    void implement_protocol(char set_protocol_file_string[], char set_results_file_string[]);
+    void implement_protocol(char set_protocol_file_string[], path results_path);
 
     /**
     * implement_time_step(int protocol_index)

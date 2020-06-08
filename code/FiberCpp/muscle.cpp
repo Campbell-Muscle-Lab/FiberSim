@@ -4,6 +4,9 @@
  * @author  Ken Campbell
   */
 
+#include <iostream>
+#include <filesystem>
+
 #include "muscle.h"
 
 #include "FiberSim_model.h"
@@ -16,7 +19,8 @@
 
 #include "rapidjson\document.h"
 #include "rapidjson\istreamwrapper.h"
-#include <fstream>
+
+using namespace std::filesystem;
 
 // Constructor
 muscle::muscle(char set_model_file_string[], char set_options_file_string[])
@@ -65,17 +69,19 @@ muscle::~muscle()
 
 // Functions
 
-void muscle::implement_protocol(char set_protocol_file_string[], char results_folder[])
+void muscle::implement_protocol(char set_protocol_file_string[], path results_path)
 {
 	//! Code runs a muscle through a protocol
 
 	// Variables
-	char results_file_string[_MAX_PATH];		// Results folder
+	path results_file_path(results_path / "results.txt");
+	
+	char results_file_string[_MAX_PATH];		// file holding summary results
 
 	// Code
 
 	// Set the main results file
-	sprintf_s(results_file_string, _MAX_PATH, "%s\\results.txt", results_folder);
+	sprintf_s(results_file_string, _MAX_PATH, "%s", results_file_path.string().c_str());
 
 	// Update the protocol file_string
 	sprintf_s(protocol_file_string, _MAX_PATH, "%s", set_protocol_file_string);
@@ -102,7 +108,7 @@ void muscle::implement_protocol(char set_protocol_file_string[], char results_fo
 	// Output main results file
 	if (strlen(results_file_string) > 0)
 	{
-		printf("Muscle[%i]: Writing output to: %s\n", muscle_id, results_file_string);
+		printf("Muscle[%i]: Attempting to write results to: %s\n", muscle_id, results_file_string);
 		p_fs_data->write_data_to_delimited_file(results_file_string);
 	}
 

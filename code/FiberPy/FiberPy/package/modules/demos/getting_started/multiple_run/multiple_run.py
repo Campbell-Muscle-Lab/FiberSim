@@ -34,10 +34,8 @@ def demo_multiple_run():
         batch_data = json_data['FiberSim_batch']
         job_data = batch_data['job']
         for j in job_data:
-            print("j_output_folder %s" % j['output_folder'])
             results_file_string = Path(j['output_folder'],'results.txt')
-            print("results_file_string: %s" % results_file_string)
-            
+           
             fs_data = pd.read_table(results_file_string)
             
             ax_0_0.plot('time', 'force', data=fs_data)

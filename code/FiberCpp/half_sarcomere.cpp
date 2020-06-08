@@ -210,10 +210,6 @@ half_sarcomere::half_sarcomere(
     rand_generator = gsl_rng_alloc(T);
     gsl_rng_set(rand_generator,
         unsigned long(100 * (p_parent_m->muscle_id + 1) + (hs_id + 1)));
-
-    printf("Generator type: %s\n", gsl_rng_name(rand_generator));
-    for (int i = 0; i < 10; i++)
-        printf("[%i]: %g\n", i, gsl_rng_uniform(rand_generator));
 }
 
 // Destructor
