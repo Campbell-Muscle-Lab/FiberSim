@@ -17,7 +17,7 @@ def demo_single_run_with_log():
    
     # Display the results
     an = anal()
-    an.display_data("package/demo_files/temp/single_run/results.txt")
+    an.display_data("package/demo_files/temp/single_run_with_log/results.txt")
 
 if __name__ == "__main__":
     demo_single_run_with_log()               

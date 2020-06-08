@@ -15,4 +15,6 @@ FiberCpp is designed to run simulations as quickly and efficiently as possible. 
 
 Most people will find it easier to run FiberCpp simulations via [FiberPy](../FiberPy/FiberPy.html). See the [demos](../demos/demos.html) for many examples.
 
-Note that users can implement different types of kinetic scheme for both myosin and myosin binding protein-C using the [kinetic_scheme](../structures/model/kinetic_scheme/kinetic_scheme.html) in the [model_file](../structures/model/model.html). Only those adding new features to the model (or trying to [fix bugs](http://github.com/campbell-muscle-lab/FiberSim/issues) will need to work directly with the FiberCpp source code. 
+Note that users can implement different types of kinetic scheme for both myosin and myosin binding protein-C by changing the relevant [kinetic_scheme](../structures/model/kinetic_scheme/kinetic_scheme.html) in the FiberSim [model_file](../structures/model/model.html).
+
+Only those adding new features to the model (or trying to [fix bugs](http://github.com/campbell-muscle-lab/FiberSim/issues)) will need to work directly with FiberCpp. 
