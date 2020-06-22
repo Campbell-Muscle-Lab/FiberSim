@@ -8,18 +8,20 @@ layout: table_wrappers
 {% include head.html %}
 <body>
 
-<!-- 
-<script type="text/x-mathjax-config"> MathJax.Hub.Config({ TeX: { equationNumbers: { autoNumber: "none" } } }); </script> 
--->
+<!-- Modifications of the default theme from pmarsceill/just-the-docs to allow for Latex-like equations  -->
+
+<script type="text/x-mathjax-config"> MathJax.Hub.Config({ TeX: { equationNumbers: { autoNumber: "none" } } }); </script> <!-- allows ("all") or prevent "none" the numbering of equations -->
+
 
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
   tex2jax: {
     inlineMath: [['$','$'], ['\\(','\\)']],
 	displayMath: [ ['$$', '$$'] ],
-    processEscapes: true
+    processEscapes: true,
+	processEnvironments: true
 	}
-});
+}); <!-- sets property of MathJax for embedding Latex-like equations -->
 
 
 </script>

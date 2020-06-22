@@ -2,7 +2,7 @@
 title: Calculations
 parent: FiberCpp
 has_children: false
-nav_order: 3
+nav_order: 4
 ---
 
 # Calculations
@@ -15,27 +15,39 @@ FiberSim is a spatially-explicit model of a half-sarcomere. It describes a compl
 
 Thin filaments are composed of nodes joined by linear springs of stiffness $k_{a}$ with a resting length $a_{rl}$. If the position of the $i^{th}$ node along an x-axis is noted $a_i$, then the force-balance equations for the thin filament can be written as:
 
-$$ 2 \, k_a \, a_1 - k_a \, a_2 = 0 $$
+$$ 2 \, k_a \, a_1 - k_a \, a_2 = 0$$
 
-$$ -  k_a \, a_{i-1} + 2 \, k_a \, a_i - k_a \, a_{i+1} = 0 \,\,\, \text{for} \, 1 \lt i \lt n $$
+$$ -  k_a \, a_{i-1} + 2 \, k_a \, a_i - k_a \, a_{i+1} = 0 \,\,\, \text{for} \, 1 \lt i \lt n$$
 
-$$ -k_a \, a_{n-1} + k_a \, a_n = k_a \, a_{rl} $$
+$$ -k_a \, a_{n-1} + k_a \, a_n = k_a \, a_{rl}$$
 
 ## Myosin filaments
 
 Thick filaments are composed of nodes joined by linear springs of stiffness $k_{m}$ with a resting length $m_{rl}$. A rigid link of length $\lambda$ connects the thick filament to the M-line. If the position of the $i^{th}$ node along an x-axis is noted $m_i$, and the half-sarcomere length is noted $l_{hs}$, then the force-balance equations for the thick filament can be written as:
 
-$$ 2 \, k_m \, m_1 - k_m \, m_2 = k_m \, (l_{hs}- \lambda) $$
+$$ 2 \, k_m \, m_1 - k_m \, m_2 = k_m \, (l_{hs}- \lambda)$$
 
-$$ -  k_m \, m_{i-1} + 2 \, k_m \, m_i - k_m \, m_{i+1} = 0 \,\,\, \text{for} \, 1 \lt i \lt n $$
+$$ -  k_m \, m_{i-1} + 2 \, k_m \, m_i - k_m \, m_{i+1} = 0 \,\,\, \text{for} \, 1 \lt i \lt n$$
 
-$$ k_m \, m_{n-1} - k_m \, m_n = k_m \, m_{rl} $$
+$$ k_m \, m_{n-1} - k_m \, m_n = k_m \, m_{rl}$$
 
 The system of equations for the thin and thick filament can be written in matrix form:
 
-$$ K x = F $$
+$$ K x = F$$
 
-where $K$ is a matrix containing the springs stiffness, $x$ is a vector containing the positions of the actin and myosin nodes ($a_i$ and $m_i$, respectively) and F is a vector containing the constant terms (independent of nodes positions). $K$ is a tridiagonal matrix and numerical methods exist to solve $ K x = F $ for $x$.
+where $K$ is a matrix containing the springs stiffness, $x$ is a vector containing the positions of the actin and myosin nodes ($a_i$ and $m_i$, respectively) and $F$ is a vector containing the constant terms (independent of nodes positions). $K$ is a tridiagonal matrix:
+
+\begin{eqnarray}
+K = \begin{pmatrix}
+\unicode{x23} & \unicode{x23} & & 0 \\\
+\unicode{x23} & \ddots & \ddots &  \\\
+& \ddots & \ddots &  \unicode{x23} \\\
+0 &  & \unicode{x23} & \unicode{x23}
+\end{pmatrix}
+\end{eqnarray}
+
+and numerical methods exist to solve $$ K x = F$$ for $x$.
+
 
 ## Crossbridge links 
 
@@ -51,15 +63,26 @@ $$f_{cb} = k_{cb} \, (m_j - a_i + x_{ps})$$
 
 where  $k_{cb}$ is the crossbridge spring stiffness and $x_{ps}$ is the crossbridge extension when deploying the power stroke.
 
-This additional force on the filaments should be added to the force-balance equations:
+This additional force on the filaments should be added to the force-balance equations :
 
 $$-  k_a \, a_{i-1} + 2 \, k_a \, a_i - k_a \, a_{i+1} \, \color{red}{- \, k_{cb} \, a_i + k_{cb} \, m_j} = \color{blue}{f_{cb} \, x_{ps}}$$
 
 $$-  k_m \, m_{j-1} + 2 \, k_m \, m_j - k_m \, m_{j+1} \, \color{red}{+ \, k_{cb} \, a_i - k_{cb} \, m_j} = \color{blue}{-f_{cb} \, x_{ps}}$$ 
 
-The terms in red will add non-tridiagonal, opposite elements to the $K$ matrix, while the blue terms will contribute to the $F$ vector. 
+The terms in red will add non-tridiagonal, opposite elements to the $K$ matrix: 
 
-Crossbridge linking toughen the numerical solving of $K x = F$, which notably requires an iterative procedure to find a solution $x$ that satisfies a certain precision. 
+\begin{eqnarray}
+K = \begin{pmatrix}
+\unicode{x23} & \unicode{x23} & \color{red}{\unicode{x23}} & 0 \\\
+\unicode{x23} & \ddots & \ddots &  \\\
+\color{red}{-\unicode{x23}} & \ddots & \ddots &  \unicode{x23} \\\
+0 &  & \unicode{x23} & \unicode{x23}
+\end{pmatrix}
+\end{eqnarray}
+
+while the blue terms will contribute to the $F$ vector. 
+
+Crossbridge linking toughens the numerical solving of $$K x = F$$, which notably requires an iterative procedure to find a solution $x$ that satisfies a certain precision. 
 
 ## Titin 
 
