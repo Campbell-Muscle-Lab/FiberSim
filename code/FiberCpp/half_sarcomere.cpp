@@ -1790,7 +1790,7 @@ void half_sarcomere::handle_lattice_event(char mol_type, transition* p_trans,
         switch (p_trans->transition_type)
         {
             case 'a':
-                p_af[thin_f]->bound_to_m_type[thick_n] = 1;
+                p_af[thin_f]->bound_to_m_type[thin_n] = 1;
                 p_af[thin_f]->bound_to_m_f[thin_n] = thick_f;
                 p_af[thin_f]->bound_to_m_n[thin_n] = thick_n;
 
@@ -2240,6 +2240,12 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "bound_to_m_n");
         JSON_functions::write_short_int_array_as_JSON_array(
             p_af[thin_counter]->bound_to_m_n,
+            p_af[thin_counter]->a_no_of_bs, output_file,
+            temp_string, false);
+
+        sprintf_s(temp_string, _MAX_PATH, "bound_to_m_type");
+        JSON_functions::write_short_int_array_as_JSON_array(
+            p_af[thin_counter]->bound_to_m_type,
             p_af[thin_counter]->a_no_of_bs, output_file,
             temp_string, false);
 
