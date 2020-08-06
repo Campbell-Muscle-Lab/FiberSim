@@ -127,7 +127,7 @@ namespace JSON_functions {
 
     //! Writes gsl_vector to JSON file
     void write_gsl_vector_as_JSON_array(gsl_vector* p_v, FILE* output_file,
-        char label_string[], bool is_last_entry)
+        char label_string[], bool is_last_entry, int precision)
     {
         // Code writes a gsl_vector to the file which must be open
 
@@ -137,7 +137,7 @@ namespace JSON_functions {
         // Write the values
         for (int i = 0; i < (p_v->size); i++)
         {
-            fprintf(output_file, "%.10g", gsl_vector_get(p_v, i));
+            fprintf(output_file, "%.*F", precision, gsl_vector_get(p_v, i));
             if (i == ((p_v->size) - 1))
             {
                 // It's the last entry in the array

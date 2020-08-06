@@ -863,6 +863,7 @@ void half_sarcomere::initialise_nearest_actin_matrix(void)
     int col_start;
     int col_index;
     int counter;
+    int temp;
     
     // Code
 
@@ -969,6 +970,17 @@ void half_sarcomere::initialise_nearest_actin_matrix(void)
     {
         a_m_matrix[n_rows - 1][c - 1] = a_m_matrix[0][c];
     }
+
+    if (GSL_IS_EVEN(m_n))
+    {
+        for (c = 0; c < m_rows; c++) {
+            col_index = 2 * c;
+            temp = a_m_matrix[n_rows - 1][col_index];
+            a_m_matrix[n_rows - 1][col_index] = a_m_matrix[n_rows - 1][col_index + 1];
+            a_m_matrix[n_rows - 1][col_index + 1] = temp;
+        }
+    }
+    
     a_m_matrix[n_rows - 1][n_cols - 2] = a_m_matrix[n_rows - 1][0];
     
         
@@ -1800,7 +1812,7 @@ void half_sarcomere::handle_lattice_event(char mol_type, transition* p_trans,
                 break;
 
             case 'd':
-                p_af[thin_f]->bound_to_m_type[thick_n] = 0;
+                p_af[thin_f]->bound_to_m_type[thin_n] = 0;
                 p_af[thin_f]->bound_to_m_f[thin_n] = -1;
                 p_af[thin_f]->bound_to_m_n[thin_n] = -1;
 
@@ -2014,6 +2026,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     // Variables
     FILE* output_file;
     char temp_string[_MAX_PATH];
+    int i;
 
     // Code
 
@@ -2029,13 +2042,39 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     fprintf_s(output_file, "{\n\"hs_data\": {\n");
     fprintf_s(output_file, "\t\"hs_id\": %i,\n", hs_id);
     fprintf_s(output_file, "\t\"time\": %g,\n", time_s);
-    fprintf_s(output_file, "\t\"hs_length\": %g,\n", hs_length);
-    fprintf_s(output_file, "\t\"hs_force\": %g,\n", hs_force);
-    fprintf_s(output_file, "\t\"pCa\": %g,\n", pCa);
+    fprintf_s(output_file, "\t\"hs_length\": %.*g,\n", p_fs_options->dump_precision, hs_length);
+    fprintf_s(output_file, "\t\"hs_force\": %.*g,\n", p_fs_options->dump_precision, hs_force);
+    fprintf_s(output_file, "\t\"pCa\": %.*g,\n", p_fs_options->dump_precision, pCa);
     fprintf_s(output_file, "\t\"m_nodes_per_thick_filament\": %i,\n",
         m_nodes_per_thick_filament);
     fprintf_s(output_file, "\t\"a_nodes_per_thin_filament\": %i,\n",
         a_nodes_per_thin_filament);
+
+    // CB extension parameters
+
+    fprintf_s(output_file, "\t\"cb_extensions\": [");
+    for (i = 0; i < p_m_scheme->no_of_states; i++) {
+
+        fprintf_s(output_file, "%g", p_m_scheme->p_m_states[i]->extension);
+
+        if (i == p_m_scheme->no_of_states - 1)
+        {
+            fprintf_s(output_file, "],\n");
+        }
+        else
+        {
+            fprintf_s(output_file, ", ");
+        }
+    }
+
+    // Titin parameters
+
+    fprintf(output_file, "\"titin\": {\n");
+    fprintf(output_file, "\t\"t_k_stiff\": %.*F,\n", p_fs_options->dump_precision, t_k_stiff);
+    fprintf(output_file, "\t\"t_slack_length\": %.*F,\n", p_fs_options->dump_precision, t_slack_length);
+    fprintf(output_file, "\t\"t_attach_a_node\": %i,\n", t_attach_a_node);
+    fprintf(output_file, "\t\"t_attach_m_node\": %i", t_attach_m_node);
+    fprintf_s(output_file, "},\n");
     
     fprintf_s(output_file, "\"thick\": [\n");
 
@@ -2043,13 +2082,19 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     {
 
         fprintf_s(output_file, "{\n\t\"thick_id\": %i,\n", p_mf[thick_counter]->thick_id);
-        fprintf_s(output_file, "\t\"m_y\": %g,\n", p_mf[thick_counter]->m_y);
-        fprintf_s(output_file, "\t\"m_z\": %g,\n", p_mf[thick_counter]->m_z);
+        fprintf_s(output_file, "\t\"m_y\": %.*F,\n", p_fs_options->dump_precision,
+            p_mf[thick_counter]->m_y);
+        fprintf_s(output_file, "\t\"m_z\": %.*F,\n", p_fs_options->dump_precision,
+            p_mf[thick_counter]->m_z);
         fprintf_s(output_file, "\t\"m_no_of_cbs\": %i,\n", p_mf[thick_counter]->m_no_of_cbs);
-        fprintf_s(output_file, "\t\"m_k_stiff\": %g,\n", m_k_stiff);
-        fprintf_s(output_file, "\t\"m_inter_crown_rest_length\": %g,\n", m_inter_crown_rest_length);
+        fprintf_s(output_file, "\t\"m_k_stiff\": %.*F,\n", p_fs_options->dump_precision,
+            m_k_stiff);
+        fprintf_s(output_file, "\t\"m_k_cb\": %.*F, \n", p_fs_options->dump_precision, m_k_cb);
+        fprintf_s(output_file, "\t\"c_k_stiff\": %.*F,\n", p_fs_options->dump_precision, c_k_stiff);
+        fprintf_s(output_file, "\t\"m_inter_crown_rest_length\": %.*F,\n",
+            p_fs_options->dump_precision, m_inter_crown_rest_length);
         fprintf_s(output_file, "\t\"m_cbs_per_node\": %i,\n", m_cbs_per_node);
-        fprintf_s(output_file, "\t\"m_lambda\": %g,\n", m_lambda);
+        fprintf_s(output_file, "\t\"m_lambda\": %.*F,\n", p_fs_options->dump_precision, m_lambda);
         fprintf_s(output_file, "\t\"c_no_of_pcs\": %i,\n", c_no_of_pcs);
 
         fprintf_s(output_file, "\t\"nearest_actin_filaments\": [");
@@ -2065,12 +2110,12 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "cb_x");
         JSON_functions::write_gsl_vector_as_JSON_array(
             p_mf[thick_counter]->cb_x, output_file,
-            temp_string, false);
+            temp_string, false, p_fs_options->dump_precision);
 
         sprintf_s(temp_string, _MAX_PATH, "cb_angle");
         JSON_functions::write_gsl_vector_as_JSON_array(
             p_mf[thick_counter]->cb_angle, output_file,
-            temp_string, false);
+            temp_string, false, p_fs_options->dump_precision);
 
         sprintf_s(temp_string, _MAX_PATH, "cb_state");
         JSON_functions::write_short_int_array_as_JSON_array(
@@ -2111,7 +2156,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "cb_nearest_bs_angle_diff");
         JSON_functions::write_gsl_vector_as_JSON_array(
             p_mf[thick_counter]->cb_nearest_bs_angle_diff, output_file,
-            temp_string, false);
+            temp_string, false, p_fs_options->dump_precision);
 
         sprintf_s(temp_string, _MAX_PATH, "cb_controlling_pc_index");
         JSON_functions::write_short_int_array_as_JSON_array(
@@ -2123,7 +2168,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "node_forces");
         JSON_functions::write_gsl_vector_as_JSON_array(
             p_mf[thick_counter]->node_forces, output_file,
-            temp_string, false);
+            temp_string, false, p_fs_options->dump_precision);
 
         // MyBPC
         sprintf_s(temp_string, _MAX_PATH, "pc_node_index");
@@ -2135,7 +2180,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "pc_angle");
         JSON_functions::write_gsl_vector_as_JSON_array(
             p_mf[thick_counter]->pc_angle, output_file,
-            temp_string, false);
+            temp_string, false, p_fs_options->dump_precision);
 
         sprintf_s(temp_string, _MAX_PATH, "pc_state");
         JSON_functions::write_short_int_array_as_JSON_array(
@@ -2191,21 +2236,25 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     {
 
         fprintf_s(output_file, "{\n\t\"thin_id\": %i,\n", p_af[thin_counter]->thin_id);
-        fprintf_s(output_file, "\t\"a_y\": %g,\n", p_af[thin_counter]->a_y);
-        fprintf_s(output_file, "\t\"a_z\": %g,\n", p_af[thin_counter]->a_z);
+        fprintf_s(output_file, "\t\"a_y\": %.*F,\n", p_fs_options->dump_precision,
+            p_af[thin_counter]->a_y);
+        fprintf_s(output_file, "\t\"a_z\": %.*F,\n", p_fs_options->dump_precision,
+            p_af[thin_counter]->a_z);
         fprintf_s(output_file, "\t\"a_no_of_bs\": %i,\n", p_af[thin_counter]->a_no_of_bs);
-        fprintf_s(output_file, "\t\"a_k_stiff\": %g,\n", a_k_stiff);
-        fprintf_s(output_file, "\t\"a_inter_bs_rest_length\": %g,\n", a_inter_bs_rest_length);
+        fprintf_s(output_file, "\t\"a_k_stiff\": %.*F,\n", p_fs_options->dump_precision,
+            a_k_stiff);
+        fprintf_s(output_file, "\t\"a_inter_bs_rest_length\": %.*F,\n",
+            p_fs_options->dump_precision, a_inter_bs_rest_length);
 
         sprintf_s(temp_string, _MAX_PATH, "bs_x");
         JSON_functions::write_gsl_vector_as_JSON_array(
             p_af[thin_counter]->bs_x, output_file,
-            temp_string, false);
+            temp_string, false, p_fs_options->dump_precision);
 
         sprintf_s(temp_string, _MAX_PATH, "bs_angle");
         JSON_functions::write_gsl_vector_as_JSON_array(
             p_af[thin_counter]->bs_angle, output_file,
-            temp_string, false);
+            temp_string, false, p_fs_options->dump_precision);
 
         sprintf_s(temp_string, _MAX_PATH, "bs_unit");
         JSON_functions::write_short_int_array_as_JSON_array(

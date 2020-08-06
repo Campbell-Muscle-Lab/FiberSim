@@ -68,9 +68,10 @@ int is_JSON_member(const rapidjson::Value& doc, const char mem_name[]);
 * @param label_string a char array for the label  (for example, "cb_x")
 * @param is_last_entry a boolean saying whether this is the last entry
 *        + if it is not, add a , to the end of the line
+* @param precision the precision that doubles are output with
 */
 void write_gsl_vector_as_JSON_array(gsl_vector* p_v, FILE* output_file,
-    char label_string[], bool is_last_entry);
+    char label_string[], bool is_last_entry, int precision);
 
 /**
 * a function that writes a short inte array to a file as a line in JSON format

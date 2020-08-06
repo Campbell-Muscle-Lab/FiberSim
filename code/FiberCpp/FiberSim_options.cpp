@@ -29,6 +29,8 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 
     max_rate = 5000.0;                      /**< default value for maximum rate allowed
                                                  in calculations */
+
+    dump_precision = 8;                     /**< default value for dump precision */
     
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
 
@@ -177,6 +179,12 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
         max_rate = options["max_rate"].GetDouble();
     }
 
+    // Check if the dump precision was specified.
+    if (JSON_functions::is_JSON_member(options, "dump_precision"))
+    {
+        JSON_functions::check_JSON_member_int(options, "dump_precision");
+        dump_precision = options["dump_precision"].GetInt();
+    }
 
     printf("log folder: %s\n", log_folder);
 
@@ -220,6 +228,7 @@ void FiberSim_options::write_FiberSim_options_to_file(void)
     fprintf_s(output_file, "no_of_repeats: %i\n", no_of_repeats);
     fprintf_s(output_file, "multithreading: %i\n", multithreading);
     fprintf_s(output_file, "max_rate: %g\n", max_rate);
+    fprintf_s(output_file, "dump_precision: %g\n", dump_precision);
 
     // Tidy up
     fclose(output_file);

@@ -61,6 +61,9 @@ public:
 
     double max_rate;                    /**< double defining the maximum rate allowed in calculations */
     
+    int dump_precision;                 /**< integer defining the precision of doubles dumped in the half-
+                                         sarcomere status files */
+
     // Functions
 
     /**
