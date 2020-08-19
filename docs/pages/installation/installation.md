@@ -5,12 +5,8 @@ has_children: True
 ---
 
 # Installation
-{:.no_toc}
 
 These pages discuss how to install FiberSim and the necessary support software.
-
-* TOC
-{:toc}
 
 ## Getting Started With FiberPy
 
