@@ -5,10 +5,12 @@ Created on Wed Feb 12 13:23:48 2020
 @author: kscamp3
 """
 
-from pathlib import Path
 import json
 import multiprocessing
 import threading
+
+from pathlib import Path
+
 import subprocess
 
 def run_batch(json_batch_file_string):
@@ -63,4 +65,28 @@ def run_batch(json_batch_file_string):
 
 def worker(cmd):
     subprocess.call(cmd)
+
+
+def run_my_batch(json_batch_file_string):
+    """Runs FiberSim simulations described in a json batch file"""
+    
+    print("running batch: %s" % json_batch_file_string)
+
+    with open(json_batch_file_string) as json_file:
+        json_data = json.load(json_file)
+        FiberSim_batch = json_data['FiberSim_batch']
+        job_data = FiberSim_batch['job']
+        for i,j in enumerate(job_data):
+            model_file_string = j['model_file_string']
+            options_file_string = j['options_file_string']
+            protocol_file_string = j['protocol_file_string']
+            results_file_string = j['results_file_string']
+
+            # Generate a command
+            exe_string = "..\\FiberSim.exe"
+            
+    cmd = [exe_string, model_file_string, options_file_string, protocol_file_string, results_file_string]
+    subprocess.call(cmd)
+    
+
 
