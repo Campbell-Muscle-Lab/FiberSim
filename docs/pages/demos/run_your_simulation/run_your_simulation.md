@@ -48,7 +48,7 @@ Three instruction files are provided below as examples. The protocol corresponds
 + [Options File](simple/sim_options.json)
 + [Protocol File](simple/protocol.txt)
 
-The model and option files are JSON files. Those structures are used for FiberSim inputs and outputs, as explained [here](../../structures/structures.md).
+The model and option files are JSON files. Those structures are used for FiberSim inputs and outputs. If you would like a more thorough overview of the JSON file structure, including how to read/write JSON files in Matlab and Python, see [this link](http://campbell-muscle-lab.github.io/howtos_json/).
 
 Your directory structure should now look like:
 
@@ -65,7 +65,7 @@ C:\temp\FiberSim_demos\
 
 ## Creating the Batch File
 
-Now that we have all of the necessary instruction files on the local machine, we can focus on how we actually *run* the FiberSim simulation. FiberSim is ran with 'batch' JSON files that describe the simulation(s) that you are wishing to run. More information about FiberSim batch files can be found [here](../../../structures/batch/batch.md). We have included the batch file for running the simulation below.
+Now that we have all of the necessary instruction files on the local machine, we can focus on how we actually *run* the FiberSim simulation. FiberSim is ran with 'batch' JSON files that describe the simulation(s) that you are wishing to run. More information about FiberSim batch files can be found [here](../../structures/batch/batch.md). We have included the batch file for running the simulation below.
 
 The structure for our batch file will be the following (with changes to reflect where you have chosen to store your `FiberSim_demos` directory on your machine):
 

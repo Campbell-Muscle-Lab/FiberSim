@@ -3,7 +3,7 @@ title: Single run with log
 has_children: false
 parent: Getting started
 grand_parent: Demos
-nav_order: 1
+nav_order: 2
 ---
 
 # Single run with log

@@ -1,7 +1,7 @@
 ---
 title: Batch Files
 parent: Structures
-nav_order: 2
+nav_order: 1
 ---
 
 # Batch Files

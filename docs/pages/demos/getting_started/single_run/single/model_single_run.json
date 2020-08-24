@@ -1,17 +1,3 @@
----
-title: Model
-has_children: true
-parent: Structures
-nav_order: 2
----
-
-# Model
-
-FiberSim models
-
-Here is an example
-
-````
 {
   "muscle": {
     "no_of_half_sarcomeres": 1,
@@ -126,4 +112,3 @@ Here is an example
         ]
       }
     }
-````

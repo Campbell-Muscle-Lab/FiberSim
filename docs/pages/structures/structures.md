@@ -6,4 +6,4 @@ has_children: True
 
 # Structures
 
-This and the following pages describe the structures that are used for FiberSim input/output.
+The following pages describe the model and batch files that are used for FiberSim input/output.
