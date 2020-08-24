@@ -73,9 +73,9 @@ The terms in red will add non-tridiagonal, opposite elements to the $K$ matrix:
 
 \begin{eqnarray}
 K = \begin{pmatrix}
-\unicode{x23} & \unicode{x23} & \color{red}{\unicode{x23}} & 0 \\\
-\unicode{x23} & \ddots & \ddots &  \\\
-\color{red}{-\unicode{x23}} & \ddots & \ddots &  \unicode{x23} \\\
+\unicode{x23} & \unicode{x23} & \color{red}{\unicode{x23}} & 0 \\\\
+\unicode{x23} & \ddots & \ddots &  \\\\
+\color{red}{-\unicode{x23}} & \ddots & \ddots &  \unicode{x23} \\\\
 0 &  & \unicode{x23} & \unicode{x23}
 \end{pmatrix}
 \end{eqnarray}
