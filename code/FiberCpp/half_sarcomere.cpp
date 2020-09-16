@@ -1881,78 +1881,84 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
     // Loop through thin filaments
     for (int a_counter = 0; a_counter < a_n; a_counter++)
     {
-        // Loop through regulatory units
-        for (int unit_counter = 0; unit_counter < (a_strands_per_filament * a_regulatory_units_per_strand) ;
-                unit_counter++)
+        // Loop through strands
+        for (int str_counter = 0; str_counter < a_strands_per_filament; str_counter++)
         {
-            // Deduce the status of the neighbors
-            if (unit_counter >= a_strands_per_filament)
-                down_neighbor_status = p_af[a_counter]->unit_status[unit_counter - a_strands_per_filament];
-            else
-                down_neighbor_status = -1;
-
-            if (unit_counter < (a_regulatory_units_per_strand - a_strands_per_filament - 1))
-                up_neighbor_status = p_af[a_counter]->unit_status[unit_counter + a_strands_per_filament];
-            else
-                up_neighbor_status = -1;
-
-            // Set the indices for the unit
-            p_af[a_counter]->set_regulatory_unit_indices(unit_counter, bs_indices);
-
-            if (p_af[a_counter]->unit_status[unit_counter] == 0)
+            // Loop through regulatory units
+            for (int unit = 0; unit < a_regulatory_units_per_strand; unit++)
             {
-                // Site is off and can turn on
-                coop_boost = 0.0;
-                if (down_neighbor_status == 1)
-                    coop_boost = coop_boost + a_k_coop;
-                if (up_neighbor_status == 1)
-                    coop_boost = coop_boost + a_k_coop;
+                int unit_counter = str_counter + unit * a_strands_per_filament;
 
-                rate = a_k_on * Ca_conc * (1.0 + coop_boost);
+                // Deduce the status of the neighbors
+                if (unit_counter >= a_strands_per_filament)
+                    down_neighbor_status = p_af[a_counter]->unit_status[unit_counter - a_strands_per_filament];
+                else
+                    down_neighbor_status = -1;
 
-                // Test event with a random number
-                rand_double = gsl_rng_uniform(rand_generator);
+                if (unit_counter <= (a_strands_per_filament * a_regulatory_units_per_strand - a_strands_per_filament - 1))
+                    up_neighbor_status = p_af[a_counter]->unit_status[unit_counter + a_strands_per_filament];
+                else
+                    up_neighbor_status = -1;
 
-                if (rand_double > exp(-rate * time_step))
+                // Set the indices for the unit
+                p_af[a_counter]->set_regulatory_unit_indices(unit_counter, bs_indices);
+                
+                if (p_af[a_counter]->unit_status[unit_counter] == 0)
                 {
-                    // Unit activates
-                    for (int i = 0; i < a_bs_per_unit; i++)
-                        p_af[a_counter]->bs_state[bs_indices[i]] = 1;
-                }
-            }
-            else
-            {
-                // Site might turn off if it is empty
-                unit_occupied = 0;
-                for (int i = 0; i < a_bs_per_unit; i++)
-                    if (p_af[a_counter]->bound_to_m_f[bs_indices[i]] != -1)
-                    {
-                        unit_occupied = 1;
-                        break;
-                    }
-
-                if (unit_occupied == 0)
-                {
+                    // Site is off and can turn on
                     coop_boost = 0.0;
-                    if (down_neighbor_status == 0)
+                    if (down_neighbor_status == 1)
                         coop_boost = coop_boost + a_k_coop;
-                    if (up_neighbor_status == 0)
+                    if (up_neighbor_status == 1)
                         coop_boost = coop_boost + a_k_coop;
 
-                    rate = a_k_off * (1.0 + coop_boost);
+                    rate = a_k_on * Ca_conc * (1.0 + coop_boost);
 
                     // Test event with a random number
                     rand_double = gsl_rng_uniform(rand_generator);
 
                     if (rand_double > exp(-rate * time_step))
                     {
-                        // Unit deactivates
+                        // Unit activates
                         for (int i = 0; i < a_bs_per_unit; i++)
-                            p_af[a_counter]->bs_state[bs_indices[i]] = 0;
+                            p_af[a_counter]->bs_state[bs_indices[i]] = 1;
+                    }
+                }
+                else
+                {
+                    // Site might turn off if it is empty
+                    unit_occupied = 0;
+                    for (int i = 0; i < a_bs_per_unit; i++)
+                        if (p_af[a_counter]->bound_to_m_f[bs_indices[i]] != -1)
+                        {
+                            unit_occupied = 1;
+                            break;
+                        }
+
+                    if (unit_occupied == 0)
+                    {
+                        coop_boost = 0.0;
+                        if (down_neighbor_status == 0)
+                            coop_boost = coop_boost + a_k_coop;
+                        if (up_neighbor_status == 0)
+                            coop_boost = coop_boost + a_k_coop;
+
+                        rate = a_k_off * (1.0 + coop_boost);
+
+                        // Test event with a random number
+                        rand_double = gsl_rng_uniform(rand_generator);
+
+                        if (rand_double > exp(-rate * time_step))
+                        {
+                            // Unit deactivates
+                            for (int i = 0; i < a_bs_per_unit; i++)
+                                p_af[a_counter]->bs_state[bs_indices[i]] = 0;
+                        }
                     }
                 }
             }
         }
+
     }
 
     // Update unit status for next round
@@ -1963,6 +1969,7 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
     // Tidy up
     delete bs_indices;
+
 }
 
 void half_sarcomere::write_gsl_spmatrix_to_file(gsl_spmatrix* p_sparse_matrix, char output_file_string[])
@@ -2277,7 +2284,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "unit_status");
         JSON_functions::write_short_int_array_as_JSON_array(
             p_af[thin_counter]->unit_status,
-            p_af[thin_counter]->a_regulatory_units_per_strand, output_file,
+            p_af[thin_counter]->a_regulatory_units_per_strand*a_strands_per_filament, output_file,
             temp_string, false);
 
         sprintf_s(temp_string, _MAX_PATH, "bound_to_m_f");
