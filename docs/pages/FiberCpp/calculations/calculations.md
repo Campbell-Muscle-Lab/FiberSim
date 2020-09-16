@@ -37,6 +37,7 @@ The system of equations for the thin and thick filament can be written in matrix
 
 where $K$ is a matrix containing the springs stiffness, $x$ is a vector containing the positions of the actin and myosin nodes ($a_i$ and $m_i$, respectively) and $F$ is a vector containing the constant terms (independent of nodes positions). $K$ is a tridiagonal matrix:
 
+++
 \begin{eqnarray}
 K = \begin{pmatrix}
 \unicode{x23} & \unicode{x23} & & 0 \\\
@@ -45,6 +46,7 @@ K = \begin{pmatrix}
 0 &  & \unicode{x23} & \unicode{x23}
 \end{pmatrix}
 \end{eqnarray}
+++
 
 and numerical methods exist to solve +Kx=F+ for $x$.
 
