@@ -39,7 +39,7 @@ where $K$ is a matrix containing the springs stiffness, $x$ is a vector containi
 
 
 <p align="center">
-  <img alt="sarc_lattice" src="K_matrix_a.PNG">
+  <img alt="K_matrix_a" src="K_matrix_a.png">
 </p>
 
 
@@ -69,7 +69,7 @@ This additional force on the filaments should be added to the force-balance equa
 The terms in red will add non-tridiagonal, opposite elements to the $K$ matrix: 
 
 <p align="center">
-  <img alt="sarc_lattice" src="K_matrix_b.PNG">
+  <img alt="K_matrix_a" src="K_matrix_b.png">
 </p>
 
 while the blue terms will contribute to the $F$ vector. 

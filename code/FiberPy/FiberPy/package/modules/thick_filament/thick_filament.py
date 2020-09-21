@@ -12,12 +12,18 @@ class thick_filament():
     
     def __init__(self, thick_data):
         
+        self.thick_id = thick_data['thick_id']
         self.m_no_of_cbs = thick_data['m_no_of_cbs']
         self.m_k_stiff = thick_data['m_k_stiff']
+        self.m_k_cb = thick_data['m_k_cb']
+        self.c_k_stiff = thick_data['c_k_stiff']
         self.m_inter_crown_rest_length = thick_data['m_inter_crown_rest_length']
         self.m_cbs_per_node = thick_data['m_cbs_per_node']
         self.m_lambda = thick_data['m_lambda']
         self.c_no_of_pcs = thick_data['c_no_of_pcs']
+                
+        self.m_y = thick_data['m_y']
+        self.m_z = thick_data['m_z']
         
         self.nearest_actin_filaments = \
             np.array(thick_data['nearest_actin_filaments'])
@@ -36,6 +42,10 @@ class thick_filament():
             np.array(thick_data['cb_nearest_a_n']).astype(int)
         self.pc_node_index = \
             np.array(thick_data['pc_node_index']).astype(int)
+        self.pc_bound_to_a_f = \
+            np.array(thick_data['pc_bound_to_a_f']).astype(int)
+        self.pc_bound_to_a_n = \
+            np.array(thick_data['pc_bound_to_a_n']).astype(int)
 
         self.pc_x = np.zeros((self.c_no_of_pcs,1))
         for i, ni in enumerate(self.pc_node_index):

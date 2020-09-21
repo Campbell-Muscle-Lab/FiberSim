@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jan 20 17:11:28 2020
+Modified on Monday Jun 22 by Sarah
 
 @author: kscamp3
 """
@@ -12,8 +13,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-from ....modules.thick_filament import thick_filament as thick
-from ....modules.thin_filament import thin_filament as thin
+import sys
+sys.path.append("..") 
+
+from thin_filament import thin_filament as thin
+from thick_filament import thick_filament as thick
 
 
 class half_sarcomere():
@@ -35,6 +39,12 @@ class half_sarcomere():
                hs_data['m_nodes_per_thick_filament']
            self.a_nodes_per_thin_filament = \
                hs_data['a_nodes_per_thin_filament']
+               
+           self.t_attach_a_node = hs_data['titin']['t_attach_a_node']
+           self.t_attach_m_node = hs_data['titin']['t_attach_m_node']
+           self.t_slack_length = hs_data['titin']['t_slack_length']
+           self.t_k_stiff = hs_data['titin']['t_k_stiff']
+           self.cb_extensions = hs_data['cb_extensions']
 
            #Load thick filaments
            thick_fil_data = hs_data['thick']

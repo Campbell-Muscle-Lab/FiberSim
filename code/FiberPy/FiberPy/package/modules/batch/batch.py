@@ -42,7 +42,7 @@ def run_batch(json_batch_file_string):
                                              protocol_file_string,
                                              output_folder)
             
-            print(com_string)
+            #print(com_string)
             
             command_strings.append(com_string)
 
@@ -71,6 +71,9 @@ def run_my_batch(json_batch_file_string):
     """Runs FiberSim simulations described in a json batch file"""
     
     print("running batch: %s" % json_batch_file_string)
+    
+    command_strings = []
+    exe_string = "..\\FiberSim.exe"
 
     with open(json_batch_file_string) as json_file:
         json_data = json.load(json_file)
@@ -83,10 +86,31 @@ def run_my_batch(json_batch_file_string):
             results_file_string = j['results_file_string']
 
             # Generate a command
-            exe_string = "..\\FiberSim.exe"
+            com_string = "%s %s %s %s %s" % (exe_string,
+                                             model_file_string,
+                                             options_file_string,
+                                             protocol_file_string,
+                                             results_file_string)
             
-    cmd = [exe_string, model_file_string, options_file_string, protocol_file_string, results_file_string]
-    subprocess.call(cmd)
+            #print(com_string)
+            
+            command_strings.append(com_string)
+
+    num_processes = multiprocessing.cpu_count()
+    my_list = command_strings
+    
+    threads=[]
+    
+    while threads or my_list:
+        if (len(threads) < num_processes) and my_list:
+            t = threading.Thread(target=worker, args=[my_list.pop()])
+            t.setDaemon(True)
+            t.start()
+            threads.append(t)
+        else:
+            for thread in threads:
+                if not thread.isAlive():
+                    threads.remove(thread)
     
 
 
