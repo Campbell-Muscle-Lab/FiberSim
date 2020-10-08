@@ -1577,8 +1577,15 @@ void half_sarcomere::myosin_kinetics(double time_step)
             cb_state = p_mf[m_counter]->cb_state[cb_counter];
             p_m_state = p_m_scheme->p_m_states[cb_state-1];
 
-            a_f = p_mf[m_counter]->cb_nearest_a_f[cb_counter];
-            a_n = p_mf[m_counter]->cb_nearest_a_n[cb_counter];
+            if (p_m_state->state_type == 'a' || p_m_state->state_type == 'A')
+            {
+                a_f = p_mf[m_counter]->cb_bound_to_a_f[cb_counter];
+                a_n = p_mf[m_counter]->cb_bound_to_a_n[cb_counter];
+            }
+            else {
+                a_f = p_mf[m_counter]->cb_nearest_a_f[cb_counter];
+                a_n = p_mf[m_counter]->cb_nearest_a_n[cb_counter];
+            }
 
             // Set x
             x = gsl_vector_get(p_mf[m_counter]->cb_x, cb_counter) -
@@ -1699,8 +1706,15 @@ void half_sarcomere::mybpc_kinetics(double time_step)
             pc_state = p_mf[m_counter]->pc_state[pc_counter];
             p_state = p_c_scheme->p_m_states[pc_state - 1];
 
-            a_f = p_mf[m_counter]->pc_nearest_a_f[pc_counter];
-            a_n = p_mf[m_counter]->pc_nearest_a_n[pc_counter];
+            if (p_state->state_type == 'a' || p_state->state_type == 'A')
+            {
+                a_f = p_mf[m_counter]->pc_bound_to_a_f[pc_counter];
+                a_n = p_mf[m_counter]->pc_bound_to_a_n[pc_counter];
+            }
+            else {
+                a_f = p_mf[m_counter]->pc_nearest_a_f[pc_counter];
+                a_n = p_mf[m_counter]->pc_nearest_a_n[pc_counter];
+            }
 
             // Set x
             int pc_index = (this->a_n * a_nodes_per_thin_filament) +
