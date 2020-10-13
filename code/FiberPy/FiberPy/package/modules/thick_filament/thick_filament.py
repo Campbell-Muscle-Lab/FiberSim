@@ -42,10 +42,16 @@ class thick_filament():
             np.array(thick_data['cb_nearest_a_n']).astype(int)
         self.pc_node_index = \
             np.array(thick_data['pc_node_index']).astype(int)
+        self.pc_state = \
+            np.array(thick_data['pc_state']).astype(int)
         self.pc_bound_to_a_f = \
             np.array(thick_data['pc_bound_to_a_f']).astype(int)
         self.pc_bound_to_a_n = \
             np.array(thick_data['pc_bound_to_a_n']).astype(int)
+        self.pc_nearest_a_f = \
+            np.array(thick_data['pc_nearest_a_f']).astype(int)
+        self.pc_nearest_a_n = \
+            np.array(thick_data['pc_nearest_a_n']).astype(int)
 
         self.pc_x = np.zeros((self.c_no_of_pcs,1))
         for i, ni in enumerate(self.pc_node_index):
