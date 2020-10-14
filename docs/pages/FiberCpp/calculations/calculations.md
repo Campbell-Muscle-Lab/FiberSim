@@ -84,9 +84,22 @@ Titin is responsible for the passive force developing within the half-sarcomere 
 
 ![Titin](titin.png)
 
-## Myosin-binding Protein C
+## Myosin Binding Protein C
 
-(yet to be written)
+Myosin Binding Protein C (MyBP-C) is a striated muscle contracting protein. It is associated with the thick filaments and located near the center of the sarcomere, in the C-zones. 
+
+ <br>
+
+<p align="center">
+  <img alt="MyBPC" src="c_zone.png">
+</p>
+
+This protein interacts both with myosin and actin and is a modulator of cardiac contractility. In the model, MyBPC can attach to an actin binding site and act as a "non-force-generating crossbridge link" (meaning it cannot undergo a power stroke). Such C-links contribute to the force-balance equations:
+
+ ++f_{pc} = k_{pc} \, (m_j - a_i)++
+ 
+ where  $k_{pc}$ is the C-link stiffness.
+
 
 
 
