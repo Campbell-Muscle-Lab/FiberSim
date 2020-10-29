@@ -26,6 +26,7 @@ class thin_filament():
         self.bs_isoform = np.array(thin_data['bs_isoform']).astype(int)
         self.bound_to_m_f = np.array(thin_data['bound_to_m_f']).astype(int)
         self.bound_to_m_n = np.array(thin_data['bound_to_m_n']).astype(int)
+        self.bound_to_m_type = np.array(thin_data['bound_to_m_type']).astype(int)
         self.nearest_m_f = np.array(thin_data['nearest_m_f']).astype(int)
         self.nearest_m_n = np.array(thin_data['nearest_m_n']).astype(int)
         self.unit_status = np.array(thin_data['unit_status']).astype(int)

@@ -30,6 +30,8 @@ class thick_filament():
         
         self.cb_x = np.array(thick_data['cb_x'])
         self.cb_angle = np.array(thick_data['cb_angle'])
+        self.cb_nearest_bs_angle_diff = np.array(thick_data['cb_nearest_bs_angle_diff'])   
+        self.node_forces = np.array(thick_data['node_forces'])
         self.cb_state = np.array(thick_data['cb_state']).astype(int)
         self.cb_isoform = np.array(thick_data['cb_isoform']).astype(int)
         self.cb_bound_to_a_f = \
