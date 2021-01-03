@@ -65,6 +65,7 @@ half_sarcomere::half_sarcomere(
     hs_length = p_fs_model->initial_hs_length;
     hs_force = 0.0;
     pCa = 0.0;
+    hs_passive_force = 0.0;
 
     // Zero the step_counter
     step_counter = 0;
@@ -308,6 +309,7 @@ size_t half_sarcomere::implement_time_step(double time_step,
 
     unpack_x_vector();
     hs_force = calculate_force();
+    hs_passive_force = calculate_passive_force();
 
     // Calculate mean filament lengths
     calculate_mean_filament_lengths();
@@ -1238,6 +1240,47 @@ double half_sarcomere::calculate_force(void)
     // Return
     return holder;
 }
+
+double half_sarcomere::calculate_passive_force(void)
+{
+    //! Calculate the titin contribution to total force 
+
+    double holder = 0.0;
+
+    // Loop through thick filaments
+
+    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    {
+        int thick_node_index = (a_n * a_nodes_per_thin_filament) +
+            (m_counter * m_nodes_per_thick_filament) +
+            t_attach_m_node - 1;
+
+        double x_m = gsl_vector_get(x_vector, thick_node_index);
+
+        // Loop through surrounding actins
+
+        for (int a_counter = 0; a_counter < 6; a_counter++)
+        {
+            int thin_node_index =
+                (nearest_actin_matrix[m_counter][a_counter] * a_nodes_per_thin_filament) +
+                t_attach_a_node - 1;
+
+            double x_a = gsl_vector_get(x_vector, thin_node_index);
+
+            holder = holder + t_k_stiff * (x_m - x_a - t_slack_length);
+        }
+
+    }
+
+    // Adjust for nm scale of filaments and density of thick filaments
+    // Normalize to the number of thick filaments in the calculation
+    // Return force in N m^-2
+    holder = holder * p_fs_model->m_filament_density * 1e-9 / (double)m_n;
+
+    // Return
+    return holder;
+}
+
 
 void half_sarcomere::update_f0_vector(double delta_hsl)
 {

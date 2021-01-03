@@ -33,6 +33,7 @@ FiberSim_data::FiberSim_data(int set_no_of_time_points,
 	fs_pCa = gsl_vector_alloc(no_of_time_points);
 	fs_length = gsl_vector_alloc(no_of_time_points);
 	fs_force = gsl_vector_alloc(no_of_time_points);
+	fs_passive_force = gsl_vector_alloc(no_of_time_points);
 	fs_a_length = gsl_vector_alloc(no_of_time_points);
 	fs_m_length = gsl_vector_alloc(no_of_time_points);	
 	
@@ -46,6 +47,7 @@ FiberSim_data::FiberSim_data(int set_no_of_time_points,
 	gsl_vector_set_zero(fs_pCa);
 	gsl_vector_set_zero(fs_length);
 	gsl_vector_set_zero(fs_force);
+	gsl_vector_set_zero(fs_passive_force);
 
 	gsl_vector_set_zero(fs_a_length);
 	gsl_vector_set_zero(fs_m_length);
@@ -65,6 +67,7 @@ FiberSim_data::~FiberSim_data(void)
 	gsl_vector_free(fs_pCa);
 	gsl_vector_free(fs_length);
 	gsl_vector_free(fs_force);
+	gsl_vector_free(fs_passive_force);
 
 	gsl_vector_free(fs_a_length);
 	gsl_vector_free(fs_m_length);
@@ -130,6 +133,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 	fprintf_s(output_file, "pCa%c", delimiter);
 	fprintf_s(output_file, "hs_length%c", delimiter);
 	fprintf_s(output_file, "force%c", delimiter);
+	fprintf_s(output_file, "passive_force%c", delimiter);
 	fprintf_s(output_file, "a_fil_length%c", delimiter);
 	fprintf_s(output_file, "m_fil_length%c", delimiter);
 
@@ -160,6 +164,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 			gsl_vector_get(fs_pCa, i), delimiter,
 			gsl_vector_get(fs_length, i), delimiter,
 			gsl_vector_get(fs_force, i), delimiter,
+			gsl_vector_get(fs_passive_force, i), delimiter,
 			gsl_vector_get(fs_a_length, i), delimiter,
 			gsl_vector_get(fs_m_length, i), delimiter);
 

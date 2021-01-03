@@ -58,6 +58,8 @@ public:
     
     double hs_force;                /**< double holding half-sarcomere force */
 
+    double hs_passive_force;        /**< double holding half-sarcomere passive force */
+
     double f_activated;             /**< double holding the proportion of binding sites
                                          that are activated */
 
@@ -354,6 +356,12 @@ public:
     * @return double holding the average force in a thick filament
     */
     double calculate_force(void);
+
+    /**
+    * calculation the titin contribution to total force
+    * @return double holding the average passive force in a thick filament
+    */
+    double calculate_passive_force(void);
 
     /**
     * uses Brent's root-finding method to get a delta_hsl that produces

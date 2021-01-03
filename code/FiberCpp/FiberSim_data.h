@@ -29,7 +29,8 @@ public:
 	~FiberSim_data(void);
 
 	/**
-	* void write_data_to_delimited_file(char output_file_string[], char delimiter)
+	* void write_data_to_delimited_file(char output_file_string[], char 
+	)
 	* @param output_file_string[] a character array holding the output file name
 	* @param delimiter a character holding the delimiter
 	* @return void
@@ -61,6 +62,8 @@ public:
 									 each time-point */
 
 	gsl_vector* fs_force;		/**< gsl_vector holding hs_force for each time-point */
+
+	gsl_vector* fs_passive_force;		/**< gsl_vector holding hs_passive_force for each time-point */
 
 	gsl_matrix* fs_a_pops;		/**< gsl_matrix holding the proportion of binding sites
 									 in each state at each time-point */

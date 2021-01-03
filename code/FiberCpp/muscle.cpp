@@ -160,6 +160,7 @@ void muscle::implement_time_step(int protocol_index)
 	gsl_vector_set(p_fs_data->fs_time, protocol_index, p_hs[0]->time_s);
 	gsl_vector_set(p_fs_data->fs_length, protocol_index, p_hs[0]->hs_length);
 	gsl_vector_set(p_fs_data->fs_force, protocol_index, p_hs[0]->hs_force);
+	gsl_vector_set(p_fs_data->fs_passive_force, protocol_index, p_hs[0]->hs_passive_force);
 	gsl_vector_set(p_fs_data->fs_pCa, protocol_index, p_hs[0]->pCa);
 
 	gsl_vector_set(p_fs_data->fs_a_length, protocol_index, p_hs[0]->a_mean_fil_length);
