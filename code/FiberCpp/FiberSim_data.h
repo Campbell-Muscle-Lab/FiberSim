@@ -29,8 +29,8 @@ public:
 	~FiberSim_data(void);
 
 	/**
-	* void write_data_to_delimited_file(char output_file_string[], char 
-	)
+	* void write_data_to_delimited_file(char output_file_string[], char delimiter)
+
 	* @param output_file_string[] a character array holding the output file name
 	* @param delimiter a character holding the delimiter
 	* @return void

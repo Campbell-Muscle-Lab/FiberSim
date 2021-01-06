@@ -159,7 +159,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 	// Loop through points
 	for (int i = 0; i < no_of_time_points; i++)
 	{
-		fprintf_s(output_file, "%g%c%.3f%c%g%c%g%c%g%c%g%c",
+		fprintf_s(output_file, "%g%c%.3f%c%g%c%g%c%g%c%g%c%g%c",
 			gsl_vector_get(fs_time, i), delimiter,
 			gsl_vector_get(fs_pCa, i), delimiter,
 			gsl_vector_get(fs_length, i), delimiter,
