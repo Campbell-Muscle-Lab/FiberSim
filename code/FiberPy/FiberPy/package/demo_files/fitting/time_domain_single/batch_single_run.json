@@ -1,0 +1,14 @@
+{
+    "FiberSim_batch": {
+        "FiberSim_exe_path": "../../../bin/FiberSim.exe",
+        "job":[
+            {
+                "input_folder": "package/demo_files/getting_started/single_run",
+                "model_file_string": "model_single_run.json",
+                "options_file_string": "options_single_run.json",
+                "protocol_file_string": "pCa45_protocol.txt",
+                "output_folder": "package/demo_files/temp"
+            }
+        ]
+    }
+}

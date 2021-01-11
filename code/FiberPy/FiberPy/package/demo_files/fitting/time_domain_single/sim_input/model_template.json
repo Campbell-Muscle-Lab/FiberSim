@@ -2,7 +2,7 @@
   "muscle": {
     "no_of_half_sarcomeres": 1,
     "no_of_myofibrils": 1,
-    "initial_hs_length": 1615,
+    "initial_hs_length": 1100,
     "m_filament_density": 0.25e15},
   "thick_structure": {
       "m_n": 25,
@@ -25,8 +25,8 @@
       "a_bs_node_spacing": 5.375,
        "a_bs_per_node": 2},
   "titin_structure": {
-      "t_attach_a_node": 50,
-      "t_attach_m_node": 44},
+      "t_attach_a_node": 21,
+      "t_attach_m_node": 54},
   "thin_parameters":{
       "a_no_of_bs_states": 2,
       "a_k_stiff": 100,
@@ -36,8 +36,8 @@
   "thick_parameters":{
       "m_k_stiff": 100},
   "titin_parameters":{
-      "t_k_stiff": 1e-15,
-      "t_slack_length": 250},
+      "t_k_stiff": 1e-4,
+      "t_slack_length": 50},
   "m_parameters": {
       "m_k_cb": 0.0005},
   "m_kinetics": {

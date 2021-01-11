@@ -36,43 +36,43 @@
   "thick_parameters":{
       "m_k_stiff": 100},
   "titin_parameters":{
-      "t_k_stiff": 1e-15,
-      "t_slack_length": 250},
+        "t_k_stiff": 1e-15,
+        "t_slack_length": 250},
   "m_parameters": {
-      "m_k_cb": 0.0005},
+        "m_k_cb": 0.0005},
   "m_kinetics": {
-    "no_of_states": 2,
-    "max_no_of_transitions": 2,
-    "scheme": [
-    {
-      "number": 1,
-      "type": "D",
-      "extension": 0,
-      "transition":
-      [
+        "no_of_states": 2,
+        "max_no_of_transitions": 2,
+        "scheme": [
         {
-        "new_state": 2,
-        "rate_type": "gaussian",
-        "rate_parameters": [100, 0, 3]
-        }
-      ]
-    },
-    {
-      "number": 2,
-      "type": "A",
-      "extension": 7.0,
-      "transition":
-      [
+          "number": 1,
+          "type": "D",
+          "extension": 0,
+          "transition":
+          [
+           {
+            "new_state": 2,
+            "rate_type": "gaussian",
+            "rate_parameters": [100, 0, 3]
+           }
+          ]
+        },
         {
-        "new_state": 1,
-        "rate_type": "poly",
-        "rate_parameters": [100, 5, 4]
-        }
-      ]
-    }
-  ]
-},
-"mybpc_structure":{
+          "number": 2,
+          "type": "A",
+          "extension": 7.0,
+          "transition":
+          [
+           {
+            "new_state": 1,
+            "rate_type": "poly",
+            "rate_parameters": [100, 5, 4]
+           }
+        ]
+      }
+    ]
+  },
+  "mybpc_structure":{
     "c_thick_proximal_node": 10,
     "c_thick_stripes": 10,
     "c_thick_node_spacing": 3,
