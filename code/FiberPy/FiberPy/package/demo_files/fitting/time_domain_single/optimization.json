@@ -18,7 +18,7 @@
                 "options_file_string": "package/demo_files/fitting/time_domain_single/sim_input/sim_options.json",
                 "protocol_file_string": "package/demo_files/fitting/time_domain_single/sim_input/pCa90_ramp_stretch_protocol.txt",
                 "output_folder": "package/demo_files/fitting/time_domain_single/temp/output",
-                "target_file_string": "package/demo_files/fitting/time_domain_single/target/pCa90_ramp_stretch_target.txt"
+                "target_file_string": "package/demo_files/fitting/time_domain_single/_data/pCa90_ramp_stretch_target.txt"
             }
         ]
     },

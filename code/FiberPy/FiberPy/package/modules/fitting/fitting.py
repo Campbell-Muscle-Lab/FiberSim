@@ -229,6 +229,7 @@ class fitting():
         print('Saving fit progress to %s' %
                self.opt_data['figure_fit_progress'])
         fig.savefig(self.opt_data['figure_fit_progress'])
+        plt.close()
 
 
     def create_figure_current_fit(self, fit_data):
@@ -277,6 +278,7 @@ class fitting():
         print('Saving current fit to %s' %
                self.opt_data['figure_current_fit'])
         fig.savefig(self.opt_data['figure_current_fit'])
+        plt.close()
 
 
     def update_model_worker_file(self, job_data):
