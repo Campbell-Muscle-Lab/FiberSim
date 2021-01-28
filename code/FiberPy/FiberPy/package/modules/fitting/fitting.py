@@ -54,6 +54,9 @@ class fitting():
                         
         self.batch_structure = json_data['FiberSim_batch']
 
+        if('initial_delta_hsl' in json_data):
+            self.initial_delta_hsl = json_data['initial_delta_hsl'] 
+
         # Load parameter data
         if ('parameter' not in json_data):
             print('Error: no parameter specified in %s' %
@@ -409,8 +412,10 @@ class fitting():
             model_template = self.replace_item(model_template,
                               p.data['name'], new_value)
 
-        if('initial_delta_hsl' in self.batch_structure):
-            model_template["muscle"]['initial_hs_length'] = model_template["muscle"]['initial_hs_length'] + self.batch_structure['initial_delta_hsl'][job_number]
+        if(hasattr(self, 'initial_delta_hsl')):
+        
+            model_template["muscle"]['initial_hs_length'] = model_template["muscle"]['initial_hs_length'] + self.initial_delta_hsl[job_number]
+
 
         # Now write updated model to file
         with open(job_data['model_file_string'],'w') as f:
