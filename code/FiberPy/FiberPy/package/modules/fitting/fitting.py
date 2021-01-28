@@ -9,8 +9,11 @@ import os
 import json
 import numpy as np
 import pandas as pd
+import math
 
 from shutil import copyfile
+
+from collections import defaultdict
 
 from scipy.optimize import minimize
 
@@ -18,6 +21,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 from package.modules.batch import batch as bat
+from package.modules.analysis import curve_fitting as cv
 
 class fitting():
     """ Class for fitting FiberSim to data """
@@ -93,8 +97,8 @@ class fitting():
             p.data['p_value'] = p_vector[i]
 
         # Now update the model worker files
-        for j in self.batch_structure['job']:
-            self.update_model_worker_file(j)
+        for i, j in enumerate(self.batch_structure['job']):
+            self.update_model_worker_file(i, j)
 
         # Now run batch
         print('Running %.0f jobs as a batch process' %
@@ -107,7 +111,7 @@ class fitting():
         fit_error = fit_data['fit_error']
         self.global_fit_values.append(fit_error)
 
-        # Chegck for best error and implement
+        # Check for best error and implement
         if (fit_error <= self.best_fit_value):
             self.best_fit_value = fit_error
             self.best_fit_data = fit_data
@@ -159,6 +163,9 @@ class fitting():
         if (self.opt_data['fit_mode'] == 'fit_in_time_domain'):
             fit_data = self.evaluate_time_domain_fit()
 
+        if (self.opt_data['fit_mode'] == 'fit_pCa_curve'):
+            fit_data = self.evaluate_pCa_curve_fit()
+
         return fit_data
 
 
@@ -168,7 +175,7 @@ class fitting():
         # Deduce the number of jobs
         no_of_jobs = np.size(self.batch_structure['job'])
         
-        # Create a dictionary to hold data decribing the fit
+        # Create a dictionary to hold data describing the fit
         fit_data = dict()
         fit_data['job'] = []
         fit_data['job_errors'] = np.zeros(no_of_jobs)
@@ -199,6 +206,86 @@ class fitting():
             # fit_data
             fit_data['job'].append(
                 d.filter(items=['time', 'target', self.opt_data['fit_variable']]))
+
+        # Global error
+        fit_data['fit_error'] = np.sum(fit_data['job_errors'])
+
+        # Return results
+        return fit_data
+
+    def evaluate_pCa_curve_fit(self):
+        """ Evaluates pCa curve fit """
+
+        # Get the target data
+
+        target_file_string = self.opt_data['target_file_string']
+        target = pd.read_excel(target_file_string, engine='openpyxl')
+        
+        # Deduce the number of jobs
+        # no_of_jobs = np.size(self.batch_structure['job'])
+        
+        # Create a dictionary to hold data describing the fit
+        fit_data = dict()
+        fit_data['job'] = []
+        fit_data['fit_error'] = []
+
+        # Create dictionnaries for pCa, target data and calculated fit_variable
+
+        target_data = defaultdict(list)
+        calculated_data = defaultdict(list)
+        pCa_data = defaultdict(list)
+
+        # Create dictionnaries for the errors calculation
+
+        max_y_target = defaultdict(list)
+        y_dif = defaultdict(list)
+
+        # Loop through the pCa curves
+        for i, j in enumerate(target['curve']):
+
+            if math.isnan(j): # Check that each cell contains a numerical value
+                break
+            
+            # Get pCa values
+
+            pCa_data[j-1].append(target['pCa'][i])
+            
+            # Get target data
+            target_data[j-1].append(target[self.opt_data['fit_variable']][i])
+
+            # Get max element of target data
+
+            max_y_target[j-1] = np.amax(np.abs(target_data[j-1]))
+                        
+            # Get simulation data
+
+            job_name = self.batch_structure['job'][i]
+            sim_file_string = os.path.join(job_name['output_folder'], 'results.txt')
+            d = pd.read_csv(sim_file_string, sep='\t')
+
+            # Get last element of fit_variable
+            calculated_data[j-1].append(d[self.opt_data['fit_variable']].iloc[-1])
+
+        no_of_curves = len(max_y_target)
+        n_data = len(calculated_data[0])
+        
+        fit_data['job_errors'] = np.zeros(no_of_curves)
+ 
+        for i, max_y in enumerate(max_y_target):
+
+            y_dif[i] = (np.array(calculated_data[i]) - np.array(target_data[i]))/np.array(max_y_target[i]) 
+
+            fit_data['job_errors'][i] = np.sqrt(np.sum(np.power(y_dif[i], 2))) / np.size(y_dif[i])
+
+            print(f"pCa = {pCa_data[i]} and target_data = {target_data[i]}")
+
+            df = pd.DataFrame()
+            df['calculated_data'] = calculated_data[i]
+            df['target_data'] = target_data[i]
+            df['pCa'] = pCa_data[i]
+            # Keep curve, pCa, target and calculated data and add to
+            # fit_data
+            fit_data['job'].append(df)
 
         # Global error
         fit_data['fit_error'] = np.sum(fit_data['job_errors'])
@@ -239,7 +326,6 @@ class fitting():
         spec = gridspec.GridSpec(nrows=3, ncols=1, figure=fig)
         spec.update(left=0.3, right=0.7)
         ax=[]
-
         if (self.opt_data['fit_mode'] == 'fit_in_time_domain'):
             # Fit trace against target plotted v time
             ax.append(fig.add_subplot(spec[0,0]))
@@ -252,6 +338,35 @@ class fitting():
                 for j in self.best_fit_data['job']:
                     ax[0].plot(j['time'], j[self.opt_data['fit_variable']], 'r-')    
 
+        if (self.opt_data['fit_mode'] == 'fit_pCa_curve'):
+            # Fit trace against target pCa curve
+            ax.append(fig.add_subplot(spec[0,0]))
+
+            for j in fit_data['job']:
+                ax[0].semilogx(j['pCa'], j['target_data'], 'ko')
+                # Add in curve_fitting
+                res = cv.fit_pCa_data(j['pCa'],j['target_data'])
+                #x_data = np.power(10,-res["x_fit"])
+                ax[0].semilogx(res["x_fit"], res["y_fit"], 'k-')
+
+                ax[0].semilogx(j['pCa'], j['calculated_data'], 'bo')
+                # Add in curve_fitting
+                res = cv.fit_pCa_data(j['pCa'],j['calculated_data'])
+                #x_data = np.power(10,-res["x_fit"])
+                ax[0].semilogx(res["x_fit"], res["y_fit"], 'b-')
+
+            # Add in best_fit
+            if (self.best_fit_data):
+                for j in self.best_fit_data['job']:
+                    ax[0].semilogx(j['pCa'], j['calculated_data'], 'ro')
+
+                    # Add in curve_fitting
+                    res = cv.fit_pCa_data(j['pCa'],j['calculated_data'])
+                    #x_data = np.power(10,-res["x_fit"])
+                    ax[0].semilogx(res["x_fit"], res["y_fit"], 'r-')
+
+            ax[0].invert_xaxis()
+        
         ax.append(fig.add_subplot(spec[1,0]))
         for i, j in enumerate(fit_data['job_errors']):
             ax[1].plot(i+1, np.log10(j), 'ko')
@@ -281,7 +396,7 @@ class fitting():
         plt.close()
 
 
-    def update_model_worker_file(self, job_data):
+    def update_model_worker_file(self, job_number, job_data):
         # Writes a new model worker file based on the p vector
         
         # First load in the model_template
@@ -293,6 +408,9 @@ class fitting():
             new_value = p.return_parameter_value()
             model_template = self.replace_item(model_template,
                               p.data['name'], new_value)
+
+        if('initial_delta_hsl' in self.batch_structure):
+            model_template["muscle"]['initial_hs_length'] = model_template["muscle"]['initial_hs_length'] + self.batch_structure['initial_delta_hsl'][job_number]
 
         # Now write updated model to file
         with open(job_data['model_file_string'],'w') as f:
