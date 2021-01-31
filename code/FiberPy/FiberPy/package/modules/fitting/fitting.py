@@ -57,6 +57,9 @@ class fitting():
         if('initial_delta_hsl' in json_data):
             self.initial_delta_hsl = json_data['initial_delta_hsl'] 
 
+        if('constraint' in json_data):
+            self.constraint = json_data['constraint'] 
+
         # Load parameter data
         if ('parameter' not in json_data):
             print('Error: no parameter specified in %s' %
@@ -71,6 +74,16 @@ class fitting():
             p_obj = parameter(p)
             self.p_data.append(p_obj)
             self.p_vector.append(p_obj.data['p_value'])
+
+        # Add in contraints 
+        if ('constraint' in json_data):
+            for constr in json_data['constraint']:
+                if('parameter_multiplier' in constr):
+                    for param_mult in constr["parameter_multiplier"]:
+                        p_obj = parameter(param_mult)
+                        p_obj.data['name'] = "multi_" + p_obj.data['name']
+                        self.p_data.append(p_obj)
+                        self.p_vector.append(p_obj.data['p_value'])
         self.p_vector = np.array(self.p_vector)
         self.global_fit_values = np.array(0)
         self.best_fit_value = []
@@ -98,6 +111,7 @@ class fitting():
         # First update the p_data
         for i, p in enumerate(self.p_data):
             p.data['p_value'] = p_vector[i]
+            p.data['value'] = p.return_parameter_value()
 
         # Now update the model worker files
         for i, j in enumerate(self.batch_structure['job']):
@@ -138,6 +152,7 @@ class fitting():
             json_data['parameter']=[]
             for p in self.p_data:
                 json_data['parameter'].append(p.data)
+
             dir_name = os.path.dirname(os.path.abspath(
                 self.opt_data['best_opt_file_string']))
             if (not os.path.isdir(dir_name)):
@@ -399,7 +414,7 @@ class fitting():
         plt.close()
 
 
-    def update_model_worker_file(self, job_number, job_data):
+    def update_model_worker_file(self, job_numb, job_data):
         # Writes a new model worker file based on the p vector
         
         # First load in the model_template
@@ -410,13 +425,35 @@ class fitting():
         for i, p in enumerate(self.p_data):
             new_value = p.return_parameter_value()
             model_template = self.replace_item(model_template,
-                              p.data['name'], new_value)
+                              p.data['name'], new_value)                  
 
         if(hasattr(self, 'initial_delta_hsl')):
-        
-            model_template["muscle"]['initial_hs_length'] = model_template["muscle"]['initial_hs_length'] + self.initial_delta_hsl[job_number]
 
+            model_template["muscle"]['initial_hs_length'] = model_template["muscle"]['initial_hs_length'] + self.initial_delta_hsl[job_numb]
 
+        if(hasattr(self, 'constraint')):
+
+            for constr in self.constraint:
+
+                if constr["job_number"] == job_numb + 1: # first job has job_numb = 0
+
+                    for multi_data in constr["parameter_multiplier"]:
+
+                        # find model file associated with base_job_number
+                        base_job = self.batch_structure["job"][multi_data["base_job_number"]-1]
+
+                        with open(base_job['model_file_string'], 'r') as f:
+                            model_base = json.load(f)
+
+                        base_model, base_value = self.find_item(model_base, multi_data['name'], 0) # take the param value k_0
+
+                        for i, p in enumerate(self.p_data):
+                            if ("multi_" + multi_data['name']) in p.data['name']:
+                                multiplier_value = p.return_parameter_value()
+
+                        new_value = base_value * multiplier_value 
+                        model_template = self.replace_item(model_template, multi_data['name'], new_value)
+               
         # Now write updated model to file
         with open(job_data['model_file_string'],'w') as f:
             json.dump(model_template, f, indent=4)
@@ -430,6 +467,14 @@ class fitting():
         if key in obj:
             obj[key] = replace_value
         return obj
+
+    def find_item(self, obj, key, val):
+        for k, v in obj.items():
+            if isinstance(v, dict):
+                obj[k], val = self.find_item(v, key, val)
+        if key in obj:
+            val = obj[key] 
+        return obj, val
 
 
 class parameter():

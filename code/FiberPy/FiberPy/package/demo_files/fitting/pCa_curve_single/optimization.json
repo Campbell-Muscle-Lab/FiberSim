@@ -10,10 +10,9 @@
         "single_run": 0,
         "target_file_string": "package/demo_files/fitting/pCa_curve_single/target_data/target_force_pCa_data.xlsx"
     },
-    "FiberSim_batch":{
+    "FiberSim_batch": {
         "FiberSim_exe_path": "../../../bin/FiberSim.exe",
-        "job":
-        [
+        "job": [
             {
                 "model_file_string": "package/demo_files/fitting/pCa_curve_single/temp/70/model_worker.json",
                 "options_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/sim_options.json",
@@ -46,8 +45,7 @@
             }
         ]
     },
-    "parameter":
-    [
+    "parameter": [
         {
             "name": "a_k_on",
             "min_value": 6,
@@ -56,11 +54,29 @@
             "p_mode": "log"
         },
         {
-            "name": "k_coop",
+            "name": "a_k_coop",
             "min_value": 10,
             "max_value": 25,
             "p_value": 0.5,
             "p_mode": "lin"
         }
+    ],
+    "constraint": [
+        {
+            "job_number": 5,
+            "parameter_multiplier": [
+                {
+                    "name": "m_k_stiff",
+                    "base_job_number": 1,
+                    "min_value": 0.5,
+                    "max_value": 0.8,
+                    "p_value": 0.6,
+                    "p_mode": "lin"
+                }
+            ]
+
+
+        }
+
     ]
 }
