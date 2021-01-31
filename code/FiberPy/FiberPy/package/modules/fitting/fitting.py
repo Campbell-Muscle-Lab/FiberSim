@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import math
 
-from shutil import copyfile
+from shutil import copy
 
 from collections import defaultdict
 
@@ -54,9 +54,11 @@ class fitting():
                         
         self.batch_structure = json_data['FiberSim_batch']
 
+        # Load length initial conditions if specified
         if('initial_delta_hsl' in json_data):
             self.initial_delta_hsl = json_data['initial_delta_hsl'] 
 
+        # Load constraint structure if specified
         if('constraint' in json_data):
             self.constraint = json_data['constraint'] 
 
@@ -84,13 +86,12 @@ class fitting():
                         p_obj.data['name'] = "multi_" + p_obj.data['name']
                         self.p_data.append(p_obj)
                         self.p_vector.append(p_obj.data['p_value'])
+
         self.p_vector = np.array(self.p_vector)
         self.global_fit_values = np.array(0)
         self.best_fit_value = []
         self.best_fit_data = []
         self.best_p_vector = []
-
-
 
     def fit_controller(self):
         """ Controls fitting routines """
@@ -137,13 +138,15 @@ class fitting():
             # Update the best model files
             if not os.path.exists(self.opt_data['best_model_folder']):
                 os.makedirs(self.opt_data['best_model_folder'])
-            for j in self.batch_structure['job']:
+            for i, j in enumerate(self.batch_structure['job']):
                 ofs = os.path.split(j['model_file_string'])[-1]
                 nfs = os.path.join(
-                    self.opt_data['best_model_folder'], ofs)
+                    self.opt_data['best_model_folder'], str(i+1))
+                if not os.path.exists(nfs):
+                    os.makedirs(nfs)
                 print('Copying model file from\n%s\nto\n%s' %
                       (j['model_file_string'], nfs))
-                copyfile(j['model_file_string'], nfs)
+                copy(j['model_file_string'], nfs)
 
             # Save the best opt file
             json_data = dict()
@@ -261,22 +264,20 @@ class fitting():
         # Loop through the pCa curves
         for i, j in enumerate(target['curve']):
 
-            if math.isnan(j): # Check that each cell contains a numerical value
+            # Check that each cell contains a numerical value
+            if math.isnan(j): 
                 break
             
             # Get pCa values
-
             pCa_data[j-1].append(target['pCa'][i])
             
             # Get target data
             target_data[j-1].append(target[self.opt_data['fit_variable']][i])
 
             # Get max element of target data
-
             max_y_target[j-1] = np.amax(np.abs(target_data[j-1]))
                         
             # Get simulation data
-
             job_name = self.batch_structure['job'][i]
             sim_file_string = os.path.join(job_name['output_folder'], 'results.txt')
             d = pd.read_csv(sim_file_string, sep='\t')
@@ -288,9 +289,10 @@ class fitting():
         n_data = len(calculated_data[0])
         
         fit_data['job_errors'] = np.zeros(no_of_curves)
- 
-        for i, max_y in enumerate(max_y_target):
 
+        # Calculate error for each pCa curve
+        for i, max_y in enumerate(max_y_target):       
+            
             y_dif[i] = (np.array(calculated_data[i]) - np.array(target_data[i]))/np.array(max_y_target[i]) 
 
             fit_data['job_errors'][i] = np.sqrt(np.sum(np.power(y_dif[i], 2))) / np.size(y_dif[i])
@@ -427,32 +429,46 @@ class fitting():
             model_template = self.replace_item(model_template,
                               p.data['name'], new_value)                  
 
+        # Check for length conditions 
         if(hasattr(self, 'initial_delta_hsl')):
-
             model_template["muscle"]['initial_hs_length'] = model_template["muscle"]['initial_hs_length'] + self.initial_delta_hsl[job_numb]
 
+        # Check contraints
         if(hasattr(self, 'constraint')):
 
             for constr in self.constraint:
-
+                # Check if constraint is associated with the job model currently being updated
                 if constr["job_number"] == job_numb + 1: # first job has job_numb = 0
+                    # Check for parameter multiplier condition
+                    if "parameter_multiplier" in constr:
+                        for multi_data in constr["parameter_multiplier"]:
+                            # find model file associated with base_job_number
+                            base_job = self.batch_structure["job"][multi_data["base_job_number"]-1]
+                            with open(base_job['model_file_string'], 'r') as f:
+                                model_base = json.load(f)
 
-                    for multi_data in constr["parameter_multiplier"]:
+                            # get base parameter value from model_base
+                            base_model, base_value = self.find_item(model_base, multi_data['name'], 0) 
+                            # get multiplier value
+                            for i, p in enumerate(self.p_data):
+                                if ("multi_" + multi_data['name']) in p.data['name']:
+                                    multiplier_value = p.return_parameter_value()  
+                            new_value = base_value * multiplier_value 
+                            # replace new parameter value 
+                            model_template = self.replace_item(model_template, multi_data['name'], new_value)
+                    # Check for parameter copy condition
+                    if "parameter_copy" in constr:
+                        for copy_data in constr["parameter_copy"]:
+                            # find model file associated with copy_job_number
+                            copy_job = self.batch_structure["job"][copy_data["copy_job_number"]-1]
 
-                        # find model file associated with base_job_number
-                        base_job = self.batch_structure["job"][multi_data["base_job_number"]-1]
+                            with open(base_job['model_file_string'], 'r') as f:
+                                model_base = json.load(f)
+                            # get base parameter value from model_base
+                            copy_model, new_value = self.find_item(model_base, copy_data['name'], 0) # take the param value 
 
-                        with open(base_job['model_file_string'], 'r') as f:
-                            model_base = json.load(f)
-
-                        base_model, base_value = self.find_item(model_base, multi_data['name'], 0) # take the param value k_0
-
-                        for i, p in enumerate(self.p_data):
-                            if ("multi_" + multi_data['name']) in p.data['name']:
-                                multiplier_value = p.return_parameter_value()
-
-                        new_value = base_value * multiplier_value 
-                        model_template = self.replace_item(model_template, multi_data['name'], new_value)
+                            # replace new parameter value  
+                            model_template = self.replace_item(model_template, copy_data['name'], new_value)
                
         # Now write updated model to file
         with open(job_data['model_file_string'],'w') as f:
@@ -469,6 +485,7 @@ class fitting():
         return obj
 
     def find_item(self, obj, key, val):
+        # find value (val) associated with a given key (key) in a nested structure (obj)
         for k, v in obj.items():
             if isinstance(v, dict):
                 obj[k], val = self.find_item(v, key, val)
