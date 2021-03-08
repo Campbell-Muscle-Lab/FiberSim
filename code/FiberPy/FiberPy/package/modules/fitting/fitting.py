@@ -297,7 +297,7 @@ class fitting():
 
             fit_data['job_errors'][i] = np.sqrt(np.sum(np.power(y_dif[i], 2))) / np.size(y_dif[i])
 
-            print(f"pCa = {pCa_data[i]} and target_data = {target_data[i]}")
+            #print(f"pCa = {pCa_data[i]} and target_data = {target_data[i]}")
 
             df = pd.DataFrame()
             df['calculated_data'] = calculated_data[i]
