@@ -1,0 +1,290 @@
+{
+    "layout":
+    {
+        "fig_width": 7,
+        "left_margin": 0,
+        "right_margin": 0,
+        "grid_wspace": -1
+    },
+    "x_display":{
+        "global_x_field": "time",
+        "label": "Time (s)"
+    },
+    "formatting":
+    {
+        "x_label_fontsize": 9,
+        "y_label_fontsize": 9,
+        "tick_fontsize": 9,
+        "legend_fontsize": 6,
+        "y_label_pad": 10 
+    },
+    "panels":
+    [
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Activation",
+                "series":
+                [
+                    {
+                        "field": "membrane_activation"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Myofilament\n[$\\mathregular{Ca^{2+}}$]\n($\\mathregular{\\mu}$M)",
+                "series":
+                [
+                    {
+                        "field": "Ca_cytosol",
+                        "scaling_factor": 1e6
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Stress\n(kN m$\\mathregular{^{-2}}$)",
+                "series":
+                [
+                    {
+                        "field": "hs_force",
+                        "field_label": "Total",
+                        "scaling_factor": 1e-3
+                    },
+                    {
+                        "field": "pas_force",
+                        "field_label": "Passive",
+                        "scaling_factor": 1e-3
+                    },
+                    {
+                        "field": "cb_force",
+                        "field_label": "Active",
+                        "scaling_factor": 1e-3
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Half-\nsarcomere\nlength\n(nm)",
+                "scaling_type": "close_fit",
+                "series":
+                [
+                    {
+                        "field": "hs_length"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Thin\nfilament",
+                "series":
+                [
+                    {
+                        "field": "n_on",
+                        "field_label": "N$\\mathregular{_{on}}$"
+                    },
+                    {
+                        "field": "n_off",
+                        "field_label": "N$\\mathregular{_{off}}$"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Thick\nfilament",
+                "series":
+                [
+                    {
+                        "field": "M_SRX",
+                        "field_label": "M$\\mathregular{_{SRX}}$"
+                    },
+                    {
+                        "field": "M_DRX",
+                        "field_label": "M$\\mathregular{_{DRX}}$"
+                    },
+                    {
+                        "field": "M_FG",
+                        "field_label": "M$\\mathregular{_{FG}}$"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "Pressure\n(mm Hg)",
+                "series":
+                [
+                    {
+                        "field": "pressure_ventricle",
+                        "field_label": "Ventricle"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "Volume\n(liters)",
+                "series":
+                [
+                    {
+                        "field": "volume_ventricle",
+                        "field_label": "Ventricle"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "Pressure\n(mm Hg)",
+                "series":
+                [
+                    {
+                        "field": "pressure_ventricle",
+                        "field_label": "Ventricle"
+                    },
+                    {
+                        "field": "pressure_aorta",
+                        "field_label": "Aorta"
+                    },
+                    {
+                        "field": "pressure_arteries",
+                        "field_label": "Arteries"
+                    },
+                    {
+                        "field": "pressure_arterioles",
+                        "field_label": "Arterioles"
+                    },
+                    {
+                        "field": "pressure_capillaries",
+                        "field_label": "Capillaries"
+                    },
+                    {
+                        "field": "pressure_venules",
+                        "field_label": "Venules"
+                    },
+                    {
+                        "field": "pressure_veins",
+                        "field_label": "Veins"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "log$\\mathregular{_{10}}$\n(Volume)\n(liters)",
+                "ticks": [-3, 1],
+                "series":
+                [
+                    {
+                        "field": "volume_ventricle",
+                        "field_label": "Ventricle",
+                        "log_display": "on"
+                    },
+                    {
+                        "field": "volume_aorta",
+                        "field_label": "Aorta",
+                        "log_display": "on"
+                    },
+                    {
+                        "field": "volume_arteries",
+                        "field_label": "Arteries",
+                        "log_display": "on"
+                    },
+                    {
+                        "field": "volume_arterioles",
+                        "field_label": "Arterioles",
+                        "log_display": "on"
+                    },
+                    {
+                        "field": "volume_capillaries",
+                        "field_label": "Capillaries",
+                        "log_display": "on"
+                    },
+                    {
+                        "field": "volume_venules",
+                        "field_label": "Venules",
+                        "log_display": "on"
+                    },
+                    {
+                        "field": "volume_veins",
+                        "field_label": "Veins",
+                        "log_display": "on"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "Flow",
+                "series":
+                [
+                    {
+                        "field": "flow_veins_to_ventricle",
+                        "field_label": "Veins to ventricle"
+                    },
+                    {
+                        "field": "flow_ventricle_to_aorta",
+                        "field_label": "Ventricle to aorta"
+                    },
+                    {
+                        "field": "flow_aorta_to_arteries",
+                        "field_label": "Aorta to arteries"
+                    },
+                    {
+                        "field": "flow_arteries_to_arterioles",
+                        "field_label": "Arteries to arterioles"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "Flow",
+                "series":
+                [
+                    {
+                        "field": "flow_arterioles_to_capillaries",
+                        "field_label": "Aterioles to capillaeries"
+                    },
+                    {
+                        "field": "flow_capillaries_to_venules",
+                        "field_label": "Capillaries to venules"
+                    },
+                    {
+                        "field": "flow_venules_to_veins",
+                        "field_label": "Venules to veins"
+                    }
+                ]
+            }
+        }
+    ]
+}
