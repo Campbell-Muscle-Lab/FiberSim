@@ -11,6 +11,8 @@ import multiprocessing
 import threading
 import subprocess
 
+from pathlib import Path
+
 
 def run_batch(json_batch_file_string=[],
               batch_structure=[]):
@@ -24,33 +26,49 @@ def run_batch(json_batch_file_string=[],
             json_data = json.load(f)
             batch_structure = json_data['FiberSim_batch']
 
-    # Pull off the exe string
-    exe_string = os.path.abspath(batch_structure['FiberSim_exe_path'])
+    # Pull off the exe path
+    exe_structure = batch_structure['FiberSim_exe']
+    exe_string = exe_structure['exe_path']
+    if (not exe_structure['relative_to']):
+        exe_string = os.path.abspath(exe_string)
+    elif (exe_structure['relative_to'] == 'this_file'):
+        base_directory = Path(json_batch_file_string).parent.absolute()
+        exe_string = os.path.join(base_directory, exe_string)
+    else:
+        base_directory = exe_structure['relative_to']
+        exe_string = os.path.join(base_directory, exe_string)
+
+    print('exe_string: %s' % exe_string)
 
     # Parse the job data into a list of command strings
     job_data = batch_structure['job']
     command_strings = []
     for i,j in enumerate(job_data):
-#Add in relative path option
-        model_file_string = j['model_file_string']
-        options_file_string = j['options_file_string']
-        protocol_file_string = j['protocol_file_string']
-        results_file_string = j['results_file_string']
+        # Build up command string
+        com_string = exe_string
+        for f in ['model_file_string', 'options_file_string',
+                  'protocol_file_string', 'output_folder']:
+            fs = j[f]
+            if (not j['relative_to']):
+                fs = os.path.abspath(fs)
+            elif (j['relative_to'] == 'this_file'):
+                base_directory = Path(json_batch_file_string).parent.absolute()
+                fs = os.path.join(base_directory, fs)
+            else:
+                base_directory = j['relative_to']
+                fs = os.path.join(base_directory, fs)
 
-        # Generate a command
-        com_string = "%s %s %s %s %s" % (exe_string,
-                                         model_file_string,
-                                         options_file_string,
-                                         protocol_file_string,
-                                         results_file_string)
+            com_string = '%s %s' % (com_string, fs)
 
         command_strings.append(com_string)
+        
+        print(command_strings)
 
     # Now run the batch using all but 1 cpi
     num_processes = (multiprocessing.cpu_count() - 1)
     my_list = command_strings
 
-    threads=[]
+    threads = []
     while threads or my_list:
         if (len(threads) < num_processes) and my_list:
             t = threading.Thread(target=worker, args=[my_list.pop()])
