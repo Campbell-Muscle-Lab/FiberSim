@@ -17,7 +17,8 @@
                 "model_file_string": "package/demo_files/fitting/pCa_curve_single/temp/70/model_worker.json",
                 "options_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/sim_options.json",
                 "protocol_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/70/pCa_70.txt",
-                "output_folder": "package/demo_files/fitting/pCa_curve_single/temp/70/output"
+                "output_folder": "package/demo_files/fitting/pCa_curve_single/temp/70/output",
+                
             },
             {
                 "model_file_string": "package/demo_files/fitting/pCa_curve_single/temp/62/model_worker.json",

@@ -335,6 +335,11 @@ class fitting():
         # Save figure
         print('Saving fit progress to %s' %
                self.opt_data['figure_fit_progress'])
+        # Check folder exists and make it if not
+        dir_name = os.path.dirname(os.path.abspath(
+            self.opt_data['figure_fit_progress']))
+        if (not os.path.isdir(dir_name)):
+                os.makedirs(dir_name)
         fig.savefig(self.opt_data['figure_fit_progress'])
         plt.close()
 
@@ -412,6 +417,11 @@ class fitting():
         # Save figure
         print('Saving current fit to %s' %
                self.opt_data['figure_current_fit'])
+        # Check folder exists and make it if not
+        dir_name = os.path.dirname(os.path.abspath(
+            self.opt_data['figure_current_fit']))
+        if (not os.path.isdir(dir_name)):
+                os.makedirs(dir_name)
         fig.savefig(self.opt_data['figure_current_fit'])
         plt.close()
 
@@ -471,6 +481,12 @@ class fitting():
                             model_template = self.replace_item(model_template, copy_data['name'], new_value)
                
         # Now write updated model to file
+        # Check the folder exists and make it if required
+        dir_name = os.path.dirname(os.path.abspath(
+            job_data['model_file_string']))
+        if (not os.path.isdir(dir_name)):
+                os.makedirs(dir_name)
+        # Now dump file
         with open(job_data['model_file_string'],'w') as f:
             json.dump(model_template, f, indent=4)
 
