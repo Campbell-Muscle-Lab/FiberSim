@@ -103,6 +103,10 @@
                     {
                         "field": "m_pop_1",
                         "field_label": "M_{1}"
+                    },
+                    {
+                        "field": "m_pop_2",
+                        "field_label": "M_{2}"
                     }
                 ]
             }

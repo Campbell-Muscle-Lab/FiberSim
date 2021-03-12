@@ -1,0 +1,111 @@
+{
+    "layout":
+    {
+        "fig_width": 7,
+        "top_margin": 0,
+        "left_margin": 0,
+        "right_margin": 0,
+        "panel_height": 2,
+        "grid_wspace": -0.5
+    },
+    "x_display":{
+        "global_x_field": "time",
+        "label": "Time (s)"
+    },
+    "formatting":
+    {
+        "x_label_fontsize": 9,
+        "y_label_fontsize": 9,
+        "tick_fontsize": 9,
+        "legend_fontsize": 7,
+        "y_label_pad": 25,
+        "legend_bbox_to_anchor": [1.0, 1],
+        "patch_alpha": 0.3
+    },
+    "panels":
+    [
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "pCa",
+                "scaling_type": "close_fit",
+                "series":
+                [
+                    {
+                        "field": "pCa"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "HS length\n(nm)",
+                "series":
+                [
+                    {
+                        "field": "hs_length"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Stress\n(kN m^{-2})",
+                "series":
+                [
+                    {
+                        "field": "force",
+                        "field_label": "Total",
+                        "scaling_factor": 0.001
+                    },
+                    {
+                        "field": "passive_force",
+                        "field_label": "Passive",
+                        "scaling_factor": 0.001
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Thin\nfilament",
+                "series":
+                [
+                    {
+                        "field": "a_pop_0",
+                        "field_label": "N_{off}"
+                    },
+                    {
+                        "field": "a_pop_1",
+                        "field_label": "N_{on}"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Thick\nfilament",
+                "series":
+                [
+                    {
+                        "field": "m_pop_0",
+                        "field_label": "M_0"
+                    },
+                    {
+                        "field": "m_pop_1",
+                        "field_label": "M_{1}"
+                    }
+                ]
+            }
+        }
+    ]
+}
