@@ -52,7 +52,7 @@ public:
     * @param set_protocol_file_string[] a char array with the file string for the protocol
     * @return void
     */
-    void implement_protocol(char set_protocol_file_string[], path results_path);
+    void implement_protocol(char set_protocol_file_string[], char set_results_file_string[]);
 
     /**
     * implement_time_step(int protocol_index)
@@ -71,6 +71,9 @@ public:
 
     char protocol_file_string[_MAX_PATH];
                                         /**< character array for the simulation protocol file string */
+
+    char results_file_string[_MAX_PATH];
+                                        /**< character array for the simulation results file string */
 
     FiberSim_model* p_fs_model;         /**< pointer to FiberSim_model */
 

@@ -10,94 +10,35 @@ nav_order: 1
 
 ## Overview
 
-This demo shows you how to run a single simulation in FiberSim.
-
-## Background
-
-You will see from this website that the FiberSim suite is composed of two main components
-
-+ [FiberCpp](../../../FiberCpp/FiberCpp.html)
-  + which
-    + implements the calculations underlying the simulation
-    + is written in C++ for speed
-    + is a low-level console application stored as `FiberSim.exe` in `repo/bin`
-+ [FiberPy](../../../FiberPy/FiberPy.html)
-  + which
-    + make it easier to
-      + run simulations
-      + analyze the output of the simulations
-      + make figures
-      + fit models to experimental data
-    + are written in Python for flexility
+This demo shows you how to run a simple simulation in FiberSim. You need a computer running Windows.
 
 ## What this demo does
 
-This demo uses the utilities system to run a single simulation.
-
-The code will
-+ run a [batch process](../../../structures/batch/batch.md) that
-  + contains a single job defined by
-    + a [model description](single/model_single_run.json)
-    + a [protocol](single/pCa45_protocol.txt)
-    + [simulation options](single/options_single_run.json)
-
-The batch process and simulation options are included at the bottom of this page.
+This demo simulates a single half-sarcomere that is held isometric and activated in pCa 4.5 solution. Summary results are saved to a data file and plotted as a figure.
 
 ## Instructions
 
+### Pre-requisites
+
+If this is the first time using FiberSim, you need to:
++ [install software](../../installation/installation.html)
+
+### Getting ready
+
+Once you have installed FiberSim
 + Start Anaconda Navigator
 + Select the Environments tab (left-hand side)
-+ Open a FiberSim terminal
-+ Change directory to `<repo>/code/FiberPy/FiberPy`
-+ Type `python FiberPy.py demos getting_started single_run`
++ Open a FiberSim terminal (left-click on the arrow-head to the right of FiberSim)
++ Change directory to `<repo>/code/FiberPy/FiberPy`, where `<repo>` is the directory you installed the software (e.g. `c:\temp\FiberSim`)
+
+### Run a simulation
+
++ Type `python FiberPy.py "../../../demo_files/getting_started/single_run/batch_single_run.json"`
++ You should see some text appearing in the terminal window
+
+## Viewing the results
+
++ Use Windows File Explorer to open `<repo>/demo_files/getting_started/single_run/simulation_output`
 + You should see
-  + some text appearing in the terminal window
-  + a new figure popping up
-+ Close the figure to return focus to the terminal window
-
-## Output
-
-![Simulation_output](single_run_output.png)
-
-## Video
-
-Click on the screenshot below for a video demo
-<a href="https://drive.google.com/file/d/1IqP5XdBfmSc9TSxgKWQoyXUfLmr64CJ4/view?usp=sharing">
-![Video screenshot](single_run_screenshot.png)</a>
-
-## Batch file
-
-````
-{
-    "FiberSim_batch": {
-        "FiberSim_exe_path": "../../../bin/FiberSim.exe",
-        "job":[
-            {
-                "input_folder": "package/demo_files/getting_started/single_run",
-                "model_file_string": "model_single_run.json",
-                "options_file_string": "options_single_run.json",
-                "protocol_file_string": "pCa45_protocol.txt",
-                "output_folder": "package/demo_files/temp"
-            }
-        ]
-    }
-}
-````
-
-## Simulation options
-
-````
-{
-  "options": {
-    "max_rate": 1e4,
-    "x_pos_rel_tol": 1e-3
-  }
-}
-````
-
-
-
-
-
-
-
+  + results.txt
+  + summary.png

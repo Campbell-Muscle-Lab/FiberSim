@@ -95,24 +95,21 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 		fprintf(p_fs_options->log_file, "Writing data to %s\n", output_file_string);
 	}
 
-	// Make a new clean version of the results directory
-	path results_file_path(output_file_string);
+	// Make sure results directory exists
+	path output_file_path(output_file_string);
 
-	if (is_directory(results_file_path.parent_path()))
+	if (!(is_directory(output_file_path.parent_path())))
 	{
-		std::cout << "\nAttempting to remove results directory: " << results_file_path.parent_path().string() << "\n";
-		remove_all(results_file_path.parent_path());
-		std::cout << "Results directory removed: " << results_file_path.parent_path().string() << "\n";
-	}
-
-	if (create_directories(results_file_path.parent_path()))
-	{
-		std::cout << "\nResults folder created: " << results_file_path.parent_path().string() << "\n";
-	}
-	else
-	{
-		std::cout << "\nError: Results folder could not be created: " << results_file_path.parent_path().string() << "\n";
-		exit(1);
+		if (create_directories(output_file_path.parent_path()))
+		{
+			std::cout << "\nCreating folder: " << output_file_path.string() << "\n";
+		}
+		else
+		{
+			std::cout << "\nError: Results folder could not be created: " <<
+				output_file_path.parent_path().string() << "\n";
+			exit(1);
+		}
 	}
 
 	// Check file can be opened, abort if not
@@ -125,7 +122,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 	}
 	else
 	{
-		std::cout << "\nWriting data to: " << results_file_path.string() << "\n";
+		std::cout << "\nWriting data to: " << output_file_string << "\n";
 	}
 
 	// Write header
@@ -194,5 +191,5 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 	// Tidy up
 	fclose(output_file);
 
-	std::cout << "Finished writing data to: " << results_file_path.string() << "\n";
+	std::cout << "Finished writing data to: " << output_file_string << "\n";
 }

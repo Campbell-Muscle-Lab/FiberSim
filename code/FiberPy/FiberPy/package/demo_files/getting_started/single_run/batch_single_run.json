@@ -1,13 +1,18 @@
 {
     "FiberSim_batch": {
-        "FiberSim_exe_path": "../../../bin/FiberSim.exe",
+        "FiberSim_exe":
+        {
+            "relative_to": "this_file",
+            "exe_file": "../../bin/FiberSim.exe"
+        },
         "job":[
             {
-                "input_folder": "package/demo_files/getting_started/single_run",
-                "model_file_string": "model_single_run.json",
-                "options_file_string": "options_single_run.json",
-                "protocol_file_string": "pCa45_protocol.txt",
-                "output_folder": "package/demo_files/temp"
+                "relative_to": "this_file",
+                "model_file": "sim_input/model_single_run.json",
+                "options_file": "sim_input/options_single_run.json",
+                "protocol_file": "sim_input/pCa45_protocol.txt",
+                "results_file": "sim_output/results.txt",
+                "output_handler_file": "sim_input/output_handler.json"
             }
         ]
     }

@@ -1,0 +1,84 @@
+{
+    "FiberSim_optimization": {
+        "model_template_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/model_template.json",
+        "fit_mode": "fit_pCa_curve",
+        "fit_variable": "force",
+        "best_model_folder": "package/demo_files/fitting/pCa_curve_single/temp/best_model/output",
+        "best_opt_file_string": "package/demo_files/fitting/pCa_curve_single/temp/best_model.json",
+        "figure_current_fit": "package/demo_files/fitting/pCa_curve_single/temp/images/current_fit.png",
+        "figure_fit_progress": "package/demo_files/fitting/pCa_curve_single/temp/images/fit_progress.png",
+        "single_run": 0,
+        "target_file_string": "package/demo_files/fitting/pCa_curve_single/target_data/target_force_pCa_data.xlsx"
+    },
+    "FiberSim_batch":{
+        "FiberSim_exe_path": "../../../bin/FiberSim.exe",
+        "job":
+        [
+            {
+                "model_file_string": "package/demo_files/fitting/pCa_curve_single/temp/70/model_worker.json",
+                "options_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/sim_options.json",
+                "protocol_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/70/pCa_70.txt",
+                "output_folder": "package/demo_files/fitting/pCa_curve_single/temp/70/output"
+            },
+            {
+                "model_file_string": "package/demo_files/fitting/pCa_curve_single/temp/62/model_worker.json",
+                "options_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/sim_options.json",
+                "protocol_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/62/pCa_62.txt",
+                "output_folder": "package/demo_files/fitting/pCa_curve_single/temp/62/output"
+            },
+            {
+                "model_file_string": "package/demo_files/fitting/pCa_curve_single/temp/58/model_worker.json",
+                "options_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/sim_options.json",
+                "protocol_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/58/pCa_58.txt",
+                "output_folder": "package/demo_files/fitting/pCa_curve_single/temp/58/output"
+            },
+            {
+                "model_file_string": "package/demo_files/fitting/pCa_curve_single/temp/54/model_worker.json",
+                "options_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/sim_options.json",
+                "protocol_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/54/pCa_54.txt",
+                "output_folder": "package/demo_files/fitting/pCa_curve_single/temp/54/output"
+            },
+            {
+                "model_file_string": "package/demo_files/fitting/pCa_curve_single/temp/45/model_worker.json",
+                "options_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/sim_options.json",
+                "protocol_file_string": "package/demo_files/fitting/pCa_curve_single/sim_input/45/pCa_45.txt",
+                "output_folder": "package/demo_files/fitting/pCa_curve_single/temp/45/output"
+            }
+        ]
+    },
+    "parameter": [
+        {
+            "name": "a_k_on",
+            "min_value": 6,
+            "max_value": 8,
+            "p_value": 0.5,
+            "p_mode": "log"
+        },
+        {
+            "name": "k_coop",
+            "min_value": 10,
+            "max_value": 25,
+            "p_value": 0.5,
+            "p_mode": "lin"
+        }
+    ],
+    "constraint": [
+        {
+            "job_number": 5,
+            "parameter_multiplier": [
+                {
+                    "name": "k_off",
+                    "base_job_number": 1,
+                    "min_value": 0.5,
+                    "max_value": 0.8,
+                    "p_value": 0.6,
+                    "p_mode":  "lin"
+                }
+            ]
+
+
+        }
+
+
+    ]
+}

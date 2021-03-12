@@ -1,0 +1,42 @@
+{
+    "FiberSim_optimization":{
+        "model_template_file_string": "package/demo_files/fitting/time_domain_single/sim_input/model_template.json",
+        "fit_mode": "fit_in_time_domain",
+        "fit_variable": "force",
+        "best_model_folder": "package/demo_files/fitting/time_domain_single/temp/best_model/output",
+        "best_opt_file_string": "package/demo_files/fitting/time_domain_single/temp/best_model.json",
+        "figure_current_fit": "package/demo_files/fitting/time_domain_single/temp/images/current_fit.png",
+        "figure_fit_progress": "package/demo_files/fitting/time_domain_single/temp/images/fit_progress.png",
+        "single_run": 0
+    },
+    "FiberSim_batch":{
+        "FiberSim_exe_path": "../../../bin/FiberSim.exe",
+        "job":
+        [
+            {
+                "model_file_string": "package/demo_files/fitting/time_domain_single/temp/model_worker.json",
+                "options_file_string": "package/demo_files/fitting/time_domain_single/sim_input/sim_options.json",
+                "protocol_file_string": "package/demo_files/fitting/time_domain_single/sim_input/pCa90_ramp_stretch_protocol.txt",
+                "output_folder": "package/demo_files/fitting/time_domain_single/temp/output",
+                "target_file_string": "package/demo_files/fitting/time_domain_single/target_data/pCa90_ramp_stretch_target.txt"
+            }
+        ]
+    },
+    "parameter":
+    [
+        {
+            "name": "t_k_stiff",
+            "min_value": -4,
+            "max_value": -2,
+            "p_value": 0.525,
+            "p_mode": "log"
+        },
+        {
+            "name": "t_slack_length",
+            "min_value": 100,
+            "max_value": 600,
+            "p_value": 0.475,
+            "p_mode": "lin"
+        }
+    ]
+}

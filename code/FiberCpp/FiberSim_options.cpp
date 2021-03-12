@@ -47,7 +47,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
         {
             // This removes the directory as well as the files
             std::uintmax_t n = remove_all(log_folder);
-            printf("Deleted %i file(s) from %s\n", n, log_folder);
+            printf("Deleted %d file(s) from %s\n", n, log_folder);
         }
 
         // Now create the log directory

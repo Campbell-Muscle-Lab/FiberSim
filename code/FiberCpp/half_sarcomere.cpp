@@ -1832,9 +1832,6 @@ void half_sarcomere::handle_lattice_event(char mol_type, transition* p_trans,
     //! Handles lattice event
 
     // Variables
-    int a;
-    int m;
-
     int current_state;
     int new_state;
 
