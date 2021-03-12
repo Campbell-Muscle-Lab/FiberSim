@@ -16,7 +16,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-from display.multi_panel import multi_panel_from_flat_data
+from ..display.multi_panel import multi_panel_from_flat_data
 
 
 class output_handler():
@@ -24,15 +24,10 @@ class output_handler():
 
     def __init__(self, output_handler_file_string,
                  sim_data=[],
-                 sim_results_file_string=[],
-                 cb_dump_file_string=[]):
+                 sim_results_file_string=[]):
 
-        print("sim_data")
-        print(sim_data)
-        print('sim_results_file_string')
-        print(sim_results_file_string)
-        print('cb_dump_file_string')
-        print(cb_dump_file_string)
+        # Display
+        print("Initialising output_handler object")
 
         # Check for output_handler file
         if (output_handler_file_string == []):
@@ -47,40 +42,39 @@ class output_handler():
         # have been passed in
         if sim_results_file_string:
             print('Loading sim data from %s' % sim_results_file_string)
-            sim_data = pd.read_csv(sim_results_file_string)
+            sim_data = pd.read_csv(sim_results_file_string,
+                                   delimiter='\t')
 
-        # Animation
-        if ('distribution_animation' in self.oh_data):
-            if (cb_dump_file_string):
-                da = self.oh_data['distribution_animation']
-                print('Loading distribution data from %s' %
-                      cb_dump_file_string)
-                self.animate_cb_distributions(
-                    cb_dump_file_string=cb_dump_file_string,
-                    output_image_file_string=da['output_file_string'],
-                    skip_frames=da['skip_frames'])
-
+        # Check we have data to do something with
         if not isinstance(sim_data, pd.DataFrame):
             print('No simulation data available')
             return
 
         # User defined files
-        base_directory = Path(output_handler_file_string).parent.absolute()
         if ('templated_images' in self.oh_data):
             user_defined = self.oh_data['templated_images']
             for ud in user_defined:
-                # Adjust for relative path
-                if ('relative_path' in ud):
-                    if (ud['relative_path']):
-                        ud['template_file_string'] = os.path.join(
-                            base_directory, ud['template_file_string'])
-                        ud['output_file_string'] = os.path.join(
-                            base_directory, ud['output_file_string'])
+                if (not ud['relative_to']):
+                    template_fs = os.path.abspath(ud['template_file_string'])
+                    output_fs = os.path.abspath(ud['output_file_string'])
+                elif (ud['relative_to'] == 'this_file'):
+                    base_directory = \
+                        Path(output_handler_file_string).parent.absolute()
+                    template_fs = os.path.join(base_directory,
+                                               ud['template_file_string'])
+                    output_fs = os.path.join(base_directory,
+                                             ud['output_file_string'])
+                else:
+                    base_directory = ud['relative_to']
+                    template_fs = os.path.join(base_directory,
+                                               ud['template_file_string'])
+                    output_fs = os.path.join(base_directory,
+                                             ud['output_file_string'])
 
                 self.create_image_from_template(
                     sim_data,
-                    ud['template_file_string'],
-                    ud['output_file_string'])
+                    template_fs,
+                    output_fs)
 
     def create_image_from_template(self,
                                    sim_data,
@@ -136,25 +130,3 @@ class output_handler():
             print('Animation built')
             print('Animation written to %s' % output_image_file_string)
         os.remove(temp_image_file_string)
-
-    def draw_cb_distribution(self, x, y, t, max_y,
-                             output_image_file_string):
-        """ Draws a single cb distribution """
-
-        fig = plt.figure(constrained_layout=True)
-        fig.set_size_inches([3.5, 3.5])
-        spec = gridspec.GridSpec(nrows=1, ncols=1, figure=fig)
-        ax = []
-        ax.append(fig.add_subplot(spec[0, 0]))
-
-        ax[0].plot(x, y, 'b-')
-        ax[0].set_xlim([np.amin(x), np.amax(x)])
-        ax[0].set_ylim([0, max_y])
-        ax[0].text(np.amin(x), max_y, ('Time %.3f s' % t),
-                   verticalalignment='top')
-        ax[0].set_ylabel('Proportion\nof attached\ncross-bridges')
-        ax[0].set_xlabel('Cross-bridge displacement (nm)')
-
-        fig.savefig(output_image_file_string)
-
-        plt.close()

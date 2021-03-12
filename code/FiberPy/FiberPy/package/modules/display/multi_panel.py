@@ -94,8 +94,9 @@ def multi_panel_from_flat_data(
         if file_type == 'xlsx':
             pandas_data = pd.read_excel(data_file_string,
                                         sheet_name=excel_sheet)
-        if file_type == 'csv':
-            pandas_data = pd.read_csv(data_file_string)
+        else:
+            pandas_data = pd.read_csv(data_file_string,
+                                      sep='\t')
 
     # Try to work out x data
     if 'x_display' in template_data:

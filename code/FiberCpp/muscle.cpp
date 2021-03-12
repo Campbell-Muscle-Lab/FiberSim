@@ -69,22 +69,20 @@ muscle::~muscle()
 
 // Functions
 
-void muscle::implement_protocol(char set_protocol_file_string[], path results_path)
+void muscle::implement_protocol(char set_protocol_file_string[], char set_results_file_string[])
 {
 	//! Code runs a muscle through a protocol
 
 	// Variables
-	path results_file_path(results_path / "results.txt");
-	
-	char results_file_string[_MAX_PATH];		// file holding summary results
 
 	// Code
 
-	// Set the main results file
-	sprintf_s(results_file_string, _MAX_PATH, "%s", results_file_path.string().c_str());
+		// Set the main results file
+	sprintf_s(results_file_string, _MAX_PATH, "%s", set_results_file_string);
 
 	// Update the protocol file_string
 	sprintf_s(protocol_file_string, _MAX_PATH, "%s", set_protocol_file_string);
+
 
 	// Load the protocol
 	p_fs_protocol = new FiberSim_protocol(protocol_file_string);

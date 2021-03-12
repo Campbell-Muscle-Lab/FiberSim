@@ -22,7 +22,8 @@ dependencies:
   - chardet=4.0.0=py37haa95532_1003
   - cloudpickle=1.6.0=py_0
   - colorama=0.4.4=pyhd3eb1b0_0
-  - cryptography=3.3.1=py37hcd4344a_1
+  - console_shortcut=0.1.1=4
+  - cryptography=3.3.2=py37hcd4344a_0
   - cycler=0.10.0=py37_0
   - decorator=4.4.2=pyhd3eb1b0_0
   - defusedxml=0.7.1=pyhd3eb1b0_0
@@ -100,7 +101,7 @@ dependencies:
   - pycparser=2.20=py_2
   - pydocstyle=5.1.1=py_0
   - pyflakes=2.2.0=pyhd3eb1b0_0
-  - pygments=2.8.0=pyhd3eb1b0_0
+  - pygments=2.8.1=pyhd3eb1b0_0
   - pylint=2.7.2=py37haa95532_1
   - pynacl=1.4.0=py37h62dcd97_1
   - pyopenssl=20.0.1=pyhd3eb1b0_1
@@ -131,7 +132,7 @@ dependencies:
   - six=1.15.0=py37haa95532_0
   - snowballstemmer=2.1.0=pyhd3eb1b0_0
   - sortedcontainers=2.3.0=pyhd3eb1b0_0
-  - sphinx=3.5.1=pyhd3eb1b0_0
+  - sphinx=3.5.2=pyhd3eb1b0_0
   - sphinxcontrib-applehelp=1.0.2=pyhd3eb1b0_0
   - sphinxcontrib-devhelp=1.0.2=pyhd3eb1b0_0
   - sphinxcontrib-htmlhelp=1.0.3=pyhd3eb1b0_0
@@ -168,4 +169,4 @@ dependencies:
   - pip:
     - pyswarms==1.1.0
     - tqdm==4.43.0
-prefix: C:\Users\kscamp3\AppData\Local\Continuum\anaconda3\envs\FiberSim
+prefix: C:\Users\ken\anaconda3\envs\FiberSim
