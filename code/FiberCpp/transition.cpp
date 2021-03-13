@@ -22,8 +22,6 @@
 // Constructor
 transition::transition(const rapidjson::Value& tr, m_state* set_p_parent_m_state)
 {
-	printf("in transition constructor\n");
-
 	// Set p_parent_m_state
 	p_parent_m_state = set_p_parent_m_state;
 

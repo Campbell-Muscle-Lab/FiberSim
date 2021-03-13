@@ -20,7 +20,6 @@ kinetic_scheme::kinetic_scheme(const rapidjson::Value& m_ks,
 	FiberSim_model* set_p_fs_model, FiberSim_options * set_p_fs_options)
 {
 	// Initialise
-	printf("In kinetic_scheme constructor\n");
 
 	// Set the pointer to the model
 	p_fs_model = set_p_fs_model;
@@ -52,7 +51,6 @@ kinetic_scheme::kinetic_scheme(const rapidjson::Value& m_ks,
 kinetic_scheme::~kinetic_scheme(void)
 {
 	//! Destructor
-	printf("In kinetic scheme destructor\n");
 
 	// Tidy up
 

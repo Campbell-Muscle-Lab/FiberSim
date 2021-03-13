@@ -20,9 +20,6 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 {
     // Initialise
 
-    printf("In FiberSim_options constructor\n");
-    printf("JSON_options_file_string: %s\n", JSON_options_file_string);
-
     // Set default values
     x_pos_rel_tol = 0.001;                  /**< default value of relative tolerance for
                                                  calculating x positions */
@@ -107,7 +104,6 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 FiberSim_options::~FiberSim_options()
 {
     // Tidy up
-    printf("In FiberSim_options destructor\n");
 
     if (log_mode > 0)
     {
@@ -118,8 +114,7 @@ FiberSim_options::~FiberSim_options()
 
 void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file_string[])
 {
-    printf("In set_FiberSim_options_from_JSON_file_string\n");
-
+    // Variables
     errno_t file_error;
 
     FILE *fp;
@@ -137,7 +132,6 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     doc.ParseStream(is);
 
     fclose(fp);
-    printf("Finished reading stream\n");
 
     // Check we have options
     JSON_functions::check_JSON_member_object(doc, "options");
@@ -185,8 +179,6 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
         JSON_functions::check_JSON_member_int(options, "dump_precision");
         dump_precision = options["dump_precision"].GetInt();
     }
-
-    printf("log folder: %s\n", log_folder);
 
     // Set status mode
     if (strcmp(log_folder, "none") == 0)

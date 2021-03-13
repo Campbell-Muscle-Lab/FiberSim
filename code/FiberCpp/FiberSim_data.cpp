@@ -120,10 +120,6 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 			output_file_string);
 		exit(1);
 	}
-	else
-	{
-		std::cout << "\nWriting data to: " << output_file_string << "\n";
-	}
 
 	// Write header
 	fprintf_s(output_file, "time%c", delimiter);

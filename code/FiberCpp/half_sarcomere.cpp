@@ -222,8 +222,6 @@ half_sarcomere::~half_sarcomere()
         fprintf_s(p_fs_options->log_file, "In half_sarcomere destructor for hs[%i]\n", hs_id);
     }
 
-    printf("In hs destructor\n");
-
     // Deallocate the nearest_a_matrix
     for (int i = 0; i < m_n; i++)
         delete[] nearest_actin_matrix[i];
@@ -259,8 +257,6 @@ half_sarcomere::~half_sarcomere()
 
     // Delete the random number generator
     gsl_rng_free(rand_generator);
-
-    printf("Finished hs destructor\n");
 }
 
 // Functions

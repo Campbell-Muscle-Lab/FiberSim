@@ -51,8 +51,6 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 muscle::~muscle()
 {
     // Tidy up
-	printf("In muscle destructor\n");
-
 
 	// Delete the half-sarcomeres
 	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
