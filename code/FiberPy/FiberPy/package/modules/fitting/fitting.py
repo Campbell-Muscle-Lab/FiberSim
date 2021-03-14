@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import math
 
+from pathlib import Path
+
 from shutil import copy
 
 from collections import defaultdict
@@ -29,8 +31,11 @@ class fitting():
     def __init__(self, optimization_json_file_string):
         """ Constructor for an optimization object """
 
+        # Store the optimization_file_string
+        self.optimization_json_file_string = optimization_json_file_string
+
         # Load the optimization task from file
-        with open(optimization_json_file_string,'r') as f:
+        with open(self.optimization_json_file_string,'r') as f:
             json_data = json.load(f)
 
         # Create a dict with data for the optimization
@@ -44,11 +49,30 @@ class fitting():
 
         opt_struct = json_data['FiberSim_optimization']
         for key in opt_struct.keys():
-            self.opt_data[key] = opt_struct[key]
-        
+            if (not key == "files"):
+                self.opt_data[key] = opt_struct[key]
+            else:
+                self.opt_data['files'] = dict()
+                file_keys = opt_struct['files'].keys()
+                for fk in file_keys:
+                    if (not fk == 'relative_to'):
+                        fs = opt_struct['files'][fk]
+                        if (not opt_struct['files']['relative_to']):
+                            fs = os.path.abspath(fs)
+                        elif (opt_struct['files']['relative_to'] ==
+                              'this_file'):
+                            base_directory = \
+                                Path(optimization_json_file_string).\
+                                    parent.absolute()
+                            fs = os.path.join(base_directory, fs)
+                        else:
+                            base_directory = opt_struct['files']['relative_to']
+                            fs = os.path.join(base_directory, fs)
+                        self.opt_data['files'][fk] = fs
+
         # Load batch structure
         if ('FiberSim_batch' not in json_data):
-            print('Error: FiberSim_batch not foudn in %s' %
+            print('Error: FiberSim_batch not founs in %s' %
                   optimization_json_file_string)
             exit(1)
                         
@@ -92,6 +116,9 @@ class fitting():
         self.best_fit_value = []
         self.best_fit_data = []
         self.best_p_vector = []
+        
+        # Start controller
+        self.fit_controller()
 
     def fit_controller(self):
         """ Controls fitting routines """
@@ -121,7 +148,7 @@ class fitting():
         # Now run batch
         print('Running %.0f jobs as a batch process' %
               np.size(self.batch_structure['job']))
-        bat.run_batch(batch_structure = self.batch_structure)
+        bat.run_batch(self.optimization_json_file_string)
 
         # Finally evaluate the fits and append
         print('Evaluating fits for the batch process')
@@ -136,12 +163,12 @@ class fitting():
             self.best_p_vector = p_vector
 
             # Update the best model files
-            if not os.path.exists(self.opt_data['best_model_folder']):
-                os.makedirs(self.opt_data['best_model_folder'])
+            if not os.path.exists(self.opt_data['files']['best_model_folder']):
+                os.makedirs(self.opt_data['files']['best_model_folder'])
             for i, j in enumerate(self.batch_structure['job']):
                 ofs = os.path.split(j['model_file_string'])[-1]
                 nfs = os.path.join(
-                    self.opt_data['best_model_folder'], str(i+1))
+                    self.opt_data['files']['best_model_folder'], str(i+1))
                 if not os.path.exists(nfs):
                     os.makedirs(nfs)
                 print('Copying model file from\n%s\nto\n%s' %
@@ -157,16 +184,16 @@ class fitting():
                 json_data['parameter'].append(p.data)
 
             dir_name = os.path.dirname(os.path.abspath(
-                self.opt_data['best_opt_file_string']))
+                self.opt_data['files']['best_opt_file']))
             if (not os.path.isdir(dir_name)):
                 os.makedirs(dir_name)
-            with open(self.opt_data['best_opt_file_string'], 'w') as f:
+            with open(self.opt_data['files']['best_opt_file'], 'w') as f:
                 json.dump(json_data, f, indent=4)
 
         # Save figures
-        if ('figure_current_fit' in self.opt_data):
+        if ('figure_current_fit_file' in self.opt_data['files']):
             self.create_figure_current_fit(fit_data)
-        if ('figure_fit_progress' in self.opt_data):
+        if ('figure_fit_progress' in self.opt_data['files']):
             self.create_figure_fit_progress()
 
         # If single run, abort
@@ -239,7 +266,7 @@ class fitting():
 
         # Get the target data
 
-        target_file_string = self.opt_data['target_file_string']
+        target_file_string = self.opt_data['files']['target_file']
         target = pd.read_excel(target_file_string, engine='openpyxl')
         
         # Deduce the number of jobs
@@ -279,7 +306,7 @@ class fitting():
                         
             # Get simulation data
             job_name = self.batch_structure['job'][i]
-            sim_file_string = os.path.join(job_name['output_folder'], 'results.txt')
+            sim_file_string = job_name['results_file']
             d = pd.read_csv(sim_file_string, sep='\t')
 
             # Get last element of fit_variable
@@ -337,10 +364,10 @@ class fitting():
                self.opt_data['figure_fit_progress'])
         # Check folder exists and make it if not
         dir_name = os.path.dirname(os.path.abspath(
-            self.opt_data['figure_fit_progress']))
+            self.opt_data['files']['figure_fit_progress_file']))
         if (not os.path.isdir(dir_name)):
                 os.makedirs(dir_name)
-        fig.savefig(self.opt_data['figure_fit_progress'])
+        fig.savefig(self.opt_data['files']['figure_fit_progress_file'])
         plt.close()
 
 
@@ -419,10 +446,10 @@ class fitting():
                self.opt_data['figure_current_fit'])
         # Check folder exists and make it if not
         dir_name = os.path.dirname(os.path.abspath(
-            self.opt_data['figure_current_fit']))
+            self.opt_data['files']['figure_current_fit_file']))
         if (not os.path.isdir(dir_name)):
                 os.makedirs(dir_name)
-        fig.savefig(self.opt_data['figure_current_fit'])
+        fig.savefig(self.opt_data['files']['figure_current_fit_file'])
         plt.close()
 
 
@@ -430,7 +457,10 @@ class fitting():
         # Writes a new model worker file based on the p vector
         
         # First load in the model_template
-        with open(self.opt_data['model_template_file_string'], 'r') as f:
+        print(self.opt_data['files'])
+        print(self.opt_data['files']['model_template_file'])
+        
+        with open(self.opt_data['files']['model_template_file'], 'r') as f:
             model_template = json.load(f)
 
         # Nested loop through jobs and parameters
@@ -454,7 +484,7 @@ class fitting():
                         for multi_data in constr["parameter_multiplier"]:
                             # find model file associated with base_job_number
                             base_job = self.batch_structure["job"][multi_data["base_job_number"]-1]
-                            with open(base_job['model_file_string'], 'r') as f:
+                            with open(base_job['model_file'], 'r') as f:
                                 model_base = json.load(f)
 
                             # get base parameter value from model_base
@@ -472,7 +502,7 @@ class fitting():
                             # find model file associated with copy_job_number
                             copy_job = self.batch_structure["job"][copy_data["copy_job_number"]-1]
 
-                            with open(base_job['model_file_string'], 'r') as f:
+                            with open(base_job['model_file'], 'r') as f:
                                 model_base = json.load(f)
                             # get base parameter value from model_base
                             copy_model, new_value = self.find_item(model_base, copy_data['name'], 0) # take the param value 
@@ -481,14 +511,28 @@ class fitting():
                             model_template = self.replace_item(model_template, copy_data['name'], new_value)
                
         # Now write updated model to file
+        # First adapt to path as required
+        model_fs = job_data['model_file']
+        if (not job_data['relative_to']):
+            model_fs = os.path.abspath(model_fs)
+        elif (job_data['relative_to'] == 'this_file'):
+            base_directory = Path(self.optimization_json_file_string).\
+                parent.absolute()
+            model_fs = os.path.join(base_directory, model_fs)
+        else:
+            base_directory = job_data['relative_to']
+            model_fs = os.path.joni(base_directory, model_fs)
+
         # Check the folder exists and make it if required
-        dir_name = os.path.dirname(os.path.abspath(
-            job_data['model_file_string']))
+        dir_name = os.path.dirname(model_fs)
+        
+        print('dir_name %s' % dir_name)
         if (not os.path.isdir(dir_name)):
                 os.makedirs(dir_name)
         # Now dump file
-        with open(job_data['model_file_string'],'w') as f:
+        with open(model_fs,'w') as f:
             json.dump(model_template, f, indent=4)
+            print('file_written')
 
 
     def replace_item(self, obj, key, replace_value):
