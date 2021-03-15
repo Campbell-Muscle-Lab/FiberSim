@@ -77,6 +77,26 @@ class fitting():
             exit(1)
                         
         self.batch_structure = json_data['FiberSim_batch']
+        # Update batch structure for internal use
+        job_data = self.batch_structure['job']
+        new_job_data = []
+        for i, j in enumerate(job_data):
+            d = dict()
+            for f in ['model_file', 'options_file',
+                  'protocol_file', 'results_file']:
+                fs = j[f]
+                if (not j['relative_to']):
+                    fs = os.path.abspath(fs)
+                elif (j['relative_to'] == 'this_file'):
+                    base_directory = Path(optimization_json_file_string). \
+                        parent.absolute()
+                    fs = os.path.join(base_directory, fs)
+                else:
+                    base_directory = j['relative_to']
+                    fs = os.path.join(base_directory, fs)
+                d[f] = fs
+            new_job_data.append(d)
+        self.batch_structure['job'] = new_job_data
 
         # Load length initial conditions if specified
         if('initial_delta_hsl' in json_data):
@@ -166,14 +186,14 @@ class fitting():
             if not os.path.exists(self.opt_data['files']['best_model_folder']):
                 os.makedirs(self.opt_data['files']['best_model_folder'])
             for i, j in enumerate(self.batch_structure['job']):
-                ofs = os.path.split(j['model_file_string'])[-1]
+                ofs = os.path.split(j['model_file'])[-1]
                 nfs = os.path.join(
                     self.opt_data['files']['best_model_folder'], str(i+1))
                 if not os.path.exists(nfs):
                     os.makedirs(nfs)
                 print('Copying model file from\n%s\nto\n%s' %
-                      (j['model_file_string'], nfs))
-                copy(j['model_file_string'], nfs)
+                      (j['model_file'], nfs))
+                copy(j['model_file'], nfs)
 
             # Save the best opt file
             json_data = dict()
@@ -193,7 +213,7 @@ class fitting():
         # Save figures
         if ('figure_current_fit_file' in self.opt_data['files']):
             self.create_figure_current_fit(fit_data)
-        if ('figure_fit_progress' in self.opt_data['files']):
+        if ('figure_fit_progress_file' in self.opt_data['files']):
             self.create_figure_fit_progress()
 
         # If single run, abort
@@ -361,7 +381,7 @@ class fitting():
 
         # Save figure
         print('Saving fit progress to %s' %
-               self.opt_data['figure_fit_progress'])
+               self.opt_data['files']['figure_fit_progress_file'])
         # Check folder exists and make it if not
         dir_name = os.path.dirname(os.path.abspath(
             self.opt_data['files']['figure_fit_progress_file']))
@@ -440,10 +460,10 @@ class fitting():
         for i in np.arange(-1, 3, 1):
             ax[2].plot([i, i], [1, 1 + np.size(p.data)],
                        'k:')
-        
+
         # Save figure
         print('Saving current fit to %s' %
-               self.opt_data['figure_current_fit'])
+               self.opt_data['files']['figure_current_fit_file'])
         # Check folder exists and make it if not
         dir_name = os.path.dirname(os.path.abspath(
             self.opt_data['files']['figure_current_fit_file']))
@@ -457,9 +477,6 @@ class fitting():
         # Writes a new model worker file based on the p vector
         
         # First load in the model_template
-        print(self.opt_data['files'])
-        print(self.opt_data['files']['model_template_file'])
-        
         with open(self.opt_data['files']['model_template_file'], 'r') as f:
             model_template = json.load(f)
 
@@ -513,15 +530,15 @@ class fitting():
         # Now write updated model to file
         # First adapt to path as required
         model_fs = job_data['model_file']
-        if (not job_data['relative_to']):
-            model_fs = os.path.abspath(model_fs)
-        elif (job_data['relative_to'] == 'this_file'):
-            base_directory = Path(self.optimization_json_file_string).\
-                parent.absolute()
-            model_fs = os.path.join(base_directory, model_fs)
-        else:
-            base_directory = job_data['relative_to']
-            model_fs = os.path.joni(base_directory, model_fs)
+        # if (not job_data['relative_to']):
+        #     model_fs = os.path.abspath(model_fs)
+        # elif (job_data['relative_to'] == 'this_file'):
+        #     base_directory = Path(self.optimization_json_file_string).\
+        #         parent.absolute()
+        #     model_fs = os.path.join(base_directory, model_fs)
+        # else:
+        #     base_directory = job_data['relative_to']
+        #     model_fs = os.path.joni(base_directory, model_fs)
 
         # Check the folder exists and make it if required
         dir_name = os.path.dirname(model_fs)

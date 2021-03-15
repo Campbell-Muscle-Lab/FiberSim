@@ -26,7 +26,8 @@
                 "model_file": "temp/70/model_worker.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input/70/pCa_70.txt",
-                "results_file": "temp/70/results.txt"
+                "results_file": "temp/70/results.txt",
+                "output_handler_file": "sim_input/70/output_handler_70.json"
             },
             {
                 "relative_to": "this_file",
@@ -54,7 +55,8 @@
                 "model_file": "temp/45/model_worker.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input/45/pCa_45.txt",
-                "results_file": "temp/45/results.txt"
+                "results_file": "temp/45/results.txt",
+                "output_handler_file": "sim_input/45/output_handler_45.json"
             }
         ]
     },
