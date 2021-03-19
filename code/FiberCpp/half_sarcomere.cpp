@@ -65,7 +65,8 @@ half_sarcomere::half_sarcomere(
     hs_length = p_fs_model->initial_hs_length;
     hs_force = 0.0;
     pCa = 0.0;
-    hs_passive_force = 0.0;
+    hs_titin_force = 0.0;
+    hs_extracellular_force = 0.0;
 
     // Zero the step_counter
     step_counter = 0;
@@ -157,6 +158,13 @@ half_sarcomere::half_sarcomere(
 
     t_k_stiff = p_fs_model->t_k_stiff;
     t_slack_length = p_fs_model->t_slack_length;
+    sprintf_s(t_passive_mode, _MAX_PATH, p_fs_model->t_passive_mode);
+
+    // Extracellular parameters
+    sprintf_s(e_passive_mode, _MAX_PATH, p_fs_model->e_passive_mode);
+    e_sigma = p_fs_model->e_sigma;
+    e_L = p_fs_model->e_L;
+    e_slack_length = p_fs_model->e_slack_length;
 
     m_k_cb = p_fs_model->m_k_cb;
 
@@ -304,8 +312,9 @@ size_t half_sarcomere::implement_time_step(double time_step,
     x_solve_iterations = calculate_x_positions();
 
     unpack_x_vector();
+    hs_titin_force = calculate_titin_force();
+    hs_extracellular_force = calculate_extracellular_force();
     hs_force = calculate_force();
-    hs_passive_force = calculate_passive_force();
 
     // Calculate mean filament lengths
     calculate_mean_filament_lengths();
@@ -515,8 +524,15 @@ void half_sarcomere::calculate_g_vector(gsl_vector* x_trial)
                 (nearest_actin_matrix[m_counter][a_counter] * a_nodes_per_thin_filament) +
                 t_attach_a_node - 1;
 
-            double g_adjustment =
-                t_k_stiff * (gsl_vector_get(x_trial, thin_node_index) - gsl_vector_get(x_trial, thick_node_index));
+            double g_adjustment = 0.0;
+
+            if (!strcmp(t_passive_mode, "linear"))
+            {
+                double x_a = gsl_vector_get(x_trial, thin_node_index);
+                double x_m = gsl_vector_get(x_trial, thick_node_index);
+
+                g_adjustment = t_k_stiff * (x_a - x_m);
+            }
 
             gsl_vector_set(g_vector, thin_node_index,
                 gsl_vector_get(g_vector, thin_node_index) + g_adjustment);
@@ -540,8 +556,6 @@ void half_sarcomere::calculate_g_vector(gsl_vector* x_trial)
 
                 double g_adjustment =
                     m_k_cb * (gsl_vector_get(x_trial, thin_node_index) - gsl_vector_get(x_trial, thick_node_index));
-
-                //printf("thin_index: %i thick_index: %i g_adjustment: %g\n", thin_node_index, thick_node_index, g_adjustment);
 
                 gsl_vector_set(g_vector, thin_node_index,
                     gsl_vector_get(g_vector, thin_node_index) + g_adjustment);
@@ -1228,16 +1242,20 @@ double half_sarcomere::calculate_force(void)
                 gsl_vector_get(x_vector, node_index('m', m_counter, 0))));
     }
 
-    // Adjust for nm scale of filaments and density of thick filaments
+    // Adjust for nm scale of filaments, proportion of non-fibrosis muscle,
+    // proportion of myofilaments and density of thick filaments
     // Normalize to the number of thick filaments in the calculation
     // Return force in N m^-2
-    holder = holder * p_fs_model->m_filament_density * 1e-9 / (double)m_n;
+    holder = (holder * (1.0 - p_fs_model->prop_fibrosis) *
+                    p_fs_model->prop_myofilaments * p_fs_model->m_filament_density *
+                    1e-9 / (double)m_n) +
+                hs_extracellular_force;
 
     // Return
     return holder;
 }
 
-double half_sarcomere::calculate_passive_force(void)
+double half_sarcomere::calculate_titin_force(void)
 {
     //! Calculate the titin contribution to total force 
 
@@ -1263,20 +1281,45 @@ double half_sarcomere::calculate_passive_force(void)
 
             double x_a = gsl_vector_get(x_vector, thin_node_index);
 
-            holder = holder + t_k_stiff * (x_m - x_a - t_slack_length);
+            if (!strcmp(t_passive_mode, "linear"))
+            {
+                holder = holder + t_k_stiff * (x_m - x_a - t_slack_length);
+            }
         }
-
     }
 
     // Adjust for nm scale of filaments and density of thick filaments
     // Normalize to the number of thick filaments in the calculation
     // Return force in N m^-2
-    holder = holder * p_fs_model->m_filament_density * 1e-9 / (double)m_n;
+    holder = holder * (1.0 - p_fs_model->prop_fibrosis) *
+                p_fs_model->prop_myofilaments * p_fs_model->m_filament_density *
+                1e-9 / (double)m_n;
 
     // Return
     return holder;
 }
 
+double half_sarcomere::calculate_extracellular_force(void)
+{
+    //! Calculate the extracellular contribution to total force
+    
+    // Variables
+    double pas_force = 0.0;
+
+    // Code
+
+    if (!strcmp(e_passive_mode, "exponential"))
+    {
+        if (hs_length >= e_slack_length)
+            pas_force = p_fs_model->prop_fibrosis *
+                e_sigma * (exp((hs_length - e_slack_length) / e_L) - 1.0);
+        else
+            pas_force = p_fs_model->prop_fibrosis *
+                e_sigma * (exp(-(hs_length - e_slack_length) / e_L) - 1.0);
+    }
+
+    return pas_force;
+}
 
 void half_sarcomere::update_f0_vector(double delta_hsl)
 {
@@ -1411,7 +1454,7 @@ void half_sarcomere::set_cb_nearest_a_n(void)
 
                 gsl_vector_set(cb_to_thin_node_x, node_counter, fabs(x1 - x2));
             }
-            nearest_thin_node = gsl_vector_min_index(cb_to_thin_node_x);
+            nearest_thin_node = (int)gsl_vector_min_index(cb_to_thin_node_x);
 
             // There are a_bs_per_node binding sites at this node. Find the one pointing to the cb
             for (int bs_counter = 0; bs_counter < a_bs_per_node; bs_counter++)
@@ -1427,7 +1470,7 @@ void half_sarcomere::set_cb_nearest_a_n(void)
 
             // Set the index as the bs that has the biggest angular difference from the cb
             p_mf[m_counter]->cb_nearest_a_n[cb_counter] = 
-                (nearest_thin_node * a_bs_per_node) + gsl_vector_max_index(angle_differences);
+                (nearest_thin_node * a_bs_per_node) + (short)gsl_vector_max_index(angle_differences);
 
             // Note the angular difference
             gsl_vector_set(p_mf[m_counter]->cb_nearest_bs_angle_diff, cb_counter,
@@ -1524,7 +1567,7 @@ void half_sarcomere::set_pc_nearest_a_n(void)
 
                 gsl_vector_set(pc_to_thin_node_x, node_counter, fabs(x1 - x2));
             }
-            nearest_thin_node = gsl_vector_min_index(pc_to_thin_node_x);
+            nearest_thin_node = (int)gsl_vector_min_index(pc_to_thin_node_x);
 
             // There are a_bs_per_node binding sites at this node. Find the one pointing to the cb
             for (int bs_counter = 0; bs_counter < a_bs_per_node; bs_counter++)
@@ -1540,7 +1583,7 @@ void half_sarcomere::set_pc_nearest_a_n(void)
 
             // Set the index as the bs that has the biggest angular difference the cb
             p_mf[m_counter]->pc_nearest_a_n[pc_counter] =
-                (nearest_thin_node * a_bs_per_node) + gsl_vector_max_index(angle_differences);
+                (nearest_thin_node * a_bs_per_node) + (short)gsl_vector_max_index(angle_differences);
         }
     }
 
@@ -1579,6 +1622,8 @@ void half_sarcomere::myosin_kinetics(double time_step)
     int a_f;                    // nearest nearest actin filament
     int a_n;                    // nearest binding site
 
+    int crown_index;            // integer holding index of cb crown
+
     int mybpc_state;            // state number for MyBPC controlling cb
 
     m_state* p_m_state;         // Pointer to a myosin state
@@ -1592,7 +1637,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
     double alignment_factor;    // double ranging from 0 to 1 that adjusts attachment
                                 // probability based on angle between cb and bs
 
-    double crown_index;         // integer holding index of cb crown
+    
     double node_f;              // double holding node force
 
     double prob;
@@ -1636,7 +1681,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
             // Deduce state of controlling MyBPC
             if (p_mf[m_counter]->cb_controlling_pc_index[cb_counter] == -1)
-                mybpc_state = 0;
+                mybpc_state = -1;
             else
                 mybpc_state = p_mf[m_counter]->pc_state[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
 
@@ -1784,7 +1829,7 @@ void half_sarcomere::mybpc_kinetics(double time_step)
                     }
 
                     // Calculate probability of transition, accumulating in the holder
-                    prob = (1.0 - exp(-time_step * p_trans->calculate_rate(x, 0.0, 0.0)));
+                    prob = (1.0 - exp(-time_step * p_trans->calculate_rate(x, 0.0, 0)));
 
                     holder = holder + prob;
                     gsl_vector_set(transition_probs, t_counter, prob);
@@ -1830,10 +1875,6 @@ void half_sarcomere::handle_lattice_event(char mol_type, transition* p_trans,
     // Variables
     int current_state;
     int new_state;
-
-    double k_cb;
-    double ext_change;
-    double pol;
 
     // Code
 
@@ -1914,7 +1955,6 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
     // Variables
     int* bs_indices;
-    int unit_status;
     int unit_occupied;
 
     int down_neighbor_status;

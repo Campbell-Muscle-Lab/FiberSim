@@ -141,8 +141,8 @@ void muscle::implement_time_step(int protocol_index)
 
 		if ((protocol_index % 100) == 0)
 		{
-			printf("muscle->hs[%i]->time_step: %i ->calculate_x_iterations: %lu  force: %g\n",
-				hs_counter, protocol_index, calculate_x_iterations, p_hs[hs_counter]->hs_force);
+			printf("muscle->hs[%i]->time_step: %i ->calculate_x_iterations: %i  force: %g\n",
+				hs_counter, protocol_index, (int)calculate_x_iterations, p_hs[hs_counter]->hs_force);
 		}
 	}
 
@@ -156,7 +156,9 @@ void muscle::implement_time_step(int protocol_index)
 	gsl_vector_set(p_fs_data->fs_time, protocol_index, p_hs[0]->time_s);
 	gsl_vector_set(p_fs_data->fs_length, protocol_index, p_hs[0]->hs_length);
 	gsl_vector_set(p_fs_data->fs_force, protocol_index, p_hs[0]->hs_force);
-	gsl_vector_set(p_fs_data->fs_passive_force, protocol_index, p_hs[0]->hs_passive_force);
+	gsl_vector_set(p_fs_data->fs_titin_force, protocol_index, p_hs[0]->hs_titin_force);
+	gsl_vector_set(p_fs_data->fs_extracellular_force, protocol_index,
+		p_hs[0]->hs_extracellular_force);
 	gsl_vector_set(p_fs_data->fs_pCa, protocol_index, p_hs[0]->pCa);
 
 	gsl_vector_set(p_fs_data->fs_a_length, protocol_index, p_hs[0]->a_mean_fil_length);

@@ -58,7 +58,9 @@ public:
     
     double hs_force;                /**< double holding half-sarcomere force */
 
-    double hs_passive_force;        /**< double holding half-sarcomere passive force */
+    double hs_titin_force;          /**< double holding half-sarcomere titin force */
+
+    double hs_extracellular_force;  /**< double holding half-sarcomere extracellular force */
 
     double f_activated;             /**< double holding the proportion of binding sites
                                          that are activated */
@@ -209,11 +211,24 @@ public:
                                     /**< pointer to a kinetic scheme for myosin */
 
     // Titin
+    char t_passive_mode[_MAX_PATH];	/**< char array defining the passive_mode */
+    
     double t_k_stiff;               /**< double defining stiffness of titin filament
                                          spring in N m^-1 */
 
     double t_slack_length;          /**< double defining slack length of titin filament
                                          in nm */
+    
+    // Extracellular parameters
+    char e_passive_mode[_MAX_PATH];     /**< char array defining the extracellular
+                                             passive mode */
+
+    double e_sigma;                     /**< double defining passive scaling factor */
+
+    double e_L;                         /**< double defining passive curvature */
+
+    double e_slack_length;              /**< double defining slack length of extracellular
+                                             component */
 
     // Myosin binding protein C
     kinetic_scheme* p_c_scheme;     /**< pointer to a kinetic scheme for MyBPC */
@@ -358,10 +373,16 @@ public:
     double calculate_force(void);
 
     /**
-    * calculation the titin contribution to total force
-    * @return double holding the average passive force in a thick filament
+    * calculate the titin contribution to total force
+    * @return double holding the average titin-based force in a thick filament
     */
-    double calculate_passive_force(void);
+    double calculate_titin_force(void);
+
+    /**
+    * calculate the extracellular contribution to total force
+    * @return double holding the extracellular force in a half-sarcomeere
+    */
+    double calculate_extracellular_force(void);
 
     /**
     * uses Brent's root-finding method to get a delta_hsl that produces

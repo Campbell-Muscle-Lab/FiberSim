@@ -44,7 +44,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
         {
             // This removes the directory as well as the files
             std::uintmax_t n = remove_all(log_folder);
-            printf("Deleted %d file(s) from %s\n", n, log_folder);
+            printf("Deleted %i file(s) from %s\n", (int)n, log_folder);
         }
 
         // Now create the log directory
@@ -220,7 +220,7 @@ void FiberSim_options::write_FiberSim_options_to_file(void)
     fprintf_s(output_file, "no_of_repeats: %i\n", no_of_repeats);
     fprintf_s(output_file, "multithreading: %i\n", multithreading);
     fprintf_s(output_file, "max_rate: %g\n", max_rate);
-    fprintf_s(output_file, "dump_precision: %g\n", dump_precision);
+    fprintf_s(output_file, "dump_precision: %i\n", dump_precision);
 
     // Tidy up
     fclose(output_file);

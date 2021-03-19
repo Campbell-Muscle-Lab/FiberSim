@@ -146,15 +146,46 @@ class fitting():
         print('Initialising fit controller')
         self.global_fit_values = []
         self.best_fit_value = np.inf
-        
-        res = minimize(self.fit_worker, self.p_vector,
-                       method='Nelder-Mead',
-                       tol=1e-3)
+
+        if (self.opt_data['optimizer'] == 'particle_swarm'):
+            # Set up pyswarms
+            import pyswarms as ps
+            options = {'c1': 0.5, 'c2': 0.5, 'w': 0.5}
+            max_bounds = np.ones(len(self.p_vector))
+            min_bounds = np.zeros(len(self.p_vector))
+            bounds = (min_bounds, max_bounds)
+            print(bounds)
+            optimizer = ps.single.GlobalBestPSO(
+                n_particles = round(1.5 * len(self.p_vector)),
+                dimensions = len(self.p_vector),
+                options=options,
+                bounds = bounds)
+            # Initialise
+            cost, pos = optimizer.optimize(self.pso_wrapper,
+                                           iters = np.round(100*len(self.p_vector)))
+        else:
+            res = minimize(self.fit_worker, self.p_vector,
+                            method='Nelder-Mead',
+                            tol=1e-3)
+
+    def pso_wrapper(self, p_array):
+        """ Runs an iteration from PySwarms """
+
+        # Code
+        fit_error = []
+        for row in p_array:
+            e = self.fit_worker(row)
+            fit_error.append(e)
+
+        # Return
+        return fit_error
 
 
     def fit_worker(self, p_vector):
         """ Runs a batch process, evaluates fits
         and updates progress """
+        
+        print(p_vector)
 
         # First update the p_data
         for i, p in enumerate(self.p_data):
@@ -340,11 +371,11 @@ class fitting():
         # Calculate error for each pCa curve
         for i, max_y in enumerate(max_y_target):       
             
-            y_dif[i] = (np.array(calculated_data[i]) - np.array(target_data[i]))/np.array(max_y_target[i]) 
+            y_dif[i] = (np.array(calculated_data[i]) - 
+                        np.array(target_data[i]))/np.array(max_y_target[i]) 
 
-            fit_data['job_errors'][i] = np.sqrt(np.sum(np.power(y_dif[i], 2))) / np.size(y_dif[i])
-
-            #print(f"pCa = {pCa_data[i]} and target_data = {target_data[i]}")
+            fit_data['job_errors'][i] = \
+                np.sqrt(np.sum(np.power(y_dif[i], 2))) / np.size(y_dif[i])
 
             df = pd.DataFrame()
             df['calculated_data'] = calculated_data[i]
@@ -414,31 +445,56 @@ class fitting():
             # Fit trace against target pCa curve
             ax.append(fig.add_subplot(spec[0,0]))
 
+            cf=[]
+            cf2=[]
             for j in fit_data['job']:
-                ax[0].semilogx(j['pCa'], j['target_data'], 'ko')
+                ax[0].plot(j['pCa'], j['target_data'], 'ko')
                 # Add in curve_fitting
                 res = cv.fit_pCa_data(j['pCa'],j['target_data'])
-                #x_data = np.power(10,-res["x_fit"])
-                ax[0].semilogx(res["x_fit"], res["y_fit"], 'k-')
+                ax[0].plot(res["x_fit"], res["y_fit"], 'k-')
+                cf.append(res)
 
-                ax[0].semilogx(j['pCa'], j['calculated_data'], 'bo')
+                ax[0].plot(j['pCa'], j['calculated_data'], 'bo')
                 # Add in curve_fitting
                 res = cv.fit_pCa_data(j['pCa'],j['calculated_data'])
-                #x_data = np.power(10,-res["x_fit"])
-                ax[0].semilogx(res["x_fit"], res["y_fit"], 'b-')
+                ax[0].plot(res["x_fit"], res["y_fit"], 'b-')
+                cf2.append(res)
 
             # Add in best_fit
             if (self.best_fit_data):
+                cf3=[]
                 for j in self.best_fit_data['job']:
-                    ax[0].semilogx(j['pCa'], j['calculated_data'], 'ro')
+                    ax[0].plot(j['pCa'], j['calculated_data'], 'ro')
 
                     # Add in curve_fitting
                     res = cv.fit_pCa_data(j['pCa'],j['calculated_data'])
-                    #x_data = np.power(10,-res["x_fit"])
-                    ax[0].semilogx(res["x_fit"], res["y_fit"], 'r-')
+                    # #x_data = np.power(10,-res["x_fit"])
+                    ax[0].plot(res["x_fit"], res["y_fit"], 'r-')
+                    cf3.append(res)
 
             ax[0].invert_xaxis()
-        
+            ax[0].set_xlim((7,4))
+            ylim = ax[0].get_ylim()
+            y_anchor = 0.9
+            y_spacing = 0.1
+            for c in cf:
+                ax[0].text(6.9, y_anchor * ylim[1],
+                       ('pCa50: %.2f n_H: %.2f' % (c['pCa_50'], c['n_H'])),
+                       color='black')
+                y_anchor = y_anchor - y_spacing
+            for c in cf2:
+                ax[0].text(6.9, y_anchor * ylim[1],
+                       ('pCa50: %.2f n_H: %.2f' % (c['pCa_50'], c['n_H'])),
+                       color='blue')
+                y_anchor = y_anchor - y_spacing
+
+            if (self.best_fit_data):
+                for c in cf3:
+                    ax[0].text(6.9, y_anchor * ylim[1],
+                       ('pCa50: %.2f n_H: %.2f' % (c['pCa_50'], c['n_H'])),
+                       color='red')
+                    y_anchor = y_anchor - y_spacing
+
         ax.append(fig.add_subplot(spec[1,0]))
         for i, j in enumerate(fit_data['job_errors']):
             ax[1].plot(i+1, np.log10(j), 'ko')
@@ -451,10 +507,20 @@ class fitting():
             y = np.size(self.p_data) - i
             ax[2].plot(p.data['p_value'], y, 'bo')
             ax[2].plot(self.best_p_vector[i], y, 'rs')
-            ax[2].text(-2, y, p.data['name'],
+            name_string = p.data['name']
+            if (name_string == 'm_kinetics'):
+                if ('extension' in p.data):
+                    name_string = name_string + \
+                        ('\nstate_%i_extension' % p.data['state'])
+                if ('parameter_index' in p.data):
+                    name_string = name_string + \
+                        ('\ntransition_%i_to_%i[%i]' %
+                         (p.data['old_state'], p.data['new_state'],
+                          p.data['parameter_index']))
+            ax[2].text(-2, y, name_string,
                        horizontalalignment = 'left',
                        clip_on=False)
-            ax[2].text(3, y, ('%4g' % p.data['p_value']),
+            ax[2].text(3, y, ('%4g' % p.data['value']),
                        horizontalalignment = 'right',
                        clip_on=False)
         for i in np.arange(-1, 3, 1):
@@ -483,12 +549,18 @@ class fitting():
         # Nested loop through jobs and parameters
         for i, p in enumerate(self.p_data):
             new_value = p.return_parameter_value()
-            model_template = self.replace_item(model_template,
-                              p.data['name'], new_value)                  
+            if (p.data['name'] == 'm_kinetics'):
+                self.replace_m_kinetics(model_template, p.data, new_value)
+            elif (p.data['name'] == 'c_kinetics'):
+                print('replace_c_kinetics')
+            else:
+                model_template = self.replace_item(model_template,
+                                                   p.data['name'], new_value)
 
         # Check for length conditions 
         if(hasattr(self, 'initial_delta_hsl')):
-            model_template["muscle"]['initial_hs_length'] = model_template["muscle"]['initial_hs_length'] + self.initial_delta_hsl[job_numb]
+            model_template["muscle"]['initial_hs_length'] = \
+                model_template["muscle"]['initial_hs_length'] + self.initial_delta_hsl[job_numb]
 
         # Check contraints
         if(hasattr(self, 'constraint')):
@@ -528,17 +600,7 @@ class fitting():
                             model_template = self.replace_item(model_template, copy_data['name'], new_value)
                
         # Now write updated model to file
-        # First adapt to path as required
         model_fs = job_data['model_file']
-        # if (not job_data['relative_to']):
-        #     model_fs = os.path.abspath(model_fs)
-        # elif (job_data['relative_to'] == 'this_file'):
-        #     base_directory = Path(self.optimization_json_file_string).\
-        #         parent.absolute()
-        #     model_fs = os.path.join(base_directory, model_fs)
-        # else:
-        #     base_directory = job_data['relative_to']
-        #     model_fs = os.path.joni(base_directory, model_fs)
 
         # Check the folder exists and make it if required
         dir_name = os.path.dirname(model_fs)
@@ -551,6 +613,36 @@ class fitting():
             json.dump(model_template, f, indent=4)
             print('file_written')
 
+    def replace_m_kinetics(self, model_template, par_struct, new_value):
+        """ replace m_kinetics transition element """
+        m_kinetics = model_template['m_kinetics']
+        sch = m_kinetics['scheme']
+
+        # Handle extension first
+        if ('extension' in m_kinetics):
+            s_new = []
+            for i, s in enumerate(sch):
+                if (s['number'] == par_struct['state']):
+                    s['extension'] = new_value
+                s_new.append(s)
+            m_kinetics['scheme'] = s_new
+        else:
+        # Now do rate function parameters
+            s_new = []
+            for i, s in enumerate(sch):
+                t_new = []
+                for j, t in enumerate(s['transition']):
+                    if ((s['number'] == par_struct['old_state']) and
+                        (t['new_state'] == par_struct['new_state'])):
+                            t['rate_parameters'][par_struct['parameter_index']] = \
+                                new_value
+                    t_new.append(t)
+                s_new.append(s)
+            m_kinetics['scheme'] = s_new
+
+        # Return
+        model_template['m_kinetics'] = m_kinetics
+        return model_template
 
     def replace_item(self, obj, key, replace_value):
         # See https://stackoverflow.com/questions/45335445/recursively-replace-dictionary-values-with-matching-key
