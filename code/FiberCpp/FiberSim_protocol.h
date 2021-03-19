@@ -29,9 +29,6 @@ public:
     // Variables
     int no_of_time_points;          /**< integer number of time-points */
 
-    double time_step;               /**< double holding time-step in s
-                                         for simulation */
-
     gsl_vector* dt;                 /**< gsl_vector holding dt for
                                          each time-point */
     gsl_vector* delta_hsl;          /**< gsl_vector holding delta-hsl for

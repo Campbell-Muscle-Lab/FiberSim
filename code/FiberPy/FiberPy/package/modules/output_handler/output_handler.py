@@ -27,7 +27,7 @@ class output_handler():
                  sim_results_file_string=[]):
 
         # Display
-        print("Initialising output_handler object")
+        print("Initialising FiberPy output_handler")
 
         # Check for output_handler file
         if (output_handler_file_string == []):

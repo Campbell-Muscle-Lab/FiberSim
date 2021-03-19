@@ -52,8 +52,6 @@ m_state::m_state(const rapidjson::Value& m_st, kinetic_scheme* set_p_parent_sche
 // Destructor
 m_state::~m_state(void)
 {
-	printf("in m_state destructor\n");
-
 	// Tidy up
 	for (int i = 0; i < p_parent_scheme->max_no_of_transitions; i++)
 		delete p_transitions[i];

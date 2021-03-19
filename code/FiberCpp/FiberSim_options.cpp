@@ -20,9 +20,6 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 {
     // Initialise
 
-    printf("In FiberSim_options constructor\n");
-    printf("JSON_options_file_string: %s\n", JSON_options_file_string);
-
     // Set default values
     x_pos_rel_tol = 0.001;                  /**< default value of relative tolerance for
                                                  calculating x positions */
@@ -47,7 +44,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
         {
             // This removes the directory as well as the files
             std::uintmax_t n = remove_all(log_folder);
-            printf("Deleted %d file(s) from %s\n", n, log_folder);
+            printf("Deleted %i file(s) from %s\n", (int)n, log_folder);
         }
 
         // Now create the log directory
@@ -107,7 +104,6 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 FiberSim_options::~FiberSim_options()
 {
     // Tidy up
-    printf("In FiberSim_options destructor\n");
 
     if (log_mode > 0)
     {
@@ -118,8 +114,7 @@ FiberSim_options::~FiberSim_options()
 
 void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file_string[])
 {
-    printf("In set_FiberSim_options_from_JSON_file_string\n");
-
+    // Variables
     errno_t file_error;
 
     FILE *fp;
@@ -137,7 +132,6 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     doc.ParseStream(is);
 
     fclose(fp);
-    printf("Finished reading stream\n");
 
     // Check we have options
     JSON_functions::check_JSON_member_object(doc, "options");
@@ -186,8 +180,6 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
         dump_precision = options["dump_precision"].GetInt();
     }
 
-    printf("log folder: %s\n", log_folder);
-
     // Set status mode
     if (strcmp(log_folder, "none") == 0)
     {
@@ -228,7 +220,7 @@ void FiberSim_options::write_FiberSim_options_to_file(void)
     fprintf_s(output_file, "no_of_repeats: %i\n", no_of_repeats);
     fprintf_s(output_file, "multithreading: %i\n", multithreading);
     fprintf_s(output_file, "max_rate: %g\n", max_rate);
-    fprintf_s(output_file, "dump_precision: %g\n", dump_precision);
+    fprintf_s(output_file, "dump_precision: %i\n", dump_precision);
 
     // Tidy up
     fclose(output_file);

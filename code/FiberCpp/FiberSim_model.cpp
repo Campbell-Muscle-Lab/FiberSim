@@ -114,6 +114,12 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(mus, "initial_hs_length");
     initial_hs_length = mus["initial_hs_length"].GetDouble();
 
+    JSON_functions::check_JSON_member_number(mus, "prop_fibrosis");
+    prop_fibrosis = mus["prop_fibrosis"].GetDouble();
+
+    JSON_functions::check_JSON_member_number(mus, "prop_myofilaments");
+    prop_myofilaments = mus["prop_myofilaments"].GetDouble();
+
     JSON_functions::check_JSON_member_number(mus, "m_filament_density");
     m_filament_density = mus["m_filament_density"].GetDouble();
 
@@ -240,11 +246,30 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_object(doc, "titin_parameters");
     const rapidjson::Value& titin_parameters = doc["titin_parameters"];
 
+    JSON_functions::check_JSON_member_string(titin_parameters, "t_passive_mode");
+    sprintf_s(t_passive_mode, _MAX_PATH, titin_parameters["t_passive_mode"].GetString());
+
     JSON_functions::check_JSON_member_number(titin_parameters, "t_k_stiff");
     t_k_stiff = titin_parameters["t_k_stiff"].GetDouble();
 
     JSON_functions::check_JSON_member_number(titin_parameters, "t_slack_length");
     t_slack_length = titin_parameters["t_slack_length"].GetDouble();
+
+    // Load the extracellular_parameters
+    JSON_functions::check_JSON_member_object(doc, "extracellular_parameters");
+    const rapidjson::Value& extracellular_parameters = doc["extracellular_parameters"];
+
+    JSON_functions::check_JSON_member_string(extracellular_parameters, "e_passive_mode");
+    sprintf_s(e_passive_mode, _MAX_PATH, extracellular_parameters["e_passive_mode"].GetString());
+
+    JSON_functions::check_JSON_member_number(extracellular_parameters, "e_sigma");
+    e_sigma = extracellular_parameters["e_sigma"].GetDouble();
+
+    JSON_functions::check_JSON_member_number(extracellular_parameters, "e_L");
+    e_L = extracellular_parameters["e_L"].GetDouble();
+
+    JSON_functions::check_JSON_member_number(extracellular_parameters, "e_slack_length");
+    e_slack_length = extracellular_parameters["e_slack_length"].GetDouble();
 
     // Kinetic scheme for myosin - this is complicated so it's done in a different file
     JSON_functions::check_JSON_member_object(doc, "m_kinetics");

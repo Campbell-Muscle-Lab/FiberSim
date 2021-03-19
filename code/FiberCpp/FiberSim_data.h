@@ -63,7 +63,10 @@ public:
 
 	gsl_vector* fs_force;		/**< gsl_vector holding hs_force for each time-point */
 
-	gsl_vector* fs_passive_force;		/**< gsl_vector holding hs_passive_force for each time-point */
+	gsl_vector* fs_titin_force;	/**< gsl_vector holding hs_titin_force for each time-point */
+
+	gsl_vector* fs_extracellular_force;
+								/**< gsl_vector holding hs_extracellular_force for each time-point */
 
 	gsl_matrix* fs_a_pops;		/**< gsl_matrix holding the proportion of binding sites
 									 in each state at each time-point */

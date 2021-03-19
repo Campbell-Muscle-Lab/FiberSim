@@ -39,9 +39,18 @@ public:
 
     double initial_hs_length;           /**< double defining the initial hs_length  in nm */
 
+    double prop_fibrosis;               /**< double defining the proportion of the
+                                             cross-section occupied by fibrosis. This
+                                             contributes extracellular passive tension */
+
+    double prop_myofilaments;           /**< double defining the proportion of the
+                                             non-fibrotic cross-section occupied by
+                                             myofilaments. This contributes titin and
+                                             cross-bridged mediated force */
+
     double m_filament_density;          /**< double defining the number of thick filaments
                                              per square meter of cross-section */
-
+        
     // Filaments
 
     // Thick structure
@@ -122,11 +131,24 @@ public:
 
 
     // Titin parameters
+    char t_passive_mode[_MAX_PATH];     /**< char array defining the passive_mode */
+
     double t_k_stiff;                   /**< double definining the stiffness of titin
                                              in N m^-1 */
 
     double t_slack_length;              /**< double defining the slack length of titin
                                              in nm */
+
+    // Extracellular parameters
+    char e_passive_mode[_MAX_PATH];     /**< char array defining the extracellular
+                                             passive mode */
+
+    double e_sigma;                     /**< double defining passive scaling factor */
+
+    double e_L;                         /**< double defining passive curvature */
+
+    double e_slack_length;              /**< double defining slack length of extracellular
+                                             component */
 
     // MyBPC structure
 

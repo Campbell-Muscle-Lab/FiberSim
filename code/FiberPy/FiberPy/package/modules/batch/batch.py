@@ -20,6 +20,8 @@ def run_batch(json_batch_file_string=[],
               batch_structure=[]):
     """Runs >=1 simulation using multithreading"""
 
+    print('FiberPy: run_batch() starting')
+
     # We need a batch structure. Load it from file
     # if it is not provided
     if (batch_structure == []):
@@ -99,6 +101,7 @@ def run_batch(json_batch_file_string=[],
             oh.output_handler(fs,
                               sim_results_file_string=results_file_strings[i])
 
+    print('FiberPy: run_batch() closing correctly')
 
 def worker(cmd):
     subprocess.call(cmd)
