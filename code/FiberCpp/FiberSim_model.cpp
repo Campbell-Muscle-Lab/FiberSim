@@ -76,6 +76,11 @@ FiberSim_model::~FiberSim_model()
         delete p_m_scheme[i];
     }
 
+    for (int i = 0; i < MAX_NO_OF_PHOS_STATES; i++)
+    {
+        delete p_c_scheme[i];
+    }
+
     // Delete gsl_vector
     gsl_vector_free(isoforms_props);
 }
@@ -237,6 +242,9 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(mybpc_parameters, "c_k_stiff");
     c_k_stiff = mybpc_parameters["c_k_stiff"].GetDouble();
 
+    JSON_functions::check_JSON_member_number(mybpc_parameters, "c_phos_fraction");
+    c_phos_frac = mybpc_parameters["c_phos_fraction"].GetDouble();
+
     // Load the thin_parameters
     JSON_functions::check_JSON_member_object(doc, "thin_parameters");
     const rapidjson::Value& thin_parameters = doc["thin_parameters"];
@@ -309,9 +317,13 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     }
 
     // Kinetic scheme for MyBPC
-    JSON_functions::check_JSON_member_object(doc, "c_kinetics");
-    const rapidjson::Value& c_ks = doc["c_kinetics"];
-    p_c_scheme = create_kinetic_scheme(c_ks);
+    JSON_functions::check_JSON_member_array(doc, "c_kinetics");
+    const rapidjson::Value& c_ks = doc["c_kinetics"].GetArray();
+
+    for (rapidjson::SizeType i = 0; i < c_ks.Size(); i++)
+    {
+        p_c_scheme[i] = create_kinetic_scheme(c_ks[i]);
+    }
 
 
     if (p_fs_options->log_mode > 0)

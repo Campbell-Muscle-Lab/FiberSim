@@ -175,7 +175,7 @@ void muscle::implement_time_step(int protocol_index)
 		gsl_matrix_set(p_fs_data->fs_m_pops,
 				protocol_index, i, gsl_vector_get(p_hs[0]->m_pops, i));
 	}
-	for (int i = 0; i < p_fs_model->p_c_scheme->no_of_states; i++)
+	for (int i = 0; i < p_fs_model->p_c_scheme[0]->no_of_states; i++)
 	{
 		gsl_matrix_set(p_fs_data->fs_c_pops,
 			protocol_index, i, gsl_vector_get(p_hs[0]->c_pops, i));

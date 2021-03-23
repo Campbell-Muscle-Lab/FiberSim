@@ -8,7 +8,7 @@
         "m_filament_density": 0.407e15
     },
   "thick_structure": {
-    "m_n": 36,
+    "m_n": 4,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,
@@ -71,10 +71,10 @@
           "transition": [
             {
               "new_state": 2,
-              "rate_type": "force_dependent",
+              "rate_type": "MyBPC_dependent",
               "rate_parameters": [
-                10,
-                1e-4
+                1,
+                100
               ]
             }
           ]
@@ -128,13 +128,11 @@
       "c_mols_per_node": 3,
       "c_starting_angle": 30.0
     },
-    "mybpc_parameters"
-    :
-    {
-      "c_k_stiff": 0.0005
-    },
-    "c_kinetics"
-    :
+  "mybpc_parameters": {
+    "c_k_stiff": 0.0005,
+    "c_phos_fraction": 0.0
+  },
+  "c_kinetics": [
     {
       "no_of_states": 2,
       "max_no_of_transitions": 1,
@@ -171,4 +169,5 @@
         }
       ]
     }
+  ]
 }

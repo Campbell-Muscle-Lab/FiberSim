@@ -163,7 +163,20 @@ thick_filament::thick_filament(
     for (int i = 0; i < c_no_of_pcs; i++)
     {
         pc_state[i] = 1;
-        pc_phos[i] = 0;
+
+        // Set the phoshorylation status
+
+        double rand_iso = gsl_rng_uniform(rand_generator_iso);
+        double phos_pop = p_fs_model->c_phos_frac; // get the fraction of phosphorylated MyBPC
+        
+        // Random distribution of (non-)phosphorylated MyBPC states
+
+        if (rand_iso < phos_pop) { 
+            pc_phos[i] = 1; 
+        }
+        else {
+            pc_phos[i] = 0;
+        }
         pc_bound_to_a_f[i] = -1;
         pc_bound_to_a_n[i] = -1;
         pc_nearest_a_f[i] = -1;

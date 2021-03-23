@@ -20,3 +20,5 @@
 
 #define MAX_NO_OF_ISOFORMS 5
 
+#define MAX_NO_OF_PHOS_STATES 2
+

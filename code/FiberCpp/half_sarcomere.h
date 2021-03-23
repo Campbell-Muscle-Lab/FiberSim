@@ -208,7 +208,7 @@ public:
                                          link in N m^-1 */
 
     kinetic_scheme* p_m_scheme[MAX_NO_OF_ISOFORMS]; 
-                                    /**< pointer to a kinetic scheme for myosin */
+                                    /**< pointer to a kinetic scheme array for myosin */
 
     // Titin
     char t_passive_mode[_MAX_PATH];	/**< char array defining the passive_mode */
@@ -231,7 +231,8 @@ public:
                                              component */
 
     // Myosin binding protein C
-    kinetic_scheme* p_c_scheme;     /**< pointer to a kinetic scheme for MyBPC */
+    kinetic_scheme* p_c_scheme[MAX_NO_OF_PHOS_STATES];     
+                                    /**< pointer to a kinetic scheme array for MyBPC */
 
     int c_no_of_pcs;                /**< integer defining the number of MyBPC per filament */
 

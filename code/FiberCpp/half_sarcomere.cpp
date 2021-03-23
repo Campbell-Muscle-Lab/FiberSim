@@ -59,10 +59,14 @@ half_sarcomere::half_sarcomere(
     for (int i = 0; i < p_fs_model->m_no_of_isoforms; i++) {
         p_m_scheme[i] = p_fs_model->p_m_scheme[i];
     }
-    
-    
+
     // and MyBPC
-    p_c_scheme = p_fs_model->p_c_scheme;
+
+    for (int i = 0; i < MAX_NO_OF_PHOS_STATES; i++)
+    {
+        p_c_scheme[i] = p_fs_model->p_c_scheme[i];
+    }
+
 
     // Initialize macroscopic state variables
     time_s = 0.0;
@@ -157,7 +161,7 @@ half_sarcomere::half_sarcomere(
     m_no_of_cb_states = p_fs_model->p_m_scheme[0]->no_of_states;
     m_k_stiff = p_fs_model->m_k_stiff;
 
-    c_no_of_pc_states = p_fs_model->p_c_scheme->no_of_states;
+    c_no_of_pc_states = p_fs_model->p_c_scheme[0]->no_of_states;
     c_no_of_pcs = p_mf[0]->c_no_of_pcs;
 
     t_k_stiff = p_fs_model->t_k_stiff;
@@ -1690,7 +1694,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
             // Deduce state of controlling MyBPC
             if (p_mf[m_counter]->cb_controlling_pc_index[cb_counter] == -1)
-                mybpc_state = -1;
+                mybpc_state = 0;
             else
                 mybpc_state = p_mf[m_counter]->pc_state[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
 
@@ -1767,6 +1771,7 @@ void half_sarcomere::mybpc_kinetics(double time_step)
 
     // Variables
     int pc_state;                   // pc state
+    int pc_phos;                    // pc phosphorylation status
     int max_transitions;            // potential number of transitions
     int new_state;                  // new pc state after transition
 
@@ -1786,7 +1791,7 @@ void half_sarcomere::mybpc_kinetics(double time_step)
 
     // Code
 
-    max_transitions = p_c_scheme->max_no_of_transitions;
+    max_transitions = p_c_scheme[0]->max_no_of_transitions;
 
     // Allocation vectors
     transition_probs = gsl_vector_alloc(max_transitions);
@@ -1797,7 +1802,12 @@ void half_sarcomere::mybpc_kinetics(double time_step)
         for (int pc_counter = 0; pc_counter < p_mf[m_counter]->c_no_of_pcs; pc_counter++)
         {
             pc_state = p_mf[m_counter]->pc_state[pc_counter];
-            p_state = p_c_scheme->p_m_states[pc_state - 1];
+            pc_phos = p_mf[m_counter]->pc_phos[pc_counter];
+            p_state = p_c_scheme[pc_phos]->p_m_states[pc_state - 1];
+
+            max_transitions = p_c_scheme[pc_phos]->max_no_of_transitions;
+            // Allocate vector
+            transition_probs = gsl_vector_alloc(max_transitions);
 
             if (p_state->state_type == 'a' || p_state->state_type == 'A')
             {
