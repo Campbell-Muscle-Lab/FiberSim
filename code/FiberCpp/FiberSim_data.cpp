@@ -40,7 +40,7 @@ FiberSim_data::FiberSim_data(int set_no_of_time_points,
 	
 	// Allocate space for data matrices
 	fs_a_pops = gsl_matrix_alloc(no_of_time_points, p_fs_model->a_no_of_bs_states);
-	fs_m_pops = gsl_matrix_alloc(no_of_time_points, p_fs_model->p_m_scheme->no_of_states);
+	fs_m_pops = gsl_matrix_alloc(no_of_time_points, p_fs_model->p_m_scheme[0]->no_of_states);
 	fs_c_pops = gsl_matrix_alloc(no_of_time_points, p_fs_model->p_c_scheme->no_of_states);
 	
 	// Set to zero
@@ -138,7 +138,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 	{
 		fprintf_s(output_file, "a_pop_%i%c", i, delimiter);
 	}
-	for (int i = 0; i < p_fs_model->p_m_scheme->no_of_states; i++)
+	for (int i = 0; i < p_fs_model->p_m_scheme[0]->no_of_states; i++)
 	{
 		fprintf_s(output_file, "m_pop_%i%c", i, delimiter);
 	}
@@ -172,7 +172,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 				gsl_matrix_get(fs_a_pops, i, j), delimiter);
 		}
 
-		for (int j = 0; j < p_fs_model->p_m_scheme->no_of_states; j++)
+		for (int j = 0; j < p_fs_model->p_m_scheme[0]->no_of_states; j++)
 		{
 			fprintf_s(output_file, "%g%c",
 				gsl_matrix_get(fs_m_pops, i, j), delimiter);

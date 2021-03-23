@@ -12,6 +12,9 @@
 #include "rapidjson/document.h"
 #endif
 
+#include "global_definitions.h"
+#include "gsl_vector.h"
+
 class FiberSim_options;
 class kinetic_scheme;
 
@@ -71,9 +74,13 @@ public:
     double m_within_hub_twist;          /**< double defining the twist between myosins
                                              in the same hub */
 
+    int m_no_of_isoforms;               /**< Number of myosin isoforms */
+
+    gsl_vector* isoforms_props;	        /**< gsl_vector holding the isoforms proportions */
+
     // Thick parameters
 
-    kinetic_scheme* p_m_scheme;         /**< pointer to a kinetic scheme for myosin */
+    kinetic_scheme* p_m_scheme[MAX_NO_OF_ISOFORMS];         /**< pointer to a kinetic array for myosin */
     
     int m_no_of_cb_states;              /**< integer defining the number of states a
                                              myosin head can transition between */

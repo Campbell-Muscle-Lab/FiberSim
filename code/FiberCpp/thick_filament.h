@@ -10,6 +10,7 @@
 #include "rapidjson/istreamwrapper.h"
 
 #include "gsl_vector.h"
+#include "gsl_rng.h"
 
 class FiberSim_model;
 class FiberSim_options;
@@ -169,5 +170,8 @@ public:
 
     // Nodes
     gsl_vector* node_forces;            /**< pointer to gsl_vector holding force at each node */
+
+    // Random numbers
+    gsl_rng* rand_generator_iso;            /**< pointer to a random number generator */
 };
 

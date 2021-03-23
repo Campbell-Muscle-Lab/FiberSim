@@ -207,7 +207,7 @@ public:
     double m_k_cb;                  /**< double defining stiffness of cross-bridge
                                          link in N m^-1 */
 
-    kinetic_scheme* p_m_scheme; 
+    kinetic_scheme* p_m_scheme[MAX_NO_OF_ISOFORMS]; 
                                     /**< pointer to a kinetic scheme for myosin */
 
     // Titin
