@@ -31,7 +31,7 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     p_fs_options = set_p_fs_options;
 
     // Set pointer to kinetic scheme to NULL
-    // p_m_scheme[MAX_NO_OF_ISOFORMS] = {NULL};
+    // p_m_scheme[MAX_NO_OF_ISOTYPES] = {NULL};
 
     // Log
     if (p_fs_options->log_mode > 0)
@@ -51,7 +51,7 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
         char model_JSON_file_string[_MAX_PATH];
         sprintf_s(model_JSON_file_string, _MAX_PATH, "%s\\kinetic_scheme.json",
             p_fs_options->log_folder);
-        for (int i = 0; i < m_no_of_isoforms; i ++){
+        for (int i = 0; i < m_no_of_isotypes; i ++){
             p_m_scheme[i]->write_kinetic_scheme_to_file(model_JSON_file_string);
         }
         
@@ -71,18 +71,19 @@ FiberSim_model::~FiberSim_model()
 //        delete p_m_scheme;
 
     // Delete thick filaments
-    for (int i = 0; i < m_no_of_isoforms; i++)
+    for (int i = 0; i < m_no_of_isotypes; i++)
     {
         delete p_m_scheme[i];
     }
 
-    for (int i = 0; i < MAX_NO_OF_PHOS_STATES; i++)
+    for (int i = 0; i < c_no_of_isotypes; i++)
     {
         delete p_c_scheme[i];
     }
 
     // Delete gsl_vector
-    gsl_vector_free(isoforms_props);
+    gsl_vector_free(m_isotype_props);
+    gsl_vector_free(c_isotype_props);
 }
 
 // Functions
@@ -173,18 +174,17 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(thick_structure, "m_within_hub_twist");
     m_within_hub_twist = thick_structure["m_within_hub_twist"].GetDouble();
 
-    JSON_functions::check_JSON_member_int(thick_structure, "m_no_of_isoforms");
-    m_no_of_isoforms = thick_structure["m_no_of_isoforms"].GetInt();
+    JSON_functions::check_JSON_member_array(thick_structure, "m_isotype_proportions");
+    const rapidjson::Value& mip = thick_structure["m_isotype_proportions"];
 
-    JSON_functions::check_JSON_member_array(thick_structure, "isoforms_proportion");
-    const rapidjson::Value& ip = thick_structure["isoforms_proportion"];
+    m_no_of_isotypes = mip.Size();
 
-    isoforms_props = gsl_vector_alloc(MAX_NO_OF_ISOFORMS);
-    gsl_vector_set_zero(isoforms_props);
+    m_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
+    gsl_vector_set_zero(m_isotype_props);
 
-    for (int i = 0; i < (int)ip.Size(); i++)
+    for (int i = 0; i < (int)mip.Size(); i++)
     {
-        gsl_vector_set(isoforms_props, i, ip[i].GetDouble());
+        gsl_vector_set(m_isotype_props, i, mip[i].GetDouble());
     }
        
     // Load the thin_structure variables
@@ -242,8 +242,18 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(mybpc_parameters, "c_k_stiff");
     c_k_stiff = mybpc_parameters["c_k_stiff"].GetDouble();
 
-    JSON_functions::check_JSON_member_number(mybpc_parameters, "c_phos_fraction");
-    c_phos_frac = mybpc_parameters["c_phos_fraction"].GetDouble();
+    JSON_functions::check_JSON_member_array(mybpc_parameters, "c_isotype_proportions");
+    const rapidjson::Value& cip = mybpc_parameters["c_isotype_proportions"];
+
+    c_no_of_isotypes = cip.Size();
+
+    c_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
+    gsl_vector_set_zero(c_isotype_props);
+
+    for (int i = 0; i < (int)cip.Size(); i++)
+    {
+        gsl_vector_set(c_isotype_props, i, cip[i].GetDouble());
+    }
 
     // Load the thin_parameters
     JSON_functions::check_JSON_member_object(doc, "thin_parameters");
@@ -324,7 +334,6 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     {
         p_c_scheme[i] = create_kinetic_scheme(c_ks[i]);
     }
-
 
     if (p_fs_options->log_mode > 0)
     {

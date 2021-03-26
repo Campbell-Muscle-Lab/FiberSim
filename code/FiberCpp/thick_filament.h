@@ -109,7 +109,7 @@ public:
     signed short int* cb_state;         /**< pointer to an array of signed short integers
                                              indicating which state the cb is in */
     
-    signed short int* cb_isoform;       /**< pointer to an array of signed short integers
+    signed short int* cb_iso;       /**< pointer to an array of signed short integers
                                              indicating which isoform type the cb is */
 
     signed short int* cb_bound_to_a_f;  /**< pointer to an array of signed short integers
@@ -155,7 +155,7 @@ public:
     signed short int* pc_state;         /**< pointer to an array of signed short integers
                                              indicating which state the pc is in */
 
-    signed short int* pc_phos;          /**< pointer to an array of signed short integers
+    signed short int* pc_iso;          /**< pointer to an array of signed short integers
                                              indicating where pc is phosphorylated */
 
     signed short int* pc_bound_to_a_f;  /**< pointer to an array of signed short integers

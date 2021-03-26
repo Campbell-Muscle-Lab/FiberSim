@@ -74,13 +74,13 @@ public:
     double m_within_hub_twist;          /**< double defining the twist between myosins
                                              in the same hub */
 
-    int m_no_of_isoforms;               /**< Number of myosin isoforms */
+    int m_no_of_isotypes;               /**< Number of myosin isotypes */
 
-    gsl_vector* isoforms_props;	        /**< gsl_vector holding the isoforms proportions */
+    gsl_vector* m_isotype_props;	        /**< gsl_vector holding the myosin isotype proportions */
 
     // Thick parameters
 
-    kinetic_scheme* p_m_scheme[MAX_NO_OF_ISOFORMS];         /**< pointer to a kinetic scheme array for myosin */
+    kinetic_scheme* p_m_scheme[MAX_NO_OF_ISOTYPES];         /**< pointer to a kinetic scheme array for myosin */
     
     int m_no_of_cb_states;              /**< integer defining the number of states a
                                              myosin head can transition between */
@@ -172,9 +172,11 @@ public:
 
     double c_k_stiff;                   /**< double defining the stiffness of a MyBPC link */
 
-    double c_phos_frac;                /**< double defining the proportion of phosphorylated MyBPC */
+    int c_no_of_isotypes;               /**< Number of C-protein isotypes */
 
-    kinetic_scheme* p_c_scheme[MAX_NO_OF_PHOS_STATES];        /**< pointer to a kinetic scheme array for MyBPC */
+    gsl_vector* c_isotype_props;	    /**< gsl_vector holding the C-protein isotypes proportions */
+
+    kinetic_scheme* p_c_scheme[MAX_NO_OF_ISOTYPES];        /**< pointer to a kinetic scheme array for MyBPC */
 
     // Functions
 
