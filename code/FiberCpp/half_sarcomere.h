@@ -207,8 +207,8 @@ public:
     double m_k_cb;                  /**< double defining stiffness of cross-bridge
                                          link in N m^-1 */
 
-    kinetic_scheme* p_m_scheme; 
-                                    /**< pointer to a kinetic scheme for myosin */
+    kinetic_scheme* p_m_scheme[MAX_NO_OF_ISOTYPES]; 
+                                    /**< pointer to a kinetic scheme array for myosin */
 
     // Titin
     char t_passive_mode[_MAX_PATH];	/**< char array defining the passive_mode */
@@ -231,7 +231,8 @@ public:
                                              component */
 
     // Myosin binding protein C
-    kinetic_scheme* p_c_scheme;     /**< pointer to a kinetic scheme for MyBPC */
+    kinetic_scheme* p_c_scheme[MAX_NO_OF_ISOTYPES];     
+                                    /**< pointer to a kinetic scheme array for MyBPC */
 
     int c_no_of_pcs;                /**< integer defining the number of MyBPC per filament */
 
@@ -284,7 +285,7 @@ public:
      *     + cb_x
      *     + cb_angle
      *     + cb_state
-     *     + cb_isoform
+     *     + cb_iso
      *     + cb_bound_to_a_f
      *     + cb_bound_to_a_n
      *     + cb_nearest_a_f

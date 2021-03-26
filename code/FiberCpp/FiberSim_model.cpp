@@ -19,6 +19,8 @@
 #include "rapidjson\document.h"
 #include "rapidjson\filereadstream.h"
 
+#include "global_definitions.h"
+
 // Constructor
 FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     FiberSim_options * set_p_fs_options)
@@ -29,7 +31,7 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     p_fs_options = set_p_fs_options;
 
     // Set pointer to kinetic scheme to NULL
-    p_m_scheme = NULL;
+    // p_m_scheme[MAX_NO_OF_ISOTYPES] = {NULL};
 
     // Log
     if (p_fs_options->log_mode > 0)
@@ -49,7 +51,10 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
         char model_JSON_file_string[_MAX_PATH];
         sprintf_s(model_JSON_file_string, _MAX_PATH, "%s\\kinetic_scheme.json",
             p_fs_options->log_folder);
-        p_m_scheme->write_kinetic_scheme_to_file(model_JSON_file_string);
+        for (int i = 0; i < m_no_of_isotypes; i ++){
+            p_m_scheme[i]->write_kinetic_scheme_to_file(model_JSON_file_string);
+        }
+        
     }
 }
 
@@ -62,8 +67,23 @@ FiberSim_model::~FiberSim_model()
         fprintf_s(p_fs_options->log_file, "In FiberSim_model destructor\n");
     }
 
-    if (p_m_scheme != NULL)
-        delete p_m_scheme;
+//    if (p_m_scheme != NULL)
+//        delete p_m_scheme;
+
+    // Delete thick filaments
+    for (int i = 0; i < m_no_of_isotypes; i++)
+    {
+        delete p_m_scheme[i];
+    }
+
+    for (int i = 0; i < c_no_of_isotypes; i++)
+    {
+        delete p_c_scheme[i];
+    }
+
+    // Delete gsl_vector
+    gsl_vector_free(m_isotype_props);
+    gsl_vector_free(c_isotype_props);
 }
 
 // Functions
@@ -153,7 +173,20 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
 
     JSON_functions::check_JSON_member_number(thick_structure, "m_within_hub_twist");
     m_within_hub_twist = thick_structure["m_within_hub_twist"].GetDouble();
-    
+
+    JSON_functions::check_JSON_member_array(thick_structure, "m_isotype_proportions");
+    const rapidjson::Value& mip = thick_structure["m_isotype_proportions"];
+
+    m_no_of_isotypes = mip.Size();
+
+    m_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
+    gsl_vector_set_zero(m_isotype_props);
+
+    for (int i = 0; i < (int)mip.Size(); i++)
+    {
+        gsl_vector_set(m_isotype_props, i, mip[i].GetDouble());
+    }
+       
     // Load the thin_structure variables
     JSON_functions::check_JSON_member_object(doc, "thin_structure");
     const rapidjson::Value& thin_structure = doc["thin_structure"];
@@ -208,6 +241,19 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
 
     JSON_functions::check_JSON_member_number(mybpc_parameters, "c_k_stiff");
     c_k_stiff = mybpc_parameters["c_k_stiff"].GetDouble();
+
+    JSON_functions::check_JSON_member_array(mybpc_parameters, "c_isotype_proportions");
+    const rapidjson::Value& cip = mybpc_parameters["c_isotype_proportions"];
+
+    c_no_of_isotypes = cip.Size();
+
+    c_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
+    gsl_vector_set_zero(c_isotype_props);
+
+    for (int i = 0; i < (int)cip.Size(); i++)
+    {
+        gsl_vector_set(c_isotype_props, i, cip[i].GetDouble());
+    }
 
     // Load the thin_parameters
     JSON_functions::check_JSON_member_object(doc, "thin_parameters");
@@ -272,15 +318,22 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     e_slack_length = extracellular_parameters["e_slack_length"].GetDouble();
 
     // Kinetic scheme for myosin - this is complicated so it's done in a different file
-    JSON_functions::check_JSON_member_object(doc, "m_kinetics");
-    const rapidjson::Value& m_ks = doc["m_kinetics"];
-    p_m_scheme = create_kinetic_scheme(m_ks);
+    JSON_functions::check_JSON_member_array(doc, "m_kinetics");
+    const rapidjson::Value& m_ks = doc["m_kinetics"].GetArray();  
+
+    for (rapidjson::SizeType i = 0; i < m_ks.Size(); i++)
+    {
+        p_m_scheme[i] = create_kinetic_scheme(m_ks[i]);
+    }
 
     // Kinetic scheme for MyBPC
-    JSON_functions::check_JSON_member_object(doc, "c_kinetics");
-    const rapidjson::Value& c_ks = doc["c_kinetics"];
-    p_c_scheme = create_kinetic_scheme(c_ks);
+    JSON_functions::check_JSON_member_array(doc, "c_kinetics");
+    const rapidjson::Value& c_ks = doc["c_kinetics"].GetArray();
 
+    for (rapidjson::SizeType i = 0; i < c_ks.Size(); i++)
+    {
+        p_c_scheme[i] = create_kinetic_scheme(c_ks[i]);
+    }
 
     if (p_fs_options->log_mode > 0)
     {

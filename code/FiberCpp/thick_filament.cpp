@@ -12,6 +12,8 @@
 #include "FiberSim_options.h"
 
 #include "gsl_vector.h"
+#include "gsl_rng.h"
+
 
 // Constructor
 thick_filament::thick_filament(
@@ -68,7 +70,7 @@ thick_filament::thick_filament(
     cb_nearest_bs_angle_diff = gsl_vector_alloc(m_no_of_cbs);
 
     cb_state = new short int[m_no_of_cbs];
-    cb_isoform = new short int[m_no_of_cbs];
+    cb_iso = new short int[m_no_of_cbs];
 
     cb_bound_to_a_f = new short int[m_no_of_cbs];
     cb_bound_to_a_n = new short int[m_no_of_cbs];
@@ -86,11 +88,47 @@ thick_filament::thick_filament(
     // Use special function for cb_x and cb_angle
     initalise_cb_x_and_cb_angle();
 
+    // Initialise the random number generator
+    const gsl_rng_type* T;
+    gsl_rng_env_setup();
+
+    T = gsl_rng_default;
+    rand_generator_iso = gsl_rng_alloc(T);
+    gsl_rng_set(rand_generator_iso, unsigned long(100));
+
+
     // Other arrays are intialized with constants
     for (int i = 0; i < m_no_of_cbs; i++)
     {
         cb_state[i] = 1;
-        cb_isoform[i] = 0;
+
+        // Now set cb_iso depending on the isotype proportion
+
+        if (GSL_IS_EVEN(i)){ 
+
+            if (p_fs_model->m_no_of_isotypes == 2) {
+
+                double rand_iso = gsl_rng_uniform(rand_generator_iso);
+                double first_pop = gsl_vector_get(p_fs_model->m_isotype_props,0);
+
+                if (rand_iso < first_pop) {
+                    cb_iso[i] = 0;
+                    cb_iso[i + 1] = 0; // Pairs of myosin heads are the same isotype
+                }
+                else {
+                    cb_iso[i] = 1;
+                    cb_iso[i+1] = 1; // Pairs of myosin heads are the same isotype
+                }
+            }
+
+            else {
+                double rand_iso = gsl_rng_uniform_int(rand_generator_iso, p_fs_model->m_no_of_isotypes); // random assignment between 3 or more isotypes
+                cb_iso[i] = rand_iso;
+                cb_iso[i + 1] = rand_iso; // Pairs of myosin heads are the same isotype
+            }
+
+        }
+
         cb_bound_to_a_f[i] = -1;
         cb_bound_to_a_n[i] = -1;
         cb_nearest_a_f[i] = -1;
@@ -110,7 +148,7 @@ thick_filament::thick_filament(
 
     pc_node_index = new short int[c_no_of_pcs];
     pc_state = new short int[c_no_of_pcs];
-    pc_phos = new short int[c_no_of_pcs];
+    pc_iso = new short int[c_no_of_pcs];
 
     pc_bound_to_a_f = new short int[c_no_of_pcs];
     pc_bound_to_a_n = new short int[c_no_of_pcs];
@@ -125,7 +163,27 @@ thick_filament::thick_filament(
     for (int i = 0; i < c_no_of_pcs; i++)
     {
         pc_state[i] = 1;
-        pc_phos[i] = 0;
+
+        // Now set pc_isotype depending on the isotype proportion
+
+        if (p_fs_model->c_no_of_isotypes == 2) {
+
+            double rand_iso = gsl_rng_uniform(rand_generator_iso);
+            double first_pop = gsl_vector_get(p_fs_model->c_isotype_props, 0);
+
+            if (rand_iso < first_pop) {
+                pc_iso[i] = 0;
+            }
+            else {
+                pc_iso[i] = 1;
+            }
+        }
+
+        else {
+            double rand_iso = gsl_rng_uniform_int(rand_generator_iso, p_fs_model->c_no_of_isotypes); // random assignment between 3 or more isotypes
+            pc_iso[i] = rand_iso;
+        }
+
         pc_bound_to_a_f[i] = -1;
         pc_bound_to_a_n[i] = -1;
         pc_nearest_a_f[i] = -1;
@@ -162,7 +220,7 @@ thick_filament::~thick_filament()
 
     // Delete the integer vectors
     delete [] cb_state;
-    delete [] cb_isoform;
+    delete [] cb_iso;
     delete [] cb_bound_to_a_f;
     delete [] cb_bound_to_a_n;
     delete [] cb_nearest_a_f;
@@ -174,7 +232,7 @@ thick_filament::~thick_filament()
 
     delete [] pc_node_index;
     delete [] pc_state;
-    delete [] pc_phos;
+    delete [] pc_iso;
     delete [] pc_bound_to_a_f;
     delete [] pc_bound_to_a_n;
     delete [] pc_nearest_a_f;
@@ -182,6 +240,8 @@ thick_filament::~thick_filament()
 
     // Delete node forces
     gsl_vector_free(node_forces);
+
+    gsl_rng_free(rand_generator_iso);
 }
 
 void thick_filament::initalise_cb_x_and_cb_angle(void)
