@@ -30,6 +30,7 @@ dependencies:
   - diff-match-patch=20200713=py_0
   - docutils=0.16=py37_1
   - entrypoints=0.3=py37_0
+  - et_xmlfile=1.0.1=py_1001
   - flake8=3.8.4=py_0
   - freetype=2.10.4=hd328e21_0
   - future=0.18.2=py37_1
@@ -46,6 +47,7 @@ dependencies:
   - ipython=7.21.0=py37hd4e2768_0
   - ipython_genutils=0.2.0=pyhd3eb1b0_1
   - isort=5.7.0=pyhd3eb1b0_0
+  - jdcal=1.4.1=py_0
   - jedi=0.14.1=py37_0
   - jinja2=2.11.3=pyhd3eb1b0_0
   - jpeg=9b=hb83a4c4_2
@@ -80,6 +82,7 @@ dependencies:
   - numpy-base=1.19.2=py37ha3acd2a_0
   - numpydoc=1.1.0=pyhd3eb1b0_1
   - olefile=0.46=py37_0
+  - openpyxl=3.0.7=pyhd3eb1b0_0
   - openssl=1.1.1j=h2bbff1b_0
   - packaging=20.9=pyhd3eb1b0_0
   - pandas=1.2.3=py37hf11a4ad_0
@@ -169,4 +172,4 @@ dependencies:
   - pip:
     - pyswarms==1.1.0
     - tqdm==4.43.0
-prefix: C:\Users\ken\anaconda3\envs\FiberSim
+prefix: C:\Users\kscamp3\.conda\envs\FiberSim

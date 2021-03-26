@@ -102,6 +102,10 @@ class fitting():
         if('initial_delta_hsl' in json_data):
             self.initial_delta_hsl = json_data['initial_delta_hsl'] 
 
+        # Load relative fibrosis data if specified
+        if('relative_fibrosis' in json_data):
+            self.relative_fibrosis = json_data['relative_fibrosis'] 
+
         # Load constraint structure if specified
         if('constraint' in json_data):
             self.constraint = json_data['constraint'] 
@@ -127,7 +131,14 @@ class fitting():
                 if('parameter_multiplier' in constr):
                     for param_mult in constr["parameter_multiplier"]:
                         p_obj = parameter(param_mult)
-                        p_obj.data['name'] = "multi_" + p_obj.data['name']
+                        if (p_obj.data['name'] == 'm_kinetics'):
+                            p_obj.data['name'] = 'multi_m_kinetics_' + \
+                                ('%i_%i_%i_%i' % (1,
+                                                  param_mult['old_state'],
+                                                  param_mult['new_state'],
+                                                  param_mult['parameter_index']))
+                        else:
+                            p_obj.data['name'] = "multi_" + p_obj.data['name']
                         self.p_data.append(p_obj)
                         self.p_vector.append(p_obj.data['p_value'])
 
@@ -225,6 +236,9 @@ class fitting():
                 print('Copying model file from\n%s\nto\n%s' %
                       (j['model_file'], nfs))
                 copy(j['model_file'], nfs)
+                print('Copying results file from\n%s\nto\n%s' %
+                      (j['results_file'], nfs))
+                copy(j['results_file'], nfs)
 
             # Save the best opt file
             json_data = dict()
@@ -538,7 +552,6 @@ class fitting():
         fig.savefig(self.opt_data['files']['figure_current_fit_file'])
         plt.close()
 
-
     def update_model_worker_file(self, job_numb, job_data):
         # Writes a new model worker file based on the p vector
         
@@ -549,18 +562,20 @@ class fitting():
         # Nested loop through jobs and parameters
         for i, p in enumerate(self.p_data):
             new_value = p.return_parameter_value()
-            if (p.data['name'] == 'm_kinetics'):
-                self.replace_m_kinetics(model_template, p.data, new_value)
-            elif (p.data['name'] == 'c_kinetics'):
-                print('replace_c_kinetics')
-            else:
-                model_template = self.replace_item(model_template,
-                                                   p.data['name'], new_value)
+            model_template = self.replace_value(model_template,
+                                                p.data, new_value)
 
         # Check for length conditions 
         if(hasattr(self, 'initial_delta_hsl')):
             model_template["muscle"]['initial_hs_length'] = \
-                model_template["muscle"]['initial_hs_length'] + self.initial_delta_hsl[job_numb]
+                model_template["muscle"]['initial_hs_length'] + \
+                    self.initial_delta_hsl[job_numb]
+
+        # Check for relative_fibrosis
+        if(hasattr(self, 'relative_fibrosis')):
+            model_template["muscle"]['prop_fibrosis'] = \
+                model_template["muscle"]['prop_fibrosis'] * \
+                    self.relative_fibrosis[job_numb]
 
         # Check contraints
         if(hasattr(self, 'constraint')):
@@ -568,6 +583,7 @@ class fitting():
             for constr in self.constraint:
                 # Check if constraint is associated with the job model currently being updated
                 if constr["job_number"] == job_numb + 1: # first job has job_numb = 0
+
                     # Check for parameter multiplier condition
                     if "parameter_multiplier" in constr:
                         for multi_data in constr["parameter_multiplier"]:
@@ -577,27 +593,44 @@ class fitting():
                                 model_base = json.load(f)
 
                             # get base parameter value from model_base
-                            base_model, base_value = self.find_item(model_base, multi_data['name'], 0) 
-                            # get multiplier value
+                            base_value = self.find_value(model_base, multi_data) 
+                            # get multiplier value from self.p_data
                             for i, p in enumerate(self.p_data):
-                                if ("multi_" + multi_data['name']) in p.data['name']:
-                                    multiplier_value = p.return_parameter_value()  
-                            new_value = base_value * multiplier_value 
-                            # replace new parameter value 
-                            model_template = self.replace_item(model_template, multi_data['name'], new_value)
+                                tag_found = False
+                                if ('m_kinetics' in p.data['name']):
+                                    m_tag = 'multi_m_kinetics_' + \
+                                        ('%i_%i_%i_%i' %
+                                         (1,
+                                          multi_data['old_state'],
+                                          multi_data['new_state'],
+                                          multi_data['parameter_index']))
+                                    if (p.data['name'] == m_tag):
+                                        tag_found = True
+                                else:
+                                    if (p.data['name'] == multi_data['name']):
+                                        tag_found = True
+                                if (tag_found):
+                                    # Replace new parameter value
+                                    multiplier_value = p.return_parameter_value()
+                                    new_value = base_value * multiplier_value
+                                    model_template = self.replace_value(
+                                        model_template, multi_data, new_value)
+
                     # Check for parameter copy condition
                     if "parameter_copy" in constr:
                         for copy_data in constr["parameter_copy"]:
                             # find model file associated with copy_job_number
                             copy_job = self.batch_structure["job"][copy_data["copy_job_number"]-1]
 
-                            with open(base_job['model_file'], 'r') as f:
+                            with open(copy_job['model_file'], 'r') as f:
                                 model_base = json.load(f)
+                            
                             # get base parameter value from model_base
-                            copy_model, new_value = self.find_item(model_base, copy_data['name'], 0) # take the param value 
+                            new_value = self.find_value(model_base, copy_data)
 
                             # replace new parameter value  
-                            model_template = self.replace_item(model_template, copy_data['name'], new_value)
+                            model_template = self.replace_value(model_template,
+                                                               copy_data, new_value)
                
         # Now write updated model to file
         model_fs = job_data['model_file']
@@ -613,7 +646,7 @@ class fitting():
             json.dump(model_template, f, indent=4)
             print('file_written')
 
-    def replace_m_kinetics(self, model_template, par_struct, new_value):
+    def replace_m_kinetics(self, model_template, par_dict, new_value):
         """ replace m_kinetics transition element """
         m_kinetics = model_template['m_kinetics']
         sch = m_kinetics['scheme']
@@ -621,20 +654,20 @@ class fitting():
         # Handle extension first
         if ('extension' in m_kinetics):
             s_new = []
-            for i, s in enumerate(sch):
-                if (s['number'] == par_struct['state']):
+            for s in sch:
+                if (s['number'] == par_dict['state']):
                     s['extension'] = new_value
                 s_new.append(s)
             m_kinetics['scheme'] = s_new
         else:
         # Now do rate function parameters
             s_new = []
-            for i, s in enumerate(sch):
+            for s in sch:
                 t_new = []
                 for j, t in enumerate(s['transition']):
-                    if ((s['number'] == par_struct['old_state']) and
-                        (t['new_state'] == par_struct['new_state'])):
-                            t['rate_parameters'][par_struct['parameter_index']] = \
+                    if ((s['number'] == par_dict['old_state']) and
+                        (t['new_state'] == par_dict['new_state'])):
+                            t['rate_parameters'][par_dict['parameter_index']] = \
                                 new_value
                     t_new.append(t)
                 s_new.append(s)
@@ -653,8 +686,67 @@ class fitting():
             obj[key] = replace_value
         return obj
 
+    def find_value(self, obj, par_dict):
+        """ finds value for a given key. Use a straight search unless
+        key='m_kinetics' or key='c_kinetics' when more complex approach
+        is necessary """
+
+        if (par_dict['name'] == 'm_kinetics'):
+            v = self.find_m_kinetics(obj, par_dict)
+        elif (par_dict['name'] == 'c_kinetics'):
+            print('find_c_kinetics not yet implemented')
+            exit(1)
+        else:
+            v = self.find_item(obj, par_dict['name'])
+        
+        # Return
+        return v
+
+    def find_m_kinetics(self, model_template, par_dict):
+        """ replace m_kinetics transition element """
+        m_kinetics = model_template['m_kinetics']
+        sch = m_kinetics['scheme']
+
+        v = np.NaN
+
+        # Handle extension first
+        if ('extension' in par_dict):
+            for s in sch:
+                if (s['number'] == par_dict['state']):
+                    v = s['extension']
+        else:
+        # Now do rate function parameters
+            for s in sch:
+                for  t in s['transition']:
+                    if ((s['number'] == par_dict['old_state']) and
+                        (t['new_state'] == par_dict['new_state'])):
+                            v = t['rate_parameters'][par_dict['parameter_index']]
+
+        # Return
+        return v
+
+    def replace_value(self, model_template, par_dict, new_value):
+        """ Replaces value in a model - can handle m_kinetics and c_kinetics
+        through helper functions """
+
+        if (par_dict['name'] == 'm_kinetics'):
+            model_template = self.replace_m_kinetics(model_template,
+                                                     par_dict, new_value)
+        elif (par_dict['name'] == 'c_kinetics'):
+            print('replace_c_kinetics not yet implemented')
+            exit(1)
+        else:
+            model_template = self.replace_item(model_template,
+                                               par_dict['name'], new_value)
+
+        # Return
+        return model_template
+        
+
+
     def find_item(self, obj, key, val):
-        # find value (val) associated with a given key (key) in a nested structure (obj)
+        """ find value (val) associated with a given key (key)
+        in a nested structure (obj) """
         for k, v in obj.items():
             if isinstance(v, dict):
                 obj[k], val = self.find_item(v, key, val)
