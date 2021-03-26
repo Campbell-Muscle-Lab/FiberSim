@@ -7,19 +7,20 @@
         "prop_myofilaments": 0.6,
         "m_filament_density": 0.407e15
     },
-    "thick_structure": {
-        "m_n": 36,
-        "m_crowns_per_filament": 54,
-        "m_hubs_per_crown": 3,
-        "m_myosins_per_hub": 2,
-        "m_inter_crown_rest_length": 13.5,
-        "m_lambda": 80.0,
-        "m_starting_angle": 0.0,
-        "m_inter_crown_twist": 40.0,
-        "m_within_hub_twist": 20.0,
-        "m_cb_angular_separation": 20.0,
-        "m_cb_radial_projection": 10.0
-    },
+  "thick_structure": {
+    "m_n": 4,
+    "m_crowns_per_filament": 54,
+    "m_hubs_per_crown": 3,
+    "m_myosins_per_hub": 2,
+    "m_inter_crown_rest_length": 13.5,
+    "m_lambda": 80.0,
+    "m_starting_angle": 0.0,
+    "m_inter_crown_twist": 40.0,
+    "m_within_hub_twist": 20.0,
+    "m_cb_angular_separation": 20.0,
+    "m_cb_radial_projection": 10.0,
+    "m_isotype_proportions": [ 0.5, 0.5 ]
+  },
     "thin_structure": {
         "a_strands_per_filament": 2,
         "a_regulatory_units_per_strand": 27,
@@ -57,108 +58,208 @@
     "m_parameters": {
         "m_k_cb": 0.001
     },
-    "m_kinetics": {
-        "no_of_states": 3,
-        "max_no_of_transitions": 2,
-        "scheme": [
+  "m_kinetics": [
+    {
+      "no_of_states": 3,
+      "max_no_of_transitions": 2,
+      "scheme": [
+        {
+          "number": 1,
+          "type": "D",
+          "extension": 0,
+          "transition": [
             {
-                "number": 1,
-                "type": "D",
-                "extension": 0,
-                "transition": [
-                    {
-                        "new_state": 2,
-                        "rate_type": "force_dependent",
-                        "rate_parameters": [
-                            10,
-                            1e-4
-                        ]
-                    }
-                ]
-            },
-            {
-                "number": 2,
-                "type": "D",
-                "extension": 0,
-                "transition": [
-                    {
-                        "new_state": 1,
-                        "rate_type": "constant",
-                        "rate_parameters": [
-                            100
-                        ]
-                    },
-                    {
-                        "new_state": 3,
-                        "rate_type": "gaussian",
-                        "rate_parameters": [
-                            50
-                        ]
-                    }
-                ]
-            },
-            {
-                "number": 3,
-                "type": "A",
-                "extension": 5.0,
-                "transition": [
-                    {
-                        "new_state": 2,
-                        "rate_type": "poly",
-                        "rate_parameters": [
-                            50,
-                            1,
-                            4
-                        ]
-                    }
-                ]
+              "new_state": 2,
+              "rate_type": "force_dependent",
+              "rate_parameters": [
+                10,
+                10
+              ]
             }
-        ]
-    },
-    "mybpc_structure": {
-        "c_thick_proximal_node": 10,
-        "c_thick_stripes": 10,
-        "c_thick_node_spacing": 3,
-        "c_mols_per_node": 3,
-        "c_starting_angle": 30.0
-    },
-    "mybpc_parameters": {
-        "c_k_stiff": 0.0005
-    },
-    "c_kinetics": {
-        "no_of_states": 2,
-        "max_no_of_transitions": 1,
-        "scheme": [
+          ]
+        },
+        {
+          "number": 2,
+          "type": "D",
+          "extension": 0,
+          "transition": [
             {
-                "number": 1,
-                "type": "D",
-                "extension": 0,
-                "transition": [
-                    {
-                        "new_state": 2,
-                        "rate_type": "gaussian",
-                        "rate_parameters": [
-                            0
-                        ]
-                    }
-                ]
+              "new_state": 1,
+              "rate_type": "constant",
+              "rate_parameters": [
+                10
+              ]
             },
             {
-                "number": 2,
-                "type": "A",
-                "extension": 0.0,
-                "transition": [
-                    {
-                        "new_state": 1,
-                        "rate_type": "poly",
-                        "rate_parameters": [
-                            0,
-                            0,
-                            0
-                        ]
-                    }
-                ]
+              "new_state": 3,
+              "rate_type": "gaussian",
+              "rate_parameters": [
+                50
+              ]
             }
-        ]
+          ]
+        },
+        {
+          "number": 3,
+          "type": "A",
+          "extension": 5.0,
+          "transition": [
+            {
+              "new_state": 2,
+              "rate_type": "poly",
+              "rate_parameters": [
+                50,
+                1,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "no_of_states": 3,
+      "max_no_of_transitions": 2,
+      "scheme": [
+        {
+          "number": 1,
+          "type": "D",
+          "extension": 0,
+          "transition": [
+            {
+              "new_state": 2,
+              "rate_type": "force_dependent",
+              "rate_parameters": [
+                10,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "type": "D",
+          "extension": 0,
+          "transition": [
+            {
+              "new_state": 1,
+              "rate_type": "constant",
+              "rate_parameters": [
+                10
+              ]
+            },
+            {
+              "new_state": 3,
+              "rate_type": "gaussian",
+              "rate_parameters": [
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "type": "A",
+          "extension": 5.0,
+          "transition": [
+            {
+              "new_state": 2,
+              "rate_type": "poly",
+              "rate_parameters": [
+                50,
+                1,
+                4
+              ]
+            }
+          ]
+        }
+      ]
     }
+  ],
+  "mybpc_structure":
+    {
+      "c_thick_proximal_node": 10,
+      "c_thick_stripes": 10,
+      "c_thick_node_spacing": 3,
+      "c_mols_per_node": 3,
+      "c_starting_angle": 30.0
+    },
+  "mybpc_parameters": {
+    "c_k_stiff": 0.0005,
+    "c_isotype_proportions": [0.1, 0.9]
+  },
+  "c_kinetics": [
+    {
+      "no_of_states": 2,
+      "max_no_of_transitions": 1,
+      "scheme": [
+        {
+          "number": 1,
+          "type": "D",
+          "extension": 0,
+          "transition": [
+            {
+              "new_state": 2,
+              "rate_type": "gaussian",
+              "rate_parameters": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "type": "A",
+          "extension": 0.0,
+          "transition": [
+            {
+              "new_state": 1,
+              "rate_type": "poly",
+              "rate_parameters": [
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "no_of_states": 2,
+      "max_no_of_transitions": 1,
+      "scheme": [
+        {
+          "number": 1,
+          "type": "D",
+          "extension": 0,
+          "transition": [
+            {
+              "new_state": 2,
+              "rate_type": "gaussian",
+              "rate_parameters": [
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "type": "A",
+          "extension": 0.0,
+          "transition": [
+            {
+              "new_state": 1,
+              "rate_type": "poly",
+              "rate_parameters": [
+                10,
+                1,
+                2
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

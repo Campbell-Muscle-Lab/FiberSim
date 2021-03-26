@@ -55,10 +55,17 @@ half_sarcomere::half_sarcomere(
     hs_id = set_hs_id;
 
     // Set the class pointers to the kinetic scheme for myosin
-    p_m_scheme = p_fs_model->p_m_scheme;
-    
+
+    for (int i = 0; i < p_fs_model->m_no_of_isotypes; i++) {
+        p_m_scheme[i] = p_fs_model->p_m_scheme[i];
+    }
+
     // and MyBPC
-    p_c_scheme = p_fs_model->p_c_scheme;
+
+    for (int i = 0; i < p_fs_model->c_no_of_isotypes; i++)
+    {
+        p_c_scheme[i] = p_fs_model->p_c_scheme[i];
+    }
 
     // Initialize macroscopic state variables
     time_s = 0.0;
@@ -150,10 +157,10 @@ half_sarcomere::half_sarcomere(
     a_k_off = p_fs_model->a_k_off;
     a_k_coop = p_fs_model->a_k_coop;
 
-    m_no_of_cb_states = p_m_scheme->no_of_states;
+    m_no_of_cb_states = p_fs_model->p_m_scheme[0]->no_of_states;
     m_k_stiff = p_fs_model->m_k_stiff;
 
-    c_no_of_pc_states = p_fs_model->p_c_scheme->no_of_states;
+    c_no_of_pc_states = p_fs_model->p_c_scheme[0]->no_of_states;
     c_no_of_pcs = p_mf[0]->c_no_of_pcs;
 
     t_k_stiff = p_fs_model->t_k_stiff;
@@ -639,7 +646,8 @@ void half_sarcomere::calculate_df_vector(gsl_vector* x_trial)
             {
                 // Check whether there is an extension
                 int cb_state = p_mf[m_counter]->cb_state[cb_counter];
-                double ext = p_m_scheme->p_m_states[cb_state-1]->extension;
+                int cb_iso = p_mf[m_counter]->cb_iso[cb_counter];
+                double ext = p_m_scheme[cb_iso]->p_m_states[cb_state-1]->extension;
 
                 if (fabs(ext) > 0.0)
                 {
@@ -1616,6 +1624,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
     // Variables
 
     int cb_state;               // cb state
+    int cb_isotype;             // cb isotype
     int max_transitions;        // potential number of transitoins
     int new_state;              // new cb state after transition
 
@@ -1646,9 +1655,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
     // Code
 
-
-    max_transitions = p_m_scheme->max_no_of_transitions;
-
+    max_transitions = p_m_scheme[0]->max_no_of_transitions;
     // Allocate vector
     transition_probs = gsl_vector_alloc(max_transitions);
 
@@ -1659,7 +1666,12 @@ void half_sarcomere::myosin_kinetics(double time_step)
         for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament; cb_counter++)
         {
             cb_state = p_mf[m_counter]->cb_state[cb_counter];
-            p_m_state = p_m_scheme->p_m_states[cb_state-1];
+            cb_isotype = p_mf[m_counter]->cb_iso[cb_counter];
+            p_m_state = p_m_scheme[cb_isotype]->p_m_states[cb_state-1];
+
+            max_transitions = p_m_scheme[cb_isotype]->max_no_of_transitions;
+            // Allocate vector
+            transition_probs = gsl_vector_alloc(max_transitions);
 
             if (p_m_state->state_type == 'a' || p_m_state->state_type == 'A')
             {
@@ -1681,7 +1693,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
             // Deduce state of controlling MyBPC
             if (p_mf[m_counter]->cb_controlling_pc_index[cb_counter] == -1)
-                mybpc_state = -1;
+                mybpc_state = 0;
             else
                 mybpc_state = p_mf[m_counter]->pc_state[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
 
@@ -1758,6 +1770,7 @@ void half_sarcomere::mybpc_kinetics(double time_step)
 
     // Variables
     int pc_state;                   // pc state
+    int pc_isotype;                 // pc isotype 
     int max_transitions;            // potential number of transitions
     int new_state;                  // new pc state after transition
 
@@ -1777,7 +1790,7 @@ void half_sarcomere::mybpc_kinetics(double time_step)
 
     // Code
 
-    max_transitions = p_c_scheme->max_no_of_transitions;
+    max_transitions = p_c_scheme[0]->max_no_of_transitions;
 
     // Allocation vectors
     transition_probs = gsl_vector_alloc(max_transitions);
@@ -1788,7 +1801,12 @@ void half_sarcomere::mybpc_kinetics(double time_step)
         for (int pc_counter = 0; pc_counter < p_mf[m_counter]->c_no_of_pcs; pc_counter++)
         {
             pc_state = p_mf[m_counter]->pc_state[pc_counter];
-            p_state = p_c_scheme->p_m_states[pc_state - 1];
+            pc_isotype = p_mf[m_counter]->pc_iso[pc_counter];
+            p_state = p_c_scheme[pc_isotype]->p_m_states[pc_state - 1];
+
+            max_transitions = p_c_scheme[pc_isotype]->max_no_of_transitions;
+            // Allocate vector
+            transition_probs = gsl_vector_alloc(max_transitions);
 
             if (p_state->state_type == 'a' || p_state->state_type == 'A')
             {
@@ -2150,17 +2168,21 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     // CB extension parameters
 
     fprintf_s(output_file, "\t\"cb_extensions\": [");
-    for (i = 0; i < p_m_scheme->no_of_states; i++) {
 
-        fprintf_s(output_file, "%g", p_m_scheme->p_m_states[i]->extension);
+    for (int j = 0; j < p_fs_model->m_no_of_isotypes; j++) {
 
-        if (i == p_m_scheme->no_of_states - 1)
-        {
-            fprintf_s(output_file, "],\n");
-        }
-        else
-        {
-            fprintf_s(output_file, ", ");
+        for (i = 0; i < p_m_scheme[j]->no_of_states; i++) {
+
+            fprintf_s(output_file, "%g", p_m_scheme[j]->p_m_states[i]->extension);
+
+            if (i == p_m_scheme[j]->no_of_states - 1 && j == p_fs_model->m_no_of_isotypes - 1)
+            {
+                fprintf_s(output_file, "],\n");
+            }
+            else
+            {
+                fprintf_s(output_file, ", ");
+            }
         }
     }
 
@@ -2220,9 +2242,9 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
             p_mf[thick_counter]->m_no_of_cbs, output_file,
             temp_string, false);
 
-        sprintf_s(temp_string, _MAX_PATH, "cb_isoform");
+        sprintf_s(temp_string, _MAX_PATH, "cb_iso");
         JSON_functions::write_short_int_array_as_JSON_array(
-            p_mf[thick_counter]->cb_isoform,
+            p_mf[thick_counter]->cb_iso,
             p_mf[thick_counter]->m_no_of_cbs, output_file,
             temp_string, false);
 
@@ -2285,9 +2307,9 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
             p_mf[thick_counter]->c_no_of_pcs, output_file,
             temp_string, false);
 
-        sprintf_s(temp_string, _MAX_PATH, "pc_phos");
+        sprintf_s(temp_string, _MAX_PATH, "pc_iso");
         JSON_functions::write_short_int_array_as_JSON_array(
-            p_mf[thick_counter]->pc_phos,
+            p_mf[thick_counter]->pc_iso,
             p_mf[thick_counter]->c_no_of_pcs, output_file,
             temp_string, false);
 

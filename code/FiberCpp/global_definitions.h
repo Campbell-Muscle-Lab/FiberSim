@@ -18,3 +18,5 @@
 
 #define MAX_NO_OF_RATE_PARAMETERS 10
 
+#define MAX_NO_OF_ISOTYPES 5
+
