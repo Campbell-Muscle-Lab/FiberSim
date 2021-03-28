@@ -18,8 +18,7 @@
     "m_inter_crown_twist": 40.0,
     "m_within_hub_twist": 20.0,
     "m_cb_angular_separation": 20.0,
-    "m_cb_radial_projection": 10.0,
-    "m_isotype_proportions": [ 0.5, 0.5 ]
+    "m_cb_radial_projection": 10.0
   },
     "thin_structure": {
         "a_strands_per_filament": 2,
@@ -42,7 +41,8 @@
         "a_k_coop": 8.37
     },
     "thick_parameters": {
-        "m_k_stiff": 100
+        "m_k_stiff": 100,
+        "m_isotype_proportions": [1.0]
     },
     "titin_parameters": {
         "t_passive_mode": "linear",
@@ -186,7 +186,7 @@
     },
   "mybpc_parameters": {
     "c_k_stiff": 0.0005,
-    "c_isotype_proportions": [0.1, 0.9]
+    "c_isotype_proportions": [1]
   },
   "c_kinetics": [
     {

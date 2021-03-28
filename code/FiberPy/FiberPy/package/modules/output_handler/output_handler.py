@@ -52,29 +52,30 @@ class output_handler():
 
         # User defined files
         if ('templated_images' in self.oh_data):
-            user_defined = self.oh_data['templated_images']
-            for ud in user_defined:
-                if (not ud['relative_to']):
-                    template_fs = os.path.abspath(ud['template_file_string'])
-                    output_fs = os.path.abspath(ud['output_file_string'])
-                elif (ud['relative_to'] == 'this_file'):
-                    base_directory = \
-                        Path(output_handler_file_string).parent.absolute()
-                    template_fs = os.path.join(base_directory,
-                                               ud['template_file_string'])
-                    output_fs = os.path.join(base_directory,
-                                             ud['output_file_string'])
-                else:
-                    base_directory = ud['relative_to']
-                    template_fs = os.path.join(base_directory,
-                                               ud['template_file_string'])
-                    output_fs = os.path.join(base_directory,
-                                             ud['output_file_string'])
-
-                self.create_image_from_template(
-                    sim_data,
-                    template_fs,
-                    output_fs)
+            if ('relative_to' in self.oh_data['templated_images'][0]):
+                user_defined = self.oh_data['templated_images']
+                for ud in user_defined:
+                    if (not ud['relative_to']):
+                        template_fs = os.path.abspath(ud['template_file_string'])
+                        output_fs = os.path.abspath(ud['output_file_string'])
+                    elif (ud['relative_to'] == 'this_file'):
+                        base_directory = \
+                            Path(output_handler_file_string).parent.absolute()
+                        template_fs = os.path.join(base_directory,
+                                                   ud['template_file_string'])
+                        output_fs = os.path.join(base_directory,
+                                                 ud['output_file_string'])
+                    else:
+                        base_directory = ud['relative_to']
+                        template_fs = os.path.join(base_directory,
+                                                   ud['template_file_string'])
+                        output_fs = os.path.join(base_directory,
+                                                 ud['output_file_string'])
+    
+                    self.create_image_from_template(
+                        sim_data,
+                        template_fs,
+                        output_fs)
 
     def create_image_from_template(self,
                                    sim_data,
