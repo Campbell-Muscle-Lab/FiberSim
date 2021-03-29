@@ -18,8 +18,7 @@
     "m_inter_crown_twist": 40.0,
     "m_within_hub_twist": 20.0,
     "m_cb_angular_separation": 20.0,
-    "m_cb_radial_projection": 10.0,
-    "m_isotype_proportions": [ 0.1, 0.9 ]
+    "m_cb_radial_projection": 10.0
   },
     "thin_structure": {
         "a_strands_per_filament": 2,
@@ -55,9 +54,10 @@
         "e_L": 50,
         "e_slack_length": 800
     },
-    "m_parameters": {
-        "m_k_cb": 0.001
-    },
+  "m_parameters": {
+    "m_k_cb": 0.001,
+    "m_isotype_proportions": [ 0.1, 0.9 ]
+  },
   "m_kinetics": [
     {
       "no_of_states": 3,
