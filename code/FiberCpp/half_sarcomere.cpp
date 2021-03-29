@@ -1634,6 +1634,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
     int crown_index;            // integer holding index of cb crown
 
     int mybpc_state;            // state number for MyBPC controlling cb
+    int mybpc_iso;              // isotype number for MyBPC controlling cb
 
     m_state* p_m_state;         // Pointer to a myosin state
     transition* p_trans;        // Pointer to a transition
@@ -1655,10 +1656,6 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
     // Code
 
-    max_transitions = p_m_scheme[0]->max_no_of_transitions;
-    // Allocate vector
-    transition_probs = gsl_vector_alloc(max_transitions);
-
     // Cycle through filaments
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
@@ -1667,9 +1664,10 @@ void half_sarcomere::myosin_kinetics(double time_step)
         {
             cb_state = p_mf[m_counter]->cb_state[cb_counter];
             cb_isotype = p_mf[m_counter]->cb_iso[cb_counter];
-            p_m_state = p_m_scheme[cb_isotype]->p_m_states[cb_state-1];
+            p_m_state = p_m_scheme[cb_isotype]->p_m_states[cb_state - 1];
 
             max_transitions = p_m_scheme[cb_isotype]->max_no_of_transitions;
+
             // Allocate vector
             transition_probs = gsl_vector_alloc(max_transitions);
 
@@ -1691,11 +1689,15 @@ void half_sarcomere::myosin_kinetics(double time_step)
             crown_index = cb_counter / (p_fs_model->m_hubs_per_crown * p_fs_model->m_myosins_per_hub);
             node_f = gsl_vector_get(p_mf[m_counter]->node_forces, crown_index);
 
-            // Deduce state of controlling MyBPC
-            if (p_mf[m_counter]->cb_controlling_pc_index[cb_counter] == -1)
+            // Deduce state and isotype of controlling MyBPC
+            if (p_mf[m_counter]->cb_controlling_pc_index[cb_counter] == -1){ 
                 mybpc_state = 0;
-            else
+                mybpc_iso = p_mf[m_counter]->pc_iso[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
+            }
+            else {
                 mybpc_state = p_mf[m_counter]->pc_state[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
+                mybpc_iso = p_mf[m_counter]->pc_iso[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
+            }
 
             // Prepare for calculating rates
             gsl_vector_set_zero(transition_probs);
@@ -1727,7 +1729,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
                         alignment_factor = 1.0;
 
                     prob = (1.0 - exp(-time_step * alignment_factor *
-                            p_trans->calculate_rate(x, node_f, mybpc_state)));
+                            p_trans->calculate_rate(x, node_f, mybpc_state, mybpc_iso)));
                     holder = holder + prob;
                     gsl_vector_set(transition_probs, t_counter, prob);
                 }
@@ -1757,11 +1759,11 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
                 holder = holder + gsl_vector_get(transition_probs, t_counter);
             }
+
+            // De-allocate vector
+            gsl_vector_free(transition_probs);
         }
     }
-
-    // Tidy up
-    gsl_vector_free(transition_probs);
 }
 
 void half_sarcomere::mybpc_kinetics(double time_step)
@@ -1790,11 +1792,6 @@ void half_sarcomere::mybpc_kinetics(double time_step)
 
     // Code
 
-    max_transitions = p_c_scheme[0]->max_no_of_transitions;
-
-    // Allocation vectors
-    transition_probs = gsl_vector_alloc(max_transitions);
-
     // Cycle through filaments
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
@@ -1805,6 +1802,7 @@ void half_sarcomere::mybpc_kinetics(double time_step)
             p_state = p_c_scheme[pc_isotype]->p_m_states[pc_state - 1];
 
             max_transitions = p_c_scheme[pc_isotype]->max_no_of_transitions;
+
             // Allocate vector
             transition_probs = gsl_vector_alloc(max_transitions);
 
@@ -1847,7 +1845,7 @@ void half_sarcomere::mybpc_kinetics(double time_step)
                     }
 
                     // Calculate probability of transition, accumulating in the holder
-                    prob = (1.0 - exp(-time_step * p_trans->calculate_rate(x, 0.0, 0)));
+                    prob = (1.0 - exp(-time_step * p_trans->calculate_rate(x, 0.0, 0, 0)));
 
                     holder = holder + prob;
                     gsl_vector_set(transition_probs, t_counter, prob);
@@ -1877,11 +1875,11 @@ void half_sarcomere::mybpc_kinetics(double time_step)
 
                 holder = holder + gsl_vector_get(transition_probs, t_counter);
             }
+
+            // Free up vector
+            gsl_vector_free(transition_probs);
         }
     }
-
-    // Tidy up
-    gsl_vector_free(transition_probs);
 }
 
 

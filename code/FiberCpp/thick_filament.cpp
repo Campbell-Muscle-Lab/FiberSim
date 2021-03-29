@@ -122,9 +122,9 @@ thick_filament::thick_filament(
             }
 
             else {
-                double rand_iso = gsl_rng_uniform_int(rand_generator_iso, p_fs_model->m_no_of_isotypes); // random assignment between 3 or more isotypes
-                cb_iso[i] = rand_iso;
-                cb_iso[i + 1] = rand_iso; // Pairs of myosin heads are the same isotype
+                int rand_iso = gsl_rng_uniform_int(rand_generator_iso, p_fs_model->m_no_of_isotypes); // random assignment between 3 or more isotypes
+                cb_iso[i] = (short)rand_iso;
+                cb_iso[i + 1] = (short)rand_iso; // Pairs of myosin heads are the same isotype
             }
 
         }
@@ -179,9 +179,10 @@ thick_filament::thick_filament(
             }
         }
 
-        else {
-            double rand_iso = gsl_rng_uniform_int(rand_generator_iso, p_fs_model->c_no_of_isotypes); // random assignment between 3 or more isotypes
-            pc_iso[i] = rand_iso;
+        else
+        {
+            int rand_iso = gsl_rng_uniform_int(rand_generator_iso, p_fs_model->c_no_of_isotypes); // random assignment between 3 or more isotypes
+            pc_iso[i] = (short)rand_iso;
         }
 
         pc_bound_to_a_f[i] = -1;

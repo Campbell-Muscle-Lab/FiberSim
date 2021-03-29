@@ -174,19 +174,6 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(thick_structure, "m_within_hub_twist");
     m_within_hub_twist = thick_structure["m_within_hub_twist"].GetDouble();
 
-    JSON_functions::check_JSON_member_array(thick_structure, "m_isotype_proportions");
-    const rapidjson::Value& mip = thick_structure["m_isotype_proportions"];
-
-    m_no_of_isotypes = mip.Size();
-
-    m_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
-    gsl_vector_set_zero(m_isotype_props);
-
-    for (int i = 0; i < (int)mip.Size(); i++)
-    {
-        gsl_vector_set(m_isotype_props, i, mip[i].GetDouble());
-    }
-       
     // Load the thin_structure variables
     JSON_functions::check_JSON_member_object(doc, "thin_structure");
     const rapidjson::Value& thin_structure = doc["thin_structure"];
@@ -287,6 +274,18 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
 
     JSON_functions::check_JSON_member_number(m_parameters, "m_k_cb");
     m_k_cb = m_parameters["m_k_cb"].GetDouble();
+
+    JSON_functions::check_JSON_member_array(m_parameters, "m_isotype_proportions");
+    const rapidjson::Value& mip = m_parameters["m_isotype_proportions"];
+
+    m_no_of_isotypes = mip.Size();
+    m_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
+    gsl_vector_set_zero(m_isotype_props);
+
+    for (int i = 0; i < (int)mip.Size(); i++)
+    {
+        gsl_vector_set(m_isotype_props, i, mip[i].GetDouble());
+    }
 
     // Load the titin_parameters
     JSON_functions::check_JSON_member_object(doc, "titin_parameters");

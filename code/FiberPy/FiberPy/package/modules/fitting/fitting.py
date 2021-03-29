@@ -649,16 +649,16 @@ class fitting():
     def replace_m_kinetics(self, model_template, par_dict, new_value):
         """ replace m_kinetics transition element """
         m_kinetics = model_template['m_kinetics']
-        sch = m_kinetics['scheme']
+        sch = m_kinetics[par_dict['isotype']-1]['scheme']
 
         # Handle extension first
-        if ('extension' in m_kinetics):
+        if ('extension' in par_dict):
             s_new = []
             for s in sch:
                 if (s['number'] == par_dict['state']):
                     s['extension'] = new_value
                 s_new.append(s)
-            m_kinetics['scheme'] = s_new
+            m_kinetics[par_dict['isotype']-1]['scheme'] = s_new
         else:
         # Now do rate function parameters
             s_new = []
@@ -671,7 +671,7 @@ class fitting():
                                 new_value
                     t_new.append(t)
                 s_new.append(s)
-            m_kinetics['scheme'] = s_new
+            m_kinetics[par_dict['isotype']-1]['scheme'] = s_new
 
         # Return
         model_template['m_kinetics'] = m_kinetics
@@ -705,7 +705,7 @@ class fitting():
     def find_m_kinetics(self, model_template, par_dict):
         """ replace m_kinetics transition element """
         m_kinetics = model_template['m_kinetics']
-        sch = m_kinetics['scheme']
+        sch = m_kinetics[par_dict['isotype']-1]['scheme']
 
         v = np.NaN
 

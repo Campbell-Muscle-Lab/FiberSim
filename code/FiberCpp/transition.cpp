@@ -66,7 +66,7 @@ transition::~transition(void)
 
 // Functions
 
-double transition::calculate_rate(double x, double node_force, int mybpc_state)
+double transition::calculate_rate(double x, double node_force, int mybpc_state, int mybpc_iso)
 {
 	//! Returns the rate for a transition with a given x
 
@@ -96,6 +96,33 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state)
 	{
 		rate = gsl_vector_get(rate_parameters, 0) *
 			(1.0 + (node_force * gsl_vector_get(rate_parameters, 1)));
+	}
+
+	// Force and MyBPC-dependent
+	if (~strcmp(rate_type, "force_and_MyBPC_dependent"))
+		// rate = k_base * mult_base * (1 + node_force * k_force * mult_force) 
+		// where mult_base and mult_force depend on mybpc_state and mybpc_iso		    
+	{
+		double mult_base = 1.0;
+		double mult_force = 1.0;
+
+		if (mybpc_state != 0) { // CB is controlled by a PC
+
+			mult_base = (gsl_vector_get(rate_parameters, 2) * (1 - (double)mybpc_iso) + (double)mybpc_iso) *
+				(gsl_vector_get(rate_parameters, 4) * (double)mybpc_iso + (1 - (double)mybpc_iso));
+			// multiplier depends on mybpc_iso (0 or 1)
+
+			mult_force = (gsl_vector_get(rate_parameters, 3) * (1 - (double)mybpc_iso) + (double)mybpc_iso) *
+				(gsl_vector_get(rate_parameters, 5) * (double)mybpc_iso + (1 - (double)mybpc_iso));
+			// multiplier depends on mybpc_iso (0 or 1)
+		}
+
+		rate = gsl_vector_get(rate_parameters, 0) *
+			(mult_base * (2 - (double)mybpc_state) + ((double)mybpc_state - 1)) *
+			// apply multiplier only if mybpc_state == 1
+			(1.0 + (node_force * gsl_vector_get(rate_parameters, 1) *
+				(mult_force * (2 - (double)mybpc_state) + ((double)mybpc_state - 1))));
+			// apply multiplier only if mybpc_state == 1
 	}
 
 	// Gaussian

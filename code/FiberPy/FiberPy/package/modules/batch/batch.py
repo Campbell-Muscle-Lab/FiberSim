@@ -60,15 +60,16 @@ def run_batch(json_batch_file_string=[],
             else:
                 base_directory = j['relative_to']
                 fs = os.path.join(base_directory, fs)
-
             # Store the results file in case you need it to make a figure
             # using the output_handler system
             if (f == 'results_file'):
                 results_file_strings.append(fs)
 
-            com_string = '%s %s' % (com_string, fs)
+            com_string = '%s "%s"' % (com_string, fs)
 
-        command_strings.append(com_string)
+        
+    command_strings.append(com_string)
+    print(command_strings)
 
     # Now run the batch using all but 1 cpi
     num_processes = (multiprocessing.cpu_count() - 1)
