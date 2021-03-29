@@ -1655,10 +1655,6 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
     // Code
 
-    max_transitions = p_m_scheme[0]->max_no_of_transitions;
-    // Allocate vector
-    transition_probs = gsl_vector_alloc(max_transitions);
-
     // Cycle through filaments
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
@@ -1670,6 +1666,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
             p_m_state = p_m_scheme[cb_isotype]->p_m_states[cb_state-1];
 
             max_transitions = p_m_scheme[cb_isotype]->max_no_of_transitions;
+
             // Allocate vector
             transition_probs = gsl_vector_alloc(max_transitions);
 
@@ -1757,11 +1754,11 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
                 holder = holder + gsl_vector_get(transition_probs, t_counter);
             }
+
+            // De-allocate vector
+            gsl_vector_free(transition_probs);
         }
     }
-
-    // Tidy up
-    gsl_vector_free(transition_probs);
 }
 
 void half_sarcomere::mybpc_kinetics(double time_step)
@@ -1790,11 +1787,6 @@ void half_sarcomere::mybpc_kinetics(double time_step)
 
     // Code
 
-    max_transitions = p_c_scheme[0]->max_no_of_transitions;
-
-    // Allocation vectors
-    transition_probs = gsl_vector_alloc(max_transitions);
-
     // Cycle through filaments
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
@@ -1805,6 +1797,7 @@ void half_sarcomere::mybpc_kinetics(double time_step)
             p_state = p_c_scheme[pc_isotype]->p_m_states[pc_state - 1];
 
             max_transitions = p_c_scheme[pc_isotype]->max_no_of_transitions;
+
             // Allocate vector
             transition_probs = gsl_vector_alloc(max_transitions);
 
@@ -1877,11 +1870,11 @@ void half_sarcomere::mybpc_kinetics(double time_step)
 
                 holder = holder + gsl_vector_get(transition_probs, t_counter);
             }
+
+            // Free up vector
+            gsl_vector_free(transition_probs);
         }
     }
-
-    // Tidy up
-    gsl_vector_free(transition_probs);
 }
 
 
