@@ -1,0 +1,17 @@
+{
+  "options": {
+    "max_rate": 1e4,
+    "x_pos_rel_tol": 1e-3,
+    "logging":
+    {
+      "relative_to": "this_file",
+      "log_folder": "log"
+    },
+    "status_files":
+    {
+      "relative_to": "this_file",
+      "status_folder": "hs",
+      "time_steps": "1:1:1"
+    }
+  }
+}

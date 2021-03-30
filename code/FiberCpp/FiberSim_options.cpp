@@ -138,7 +138,7 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     const rapidjson::Value& options = doc["options"];
 
     // Now check for the log folder
-    if (JSON_functions::is_JSON_member(options, "log_folder"))
+    if (JSON_functions::is_JSON_member(options, "logging"))
     {
         JSON_functions::check_JSON_member_string(options, "log_folder");
         sprintf_s(log_folder, _MAX_PATH, "%s", options["log_folder"].GetString());

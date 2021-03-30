@@ -1690,11 +1690,15 @@ void half_sarcomere::myosin_kinetics(double time_step)
             node_f = gsl_vector_get(p_mf[m_counter]->node_forces, crown_index);
 
             // Deduce state and isotype of controlling MyBPC
-            if (p_mf[m_counter]->cb_controlling_pc_index[cb_counter] == -1){ 
+            if (p_mf[m_counter]->cb_controlling_pc_index[cb_counter] == -1)
+            { 
+                // Set to 0, as no MyBPC control
                 mybpc_state = 0;
-                mybpc_iso = p_mf[m_counter]->pc_iso[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
+                mybpc_iso = 0;
             }
-            else {
+            else
+            {
+                // Pull the state and isotype
                 mybpc_state = p_mf[m_counter]->pc_state[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
                 mybpc_iso = p_mf[m_counter]->pc_iso[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
             }

@@ -28,6 +28,16 @@ public:
     ~FiberSim_options(void);
 
     // Variables
+   
+    double max_rate;                    /**< double defining the maximum rate allowed in calculations */
+
+    double x_pos_rel_tol;               /**< double defining the relative tolerance for calculating
+                                             x positions */
+   
+    int dump_precision;                 /**< integer defining the precision of doubles dumped in the half-
+                                             sarcomere status files */
+
+    char log_relative_to[_MAX_PATH];    /**< char array used to direct paths */
 
     char log_folder[_MAX_PATH];         /**< Folder to hold files about the program status:
                                              intended for debugging and testing purposes
@@ -43,26 +53,12 @@ public:
                                              1 means log
                                              Value is set by the presence of log_folder */
 
-    int dump_hs_status;                 /**< Integer defining whether or not to dump hs_status for
-                                             each time-step in log/hs_status folder */
+    char status_relative_to[_MAX_PATH]; /**< char array used to direct paths */
 
-    char hs_status_folder[_MAX_PATH];
-                                        /**< Folder to hold hs_status files. These are used for
-                                             debugging and more advanced analyses */
+    char status_folder[_MAX_PATH];      /**< Folder to hold status files
+                                             "none" means do not write files */
 
-    int no_of_repeats;                  /** integer defining the number of repeats to perform */
-
-    int multithreading;                 /**< integer
-                                            + 0 means no multithreading
-                                            + 1 means multithreading */
-
-    double x_pos_rel_tol;               /**< double defining the relative tolerance for calculating
-                                             x positions */
-
-    double max_rate;                    /**< double defining the maximum rate allowed in calculations */
-    
-    int dump_precision;                 /**< integer defining the precision of doubles dumped in the half-
-                                         sarcomere status files */
+    char time_steps_string[_MAX_PATH];  /**< String definning which time_steps to dump */
 
     // Functions
 
