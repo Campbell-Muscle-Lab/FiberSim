@@ -100,29 +100,42 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 
 	// Force and MyBPC-dependent
 	if (~strcmp(rate_type, "force_and_MyBPC_dependent"))
-		// rate = k_base * mult_base * (1 + node_force * k_force * mult_force) 
-		// where mult_base and mult_force depend on mybpc_state and mybpc_iso		    
 	{
-		double mult_base = 1.0;
-		double mult_force = 1.0;
+		// rate = k_base * modifier_base * (1 + node_force * k_force * modifier_force)
+		// where the modifier depends on the isotype
+		// rate_parameters is a vector
+		// [k_base, k_force,
+		//		modifier_base[isotype=1,isostate=1], modifier_force[isotype=1, isostate=1]
+		//		modifier_base[isotype=1,isostate=2], modifier_force[isotype=1, isostate=2]
+		//		... and so on for different isostates
+		//		modifier_base[isotype=2,isostate=1], modifier_force[isotype=2, isostate=1]
+		//		modifier_base[isotype=2,isostate=2], modifier_force[isotype=2, isostate=2]
+		//		... and so on for different isotypes
+		// So rate_parameters=[1, 10, 0.5, 1, 1, 1, 1, 1, 2, 1]
+		// describes a situation with 2 isostypes, each with 2 states
+		// where isotype 1, state 1 stabilizes SRX (modifer_base * 0.5)
+		// and isotype 2, state 2, destabilizes SRX (modifier_base * 2)
+		// 
+		// CURRENTLY, ONLY WORKS FOR ISOTYPES THAT ALL HAVE 2 POSSIBLE STATES
+		// GOING FURTHER MIGHT NEED PASSING IN INFORMATION ABOUT THE ENTIRE SCHEME
 
-		if (mybpc_state != 0) { // CB is controlled by a PC
+		double k_base = gsl_vector_get(rate_parameters, 0);
+		double k_force = gsl_vector_get(rate_parameters, 1);
 
-			mult_base = (gsl_vector_get(rate_parameters, 2) * (1 - (double)mybpc_iso) + (double)mybpc_iso) *
-				(gsl_vector_get(rate_parameters, 4) * (double)mybpc_iso + (1 - (double)mybpc_iso));
-			// multiplier depends on mybpc_iso (0 or 1)
+		double modifier_base = 1.0;
+		double modifier_force = 1.0;
 
-			mult_force = (gsl_vector_get(rate_parameters, 3) * (1 - (double)mybpc_iso) + (double)mybpc_iso) *
-				(gsl_vector_get(rate_parameters, 5) * (double)mybpc_iso + (1 - (double)mybpc_iso));
-			// multiplier depends on mybpc_iso (0 or 1)
+		if (mybpc_state > 0)
+		{
+			// Work out how far to step into the rate_parameters vector
+			int base_index = 2 + ((mybpc_iso - 1) * 4) + ((mybpc_state - 1) * 2);
+			int force_index = 2 + ((mybpc_iso - 1) * 4) + ((mybpc_state - 1) * 2) + 1;
+
+			modifier_base = gsl_vector_get(rate_parameters, base_index);
+			modifier_force = gsl_vector_get(rate_parameters, force_index);
 		}
 
-		rate = gsl_vector_get(rate_parameters, 0) *
-			(mult_base * (2 - (double)mybpc_state) + ((double)mybpc_state - 1)) *
-			// apply multiplier only if mybpc_state == 1
-			(1.0 + (node_force * gsl_vector_get(rate_parameters, 1) *
-				(mult_force * (2 - (double)mybpc_state) + ((double)mybpc_state - 1))));
-			// apply multiplier only if mybpc_state == 1
+		rate = k_base * modifier_base * (1.0 + (node_force * k_force * modifier_force));
 	}
 
 	// Gaussian

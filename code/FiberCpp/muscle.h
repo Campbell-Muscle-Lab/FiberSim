@@ -64,6 +64,9 @@ public:
 
     int muscle_id;                      /**< integer labeling the muscle */
 
+    int dump_status_counter;            /**< Integer used to track which status files
+                                             to dump */
+
     char model_file_string[_MAX_PATH];  /**< character array for the model file string */
 
     char options_file_string[_MAX_PATH];
