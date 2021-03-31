@@ -68,7 +68,7 @@ def run_batch(json_batch_file_string=[],
             com_string = '%s "%s"' % (com_string, fs)
 
         
-    command_strings.append(com_string)
+        command_strings.append(com_string)
     print(command_strings)
 
     # Now run the batch using all but 1 cpi
