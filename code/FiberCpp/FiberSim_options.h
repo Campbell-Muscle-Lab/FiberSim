@@ -60,6 +60,12 @@ public:
 
     char time_steps_string[_MAX_PATH];  /**< String definning which time_steps to dump */
 
+    int start_status_time_step;         /**< Integer of first time-step to dump status file */
+
+    int stop_status_time_step;          /**< Integer of last time-step to dump status file */
+
+    int skip_status_time_step;          /**< Integer of skips between dump of status file */
+
     // Functions
 
     /**

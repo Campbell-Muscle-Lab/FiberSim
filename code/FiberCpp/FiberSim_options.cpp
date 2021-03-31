@@ -13,7 +13,7 @@
 #include "rapidjson\document.h"
 #include "rapidjson\filereadstream.h"
 
-using namespace std::filesystem;
+namespace fs = std::filesystem;
 
 // Constructor
 FiberSim_options::FiberSim_options(char JSON_options_file_string[])
@@ -28,12 +28,58 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
                                                  in calculations */
 
     dump_precision = 8;                     /**< default value for dump precision */
-    
+
+
+    // Update values from log file
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
 
     // Do some processing on the options
-    if (strlen(log_folder) > 0)
+    if (strlen(status_folder) > 0)
     {
+        if (!strcmp(status_relative_to, "this_file"))
+        {
+            fs::path options_file = JSON_options_file_string;
+            fs::path options_path = options_file.parent_path();
+            fs::path status_path = options_path / status_folder;
+
+            // Make sure the status folder exists
+            if (fs::is_directory(status_path))
+            {
+                // Clean the directory
+                int n = (int) fs::remove_all(status_path);
+                printf("Deleting %i files from status_folder: %s",
+                    n, status_path.string().c_str());
+            }
+
+            // Now create the directory
+            if (fs::create_directory(status_path))
+            {
+                printf("Status folder created at: %s\n", status_path.string().c_str());
+            }
+            else
+            {
+                printf("Status folder could not be created: %s\n", status_path.string().c_str());
+                exit(1);
+            }
+
+            // Set the status folder
+            sprintf_s(status_folder, _MAX_PATH, "%s", status_path.string().c_str());
+        }
+
+        // Parse the time_steps string
+        std::string ts_string = time_steps_string;
+
+        size_t first_sep = ts_string.find_first_of(":");
+        size_t last_sep = ts_string.find_last_of(":");
+
+        start_status_time_step = (int)std::stoi(ts_string.substr(0, first_sep));
+        skip_status_time_step = (int)std::stoi(ts_string.substr((first_sep+1), last_sep));
+        stop_status_time_step = (int)std::stoi(ts_string.substr(last_sep+1));
+    }
+
+/*
+
+        }
         // Set the log mode
         log_mode = 1;
         
@@ -98,6 +144,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     {
         log_mode = 0;
     }
+*/
 }
 
 // Destructor
@@ -137,27 +184,6 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     JSON_functions::check_JSON_member_object(doc, "options");
     const rapidjson::Value& options = doc["options"];
 
-    // Now check for the log folder
-    if (JSON_functions::is_JSON_member(options, "logging"))
-    {
-        JSON_functions::check_JSON_member_string(options, "log_folder");
-        sprintf_s(log_folder, _MAX_PATH, "%s", options["log_folder"].GetString());
-
-        // If we have a log folder, we need to check the dump_hs_status
-        if (JSON_functions::is_JSON_member(options, "dump_hs_status"))
-        {
-            JSON_functions::check_JSON_member_int(options, "dump_hs_status");
-            dump_hs_status = options["dump_hs_status"].GetInt();
-        }
-    }
-    else
-    {
-        log_mode = 0;
-        sprintf_s(log_folder, _MAX_PATH, "");
-        dump_hs_status = 0;
-    }
-
-
     // Check we have entries and set them
 
     if (JSON_functions::is_JSON_member(options, "x_pos_rel_tol"))
@@ -165,7 +191,6 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
         JSON_functions::check_JSON_member_number(options, "x_pos_rel_tol");
         x_pos_rel_tol = options["x_pos_rel_tol"].GetDouble();
     }
-
 
     if (JSON_functions::is_JSON_member(options, "max_rate"))
     {
@@ -180,16 +205,32 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
         dump_precision = options["dump_precision"].GetInt();
     }
 
-    // Set status mode
-    if (strcmp(log_folder, "none") == 0)
+    // Now check for logging
+    if (JSON_functions::is_JSON_member(options, "logging"))
     {
-        log_mode = 0;
-    }
-    else
-    {
-        log_mode = 1;
+        const rapidjson::Value& logging = options["logging"];
+
+        JSON_functions::check_JSON_member_string(logging, "relative_to");
+        sprintf_s(log_relative_to, _MAX_PATH, "%s", logging["relative_to"].GetString());
+
+        JSON_functions::check_JSON_member_string(logging, "log_folder");
+        sprintf_s(log_folder, _MAX_PATH, "%s", logging["log_folder"].GetString());
     }
 
+    // Now check for status files
+    if (JSON_functions::is_JSON_member(options, "status_files"))
+    {
+        const rapidjson::Value& status_files = options["status_files"];
+
+        JSON_functions::check_JSON_member_string(status_files, "relative_to");
+        sprintf_s(status_relative_to, _MAX_PATH, "%s", status_files["relative_to"].GetString());
+
+        JSON_functions::check_JSON_member_string(status_files, "status_folder");
+        sprintf_s(status_folder, _MAX_PATH, "%s", status_files["status_folder"].GetString());
+
+        JSON_functions::check_JSON_member_string(status_files, "time_steps");
+        sprintf_s(time_steps_string, _MAX_PATH, "%s", status_files["time_steps"].GetString());
+    }
 }
 
 void FiberSim_options::write_FiberSim_options_to_file(void)
@@ -214,11 +255,6 @@ void FiberSim_options::write_FiberSim_options_to_file(void)
 
     fprintf_s(output_file, "log_folder: %s\n", log_folder);
     fprintf_s(output_file, "log_file_string: %s\n", log_file_string);
-    fprintf_s(output_file, "log_mode: %i\n", log_mode);
-    fprintf_s(output_file, "dump_hs_status: %i\n", dump_hs_status);
-    fprintf_s(output_file, "hs_status_folder: %s\n", hs_status_folder);
-    fprintf_s(output_file, "no_of_repeats: %i\n", no_of_repeats);
-    fprintf_s(output_file, "multithreading: %i\n", multithreading);
     fprintf_s(output_file, "max_rate: %g\n", max_rate);
     fprintf_s(output_file, "dump_precision: %i\n", dump_precision);
 

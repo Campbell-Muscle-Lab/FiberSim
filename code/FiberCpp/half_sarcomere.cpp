@@ -332,6 +332,7 @@ size_t half_sarcomere::implement_time_step(double time_step,
     calculate_c_pops();
 
     // Dump status if required
+/*
     if (strlen(p_fs_options->hs_status_folder)>0)
     {
         char hs_status_file_string[_MAX_PATH];
@@ -339,6 +340,7 @@ size_t half_sarcomere::implement_time_step(double time_step,
             p_fs_options->hs_status_folder, hs_id, step_counter);
         write_hs_status_to_file(hs_status_file_string);
     }
+*/
 
     // Return
     return x_solve_iterations;

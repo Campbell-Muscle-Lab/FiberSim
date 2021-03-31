@@ -20,7 +20,7 @@
 #include "rapidjson\document.h"
 #include "rapidjson\istreamwrapper.h"
 
-using namespace std::filesystem;
+namespace fs = std::filesystem;
 
 // Constructor
 muscle::muscle(char set_model_file_string[], char set_options_file_string[])
@@ -43,6 +43,9 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 	{
 		p_hs[hs_counter] = new half_sarcomere(p_fs_model, p_fs_options, p_fs_protocol, this, hs_counter);
 	}
+
+	// Initialise_status_counter
+	dump_status_counter = 1;
 
 	printf("Muscle created half-sarcomeres\n");
 }
@@ -181,4 +184,29 @@ void muscle::implement_time_step(int protocol_index)
 			protocol_index, i, gsl_vector_get(p_hs[0]->c_pops, i));
 	}
 
+	// Dump the hs_status files if required
+	if (protocol_index >= (p_fs_options->start_status_time_step - 1))
+	{
+		if (protocol_index <= (p_fs_options->stop_status_time_step - 1))
+		{
+			if (dump_status_counter == 1)
+			{
+				// Dump status files for each half-sarcomere
+				for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres;
+					hs_counter++)
+				{
+					char hs_status_file_string[_MAX_PATH];
+					sprintf_s(hs_status_file_string, _MAX_PATH, "%s//hs_%i_time_step_%i.json",
+						p_fs_options->status_folder, hs_counter + 1, protocol_index + 1);
+					p_hs[hs_counter]->write_hs_status_to_file(hs_status_file_string);
+				}
+			}
+		}
+
+		// Update dump_status_counter
+		dump_status_counter++;
+
+		if (dump_status_counter > p_fs_options->skip_status_time_step)
+			dump_status_counter = 1;
+	}
 }
