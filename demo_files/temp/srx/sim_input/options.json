@@ -1,0 +1,12 @@
+{
+  "options": {
+    "max_rate": 1e4,
+    "x_pos_rel_tol": 1e-3,
+    "status_files":
+    {
+      "relative_to": "this_file",
+      "status_folder": "../sim_output/hs",
+      "time_steps": "1:1:10"
+    }
+  }
+}

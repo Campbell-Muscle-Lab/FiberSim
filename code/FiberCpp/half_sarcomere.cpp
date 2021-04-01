@@ -331,17 +331,6 @@ size_t half_sarcomere::implement_time_step(double time_step,
     calculate_m_pops();
     calculate_c_pops();
 
-    // Dump status if required
-/*
-    if (strlen(p_fs_options->hs_status_folder)>0)
-    {
-        char hs_status_file_string[_MAX_PATH];
-        sprintf_s(hs_status_file_string, _MAX_PATH, "%s\\hs_%i_time_step_%i.json", 
-            p_fs_options->hs_status_folder, hs_id, step_counter);
-        write_hs_status_to_file(hs_status_file_string);
-    }
-*/
-
     // Return
     return x_solve_iterations;
 }
@@ -1625,151 +1614,286 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
     // Variables
 
-    int cb_state;               // cb state
-    int cb_isotype;             // cb isotype
-    int max_transitions;        // potential number of transitoins
-    int new_state;              // new cb state after transition
+    int cb_state;                       // cb_state (>=1)
+    int cb_isotype;                     // cb_isotoype(>=0)
 
-    int a_f;                    // nearest nearest actin filament
-    int a_n;                    // nearest binding site
+    int new_state;                      // New cb state
 
-    int crown_index;            // integer holding index of cb crown
+    char old_type;                      // Existing state type
+    char new_type;                      // New state type
 
-    int mybpc_state;            // state number for MyBPC controlling cb
-    int mybpc_iso;              // isotype number for MyBPC controlling cb
+    int transition_index;               // index to an m_transition
 
-    m_state* p_m_state;         // Pointer to a myosin state
-    transition* p_trans;        // Pointer to a transition
+    int a_f;                            // relevant actin filament
+    int a_n;                            // relevant binding site
 
-    double x;                   // Myosin node position - actin node position
-
-    gsl_vector* transition_probs;
-                                // gsl_vector holding probability of different transitions
-
-    double alignment_factor;    // double ranging from 0 to 1 that adjusts attachment
-                                // probability based on angle between cb and bs
-
-    
-    double node_f;              // double holding node force
-
-    double prob;
-    double holder;
-    double rand_number;
+    m_state* p_m_state;                 // pointer to a myosin state
 
     // Code
 
     // Cycle through filaments
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
-        // Now cycle through cbs
-        for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament; cb_counter++)
+        // Now cycle through dimers
+        if (p_mf[m_counter]->m_myosins_per_hub != 2)
         {
-            cb_state = p_mf[m_counter]->cb_state[cb_counter];
-            cb_isotype = p_mf[m_counter]->cb_iso[cb_counter];
-            p_m_state = p_m_scheme[cb_isotype]->p_m_states[cb_state - 1];
+            printf("half_sarcomere::myosin_kinetics() does not work without myosin dimers");
+            exit(1);
+        }
 
-            max_transitions = p_m_scheme[cb_isotype]->max_no_of_transitions;
+        for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament;
+            cb_counter = cb_counter + 2)
+        {
+            transition_index = return_m_transition(time_step, m_counter, cb_counter);
 
-            // Allocate vector
-            transition_probs = gsl_vector_alloc(max_transitions);
-
-            if (p_m_state->state_type == 'a' || p_m_state->state_type == 'A')
+            if (transition_index >= 0)
             {
-                a_f = p_mf[m_counter]->cb_bound_to_a_f[cb_counter];
-                a_n = p_mf[m_counter]->cb_bound_to_a_n[cb_counter];
-            }
-            else {
-                a_f = p_mf[m_counter]->cb_nearest_a_f[cb_counter];
-                a_n = p_mf[m_counter]->cb_nearest_a_n[cb_counter];
-            }
+                // Transition occurred
+                cb_state = p_mf[m_counter]->cb_state[cb_counter];
+                cb_isotype = p_mf[m_counter]->cb_iso[cb_counter];
+                p_m_state = p_m_scheme[cb_isotype]->p_m_states[cb_state-1];
 
-            // Set x
-            x = gsl_vector_get(p_mf[m_counter]->cb_x, cb_counter) -
-                gsl_vector_get(p_af[a_f]->bs_x, a_n);
+                old_type = p_m_state->state_type;
 
-            // Deduce node force
-            crown_index = cb_counter / (p_fs_model->m_hubs_per_crown * p_fs_model->m_myosins_per_hub);
-            node_f = gsl_vector_get(p_mf[m_counter]->node_forces, crown_index);
+                new_state = p_m_state->p_transitions[transition_index]->new_state;
+                new_type = p_m_scheme[cb_isotype]->p_m_states[new_state - 1]->state_type;
 
-            // Deduce state and isotype of controlling MyBPC
-            if (p_mf[m_counter]->cb_controlling_pc_index[cb_counter] == -1)
-            { 
-                // Set to 0, as no MyBPC control
-                mybpc_state = 0;
-                mybpc_iso = 0;
-            }
-            else
-            {
-                // Pull the state and isotype
-                mybpc_state = p_mf[m_counter]->pc_state[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
-                mybpc_iso = p_mf[m_counter]->pc_iso[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
-            }
-
-            // Prepare for calculating rates
-            gsl_vector_set_zero(transition_probs);
-
-            // Cycle through transitions, adding up rates
-            holder = 0.0;
-            for (int t_counter = 0; t_counter < max_transitions ; t_counter++)
-            {
-                p_trans = p_m_state->p_transitions[t_counter];
-                new_state = p_trans->new_state;
-
-                if (new_state > 0)
+                // Get the a_f and the a_n for the myosin head
+                if (p_m_state->state_type == 'a' || p_m_state->state_type == 'A')
                 {
-                    if ((p_trans->transition_type == 'a') && (p_af[a_f]->bound_to_m_f[a_n] >= 0))
-                    {
-                        continue;           // Binding site is already occupied
-                    }
-                    if ((p_trans->transition_type == 'a') && (p_af[a_f]->bs_state[a_n] == 0))
-                    {
-                        continue;           // Binding site is off
-                    }
-
-                    if (p_trans->transition_type == 'a')
-                    {
-                        double angle = gsl_vector_get(p_mf[m_counter]->cb_nearest_bs_angle_diff, cb_counter);
-                        alignment_factor = -cos(angle * M_PI / 180.0);
-                    }
-                    else
-                        alignment_factor = 1.0;
-
-                    prob = (1.0 - exp(-time_step * alignment_factor *
-                            p_trans->calculate_rate(x, node_f, mybpc_state, mybpc_iso)));
-                    holder = holder + prob;
-                    gsl_vector_set(transition_probs, t_counter, prob);
+                    a_f = p_mf[m_counter]->cb_bound_to_a_f[cb_counter];
+                    a_n = p_mf[m_counter]->cb_bound_to_a_n[cb_counter];
                 }
-            }
-            // Scale vector if required (handles situation with multiple fast transitions
-            // when the first one would always be done)
-            //if ((holder > 0.0) && (holder > 1.0))
-            if (holder > 1.0)
-                gsl_vector_scale(transition_probs, 1.0 / holder);
-
-            // Get a random number, and loop through transitions
-            // If the random lies in the cum sum bracket, the transition occurs
-            // If you get to the end, no transition occurred
-            holder = 0.0;
-            rand_number = gsl_rng_uniform(rand_generator);
-
-            for (int t_counter = 0; t_counter < max_transitions; t_counter++)
-            {
-                if ((rand_number > holder) &&
-                    (rand_number < (holder + gsl_vector_get(transition_probs, t_counter))))
-                {
-                    // Transition occurred
-                    handle_lattice_event('m', p_m_state->p_transitions[t_counter],
-                        m_counter, cb_counter, a_f, a_n);
-                    break;
+                else {
+                    a_f = p_mf[m_counter]->cb_nearest_a_f[cb_counter];
+                    a_n = p_mf[m_counter]->cb_nearest_a_n[cb_counter];
                 }
 
-                holder = holder + gsl_vector_get(transition_probs, t_counter);
-            }
+                // Implement transition
+                handle_lattice_event('m', p_m_state->p_transitions[transition_index],
+                    m_counter, cb_counter, a_f, a_n);
 
-            // De-allocate vector
-            gsl_vector_free(transition_probs);
+                // If the head is transitioning into or out of a S state, do the same
+                // for the partner head
+                if ((old_type == 'S') || (new_type == 'S'))
+                {
+                    handle_lattice_event('m', p_m_state->p_transitions[transition_index],
+                        m_counter, cb_counter + 1, a_f, a_n);
+                }
+                else
+                {
+                    // Check whether the other head will undergo a transition
+                    transition_index = return_m_transition(time_step, m_counter, cb_counter + 1);
+
+                    if (transition_index >= 0)
+                    {
+                        // Get the a_f and the a_n for the myosin head
+                        if (p_m_state->state_type == 'a' || p_m_state->state_type == 'A')
+                        {
+                            a_f = p_mf[m_counter]->cb_bound_to_a_f[cb_counter + 1];
+                            a_n = p_mf[m_counter]->cb_bound_to_a_n[cb_counter + 1];
+                        }
+                        else {
+                            a_f = p_mf[m_counter]->cb_nearest_a_f[cb_counter + 1];
+                            a_n = p_mf[m_counter]->cb_nearest_a_n[cb_counter + 1];
+                        }
+
+                        // Get the potential transition
+                        cb_state = p_mf[m_counter]->cb_state[cb_counter+1];
+                        cb_isotype = p_mf[m_counter]->cb_iso[cb_counter+1];
+
+                        old_type = p_m_scheme[cb_isotype]->p_m_states[cb_state - 1]->state_type;
+
+                        new_state = p_m_state->p_transitions[transition_index]->new_state;
+                        new_type = p_m_scheme[cb_isotype]->p_m_states[new_state - 1]->state_type;
+
+                        // Exclude transitions to or from 'S'
+                        if ((old_type != 'S') && (new_type != 'S'))
+                        {
+                            handle_lattice_event('m', p_m_state->p_transitions[transition_index],
+                                m_counter, cb_counter + 1, a_f, a_n);
+                        }
+                    }
+                }
+            }
         }
     }
+}
+
+int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_counter)
+{
+    // Code returns the transition a cb undergoes
+
+    // Variables
+
+    int cb_state;                       // cb_state (>=1)
+    int cb_isotype;                     // cb_isotoype(>=0)
+
+    int crown_index;                    // index of crown with cb
+
+    int a_f;                            // relevant actin filament
+    int a_n;                            // relevant binding site
+
+    int a_f_partner;                    // actin filament for the partner head
+                                        // will be -1 if unattached
+
+    int mybpc_state;                    // state number for MyBPC controlling cb
+    int mybpc_iso;                      // isotype number for MyBPC controlling cb
+
+    m_state* p_m_state;                 // pointer to a myosin state
+    transition* p_trans;                // pointer to a transition
+
+    int new_state;                      // new cb_state after transition
+
+    int max_transitions;
+
+    double x;                           // distance between cn and relevant bs
+
+    double node_f;                      // node_force
+
+    gsl_vector* transition_probs;
+
+    double alignment_factor;            // double from 0 to 1 that adjusts
+                                        // attachment probability based on angle
+                                        // between cb and bs
+
+    double prob;                        // doubles to do with transition probabilities
+    double holder;
+    double rand_number;
+
+    int transition_index;               // integer describing the transition
+
+    // Code
+
+    // Set values
+    cb_state = p_mf[m_counter]->cb_state[cb_counter];
+    cb_isotype = p_mf[m_counter]->cb_iso[cb_counter];
+    p_m_state = p_m_scheme[cb_isotype]->p_m_states[cb_state - 1];
+
+    max_transitions = p_m_scheme[cb_isotype]->max_no_of_transitions;
+
+    // Allocate transition vector
+    transition_probs = gsl_vector_alloc(max_transitions);
+
+    // Get the a_f and the a_n for the myosin head
+    if (p_m_state->state_type == 'a' || p_m_state->state_type == 'A')
+    {
+        a_f = p_mf[m_counter]->cb_bound_to_a_f[cb_counter];
+        a_n = p_mf[m_counter]->cb_bound_to_a_n[cb_counter];
+    }
+    else {
+        a_f = p_mf[m_counter]->cb_nearest_a_f[cb_counter];
+        a_n = p_mf[m_counter]->cb_nearest_a_n[cb_counter];
+    }
+
+    // Set x
+    x = gsl_vector_get(p_mf[m_counter]->cb_x, cb_counter) -
+        gsl_vector_get(p_af[a_f]->bs_x, a_n);
+
+    // Get the a_f for the partner dimer
+    if (cb_counter < (m_cbs_per_thick_filament - 2))
+    {
+        a_f_partner = p_mf[m_counter]->cb_bound_to_a_f[cb_counter + 1];
+    }
+    else
+    {
+        a_f_partner = -1;
+    }
+
+    // Deduce node force
+    crown_index = cb_counter / (p_fs_model->m_hubs_per_crown * p_fs_model->m_myosins_per_hub);
+    node_f = gsl_vector_get(p_mf[m_counter]->node_forces, crown_index);
+
+    // Deduce state and isotype of controlling MyBPC
+    if (p_mf[m_counter]->cb_controlling_pc_index[cb_counter] == -1)
+    {
+        // Set to 0, as no MyBPC control
+        mybpc_state = 0;
+        mybpc_iso = 0;
+    }
+    else
+    {
+        // Pull the state and isotype
+        mybpc_state = p_mf[m_counter]->pc_state[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
+        mybpc_iso = p_mf[m_counter]->pc_iso[p_mf[m_counter]->cb_controlling_pc_index[cb_counter]];
+    }
+
+    // Prepare for calculating rates
+    gsl_vector_set_zero(transition_probs);
+
+    // Cycle through transitions, adding up rates
+    holder = 0.0;
+    for (int t_counter = 0; t_counter < max_transitions; t_counter++)
+    {
+        p_trans = p_m_state->p_transitions[t_counter];
+        new_state = p_trans->new_state;
+
+        if (new_state > 0)
+        {
+            // It's a possible transition
+            if ((p_trans->transition_type == 'a') && (p_af[a_f]->bound_to_m_f[a_n] >= 0))
+            {
+                continue;           // binding site is already occupied
+            }
+            if ((p_trans->transition_type == 'a') && (p_af[a_f]->bs_state[a_n] == 0))
+            {
+                continue;           // binding site is off
+            }
+            if ((p_m_scheme[cb_isotype]->p_m_states[new_state - 1]->state_type == 'S') &&
+                (a_f_partner >= 0))
+            {
+                continue;           // transition into S state is prevented by partner
+                                    // head being attached
+            }
+
+            if (p_trans->transition_type == 'a')
+            {
+                double angle = gsl_vector_get(p_mf[m_counter]->cb_nearest_bs_angle_diff, cb_counter);
+                alignment_factor = -cos(angle * M_PI / 180.0);
+            }
+            else
+                alignment_factor = 1.0;
+
+            prob = (1.0 - exp(-time_step * alignment_factor *
+                p_trans->calculate_rate(x, node_f, mybpc_state, mybpc_iso)));
+            holder = holder + prob;
+            gsl_vector_set(transition_probs, t_counter, prob);
+        }
+    }
+
+    // Scale vector if required (handles situation with multiple fast transitions
+    // when the first one would always be done)
+    //if ((holder > 0.0) && (holder > 1.0))
+    if (holder > 1.0)
+        gsl_vector_scale(transition_probs, 1.0 / holder);
+
+    // Get a random number, and loop through transitions
+    // If the random lies in the cum sum bracket, the transition occurs
+    // If you get to the end, no transition occurred
+    holder = 0.0;
+    rand_number = gsl_rng_uniform(rand_generator);
+
+    // Set the transition index to no event
+    transition_index = -1;
+
+    for (int t_counter = 0; t_counter < max_transitions; t_counter++)
+    {
+        if ((rand_number > holder) &&
+            (rand_number < (holder + gsl_vector_get(transition_probs, t_counter))))
+        {
+            // Transition occurred
+            transition_index = t_counter;
+            break;
+        }
+
+        holder = holder + gsl_vector_get(transition_probs, t_counter);
+    }
+
+    // Tidy up
+    gsl_vector_free(transition_probs);
+
+    // Return
+    return transition_index;
 }
 
 void half_sarcomere::mybpc_kinetics(double time_step)
