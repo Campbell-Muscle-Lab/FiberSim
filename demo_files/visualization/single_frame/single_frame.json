@@ -1,0 +1,72 @@
+{
+    "blender_exe_path": "C:/Program Files/Blender Foundation/Blender 2.92",
+    "render_level": 0,
+    "render_mode": 1,
+    "render_quality": "medium",
+    "no_render": false,
+    "filaments_to_hide": [],
+    "draw_mirrored_cb_connections": 0,
+    "frames":
+    [
+        {
+            "relative_to": "this_file",
+            "status_file": "snapshots/hs_1_time_step_10.json",
+            "image_file": "renders/hs_10.png",
+            "camera":
+            {
+                "location":
+                {
+                    "x": 10,
+                    "y": 2.5,
+                    "z": 3
+                },
+                "rotation":
+                {
+                    "x": 90,
+                    "y": 0,
+                    "z": -90
+                }
+            }
+        },
+        {
+            "relative_to": "this_file",
+            "status_file": "snapshots/hs_1_time_step_12.json",
+            "image_file": "renders/hs_12.png",
+            "camera":
+            {
+                "location":
+                {
+                    "x": 25,
+                    "y": 2.5,
+                    "z": 3
+                },
+                "rotation":
+                {
+                    "x": 90,
+                    "y": 0,
+                    "z": -90
+                }
+            }
+        },
+        {
+            "relative_to": "this_file",
+            "status_file": "snapshots/hs_1_time_step_14.json",
+            "image_file": "renders/hs_14.png",
+            "camera":
+            {
+                "location":
+                {
+                    "x": 40,
+                    "y": 2.5,
+                    "z": 3
+                },
+                "rotation":
+                {
+                    "x": 90,
+                    "y": 0,
+                    "z": -90
+                }
+            }
+        }
+    ]
+}
