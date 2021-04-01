@@ -133,6 +133,9 @@ def create_cameras(args, half_sarcomere):
   """Creates cameras in positions for rednering."""
   # Add a camera that will look down the length of the filaments.
   if "camera" in args.keys():
+    print("ken_camera")
+    print(args)
+    
     rot = (
       args["camera"]["rotation"]["x"] * np.pi / 180,
       args["camera"]["rotation"]["y"] * np.pi / 180,
@@ -141,7 +144,8 @@ def create_cameras(args, half_sarcomere):
     bpy.ops.object.camera_add(
       enter_editmode=False,
       align='VIEW',
-      location=(args["camera"]["location"]["x"], args["camera"]["location"]["y"], 
+      location=(args["camera"]["location"]["x"],
+                args["camera"]["location"]["y"], 
                 args["camera"]["location"]["z"]),
       rotation=rot
     )
@@ -420,7 +424,7 @@ def create_m_head_spring(b_params, m_head_primitives):
   spring.select_set(True)
 
   bpy.context.view_layer.objects.active = spring
-  bpy.ops.object.modifier_apply(apply_as='DATA', modifier="stalk_connecting_spring")
+  bpy.ops.object.modifier_apply(modifier="stalk_connecting_spring")
   spring.rotation_euler[1] = 3.14159 / 2
   spring.location.z = 0.5 * b_params.heights["cb_stalk"] + 0.25 * b_params.radii["cb_stalk"]
 
@@ -584,7 +588,7 @@ def create_thick_spring_primitive(b_params, b_primitives, materials):
   obj.modifiers["Spring"].iterations = b_params.lengths["thick_spring"] / spring_height
   obj.select_set(True)
   bpy.context.view_layer.objects.active = obj
-  bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Spring")
+  bpy.ops.object.modifier_apply(modifier="Spring")
   obj.data.materials.append(materials["thick_spring"])
   obj.rotation_euler[1] = 3.14159 / 2
   obj.scale[0] = 1.5
@@ -639,7 +643,7 @@ def create_thin_spring_primitive(b_params, b_primitives, materials):
   obj.modifiers["Spring"].iterations = b_params.lengths["thin_spring"] / spring_height
   obj.select_set(True)
   bpy.context.view_layer.objects.active = obj
-  bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Spring")
+  bpy.ops.object.modifier_apply(modifier="Spring")
   obj.data.materials.append(materials["thin_spring"])
   obj.rotation_euler[1] = 3.14159 / 2
   obj.scale[0] = 1.5
@@ -891,7 +895,7 @@ def create_m_line_m_node_spring_primitive(b_params, b_primitives, materials):
   obj.modifiers["Spring"].iterations = b_params.lengths["lambda"] / spring_height
   obj.select_set(True)
   bpy.context.view_layer.objects.active = obj
-  bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Spring")
+  bpy.ops.object.modifier_apply(modifier="Spring")
   obj.data.materials.append(materials["thick_spring"])
   obj.rotation_euler[1] = -3.14159 / 2
   obj.scale[0] = 1.5
@@ -1256,10 +1260,10 @@ def create_thin_filament(half_sarcomere, thin_index, b_params, args, materials, 
                     * np.cos(thin_obj.bs_angle[bs_index] * np.pi / 180))
       
       # Get the material of the binding site based on availability
-      if thin_obj.bs_state[bs_index] == 1:
+      if thin_obj.bs_state[bs_index] == 0:
         # Indicates the site is unavailable for binding.
         bs_mesh = b_primitives["unavail_bs"]
-      elif thin_obj.bs_state[bs_index] == 2:
+      elif thin_obj.bs_state[bs_index] == 1:
         # Indicates the site is available for binding.
         bs_mesh = b_primitives["avail_bs"]
       this_bs = bs_mesh.copy()
@@ -1685,9 +1689,9 @@ def update_thin_filament(half_sarcomere, thin_index, b_params, args):
     this_bs.location.x = thin_obj.bs_x[bs_index]
     
     # Update the material.
-    if thin_obj.bs_state[bs_index] == 1:
+    if thin_obj.bs_state[bs_index] == 0:
       material_string = "bs_unavailable_material"
-    elif thin_obj.bs_state[bs_index] == 2:
+    elif thin_obj.bs_state[bs_index] == 1:
       material_string = "bs_available_material"
     this_time_step_material = bpy.data.materials[material_string]
     update_object_material(this_bs, this_time_step_material)  

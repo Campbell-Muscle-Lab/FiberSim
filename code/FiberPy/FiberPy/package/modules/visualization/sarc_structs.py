@@ -18,7 +18,7 @@ class ThickFilament():
     self.cb_x = d_t["cb_x"]
     self.cb_angle = d_t["cb_angle"]
     self.cb_state = d_t["cb_state"]
-    self.cb_isoform = d_t["cb_isoform"]
+    self.cb_isoform = d_t["cb_iso"]
     self.cb_bound_to_a_f = d_t["cb_bound_to_a_f"]
     self.cb_bound_to_a_n = d_t["cb_bound_to_a_n"]
     self.cb_nearest_a_f = d_t["cb_nearest_a_f"]

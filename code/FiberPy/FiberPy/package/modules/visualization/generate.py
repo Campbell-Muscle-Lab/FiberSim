@@ -19,6 +19,8 @@ sys.path.append(SARC_STRUCTS_ROOT)
 import objects as b_obj
 import sarc_structs
 
+from pathlib import Path
+
 
 ###################################################################################################
 ### Classes
@@ -237,10 +239,9 @@ def read_and_scale_json_dump(json_dump_file_string, b_params):
 
   return half_sarcomere
 
-def render_screenshot(args, dump_file_index):
+def render_screenshot(output_file_string):
   """Renders a screen capture of the current geometry."""
-  bpy.context.scene.render.filepath = os.path.join(args["output_file_directory"], 
-    args["output_file_root"] + "_" + str(dump_file_index))
+  bpy.context.scene.render.filepath = output_file_string
   bpy.context.scene.frame_set(1)
   bpy.ops.render.render(write_still=True)
   return
@@ -249,9 +250,11 @@ def render_screenshot(args, dump_file_index):
 ### Main Functions and Command Line Execution
 ###################################################################################################
 
-def generate_model(args, output_file_name="generated_script"):
+def generate_model(args, render_file_string, output_file_name="generated_script"):
   """Reads FiberSim dump files and generates and saves a blender model of the simulation."""
   start = time.time()
+
+  print(args)
 
   # Create an instance of the class holding the Blender parameters.
   b_params = BlenderParams(args)
@@ -264,14 +267,22 @@ def generate_model(args, output_file_name="generated_script"):
 
   # Form object dictionary.
   object_dict = dict()
+  
+  # Pull off the frame data
+  frames = args['frames']
 
-  # Read in the first JSON file and create an instance of the HalfSarcomere class.
-  dump_file_template = args["dump_file_root"] + "{}.json"
-  half_sarcomere = read_and_scale_json_dump(dump_file_template.format(args["dump_file_start"]),
-    b_params)
+  # Read in the first JSON file and create an instance of the
+  # HalfSarcomere class.
+  f = frames[0]
+  if (f['relative_to'] == 'this_file'):
+      parent_path = Path(render_file_string).parent
+      status_file = os.path.join(parent_path, f['status_file'])
+
+  half_sarcomere = read_and_scale_json_dump(status_file,
+                                           b_params)
   
   # Place the cameras.
-  b_obj.create_cameras(args, half_sarcomere)
+  b_obj.create_cameras(f, half_sarcomere)
 
   # Place the lights.
   b_obj.create_lights(half_sarcomere)
@@ -321,201 +332,87 @@ def generate_model(args, output_file_name="generated_script"):
   link_all_objs(obj_lists)
 
   # Take a screen capture of the first scene.
-  if not args["no_render"]:
-    render_screenshot(args, dump_file_index=args["dump_file_start"])
+  f = frames[0]
+  if (f['relative_to'] == 'this_file'):
+      parent_path = Path(render_file_string).parent
+      output_file_string = os.path.join(parent_path, f['image_file'])
+      folder = os.path.dirname(output_file_string)
+      if not os.path.exists(folder):
+          os.makedirs(folder)
+          
+  render_screenshot(output_file_string)
   
   print ("Took {} seconds to draw initial geometry.".format(time.time() - start))
   
   # Loop through the other files to render and adjust the model as needed.
-  for i in range(int(args["dump_file_start"]) + 1, int(args["dump_file_end"])):
-    update_model_from_json_dump(dump_file_template.format(i), b_params, args)
+  for i,f in enumerate(frames):
+      if (i>0):
+          if (f['relative_to'] == 'this_file'):
+              parent_path = Path(render_file_string).parent
+              status_file = os.path.join(parent_path, f['status_file'])
+              update_model_from_json_dump(status_file,
+                                          b_params,
+                                          args)
+              
+              b_obj.create_cameras(f, half_sarcomere)
 
-    # Take a screenshot of the updated model.
-    if not args["no_render"]:
-      render_screenshot(args, dump_file_index=i)
-  
+              output_file_string = os.path.join(parent_path, f['image_file'])
+              folder = os.path.dirname(output_file_string)
+              if not os.path.exists(folder):
+                  os.makedirs(folder)
+              render_screenshot(output_file_string)
+
   # Add in the print statement for how long it took.
-  print ("Took {} seconds to create entire animation.".format(time.time() - start))
+  print("Took {} seconds to create entire animation.".format(time.time() - start))
 
   return
+
+
+
 
 def update_model_from_json_dump(dump_file_path, b_params, args):
-  """Updates an existing Blender model of half-sarcomere(s) based on JSON dump file(s)."""
-  # Read the JSON file to form the half_sarcomere object.
-  half_sarcomere = read_and_scale_json_dump(dump_file_path, b_params)
-  
-  # Loop through the filaments and update them.
-  draw_start = time.time()
-  for i, thick_obj in enumerate(half_sarcomere.thick):
-    fil_start_time = time.time()
-    thick_key = "m_" + str(thick_obj.id)
-    if thick_key not in args["filaments_to_hide"] and args["render_level"] in (0, 1):
-      b_obj.update_thick_filament(half_sarcomere, i, b_params, args)
-      print (thick_key, "time to draw:" ,time.time()-fil_start_time, 's')
-  
-  for i, thin_obj in enumerate(half_sarcomere.thin):
-    fil_start = time.time()
-    thin_key = "a_" + str(thin_obj.id)
-    if thin_key not in args["filaments_to_hide"] and args["render_level"] in (0, 1):
-      b_obj.update_thin_filament(half_sarcomere, i, b_params, args)
+    """ Updates an existing Blender model of half-sarcomere(s) based
+        on JSON dump file(s)."""
 
-  print ("Took {} seconds to update entire model.".format(time.time() - draw_start))
+    # Read the JSON file to form the half_sarcomere object.
+    half_sarcomere = read_and_scale_json_dump(dump_file_path, b_params)
 
-  return
+    # Loop through the filaments and update them.
+    draw_start = time.time()
+    for i, thick_obj in enumerate(half_sarcomere.thick):
+        fil_start_time = time.time()
+        thick_key = "m_" + str(thick_obj.id)
+    if thick_key not in args["filaments_to_hide"] and \
+            args["render_level"] in (0, 1):
+        b_obj.update_thick_filament(half_sarcomere, i, b_params, args)
+        print(thick_key, "time to draw:",
+               time.time() - fil_start_time, 's')
 
-def setup_parser():
-  """Sets up and returns the argument parser."""
-  # When --help or no args are given, print this help
-  usage_text = (
-    "Run blender in background mode with this script:"
-    "  blender --background --python " + __file__ + " -- [options]"
-  )
+    for i, thin_obj in enumerate(half_sarcomere.thin):
+        thin_key = "a_" + str(thin_obj.id)
+    if thin_key not in args["filaments_to_hide"] and \
+            args["render_level"] in (0, 1):
+        b_obj.update_thin_filament(half_sarcomere, i, b_params, args)
 
-  parser = argparse.ArgumentParser(description=usage_text)
+    print("Took {} seconds to update entire model.".
+           format(time.time() - draw_start))
 
-  parser.add_argument(
-    "-j",
-    "--json-file",
-    help="The path to the JSON instruction file."
-  )
+    return
 
-  return parser
-
-def recursive_param_check(d, type_dict, required_check=False, key=None):
-  """Checks that the d[key] is of type type_dict[key] recursively.
-
-  See check_required_params for a usage example.
-  """
-  if key == None or isinstance(type_dict[key], dict):
-    if key != None:
-      d = d[key]
-      type_dict = type_dict[key]
-
-    # Traverse deeper into the dictionary tree.
-    for sub_key in type_dict.keys():
-      recursive_param_check(d, type_dict, required_check, sub_key)
-
-  elif not isinstance(type_dict[key], dict):
-    if required_check:
-      assert (key in d.keys()), "The parameter \""+key+"\" is not specified and it is required."
-    # Check that the value in d matches with type in type_dict.
-    assert isinstance(d[key], type_dict[key]), "The parameter \""+key+"\" is not of the right type."
-
-def check_required_params(instruction_dict):
-  """Checks that the required parameters are present in the instruction dictionary."""
-  # Set up the required params type dictionary.
-  # This is just a dictionary that is the exact same structure as the parameter dictionary, but
-  # instead of having values in the place they would be when we read them in, we have a tuple of 
-  # the possible types the values can have. Not to toot my own horn, but I think this is pretty 
-  # clever.
-  required_params = {
-    "dump_file_root": str,
-    "dump_file_start": int,
-    "dump_file_end": int,
-    "camera": {
-      "location": {
-        "x": (float, int),
-        "y": (float, int),
-        "z": (float, int)
-      },
-      "rotation": {
-        "x": (float, int),
-        "y": (float, int),
-        "z": (float, int)
-      }
-    }
-  }
-
-  # Recursively check the parameters.
-  recursive_param_check(instruction_dict, required_params, required_check=True)
-
-def check_optional_params(instruction_dict):
-  """Checks optional parameters in instruction_dict.
-
-  Virtually the same as check_required_params but it's only checking the optional parameters.
-  """
-  optional_params = {
-    "output_file_directory": str,
-    "output_file_root": str,
-    "render_level": int,
-    "render_mode": int,
-    "no_render": bool,
-    "filaments_to_hide": list,
-    "draw_mirrored_cb_connections": bool
-  }
-
-  recursive_param_check(instruction_dict, optional_params)
-
-def dfs_set_param(dict_1, dict_default, key=None):
-  """Depth-first default parameter setting for use with default parameter dictionaries."""
-  if key == None or isinstance(dict_default[key], dict):
-    if key != None:
-      dict_1 = dict_1[key]
-      dict_default = dict_default[key]
-
-    # Recursively call the depth-first parameter setting.
-    for sub_key in dict_default.keys():
-      dfs_set_param(dict_1, dict_default, sub_key)
-  
-  elif key not in dict_1.keys():
-    # Set the parameter to the default value if it isn't present in dict_1.
-    dict_1[key] = dict_default[key]
-
-def default_visualization_param_dict():
-  """Returns a dictionary that contains the default visualization parameters."""
-  default_dict = {
-    "output_file_directory": os.path.join(ROOT, "blender_renders"),
-    "output_file_root": "model",
-    "render_level": 0,
-    "render_mode": 1,
-    "no_render": False,
-    "render_quality": "medium",
-    "filaments_to_hide": [],
-    "draw_mirrored_cb_connections": False
-  }
-
-  return default_dict
-
-def get_parameters_from_json_file(argv):
-  """Gets the visualization parameters from a JSON file."""
-  # Setup default parameter dictionary.
-  default_dict = default_visualization_param_dict()
-
-  # Get the argument parser.
-  parser = setup_parser()
-
-  # Grab only the arguments after the "--" flag.
-  argv = argv[argv.index("--") + 1:]
-
-  # Parse the arguments and get the dictionary form.
-  args = vars(parser.parse_args(argv))
-
-  # Read in the instruction file parameters.
-  with open(args["json_file"], 'r') as f:
-    instruction_dict = json.load(f)
-  
-  # Do some error checking to make sure the non-optional parameters are set and the right type.
-  check_required_params(instruction_dict)
-
-  # Set the default parameters if none are specified in the JSON instruction dict.
-  dfs_set_param(instruction_dict, default_dict)
-
-  # Check that the optional parameters are of the right type.
-  check_optional_params(instruction_dict)
-
-  # Set the paths as absolute paths so nothing unexpected happens with relative referencing.
-  instruction_dict["output_file_directory"] = os.path.realpath(
-    instruction_dict["output_file_directory"])
-
-  return instruction_dict
 
 def main():
-  import sys       # to get command line args
+    """ Load json structure and run generate_images """
 
-  # Get the parameters from the JSON file.
-  args = get_parameters_from_json_file(sys.argv)
+    import sys       # to get command line args
+    import json
+
+    with open(sys.argv[-1], 'r') as f:
+        data = json.load(f)
+
+    generate_model(data, sys.argv[-1])
+
+    return
   
-  generate_model(args)
 
 if __name__ == "__main__":
     main()
