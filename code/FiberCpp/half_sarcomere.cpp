@@ -1682,11 +1682,22 @@ void half_sarcomere::myosin_kinetics(double time_step)
                 }
                 else
                 {
+                    
                     // Check whether the other head will undergo a transition
                     transition_index = return_m_transition(time_step, m_counter, cb_counter + 1);
 
                     if (transition_index >= 0)
                     {
+                        // Get the potential transition
+                        cb_state = p_mf[m_counter]->cb_state[cb_counter + 1];
+                        cb_isotype = p_mf[m_counter]->cb_iso[cb_counter + 1];
+                        p_m_state = p_m_scheme[cb_isotype]->p_m_states[cb_state - 1];
+
+                        old_type = p_m_state->state_type;
+
+                        new_state = p_m_state->p_transitions[transition_index]->new_state;
+                        new_type = p_m_scheme[cb_isotype]->p_m_states[new_state - 1]->state_type;
+
                         // Get the a_f and the a_n for the myosin head
                         if (p_m_state->state_type == 'a' || p_m_state->state_type == 'A')
                         {
@@ -1697,15 +1708,6 @@ void half_sarcomere::myosin_kinetics(double time_step)
                             a_f = p_mf[m_counter]->cb_nearest_a_f[cb_counter + 1];
                             a_n = p_mf[m_counter]->cb_nearest_a_n[cb_counter + 1];
                         }
-
-                        // Get the potential transition
-                        cb_state = p_mf[m_counter]->cb_state[cb_counter+1];
-                        cb_isotype = p_mf[m_counter]->cb_iso[cb_counter+1];
-
-                        old_type = p_m_scheme[cb_isotype]->p_m_states[cb_state - 1]->state_type;
-
-                        new_state = p_m_state->p_transitions[transition_index]->new_state;
-                        new_type = p_m_scheme[cb_isotype]->p_m_states[new_state - 1]->state_type;
 
                         // Exclude transitions to or from 'S'
                         if ((old_type != 'S') && (new_type != 'S'))

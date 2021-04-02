@@ -72,7 +72,7 @@
               "new_state": 2,
               "rate_type": "force_dependent",
               "rate_parameters": [
-                10,
+                100,
                 10
               ]
             }
@@ -87,14 +87,14 @@
               "new_state": 1,
               "rate_type": "constant",
               "rate_parameters": [
-                10
+                100
               ]
             },
             {
               "new_state": 3,
               "rate_type": "gaussian",
               "rate_parameters": [
-                50
+                500
               ]
             }
           ]
