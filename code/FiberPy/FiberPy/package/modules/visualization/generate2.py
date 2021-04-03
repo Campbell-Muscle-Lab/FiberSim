@@ -17,6 +17,7 @@ sys.path.append(parent_dir)
 print(sys.path)
 
 import half_sarcomere as hs
+import hs_blender as hs_b
 
 def run_render_batch():
     """ Entry point for the generate_model
@@ -72,7 +73,8 @@ def run_render_job(frame_data, template_data, blender_data):
     status_file = os.path.join(parent_path, frame_data['status_file'])
         
     h = hs.half_sarcomere(status_file)
-    print(h)
+
+    hs_blend = hs_b.hs_blender(h, frame_data, template_data, blender_data)
     
 
     return

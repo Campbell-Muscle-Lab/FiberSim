@@ -6,6 +6,8 @@
             "crown":
             {
                 "radius": 1,
+                "depth": 2,
+                "vertices": 10,
                 "color": [0.5, 0.5, 0.5]
             }
         }
