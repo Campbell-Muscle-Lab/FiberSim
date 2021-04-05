@@ -51,6 +51,7 @@ class hs_blender():
         self.create_primitive_m_crown()
         self.create_primitive_m_stub()
         self.create_primitive_m_cat()
+        self.create_primitive_m_link()
         self.create_primitive_a_node()
         self.create_primitive_a_bs()
 
@@ -62,8 +63,10 @@ class hs_blender():
         for i, thin_fil in enumerate(self.hs.thin_fil):
             self.create_thin_filament(i)
 
-        # Create cross-bridges
+        # # Create cross-bridges
         self.create_cross_bridges()
+
+        #self.test()
 
         # Create a camera
         self.create_camera()
@@ -141,44 +144,6 @@ class hs_blender():
         """ Create lights around the half-sarcomere """
         print("lights")
 
-    def create_lists_and_collection(self):
-        """ Lists everything together """
-
-        thick = bpy.data.collections.new(name='Thick collection')
-        bpy.context.scene.collection.children.link(thick)
-
-        for i, thick_fil in enumerate(self.hs.thick_fil):
-            thick_id = ('m_%i' % i)
-            self.b_obj[thick_id] = []
-            col = bpy.data.collections.new(thick_id)
-            thick.children.link(col)
-
-        # Create the colletion for the primitives
-        prim = bpy.data.collections.new(name='Primitives')
-        bpy.context.scene.collection.children.link(prim)
-
-    def change_object_collection(self, obj, new_collection):
-        """ Links obj to new_collection and unlinks obj from current collection.
-            Note: It's important to do this after you've finished modifying the primitive how you want since
-            this invalidates any bpy.opys.object calls on the object (I think).
-            """
-        new_collection.objects.link(obj)
-        obj.users_collection[0].objects.unlink(obj)
-
-        # I have to deselect the object for some reason?
-        obj.select_set(False)
-
-    def link_all_objects(self):
-        """Links all objects in `obj_lists` to the current collection
-  
-        Note: Collection is a Blender term and is how they manage large collections of objects 
-            "efficiently."
-                """
-        # for key, o_list in self.b_obj.items():
-        #     link = bpy.data.collections[key].objects.link
-        #     for o in o_list:
-        #         link(o)
-
     def render_screenshot(self):
         """Renders a screen capture of the current geometry."""
 
@@ -201,6 +166,8 @@ class hs_blender():
     def create_thick_filament(self, thick_id):
         """ Creates thick_fil[id] """
 
+        print('Creating thick_fil[%i]' % thick_id)
+
         # Find the thick fil
         thick_f = self.hs.thick_fil[thick_id]
 
@@ -211,84 +178,116 @@ class hs_blender():
             # crown = self.create_primitive_m_crown()
             crown = self.hs_b['primitives']['m_crown'].copy()
             crown.name = ('m_crown_%i_%i' % (thick_id, i))
-            crown.location.x = thick_f.cb_x[ind]
-            crown.location.y = self.yz_scaling * thick_f.m_y
-            crown.location.z = self.yz_scaling * thick_f.m_z
+            base_x = thick_f.cb_x[ind] - \
+                self.template['thick_filament']['crown']['depth']/2.0
+            base_y = self.yz_scaling * thick_f.m_y
+            base_z = self.yz_scaling * thick_f.m_z
+            distal_x = base_x + self.template['thick_filament']['crown']['depth']
+            distal_y = base_y
+            distal_z = base_z
+            
+            self.replot_primitive_cylinder(
+                crown,
+                np.asarray([base_x, base_y, base_z]),
+                np.asarray([distal_x, distal_y, distal_z]),
+                self.template['thick_filament']['crown']['depth'])
             bpy.context.collection.objects.link(crown)
-
-        # Loop through the cbs
-        cb_indices = np.arange(0, thick_f.m_no_of_cbs)
-        for i, ind in enumerate(cb_indices):
-            stub = self.hs_b['primitives']['m_stub'].copy()
-            stub.name = ('m_stub_%i_%i' % (thick_id, i))
-            stub.location.x = thick_f.cb_x[ind]
-            stub.location.y = self.yz_scaling * thick_f.m_y + \
-                (self.template['thick_filament']['crown']['radius'] +
-                     self.template['thick_filament']['myosin']['stub_height'] / 2.0) * \
-                    np.sin(np.pi * thick_f.cb_angle[ind] / 180.0)
-            stub.location.z = self.yz_scaling * thick_f.m_z + \
-                (self.template['thick_filament']['crown']['radius'] +
-                     self.template['thick_filament']['myosin']['stub_height'] / 2.0) * \
-                    np.cos(np.pi * thick_f.cb_angle[ind] / 180.0)
-            stub.rotation_euler.x = -(np.pi * thick_f.cb_angle[ind] / 180.0)
-            bpy.context.collection.objects.link(stub)
-
-        bpy.context.view_layer.update()
 
     def create_thin_filament(self, thin_id):
         """ Creates thin_fil[id] """
-        
+
+        print('Creating thin_fil[%i]' % thin_id)
+
         # Set the thin file
         thin_f = self.hs.thin_fil[thin_id]
 
         # Loop throught the nodes
         node_indices = np.arange(0, thin_f.a_no_of_bs,
                                  thin_f.a_bs_per_node)
-        for i, ind in enumerate(node_indices):
+        
+        for ind in node_indices:
+            # Make the node
             node = self.hs_b['primitives']['a_node'].copy()
-            node.name = ('a_node_%i_%i' % (thin_id, i))
-            node.location.x = thin_f.bs_x[ind]
-            node.location.y = self.yz_scaling * thin_f.a_y
-            node.location.z = self.yz_scaling * thin_f.a_z
+            node.name = ('a_node_%i_%i' % (thin_id, ind))
+            base_x = thin_f.bs_x[ind] - \
+                self.template['thin_filament']['node']['depth'] / 2.0
+            base_y = self.yz_scaling * thin_f.a_y
+            base_z = self.yz_scaling * thin_f.a_z
+            distal_x = base_x + self.template['thin_filament']['node']['depth']
+            distal_y = base_y
+            distal_z = base_z
+
+            self.replot_primitive_cylinder(
+                node,
+                np.asarray([base_x, base_y, base_z]),
+                np.asarray([distal_x, distal_y, distal_z]),
+                self.template['thin_filament']['node']['depth'])
             bpy.context.collection.objects.link(node)
 
+        # Add in the binding sites
         # Loop through the bs
         bs_indices = np.arange(0, thin_f.a_no_of_bs)
-        for i, ind in enumerate(bs_indices):
+        for bs_i in bs_indices:
             bs = self.hs_b['primitives']['a_bs'].copy()
-            bs.name = ('a_bs_%i_%i' % (thin_id, i))
-            bs.location.x = thin_f.bs_x[ind]
-            bs.location.y = self.yz_scaling * thin_f.a_y + \
+            bs.name = ('a_bs_%i_%i' % (thin_id, bs_i))
+            bs_angle = thin_f.bs_angle[bs_i]
+            bot_x = thin_f.bs_x[bs_i]
+            bot_y = self.yz_scaling * thin_f.a_y + \
                 self.template['thin_filament']['node']['radius'] * \
-                    np.sin(np.pi * thin_f.bs_angle[ind] / 180.0)
-            bs.location.z = self.yz_scaling * thin_f.a_z + \
+                    np.sin(np.pi * bs_angle / 180.0)
+            bot_z = self.yz_scaling * thin_f.a_z + \
                 self.template['thin_filament']['node']['radius'] * \
-                    np.cos(np.pi * thin_f.bs_angle[ind] / 180.0)
-            bs.rotation_euler.x = -(np.pi * thin_f.bs_angle[ind] / 180.0)
+                    np.cos(np.pi * bs_angle / 180.0)
+            top_x = bot_x
+            top_y = self.yz_scaling * thin_f.a_y + \
+                (self.template['thin_filament']['node']['radius'] +
+                  self.template['thin_filament']['bs']['depth']) * \
+                    np.sin(np.pi * bs_angle / 180.0)
+            top_z = self.yz_scaling * thin_f.a_z + \
+                (self.template['thin_filament']['node']['radius'] +
+                  self.template['thin_filament']['bs']['depth']) * \
+                    np.cos(np.pi * bs_angle / 180.0)
+
+            self.replot_primitive_cylinder(
+                bs,
+                np.asarray([bot_x, bot_y, bot_z]),
+                np.asarray([top_x, top_y, top_z]),
+                self.template['thin_filament']['bs']['depth'])
             bpy.context.collection.objects.link(bs)
 
-        bpy.context.view_layer.update()
 
     def create_cross_bridges(self):
         """ Draws cross-bridges """
 
         # Loop through myosin heads
         for thick_i, thick_f in enumerate(self.hs.thick_fil):
-            print(thick_i)
-            if (thick_i>0):
-                break
-            
             for cb_i in np.arange(0, thick_f.m_no_of_cbs):
-                # Get the myosin end of the cb
-                stub_x = thick_f.cb_x[cb_i]
-                stub_y = self.yz_scaling * thick_f.m_y + \
-                    (self.template['thick_filament']['crown']['radius'] + \
+                print('Creating cross-bridges: thick_fil[%i] cb[%i]' % (thick_i, cb_i))
+                stub = self.hs_b['primitives']['m_stub'].copy()
+                stub.name = ('m_stub_%i_%i' % (thick_i, cb_i))
+                bot_x = thick_f.cb_x[cb_i]
+                bot_y = self.yz_scaling * thick_f.m_y + \
+                    self.template['thick_filament']['crown']['radius'] * \
+                    np.sin(np.pi * thick_f.cb_angle[cb_i] / 180.0)
+                bot_z = self.yz_scaling * thick_f.m_z + \
+                    self.template['thick_filament']['crown']['radius'] * \
+                    np.cos(np.pi * thick_f.cb_angle[cb_i] / 180.0)
+                top_x = bot_x
+                top_y = self.yz_scaling * thick_f.m_y + \
+                    (self.template['thick_filament']['crown']['radius'] +
                      self.template['thick_filament']['myosin']['stub_height']) * \
-                        np.sin(np.pi * thick_f.cb_angle[cb_i] / 180.0)
-                stub_z = self.yz_scaling * thick_f.m_z + \
-                    (self.template['thick_filament']['crown']['radius'] + \
+                    np.sin(np.pi * thick_f.cb_angle[cb_i] / 180.0)
+                top_z = self.yz_scaling * thick_f.m_z + \
+                    (self.template['thick_filament']['crown']['radius'] +
                      self.template['thick_filament']['myosin']['stub_height']) * \
-                        np.cos(np.pi * thick_f.cb_angle[cb_i] / 180.0)
+                    np.cos(np.pi * thick_f.cb_angle[cb_i] / 180.0)
+
+                self.replot_primitive_cylinder(
+                    stub,
+                    np.asarray([bot_x, bot_y, bot_z]),
+                    np.asarray([top_x, top_y, top_z]),
+                    self.template['thick_filament']['myosin']['stub_height'])
+                bpy.context.collection.objects.link(stub)
 
                 if (thick_f.cb_bound_to_a_f[cb_i] >= 0):
                     # Head is bound
@@ -308,44 +307,58 @@ class hs_blender():
                             
                 elif (any(self.template['srx_states']==thick_f.cb_state[cb_i])):
                     # It's SRX
-                    distal_x = stub_x + self.template['thick_filament']['myosin']['link_height']
-                    distal_y = stub_y
-                    distal_z = stub_z
+                    distal_x = top_x + self.template['thick_filament']['myosin']['link_height']
+                    distal_y = top_y
+                    distal_z = top_z
                 else:
                     # It's DRX
-                    distal_x = stub_x
-                    distal_y = stub_y + \
+                    distal_x = top_x
+                    distal_y = top_y + \
                         self.template['thick_filament']['myosin']['link_height'] * \
                             np.sin(np.pi * thick_f.cb_angle[cb_i] / 180.0)
-                    distal_z = stub_z + \
+                    distal_z = top_z + \
                         self.template['thick_filament']['myosin']['link_height'] * \
                             np.cos(np.pi * thick_f.cb_angle[cb_i] / 180.0)
 
                 # Draw link
-                self.cylinder_between(stub_x, stub_y, stub_z,
-                                      distal_x, distal_y, distal_z,
-                                      self.template['thick_filament']['myosin']['link_radius'])
+                cb_link = self.hs_b['primitives']['m_link'].copy()
+                cb_link.name = ('cb_link_%i_%i' % (thick_i, cb_i))
+                self.replot_primitive_cylinder(cb_link,
+                                   np.asarray([top_x, top_y, top_z]),
+                                   np.asarray([distal_x, distal_y, distal_z]),
+                                   self.template['thick_filament']['myosin']['link_height'])
+                bpy.context.collection.objects.link(cb_link)
 
-    def cylinder_between(self, x1, y1, z1, x2, y2, z2, r):
-        """ Draws a cylinder between two points """
+    def test(self):
+        bot_x = 10
+        bot_y = 0
+        bot_z = 0
+        top_x = 5
+        top_y = 2
+        top_z = 2
+        cb_link = self.hs_b['primitives']['m_link'].copy()
+        print(cb_link)
+        self.replot_primitive_cylinder(cb_link,
+                           np.asarray([bot_x, bot_y, bot_z]),
+                           np.asarray([top_x, top_y, top_z]),
+                           self.template['thick_filament']['myosin']['link_height'])
+        bpy.context.collection.objects.link(cb_link)
 
-        dx = x2 - x1
-        dy = y2 - y1
-        dz = z2 - z1    
-        dist = np.sqrt(dx**2 + dy**2 + dz**2)
+    def replot_primitive_cylinder(self, cyl_obj, base_vec, end_vec, orig_length):
+        """ Positions, scales, and orients a cylinder primitive such that
+            it spans base_vec to end_vec."""
 
-        bpy.ops.mesh.primitive_cylinder_add(
-            radius = r, 
-            depth = dist,
-            location = (dx/2 + x1, dy/2 + y1, dz/2 + z1),
-            vertices = 4
-            ) 
+        # Calculate the new length
+        new_length = np.sqrt(np.sum(np.power(base_vec - end_vec, 2)))
+        length_scale = new_length / orig_length
+        
+        phi = np.arctan2((end_vec[1]-base_vec[1]),(end_vec[0]-base_vec[0]))
+        theta = np.arccos((end_vec[2]-base_vec[2]) / new_length)
 
-        phi = math.atan2(dy, dx) 
-        theta = math.acos(dz/dist) 
-
-        bpy.context.object.rotation_euler[1] = theta 
-        bpy.context.object.rotation_euler[2] = phi 
+        cyl_obj.scale[2] = length_scale
+        cyl_obj.rotation_euler[1] = theta
+        cyl_obj.rotation_euler[2] = phi
+        cyl_obj.location = 0.5*(base_vec + end_vec)
 
     def create_primitive_m_crown(self):
         """ Creates an m_crown """
@@ -356,7 +369,7 @@ class hs_blender():
             enter_editmode=False,
             location=(0, 0, 0),
             vertices=self.template['thick_filament']['crown']['vertices'],
-            rotation=(0, np.pi/2, 0))
+            rotation=(0, 0, 0))
 
         m_crown = bpy.context.object
         mesh = m_crown.data
@@ -380,7 +393,7 @@ class hs_blender():
         self.hs_b['primitives']['m_stub'] = m_stub
 
     def create_primitive_m_cat(self):
-        """ Creates an m_cat_domain, where myosin binds to actin """
+        """ Creates an m_cat, where myosin binds to actin """
 
         bpy.ops.mesh.primitive_cylinder_add(
             radius=self.template['thick_filament']['myosin']['cat_radius'],
@@ -394,6 +407,21 @@ class hs_blender():
 
         self.hs_b['primitives']['m_cat'] = m_cat
 
+    def create_primitive_m_link(self):
+        """ Creates an m_link, where myosin binds to actin """
+
+        bpy.ops.mesh.primitive_cylinder_add(
+            radius=self.template['thick_filament']['myosin']['link_radius'],
+            depth=self.template['thick_filament']['myosin']['link_height'],
+            enter_editmode=False,
+            location=(0,0,0),
+            vertices=self.template['thick_filament']['myosin']['link_vertices'],
+            rotation=(0,0,0))
+
+        m_link = bpy.context.object
+
+        self.hs_b['primitives']['m_link'] = m_link
+
     def create_primitive_a_node(self):
         """ Creates an a_node """
 
@@ -403,7 +431,7 @@ class hs_blender():
             enter_editmode=False,
             location=(0, 0, 0),
             vertices=self.template['thin_filament']['node']['vertices'],
-            rotation=(0, np.pi/2, 0))
+            rotation=(0, 0, 0))
 
         a_node = bpy.context.object
         mesh = a_node.data
@@ -427,7 +455,6 @@ class hs_blender():
         # mesh.materials.append(self.materials['a_node'])
 
         self.hs_b['primitives']['a_bs'] = a_bs
-
 
     def return_all_filament_y_coords(self):
         """Returns a list of all filament y coordinates"""

@@ -9,8 +9,8 @@
         {
             "crown":
             {
-                "radius": 10,
-                "depth": 5,
+                "radius": 5,
+                "depth": 2,
                 "vertices": 10,
                 "color": [0, 0, 0.5, 1]
             },
@@ -19,11 +19,12 @@
                 "stub_height": 3,
                 "stub_radius": 1,
                 "stub_vertices": 6,
-                "cat_height": 2,
+                "cat_height": 1,
                 "cat_radius": 1,
                 "cat_vertices": 6,
                 "link_radius": 0.5,
-                "link_height": 4
+                "link_height": 5,
+                "link_vertices": 4
             }
         },
         "thin_filament":
