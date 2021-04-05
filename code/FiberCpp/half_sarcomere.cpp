@@ -2490,6 +2490,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         fprintf_s(output_file, "\t\"a_z\": %.*F,\n", p_fs_options->dump_precision,
             p_af[thin_counter]->a_z);
         fprintf_s(output_file, "\t\"a_no_of_bs\": %i,\n", p_af[thin_counter]->a_no_of_bs);
+        fprintf_s(output_file, "\t\"a_bs_per_node\": %i,\n", a_bs_per_node);
         fprintf_s(output_file, "\t\"a_k_stiff\": %.*F,\n", p_fs_options->dump_precision,
             a_k_stiff);
         fprintf_s(output_file, "\t\"a_inter_bs_rest_length\": %.*F,\n",

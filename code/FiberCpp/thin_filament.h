@@ -37,6 +37,9 @@ public:
     int a_no_of_bs;                 /**< integer defining the total number of binding
                                          sites on a thin filament */
 
+    int a_bs_per_node;              /**< integer defining the number of binding sites
+                                         per node */
+
     double a_inter_bs_rest_length;  /**< double defining the rest-length of the
                                          spring between binding-sites in nm */
 

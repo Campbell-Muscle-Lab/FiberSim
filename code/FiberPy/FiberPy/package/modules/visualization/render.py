@@ -44,7 +44,7 @@ def generate_images(render_file):
     
         # Complete the commmand line
         command_string = command_string + \
-              ('blender --python "%s" -- -j %s %i' %
+              ('blender -noaudio --python "%s" -- -j %s %i' %
                   (generate_path,
                    os.path.abspath(render_file),
                    job_number))

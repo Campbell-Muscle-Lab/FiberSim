@@ -6,7 +6,7 @@
     {
       "relative_to": "this_file",
       "status_folder": "../sim_output/hs",
-      "time_steps": "10:2:30"
+      "time_steps": "1:10:300"
     }
   }
 }

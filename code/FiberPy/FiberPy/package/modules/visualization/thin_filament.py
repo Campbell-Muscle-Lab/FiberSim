@@ -14,6 +14,7 @@ class thin_filament():
         
         self.thin_id = thin_data['thin_id']
         self.a_no_of_bs = thin_data['a_no_of_bs']
+        self.a_bs_per_node = thin_data['a_bs_per_node']
         self.a_k_stiff = thin_data['a_k_stiff']
         self.a_inter_bs_rest_length = thin_data['a_inter_bs_rest_length']
         self.a_y = thin_data['a_y']

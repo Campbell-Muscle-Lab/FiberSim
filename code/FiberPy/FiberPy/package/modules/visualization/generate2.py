@@ -75,7 +75,8 @@ def run_render_job(frame_data, template_data, blender_data):
     h = hs.half_sarcomere(status_file)
 
     hs_blend = hs_b.hs_blender(h, frame_data, template_data, blender_data)
-    
+
+    # bpy.ops.wm.quit_blender()
 
     return
 
