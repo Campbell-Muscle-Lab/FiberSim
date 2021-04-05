@@ -41,6 +41,7 @@ thin_filament::thin_filament(
     // Set values from the p_fs_model
     a_regulatory_units_per_strand = p_fs_model->a_regulatory_units_per_strand;
     a_bs_per_unit = p_fs_model->a_bs_per_unit;
+    a_bs_per_node = p_parent_hs->a_bs_per_node;
     a_strands_per_filament = p_fs_model->a_strands_per_filament;
 
     a_inter_bs_rest_length = p_fs_model->a_inter_bs_rest_length;

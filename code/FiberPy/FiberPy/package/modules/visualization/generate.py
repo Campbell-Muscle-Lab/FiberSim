@@ -81,7 +81,7 @@ class BlenderParams():
       self.lengths["tropomyosin"] = 5
       self.lengths["m_node"] = 3.55
       self.lengths["cb_spring"] = 8        # totally ad hoc
-      self.lengths["cb_rand_x"] = 2 
+      self.lengths["cb_rand_x"] = 0 
       self.lengths["a_node"] = 2           # This should be 2 * actin_bs_mechanical if it's the 
                                            # mechanical rendering.
       self.lengths["thick_spring"] = 13.5  # Taken from the myosin resting length.

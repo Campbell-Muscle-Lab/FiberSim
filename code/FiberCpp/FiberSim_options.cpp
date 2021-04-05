@@ -6,6 +6,7 @@
 
 #include <cstdio>
 #include <filesystem>
+#include <string>
 
 #include "FiberSim_options.h"
 #include "JSON_functions.h"
@@ -47,7 +48,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
             {
                 // Clean the directory
                 int n = (int) fs::remove_all(status_path);
-                printf("Deleting %i files from status_folder: %s",
+                printf("Deleting %i files from status_folder: %s\n",
                     n, status_path.string().c_str());
             }
 
