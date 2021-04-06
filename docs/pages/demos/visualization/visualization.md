@@ -6,10 +6,6 @@ has_children: True
 ---
 
 # Blender Visualization Pipeline
-{:.no_toc}
-
-* TOC
-{:toc}
 
 ## Overview
 
