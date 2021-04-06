@@ -45,9 +45,6 @@ class half_sarcomere():
            self.a_nodes_per_thin_filament = \
                hs_data['a_nodes_per_thin_filament']
 
-
-
-
            #Load thick filaments
            thick_fil_data = hs_data['thick']
            self.thick_fil = []

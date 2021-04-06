@@ -27,7 +27,10 @@ public:
 
 	int state_number;				/**< integer defining the state number */
 
-	char state_type;				/**< char defining the state type, 'D' or 'A' */
+	char state_type;				/**< char defining the state type
+										 'S', super-relaxed
+										 'D', disorded-relaxed
+										 'A', attached */
 
 	double extension;				/**< double defing the link extension in nm */
 

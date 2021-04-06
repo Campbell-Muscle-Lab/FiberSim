@@ -581,6 +581,7 @@ def create_thick_spring_primitive(b_params, b_primitives, materials):
   # Add the screw modifier
   obj.select_set(True)
 
+
   obj.modifiers.new("Spring",'SCREW')
   obj.modifiers["Spring"].object = bpy.data.objects["line"]
   obj.modifiers["Spring"].screw_offset = spring_height
@@ -1169,8 +1170,10 @@ def create_m_head(half_sarcomere, thick_index, cb_index, b_params, b_primitives,
   this_spring.name = name_template.format("spring")
   obj_lists[thick_key].append(this_spring)
 
+  cb_state = thick_obj.cb_state[cb_index]
+
   update_m_head_location(half_sarcomere, thick_index, cb_index, b_params, args, this_stalk, 
-                         this_arm, this_cat, this_spring, adjacent_thin_fil_indexes)
+                         this_arm, this_cat, this_spring, adjacent_thin_fil_indexes, cb_state)
 
 def create_m_line_m_node_spring(half_sarcomere, thick_index, obj_lists, b_params, b_primitives):
   """Creates the spring that goes from the M line to the first myosin node."""
@@ -1433,7 +1436,7 @@ def update_thick_filament(half_sarcomere, thick_index, b_params, args):
 
   # Update the cross bridge and node/spring locations and scales.
   object_template = thick_key + "_{}_{}"
-  for cb_index in range(len(thick_obj.cb_x)):
+  for i,cb_index in enumerate(range(len(thick_obj.cb_x))):
     # Get the objects to update.
     ID = str(cb_index)
     this_stalk = bpy.data.objects[object_template.format("stalk", ID)]
@@ -1449,7 +1452,8 @@ def update_thick_filament(half_sarcomere, thick_index, b_params, args):
     update_m_head_mesh(this_spring, "spring", this_binding_state)
 
     update_m_head_location(half_sarcomere, thick_index, cb_index, b_params, args, this_stalk, 
-                           this_arm, this_cat, this_spring, adjacent_thin_fil_indexes)
+                           this_arm, this_cat, this_spring, adjacent_thin_fil_indexes,
+                           thick_obj.cb_state[i])
 
   return
 
@@ -1478,7 +1482,7 @@ def update_titin_location(half_sarcomere, thick_index, b_params, adjacent_thin_f
   return
 
 def update_m_head_location(half_sarcomere, thick_index, cb_index, b_params, args, this_stalk, 
-                           this_arm, this_cat, this_spring, adjacent_thin_fil_indexes):
+                           this_arm, this_cat, this_spring, adjacent_thin_fil_indexes, cb_state):
   """Updates the location, scale, and state of the cross bridge in the model."""
   thick_obj = half_sarcomere.thick[thick_index]
   m_y = thick_obj.m_y
@@ -1549,7 +1553,7 @@ def update_m_head_location(half_sarcomere, thick_index, cb_index, b_params, args
   else:
     # This cb is unbound.
     cat_domain_x = (thick_obj.cb_x[cb_index] 
-                    + (np.random.rand() - 0.5) * b_params.lengths["cb_rand_x"])
+                    + 0*(np.random.rand() - 0.5) * b_params.lengths["cb_rand_x"])
 
     # Check if the myosin head is "super relaxed".
     # Temporarily turning off the "super relaxed" code since state 5 is not super relaxed.
@@ -1557,19 +1561,23 @@ def update_m_head_location(half_sarcomere, thick_index, cb_index, b_params, args
     if True:
       # Add in the random angle
       cat_domain_angle = (thick_obj.cb_angle[cb_index] 
-                          + (np.random.rand() - 0.5) 
+                          + 0*(np.random.rand() - 0.5) 
                             * b_params.angles["cb_separation"]) * np.pi / 180
+      if (cb_state==1):
+        ff =0.3
+      else:
+        ff=1
       cat_domain_y = (thick_obj.m_y
                       + np.sin(cat_domain_angle)
-                        * (b_params.heights["cb_stalk"]
-                           + b_params.heights["cb_lever_arm"]
-                           + 0.5 * b_params.heights["cb_binding_site"]
+                        * (ff*b_params.heights["cb_stalk"]
+                           + ff*b_params.heights["cb_lever_arm"]
+                           + ff*0.5 * b_params.heights["cb_binding_site"]
                            + b_params.radii["thick"]))
       cat_domain_z = (thick_obj.m_z 
                       + np.cos(cat_domain_angle)
                         * (b_params.heights["cb_stalk"]
-                           + b_params.heights["cb_lever_arm"]
-                           + 0.5 * b_params.heights["cb_binding_site"]
+                           + ff*b_params.heights["cb_lever_arm"]
+                           + ff*0.5 * b_params.heights["cb_binding_site"]
                            + b_params.radii["thick"]))
     else:
       cat_domain_angle = thick_obj.cb_angle[cb_index] * np.pi / 180
@@ -1588,11 +1596,17 @@ def update_m_head_location(half_sarcomere, thick_index, cb_index, b_params, args
     cat_rot_angle = rot_angle
     arm_base_x = thick_obj.cb_x[cb_index]
 
-  arm_fin_x = cat_domain_x
+  print('cb_state: %i' % cb_state)
+  if (cb_state==1):
+      ff = 1
+  else:
+      ff = 0
+
+  arm_fin_x = cat_domain_x + ff
   arm_fin_y = cat_domain_y
   arm_fin_z = cat_domain_z
   
-  this_cat.location.x = cat_domain_x
+  this_cat.location.x = cat_domain_x + ff
   this_cat.location.y = cat_domain_y
   this_cat.location.z = cat_domain_z
   this_cat.rotation_euler.x = cat_rot_angle
