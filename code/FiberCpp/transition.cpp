@@ -69,6 +69,8 @@ transition::~transition(void)
 double transition::calculate_rate(double x, double node_force, int mybpc_state, int mybpc_iso)
 {
 	//! Returns the rate for a transition with a given x
+	//! 
+	// printf("%s \n ", rate_type);
 
 	// Variables
 	double rate = 0.0;
@@ -92,14 +94,14 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 	}
 
 	// Force-dependent
-	if (~strcmp(rate_type, "force_dependent"))
+	if (!strcmp(rate_type, "force_dependent"))
 	{
 		rate = gsl_vector_get(rate_parameters, 0) *
 			(1.0 + (node_force * gsl_vector_get(rate_parameters, 1)));
 	}
 
 	// Force and MyBPC-dependent
-	if (~strcmp(rate_type, "force_and_MyBPC_dependent"))
+	if (!strcmp(rate_type, "force_and_MyBPC_dependent"))
 	{
 		// rate = k_base * modifier_base * (1 + node_force * k_force * modifier_force)
 		// where the modifier depends on the isotype
