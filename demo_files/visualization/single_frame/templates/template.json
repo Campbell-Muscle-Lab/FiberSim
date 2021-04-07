@@ -25,7 +25,27 @@
                 "link_radius": 0.5,
                 "link_height": 5,
                 "link_vertices": 4
-            }
+            },
+            "isotypes":
+            [
+                {
+                    "states":
+                    [
+                        {
+                            "type": "S",
+                            "color": [1, 0, 0, 1]
+                        },
+                        {
+                            "type": "D",
+                            "color": [0, 1, 0, 1]
+                        },
+                        {
+                            "type": "A",
+                            "color": [0, 0, 1, 1]
+                        }
+                    ]
+                }
+            ]
         },
         "thin_filament":
         {

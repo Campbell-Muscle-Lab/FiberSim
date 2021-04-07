@@ -59,14 +59,14 @@ class hs_blender():
         for i, thick_fil in enumerate(self.hs.thick_fil):
             self.create_thick_filament(i)
 
-        # Create thin filaments
-        for i, thin_fil in enumerate(self.hs.thin_fil):
-            self.create_thin_filament(i)
+        # # Create thin filaments
+        # for i, thin_fil in enumerate(self.hs.thin_fil):
+        #     self.create_thin_filament(i)
 
         # Set nearest thin filaments
         # by adding an array into the hs.thick_fil structure
         self.set_nearest_thin_filaments()
-        
+
         # # Create cross-bridges
         self.create_cross_bridges()
 
@@ -166,6 +166,17 @@ class hs_blender():
         mat = bpy.data.materials.new(name = "a_node")
         mat.diffuse_color = self.template['thin_filament']['node']['color']
         self.materials['a_node'] = mat
+
+        # Now create meshes for cb isotypes and states
+        isotypes = self.template['thick_filament']['isotypes']
+        for i, iso in enumerate(isotypes):
+            states = iso['states']
+            for j, s in enumerate(states):
+                mat_name = 'm_cb_iso_state_%i_%i' % (i,j+1)
+                mat = bpy.data.materials.new(name = mat_name)
+                mat.diffuse_color = s['color']
+                print(s['color'])
+                self.materials[mat_name] = mat
 
     def create_thick_filament(self, thick_id):
         """ Creates thick_fil[id] """
@@ -288,10 +299,26 @@ class hs_blender():
 
         # Loop through myosin heads
         for thick_i, thick_f in enumerate(self.hs.thick_fil):
+            if (thick_i>0):
+                break
             for cb_i in np.arange(0, thick_f.m_no_of_cbs):
                 print('Creating cross-bridges: thick_fil[%i] cb[%i]' % (thick_i, cb_i))
+
+                # Get the isotype and state
+                cb_isotype = thick_f.cb_iso[cb_i]
+                cb_state = thick_f.cb_state[cb_i]
+                
+                isotype_data = self.template['thick_filament']['isotypes'][cb_isotype]
+                state_data = isotype_data['states'][cb_state-1]
+                state_type = state_data['type']
+
+                mesh_name = 'm_cb_iso_state_%i_%i' % (cb_isotype, cb_state)
+                print(mesh_name)
+
+                # Copy the primitive and set its name
                 stub = self.hs_b['primitives']['m_stub'].copy()
                 stub.name = ('m_stub_%i_%i' % (thick_i, cb_i))
+
                 bot_x = thick_f.cb_x[cb_i]
                 bot_y = self.yz_scaling * thick_f.m_y + \
                     self.template['thick_filament']['crown']['radius'] * \
@@ -314,6 +341,12 @@ class hs_blender():
                     np.asarray([bot_x, bot_y, bot_z]),
                     np.asarray([top_x, top_y, top_z]),
                     self.template['thick_filament']['myosin']['stub_height'])
+                
+                # Set the color
+                mesh = stub.data
+                m = self.materials[mesh_name].copy()
+                mesh.materials.append(m)
+                
                 bpy.context.collection.objects.link(stub)
 
                 if (thick_f.cb_bound_to_a_f[cb_i] >= 0):
@@ -337,7 +370,7 @@ class hs_blender():
                          self.template['thin_filament']['bs']['depth']) * \
                             np.cos(np.pi * thin_f.bs_angle[thin_bs] / 180.0)
                             
-                elif (any(self.template['srx_states']==thick_f.cb_state[cb_i])):
+                elif (state_type == 'S'):
                     # It's SRX
                     distal_x = top_x + self.template['thick_filament']['myosin']['link_height']
                     distal_y = top_y
@@ -355,10 +388,19 @@ class hs_blender():
                 # Draw link
                 cb_link = self.hs_b['primitives']['m_link'].copy()
                 cb_link.name = ('cb_link_%i_%i' % (thick_i, cb_i))
+                
                 self.replot_primitive_cylinder(cb_link,
                                    np.asarray([top_x, top_y, top_z]),
                                    np.asarray([distal_x, distal_y, distal_z]),
                                    self.template['thick_filament']['myosin']['link_height'])
+
+
+                # Set the color
+               # mesh = cb_link.data
+                #m = self.materials[mesh_name]
+
+                #mesh.materials.append(m.copy())
+
                 bpy.context.collection.objects.link(cb_link)
 
     def test(self):
