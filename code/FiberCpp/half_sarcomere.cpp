@@ -1677,8 +1677,12 @@ void half_sarcomere::myosin_kinetics(double time_step)
                 // for the partner head
                 if ((old_type == 'S') || (new_type == 'S'))
                 {
-                    handle_lattice_event('m', p_m_state->p_transitions[transition_index],
-                        m_counter, cb_counter + 1, a_f, a_n);
+                    // Allow event if paired head is in the same state
+                    if (p_mf[m_counter]->cb_state[cb_counter + 1] == cb_state)
+                    {
+                        handle_lattice_event('m', p_m_state->p_transitions[transition_index],
+                            m_counter, cb_counter + 1, a_f, a_n);
+                    }
                 }
                 else
                 {

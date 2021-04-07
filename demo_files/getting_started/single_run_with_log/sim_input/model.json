@@ -73,7 +73,7 @@
               "rate_type": "force_dependent",
               "rate_parameters": [
                 10,
-                10
+                1000
               ]
             }
           ]
@@ -87,7 +87,7 @@
               "new_state": 1,
               "rate_type": "constant",
               "rate_parameters": [
-                10
+                100
               ]
             },
             {

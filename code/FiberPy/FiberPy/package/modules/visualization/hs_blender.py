@@ -63,6 +63,10 @@ class hs_blender():
         for i, thin_fil in enumerate(self.hs.thin_fil):
             self.create_thin_filament(i)
 
+        # Set nearest thin filaments
+        # by adding an array into the hs.thick_fil structure
+        self.set_nearest_thin_filaments()
+        
         # # Create cross-bridges
         self.create_cross_bridges()
 
@@ -255,6 +259,29 @@ class hs_blender():
                 self.template['thin_filament']['bs']['depth'])
             bpy.context.collection.objects.link(bs)
 
+    def set_nearest_thin_filaments(self):
+        """ Fills an array for each hs.thick with the nearest
+            thin filaments """
+
+        # Loop through thick filaments, finding the distance to
+        # each thin filament
+        for thick_i, thick_f in enumerate(self.hs.thick_fil):
+            hypot = np.zeros(len(self.hs.thin_fil))
+            for thin_i, thin_f in enumerate(self.hs.thin_fil):
+                hypot[thin_i] = np.hypot((thick_f.m_y - thin_f.a_y),
+                                         (thick_f.m_z - thin_f.a_z))
+            min_hypot = min(hypot)
+            # Find the min distance
+            self.hs.thick_fil[thick_i].nearest_a_f = -1*np.ones(6)
+            counter = 0
+            for i, h in enumerate(hypot):
+                if (h < (1.1 * min_hypot)):
+                    self.hs.thick_fil[thick_i].nearest_a_f[counter] = i
+                    counter = counter + 1
+        # Display
+        print('thick_f: nearest_a_n values')
+        for thick_f in self.hs.thick_fil:
+            print(self.hs.thick_fil[thick_i].nearest_a_f)
 
     def create_cross_bridges(self):
         """ Draws cross-bridges """
@@ -293,7 +320,12 @@ class hs_blender():
                     # Head is bound
                     # Find the cb end of the link
                     # Find the bs end of the link
-                    thin_f = self.hs.thin_fil[thick_f.cb_bound_to_a_f[cb_i]]
+                    thin_a_n = thick_f.cb_bound_to_a_f[cb_i]
+                    # Check filament is a neighbor
+                    if (not(any(thick_f.nearest_a_f == thin_a_n))):
+                        # Continue out if not a neighbor
+                        continue
+                    thin_f = self.hs.thin_fil[thin_a_n]
                     thin_bs = thick_f.cb_bound_to_a_n[cb_i]
                     distal_x = thin_f.bs_x[thin_bs]
                     distal_y = self.yz_scaling * thin_f.a_y + \
