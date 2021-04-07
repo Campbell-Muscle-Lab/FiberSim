@@ -1659,7 +1659,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
                 new_type = p_m_scheme[cb_isotype]->p_m_states[new_state - 1]->state_type;
 
                 // Get the a_f and the a_n for the myosin head
-                if (p_m_state->state_type == 'a' || p_m_state->state_type == 'A')
+                if (p_m_state->state_type == 'A')
                 {
                     a_f = p_mf[m_counter]->cb_bound_to_a_f[cb_counter];
                     a_n = p_mf[m_counter]->cb_bound_to_a_n[cb_counter];
@@ -1682,7 +1682,6 @@ void half_sarcomere::myosin_kinetics(double time_step)
                 }
                 else
                 {
-                    
                     // Check whether the other head will undergo a transition
                     transition_index = return_m_transition(time_step, m_counter, cb_counter + 1);
 
@@ -1699,7 +1698,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
                         new_type = p_m_scheme[cb_isotype]->p_m_states[new_state - 1]->state_type;
 
                         // Get the a_f and the a_n for the myosin head
-                        if (p_m_state->state_type == 'a' || p_m_state->state_type == 'A')
+                        if (p_m_state->state_type == 'A')
                         {
                             a_f = p_mf[m_counter]->cb_bound_to_a_f[cb_counter + 1];
                             a_n = p_mf[m_counter]->cb_bound_to_a_n[cb_counter + 1];
@@ -1710,8 +1709,9 @@ void half_sarcomere::myosin_kinetics(double time_step)
                         }
 
                         // Exclude transitions to or from 'S'
-                        if ((old_type != 'S') && (new_type != 'S'))
+                        if (!((old_type != 'S') || (new_type != 'S')))
                         {
+                            printf("old_type: %c new_type: %c\n", old_type, new_type);
                             handle_lattice_event('m', p_m_state->p_transitions[transition_index],
                                 m_counter, cb_counter + 1, a_f, a_n);
                         }

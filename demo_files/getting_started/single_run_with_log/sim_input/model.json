@@ -56,7 +56,7 @@
     },
   "m_parameters": {
     "m_k_cb": 0.001,
-    "m_isotype_proportions": [ 0.1, 0.9 ]
+    "m_isotype_proportions": [ 1.0 ]
   },
   "m_kinetics": [
     {
@@ -65,7 +65,7 @@
       "scheme": [
         {
           "number": 1,
-          "type": "D",
+          "type": "S",
           "extension": 0,
           "transition": [
             {
@@ -95,68 +95,6 @@
               "rate_type": "gaussian",
               "rate_parameters": [
                 50
-              ]
-            }
-          ]
-        },
-        {
-          "number": 3,
-          "type": "A",
-          "extension": 5.0,
-          "transition": [
-            {
-              "new_state": 2,
-              "rate_type": "poly",
-              "rate_parameters": [
-                50,
-                1,
-                4
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "no_of_states": 3,
-      "max_no_of_transitions": 2,
-      "scheme": [
-        {
-          "number": 1,
-          "type": "D",
-          "extension": 0,
-          "transition": [
-            {
-              "new_state": 2,
-              "rate_type": "force_and_MyBPC_dependent",
-              "rate_parameters": [
-                10,
-                10,
-                1,
-                1,
-                0.5,
-                0.5
-              ]
-            }
-          ]
-        },
-        {
-          "number": 2,
-          "type": "D",
-          "extension": 0,
-          "transition": [
-            {
-              "new_state": 1,
-              "rate_type": "constant",
-              "rate_parameters": [
-                10
-              ]
-            },
-            {
-              "new_state": 3,
-              "rate_type": "gaussian",
-              "rate_parameters": [
-                10
               ]
             }
           ]
