@@ -172,11 +172,13 @@ class hs_blender():
         for i, iso in enumerate(isotypes):
             states = iso['states']
             for j, s in enumerate(states):
+                mat = []
                 mat_name = 'm_cb_iso_state_%i_%i' % (i,j+1)
                 mat = bpy.data.materials.new(name = mat_name)
                 mat.diffuse_color = s['color']
                 print(s['color'])
                 self.materials[mat_name] = mat
+                print(self.materials[mat_name].diffuse_color)
 
     def create_thick_filament(self, thick_id):
         """ Creates thick_fil[id] """
@@ -303,6 +305,8 @@ class hs_blender():
                 break
             for cb_i in np.arange(0, thick_f.m_no_of_cbs):
                 print('Creating cross-bridges: thick_fil[%i] cb[%i]' % (thick_i, cb_i))
+                if (cb_i<(thick_f.m_no_of_cbs-4)):
+                    continue
 
                 # Get the isotype and state
                 cb_isotype = thick_f.cb_iso[cb_i]
@@ -312,10 +316,13 @@ class hs_blender():
                 state_data = isotype_data['states'][cb_state-1]
                 state_type = state_data['type']
 
+                mc = state_data['color']
+
                 mesh_name = 'm_cb_iso_state_%i_%i' % (cb_isotype, cb_state)
                 print(mesh_name)
 
                 # Copy the primitive and set its name
+                stub = []
                 stub = self.hs_b['primitives']['m_stub'].copy()
                 stub.name = ('m_stub_%i_%i' % (thick_i, cb_i))
 
@@ -343,9 +350,7 @@ class hs_blender():
                     self.template['thick_filament']['myosin']['stub_height'])
                 
                 # Set the color
-                mesh = stub.data
-                m = self.materials[mesh_name].copy()
-                mesh.materials.append(m)
+                stub.data.materials.append(self.materials[mesh_name])
                 
                 bpy.context.collection.objects.link(stub)
 
