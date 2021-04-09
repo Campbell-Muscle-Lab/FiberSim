@@ -9,6 +9,8 @@ import subprocess
 
 from pathlib import Path
 
+from .movie_with_data import movie_with_data
+
 def generate_images(render_file):
     """ Function generates images defined by image_dict
         Opens a render batch file, finds the information about blender,
@@ -58,3 +60,9 @@ def generate_images(render_file):
 
     return
 
+def generate_movie_with_data(render_file):
+    """ Function creates a movie that contains rendered images and data
+        Builds on the functionality of generate_images but integrates
+        rendered images with sim reults data """
+
+    movie_with_data(render_file)

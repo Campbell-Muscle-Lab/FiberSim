@@ -1,0 +1,70 @@
+{
+    "render_template":
+    {
+        "lattice":
+        {
+            "inter_thick_nm": 40
+        },
+        "thick_filament":
+        {
+            "crown":
+            {
+                "radius": 5,
+                "depth": 2,
+                "vertices": 10,
+                "color": [0, 0, 0.5, 1]
+            },
+            "myosin":
+            {
+                "stub_height": 3,
+                "stub_radius": 1,
+                "stub_vertices": 6,
+                "cat_height": 1,
+                "cat_radius": 1,
+                "cat_vertices": 6,
+                "link_radius": 0.5,
+                "link_height": 5,
+                "link_vertices": 4
+            },
+            "isotypes":
+            [
+                {
+                    "states":
+                    [
+                        {
+                            "type": "S",
+                            "color": [1, 0, 0, 1]
+                        },
+                        {
+                            "type": "D",
+                            "color": [0, 1, 0, 1]
+                        },
+                        {
+                            "type": "A",
+                            "color": [0, 0, 1, 1]
+                        }
+                    ]
+                }
+            ]
+        },
+        "thin_filament":
+        {
+            "node":
+            {
+                "radius": 5,
+                "depth": 1,
+                "vertices": 6,
+                "color": [1.0, 0.5, 0.5, 1.0]
+            },
+            "bs":
+            {
+                "radius": 1,
+                "depth": 2,
+                "vertices": 6,
+                "color": [1.0, 0.5, 0.5, 1.0]
+            }
+        },
+        "srx_states": [1]
+    }
+}
+

@@ -24,6 +24,9 @@ def parse_inputs():
 
     if (sys.argv[1] == "render_model"):
         viz.generate_images(sys.argv[2])
+    
+    if (sys.argv[1] == "movie_with_data"):
+        viz.generate_movie_with_data(sys.argv[2])
 
 
 if __name__ == "__main__":
