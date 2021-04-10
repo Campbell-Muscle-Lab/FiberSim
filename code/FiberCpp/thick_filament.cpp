@@ -46,7 +46,12 @@ thick_filament::thick_filament(
     m_myosins_per_hub = p_fs_model->m_myosins_per_hub;
 
     m_inter_crown_rest_length = p_fs_model->m_inter_crown_rest_length;
-    m_lambda = p_fs_model->m_lambda;
+    
+    // Set m_lambda allowing for potential random jitter
+    m_lambda = p_fs_model->m_lambda +
+        (gsl_rng_uniform(p_parent_hs->rand_generator) *
+            p_fs_options->lambda_jitter);
+    printf("m_lambda: %g\n", m_lambda);
 
     m_starting_angle = p_fs_model->m_starting_angle;
     m_inter_crown_twist = p_fs_model->m_inter_crown_twist;

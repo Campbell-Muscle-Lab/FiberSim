@@ -797,7 +797,7 @@ def create_z_line(half_sarcomere, b_params, object_dict, materials):
   y_coords = ([thick_obj.m_y for thick_obj in half_sarcomere.thick]
               + [thin_obj.a_y for thin_obj in half_sarcomere.thin])
   max_y = max(y_coords)
-  min_y = min(y_coords)
+  min_y = min(y_coords)#
   max_z = max(z_coords)
   min_z = min(z_coords)
   

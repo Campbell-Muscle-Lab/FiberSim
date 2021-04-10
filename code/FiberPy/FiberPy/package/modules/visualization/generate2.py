@@ -3,6 +3,8 @@ import time
 import json
 import sys
 
+import threading
+import multiprocessing
 
 # Blender packages that are located in Blender's Python Path.
 import bpy
@@ -21,62 +23,61 @@ import hs_blender as hs_b
 
 def run_render_batch():
     """ Entry point for the generate_model
-        second_last argument is render_file
-        last argument is job index """
+        last argument is render_job_file """
 
     # Unpack the arguments
-    render_file = sys.argv[-2]
-    job_index = int(sys.argv[-1])
+    render_job_file = sys.argv[-1]
 
-    # Open the render file and pull off the correct job
-    with open(render_file, 'r') as f:
-        render_batch = json.load(f)
+    # Open the render file and pull off the job
+    with open(render_job_file, 'r') as f:
+        render_job = json.load(f)
     
-    render_job = render_batch['render_batch']['render_jobs'][job_index]
+    render_job = render_job['render_job']
 
     # Pull out the files
     if (render_job['relative_to'] == 'this_file'):
-        parent_path = Path(render_file).parent
+        parent_path = Path(render_job_file).parent
         template_file = os.path.join(parent_path,
-                                     render_job['template_file'])
-        frames_file = os.path.join(parent_path,
-                                   render_job['frames_file'])
+                                      render_job['template_file'])
+        frame_file = os.path.join(parent_path,
+                                    render_job['frame_file'])
         blender_file = os.path.join(parent_path,
                                     render_job['blender_file'])
-    
+
     # Load json files
     with open(template_file, 'r') as f:
         template = json.load(f)
     template_data = template['render_template']
-    
-    with open(frames_file, 'r') as f:
-        frames = json.load(f)
-    frames_data = frames['frames']
-    
+
+    with open(frame_file, 'r') as f:
+        frame_data = json.load(f)
+    frame_data = frame_data['frame_data']
+    frame_data['parent_file'] = os.path.abspath(frame_file)
+
     with open(blender_file, 'r') as f:
         blender = json.load(f)
     blender_data = blender['blender_data']
     
-    print(frames_data)
+    print(frame_data)
     print(template_data)
     print(blender_data)
     
-    for fr in frames_data:
-        print(fr)
-        fr['parent_file'] = render_file
-        run_render_job(fr, template_data, blender_data)
-    
+    # Run the job
+    run_render_job(frame_data, template_data, blender_data)
 
 def run_render_job(frame_data, template_data, blender_data):
     
     parent_path = Path(frame_data['parent_file']).parent
     status_file = os.path.join(parent_path, frame_data['status_file'])
+    output_image_file = os.path.join(parent_path, frame_data['image_file'])
+    
         
     h = hs.half_sarcomere(status_file)
 
-    hs_blend = hs_b.hs_blender(h, frame_data, template_data, blender_data)
+    hs_blend = hs_b.hs_blender(h, frame_data, template_data, blender_data,
+                               output_image_file)
 
-    # bpy.ops.wm.quit_blender()
+    #bpy.ops.wm.quit_blender()
 
     return
 

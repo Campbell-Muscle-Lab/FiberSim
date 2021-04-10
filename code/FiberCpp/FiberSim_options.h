@@ -33,6 +33,13 @@ public:
 
     double x_pos_rel_tol;               /**< double defining the relative tolerance for calculating
                                              x positions */
+
+    double lambda_jitter;               /**< double defining lambda jitter. The first myosin crown on
+                                             each thick filament will be at
+                                             x = lambda + rand()*lambda_jitter
+                                             Set to 0 for no jitter (aligned filaments). See
+                                             https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1635681/
+                                             for justification */
    
     int dump_precision;                 /**< integer defining the precision of doubles dumped in the half-
                                              sarcomere status files */

@@ -55,13 +55,11 @@ half_sarcomere::half_sarcomere(
     hs_id = set_hs_id;
 
     // Set the class pointers to the kinetic scheme for myosin
-
     for (int i = 0; i < p_fs_model->m_no_of_isotypes; i++) {
         p_m_scheme[i] = p_fs_model->p_m_scheme[i];
     }
 
     // and MyBPC
-
     for (int i = 0; i < p_fs_model->c_no_of_isotypes; i++)
     {
         p_c_scheme[i] = p_fs_model->p_c_scheme[i];
@@ -77,6 +75,17 @@ half_sarcomere::half_sarcomere(
 
     // Zero the step_counter
     step_counter = 0;
+
+    // Initialise the random number generator
+    // This needs to be done before the thick filaments are allocated to allow for
+    // lambda jitter
+    const gsl_rng_type* T;
+    gsl_rng_env_setup();
+
+    T = gsl_rng_default;
+    rand_generator = gsl_rng_alloc(T);
+    gsl_rng_set(rand_generator,
+        unsigned long(100 * (p_parent_m->muscle_id + 1) + (hs_id + 1)));
 
     // Log
     if (p_fs_options->log_mode > 0)
@@ -131,7 +140,7 @@ half_sarcomere::half_sarcomere(
     m_cbs_per_thick_filament = p_mf[0]->m_no_of_cbs;
     m_cbs_per_node = p_fs_model->m_hubs_per_crown * p_fs_model->m_myosins_per_hub;
     m_inter_crown_rest_length = p_fs_model->m_inter_crown_rest_length;
-    m_lambda = p_fs_model->m_lambda;
+    //m_lambda = p_fs_model->m_lambda;
 
     a_nodes_per_thin_filament = p_fs_model->a_bs_per_unit *
         p_fs_model->a_regulatory_units_per_strand;
@@ -217,15 +226,6 @@ half_sarcomere::half_sarcomere(
     gsl_vector_set_zero(a_pops);
     gsl_vector_set_zero(m_pops);
     gsl_vector_set_zero(c_pops);
-
-    // Initialise the random number generator
-    const gsl_rng_type* T;
-    gsl_rng_env_setup();
-
-    T = gsl_rng_default;
-    rand_generator = gsl_rng_alloc(T);
-    gsl_rng_set(rand_generator,
-        unsigned long(100 * (p_parent_m->muscle_id + 1) + (hs_id + 1)));
 }
 
 // Destructor
@@ -1072,7 +1072,8 @@ void half_sarcomere::initialise_f0_vector(void)
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
         ind = node_index('m', m_counter, 0);
-        gsl_vector_set(f0_vector, ind, m_k_stiff * (hs_length - m_lambda));
+        gsl_vector_set(f0_vector, ind,
+            m_k_stiff * (hs_length - p_mf[m_counter]->m_lambda));
 
         ind = node_index('m', m_counter, m_cbs_per_thick_filament - 1);
         gsl_vector_set(f0_vector, ind, (-m_k_stiff * m_inter_crown_rest_length));
@@ -1237,7 +1238,7 @@ double half_sarcomere::calculate_force(void)
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
         holder = holder + (m_k_stiff *
-            (hs_length - m_lambda - m_inter_crown_rest_length -
+            (hs_length - p_mf[m_counter]->m_lambda - m_inter_crown_rest_length -
                 gsl_vector_get(x_vector, node_index('m', m_counter, 0))));
     }
 
@@ -2347,7 +2348,8 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         fprintf_s(output_file, "\t\"m_inter_crown_rest_length\": %.*F,\n",
             p_fs_options->dump_precision, m_inter_crown_rest_length);
         fprintf_s(output_file, "\t\"m_cbs_per_node\": %i,\n", m_cbs_per_node);
-        fprintf_s(output_file, "\t\"m_lambda\": %.*F,\n", p_fs_options->dump_precision, m_lambda);
+        fprintf_s(output_file, "\t\"m_lambda\": %.*F,\n", p_fs_options->dump_precision,
+            p_mf[thick_counter]->m_lambda);
         fprintf_s(output_file, "\t\"c_no_of_pcs\": %i,\n", c_no_of_pcs);
 
         fprintf_s(output_file, "\t\"nearest_actin_filaments\": [");

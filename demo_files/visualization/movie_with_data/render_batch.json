@@ -5,9 +5,9 @@
         [
             {
                 "relative_to": "this_file",
-                "template_file": "templates/template.json",
-                "frames_file": "frames/frames.json",
-                "blender_file": "blender_data.json"
+                "template_file": "templates/render_template.json",
+                "frames_file": "frames/frames2.json",
+                "blender_file": "blender_data/blender_data.json"
             }
         ]
         

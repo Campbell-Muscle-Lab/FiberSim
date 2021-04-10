@@ -28,7 +28,9 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     max_rate = 5000.0;                      /**< default value for maximum rate allowed
                                                  in calculations */
 
-    dump_precision = 8;                     /**< default value for dump precision */
+    lambda_jitter = 0.0;                    /**< default value for lambda jitter */
+
+    dump_precision = 6;                     /**< default value for dump precision */
 
 
     // Update values from log file
@@ -204,6 +206,13 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     {
         JSON_functions::check_JSON_member_int(options, "dump_precision");
         dump_precision = options["dump_precision"].GetInt();
+    }
+
+    // Check if lambda_jitter was specified.
+    if (JSON_functions::is_JSON_member(options, "lambda_jitter"))
+    {
+        JSON_functions::check_JSON_member_number(options, "lambda_jitter");
+        lambda_jitter = options["lambda_jitter"].GetDouble();
     }
 
     // Now check for logging

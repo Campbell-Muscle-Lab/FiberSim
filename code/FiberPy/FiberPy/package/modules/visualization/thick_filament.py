@@ -44,8 +44,11 @@ class thick_filament():
             np.array(thick_data['cb_nearest_a_n']).astype(int)
         self.pc_node_index = \
             np.array(thick_data['pc_node_index']).astype(int)
+        self.pc_angle = np.array(thick_data['pc_angle'])
         self.pc_state = \
             np.array(thick_data['pc_state']).astype(int)
+        self.pc_iso = \
+            np.array(thick_data['pc_iso']).astype(int)
         self.pc_bound_to_a_f = \
             np.array(thick_data['pc_bound_to_a_f']).astype(int)
         self.pc_bound_to_a_n = \

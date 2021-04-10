@@ -1,0 +1,9 @@
+{
+    "render_job": {
+        "relative_to": "this_file",
+        "job_number": 0,
+        "frame_file": "frame_0.json",
+        "template_file": "..\\templates/template.json",
+        "blender_file": "..\\blender_data.json"
+    }
+}
