@@ -88,8 +88,6 @@ public:
                                     /**< double defining the rest-length of the spring
                                          between crowns in nm */
 
-    double m_lambda;                /**< double defining the barezone length in nm */
-
     double m_mean_fil_length;       /**< double holding the mean m filament length */
 
     gsl_vector* m_y;                /**< gsl_vector holding y_coordinates of

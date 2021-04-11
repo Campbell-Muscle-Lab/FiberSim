@@ -140,7 +140,6 @@ half_sarcomere::half_sarcomere(
     m_cbs_per_thick_filament = p_mf[0]->m_no_of_cbs;
     m_cbs_per_node = p_fs_model->m_hubs_per_crown * p_fs_model->m_myosins_per_hub;
     m_inter_crown_rest_length = p_fs_model->m_inter_crown_rest_length;
-    //m_lambda = p_fs_model->m_lambda;
 
     a_nodes_per_thin_filament = p_fs_model->a_bs_per_unit *
         p_fs_model->a_regulatory_units_per_strand;
