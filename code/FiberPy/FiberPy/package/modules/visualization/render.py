@@ -165,3 +165,8 @@ def worker(render_file):
             print('No file to delete')
     
         return
+
+def generate_movie_with_data(render_batch_file):
+    """ Generates a movie combining screen-shots with data """
+    
+    m = movie_with_data(render_batch_file)
