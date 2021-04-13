@@ -75,7 +75,7 @@ thick_filament::thick_filament(
     cb_angle = gsl_vector_alloc(m_no_of_cbs);
 
     cb_state = gsl_vector_short_alloc(m_no_of_cbs);
-    cb_iso = gsl_vector__short_alloc(m_no_of_cbs);
+    cb_iso = gsl_vector_short_alloc(m_no_of_cbs);
 
     cb_bound_to_a_f = gsl_vector_short_alloc(m_no_of_cbs);
     cb_bound_to_a_n = gsl_vector_short_alloc(m_no_of_cbs);
@@ -101,8 +101,8 @@ thick_filament::thick_filament(
         int iso_index = p_parent_hs->return_event_index(p_fs_model->m_isotype_props);
 
         // Set the dimer
-        gsl_vector_short_set(cb_iso[cb_counter] = iso_index + 1;
-        gsl_vector_short_set(cb_iso[cb_counter + 1] = iso_index + 1;
+        gsl_vector_short_set(cb_iso, cb_counter, iso_index + 1);
+        gsl_vector_short_set(cb_iso, cb_counter + 1, iso_index + 1);
     }
 
     // Other arrays are intialized with constants
@@ -132,9 +132,9 @@ thick_filament::thick_filament(
     pc_bound_to_a_n = gsl_vector_short_alloc(c_no_of_pcs);
 
     pc_nearest_a_f = gsl_vector_short_alloc(c_no_of_pcs);
-    pc_nearest_a_n = gsl_matrix_short_alloc(c_no_of_pcs);
+    pc_nearest_a_n = gsl_matrix_short_alloc(c_no_of_pcs, m_attachment_span);
 
-    pc_nearest_bs_angle_diff = gsl_matrix_alloc(c_no_of_pc, m_attachment_span);
+    pc_nearest_bs_angle_diff = gsl_matrix_alloc(c_no_of_pcs, m_attachment_span);
 
     // Use special function for cb_x and cb_angle
     initalise_pc_node_index_and_pc_angle();
@@ -145,7 +145,7 @@ thick_filament::thick_filament(
         int iso_index = p_parent_hs->return_event_index(p_fs_model->c_isotype_props);
 
         // Set the pc_iso
-        gsl_vector_short_set(pc_iso[pc_counter] = iso_index + 1;
+        gsl_vector_short_set(pc_iso, pc_counter, iso_index + 1);
     }
 
     // Other arrays are initialized with constants

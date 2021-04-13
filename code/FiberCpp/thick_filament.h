@@ -10,6 +10,7 @@
 #include "rapidjson/istreamwrapper.h"
 
 #include "gsl_vector.h"
+#include "gsl_matrix.h"
 #include "gsl_rng.h"
 
 class FiberSim_model;
@@ -119,6 +120,7 @@ public:
 
     gsl_vector_short* cb_nearest_a_f;   /**< pointer to a gsl array of signed short integers
                                              indicating which a_f, the cb is nearest to */
+
     gsl_matrix_short* cb_nearest_a_n;   /**< pointer to a matrix of signed short integers
                                              indicating which a_n on the corresponding a_f
                                              the cb is closest to. The second dimension holds
@@ -172,6 +174,7 @@ public:
 
     gsl_vector_short* pc_nearest_a_f;   /**< pointer to a gsl array of signed short integers
                                              indicating which a_f the pc is nearest to */
+
     gsl_matrix_short* pc_nearest_a_n;   /**< pointer to a gsl matrix of signed short integers
                                              indicating which a_n the pc is nearest to */
 

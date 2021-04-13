@@ -159,6 +159,12 @@ public:
     int t_attach_m_node;                /**< int defining the thick node at which titin
                                              attaches */
 
+    // Lattice events
+    lattice_event* p_event[MAX_NO_OF_ADJACENT_BS * MAX_NO_OF_TRANSITIONS];
+                                        /**< an array of lattice events, each one
+                                             noting which myosin head is interacting
+                                             with each binding site */
+
     // Lattice calculations
 
     int hs_total_nodes;             /**< integer holding the total number of nodes
@@ -505,8 +511,9 @@ public:
     void mybpc_kinetics(double time_step);
 
     /**
-    * void handle_lattice_event(char mol_type, char event_type, int thick_f, int thick_n, int thin_f, int thin_n)
+    * void handle_lattice_event(lattice_event p_event)
     * adjusts k_matrix and f_vector when myosin or mybp-c attach or detach between filaments
+    * the lattice event structure contains
     * @param mol_type char 'm' for myosin, or 'c' for myosin binding protein-C
     * @param p_trans pointer to the transition
     * @param thick_f int index for the thick filament
@@ -515,7 +522,7 @@ public:
     * @param thin_n int index for the thin binding site
     * @return void
     */
-    void handle_lattice_event(char mol_type, transition* p_trans, int thick_f, int thick_n, int thin_f, int thin_n);
+    void handle_lattice_event(lattice_event* p_event);
 
     /*
     * int return_event_index(gsl_vector* p_prob)
