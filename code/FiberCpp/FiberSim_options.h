@@ -31,6 +31,10 @@ public:
    
     double max_rate;                    /**< double defining the maximum rate allowed in calculations */
 
+    int adjacent_bs;                    /**< default value of adjacent binding sites
+                                                 available for myosin or mybpc attachment
+                                                 0 restricts to nearest site */
+
     double x_pos_rel_tol;               /**< double defining the relative tolerance for calculating
                                              x positions */
 
