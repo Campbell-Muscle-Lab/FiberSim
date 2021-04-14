@@ -1728,21 +1728,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
             cb_counter = cb_counter + 2)
         {
             transition_index = return_m_transition(time_step, m_counter, cb_counter);
-/*
-            if (transition_index >= 0)
-            {
-                printf("transition_index: %i\n", transition_index);
-                printf("p_event->m_f: %i\n", p_event[transition_index]->m_f);
-                printf("p_event->m_n: %i\n", p_event[transition_index]->m_n);
-                printf("p_event->a_f: %i\n", p_event[transition_index]->a_f);
-                printf("p_event->a_n: %i\n", p_event[transition_index]->a_n);
-                printf("p_event->mol_type: %c\n", p_event[transition_index]->mol_type);
-                printf("p_event->parent_state: %i\n", p_event[transition_index]->p_trans->p_parent_m_state->state_number);
-                printf("p_event->new_state: %i\n", p_event[transition_index]->p_trans->new_state);
-                printf("p_event->rate_type: %s\n", p_event[transition_index]->p_trans->rate_type);
-                printf("p_event->transition_type: %c\n", p_event[transition_index]->p_trans->transition_type);
-            }
-*/
+
             if (transition_index >= 0)
             {
                 // Transition occurred
@@ -1752,7 +1738,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
                 old_type = p_m_state->state_type;
 
-                new_state = p_m_state->p_transitions[transition_index]->new_state;
+                new_state = p_event[transition_index]->p_trans->new_state;
                 new_type = p_m_scheme[cb_isotype - 1]->p_m_states[new_state - 1]->state_type;
 
                 // Implement transition
@@ -1773,13 +1759,13 @@ void half_sarcomere::myosin_kinetics(double time_step)
                     if (transition_index >= 0)
                     {
                         // Get the potential transition
-                        cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, cb_counter + 1);
-                        cb_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, cb_counter + 1);
+                        cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, (size_t)cb_counter + 1);
+                        cb_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, (size_t)cb_counter + 1);
                         p_m_state = p_m_scheme[cb_isotype - 1]->p_m_states[cb_state - 1];
 
                         old_type = p_m_state->state_type;
 
-                        new_state = p_m_state->p_transitions[transition_index]->new_state;
+                        new_state = p_event[transition_index]->p_trans->new_state;
                         new_type = p_m_scheme[cb_isotype - 1]->p_m_states[new_state - 1]->state_type;
 
                         // Exclude transitions to or from 'S'
@@ -2004,29 +1990,6 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
 
     // Use random number to determine which event (if any) occurred
     event_index = return_event_index(transition_probs);
-
-    if (gsl_vector_get(transition_probs, 4) > 0.0)
-    {
-        printf("prob[ ");
-        for (int i = 0; i < transition_probs->size; i++)
-        {
-            printf("%.3f  ", gsl_vector_get(transition_probs, i));
-        }
-        printf("]\n");
-
-        int j;
-        if (event_index >= 0)
-        {
-            j = event_index;
-            printf("event_index: %i", event_index);
-            printf("mol_type: %c\n", p_event[j]->mol_type);
-            printf("m_f: %i\n", p_event[j]->m_f);
-            printf("m_n: %i\n", p_event[j]->m_n);
-            printf("a_f: %i\n", p_event[j]->a_f);
-            printf("a_n: %i\n", p_event[j]->a_n);
-            printf("p_trans->new: %i\n", p_event[j]->p_trans->new_state);
-        }
-    }
 
     // Tidy up
     gsl_vector_free(transition_probs);

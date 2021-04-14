@@ -1,7 +1,7 @@
 {
   "options": {
     "max_rate": 1e4,
-    "adjacent_bs": 1,
+    "adjacent_bs": 2,
     "x_pos_rel_tol": 1e-3,
     "lambda_jitter": 43.0, 
     "status_files":
