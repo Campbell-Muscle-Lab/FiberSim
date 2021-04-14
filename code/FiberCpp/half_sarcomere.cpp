@@ -206,8 +206,8 @@ half_sarcomere::half_sarcomere(
 
     // Allocate space for tri-diagonal solve used by iterative technique
     tri_d_vector = gsl_vector_alloc(hs_total_nodes);
-    tri_e_vector = gsl_vector_alloc(hs_total_nodes-1);
-    tri_f_vector = gsl_vector_alloc(hs_total_nodes-1);
+    tri_e_vector = gsl_vector_alloc((size_t)(hs_total_nodes-1));
+    tri_f_vector = gsl_vector_alloc(size_t(hs_total_nodes-1));
 
     // Intialise them
     initialize_tridiagonal_vectors();
@@ -346,6 +346,7 @@ size_t half_sarcomere::implement_time_step(double time_step,
     hs_extracellular_force = calculate_extracellular_force();
     hs_force = calculate_force();
 
+
     // Calculate mean filament lengths
     calculate_mean_filament_lengths();
 
@@ -477,14 +478,14 @@ void half_sarcomere::initialize_tridiagonal_vectors(void)
 
             if ((node_counter > 0) && (node_counter < (a_nodes_per_thin_filament - 1)))
             {
-                gsl_vector_set(tri_f_vector, row_index - (int)1, -1.0 * a_k_stiff);
+                gsl_vector_set(tri_f_vector, (int)(row_index - 1), -1.0 * a_k_stiff);
                 gsl_vector_set(tri_d_vector, row_index, 2.0 * a_k_stiff);
                 gsl_vector_set(tri_e_vector, row_index, -1.0 * a_k_stiff);
             }
 
             if (node_counter == (a_nodes_per_thin_filament - 1))
             {
-                gsl_vector_set(tri_f_vector, row_index - (int)1, -1.0 * a_k_stiff);
+                gsl_vector_set(tri_f_vector, (int)(row_index - 1), -1.0 * a_k_stiff);
                 gsl_vector_set(tri_d_vector, row_index, 1.0 * a_k_stiff);
             }
 
@@ -505,14 +506,14 @@ void half_sarcomere::initialize_tridiagonal_vectors(void)
 
             if ((node_counter > 0) && (node_counter < (m_nodes_per_thick_filament - 1)))
             {
-                gsl_vector_set(tri_f_vector, row_index - (int)1, -1.0 * m_k_stiff);
+                gsl_vector_set(tri_f_vector, (int)(row_index - 1), -1.0 * m_k_stiff);
                 gsl_vector_set(tri_d_vector, row_index, 2.0 * m_k_stiff);
                 gsl_vector_set(tri_e_vector, row_index, -1.0 * m_k_stiff);
             }
 
             if (node_counter == (m_nodes_per_thick_filament - 1))
             {
-                gsl_vector_set(tri_f_vector, row_index - (int)1, -1.0 * m_k_stiff);
+                gsl_vector_set(tri_f_vector, (int)(row_index - 1), -1.0 * m_k_stiff);
                 gsl_vector_set(tri_d_vector, row_index, 1.0 * m_k_stiff);
             }
 
@@ -901,7 +902,7 @@ void half_sarcomere::initialise_nearest_actin_matrix(void)
     int row_index;
     int col_start;
     int col_index;
-    int counter;
+    short counter;
     int temp;
     
     // Code
@@ -1167,7 +1168,7 @@ void half_sarcomere::calculate_mean_filament_lengths(void)
     for (int a_counter = 0; a_counter < a_n; a_counter++)
     {
         holder = holder + gsl_vector_get(p_af[a_counter]->bs_x,
-                                a_bs_per_thin_filament - 1);
+                                (size_t)a_bs_per_thin_filament - 1);
     }
     a_mean_fil_length = holder / (double)a_n;
 
@@ -1177,7 +1178,7 @@ void half_sarcomere::calculate_mean_filament_lengths(void)
     {
         holder = holder +
             (hs_length - gsl_vector_get(p_mf[m_counter]->cb_x,
-                            m_cbs_per_thick_filament - 1));
+                            (size_t)m_cbs_per_thick_filament - 1));
     }
     m_mean_fil_length = holder / (double)m_n;
 }
@@ -1207,7 +1208,7 @@ void half_sarcomere::calculate_a_pops(void)
     }
 
     // Turn into proportions
-    gsl_vector_scale(a_pops, 1.0 / (double)(a_n * (int)a_bs_per_thin_filament));
+    gsl_vector_scale(a_pops, 1.0 / (double)(a_n * a_bs_per_thin_filament));
 }
 
 void half_sarcomere::calculate_m_pops(void)
@@ -1235,7 +1236,7 @@ void half_sarcomere::calculate_m_pops(void)
     }
 
     // Turn into proportions
-    gsl_vector_scale(m_pops, 1.0 / (double)(m_n * m_cbs_per_thick_filament));
+    gsl_vector_scale(m_pops, 1.0 / ((double)m_n * (double)m_cbs_per_thick_filament));
 }
 
 void half_sarcomere::calculate_c_pops(void)
@@ -1263,7 +1264,7 @@ void half_sarcomere::calculate_c_pops(void)
     }
 
     // Turn into proportions
-    gsl_vector_scale(c_pops, 1.0 / (double)(m_n * (p_mf[0]->c_no_of_pcs)));
+    gsl_vector_scale(c_pops, 1.0 / ((double)m_n * (double)(p_mf[0]->c_no_of_pcs)));
 }
 
 double half_sarcomere::calculate_force(void)
@@ -1727,7 +1728,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
             cb_counter = cb_counter + 2)
         {
             transition_index = return_m_transition(time_step, m_counter, cb_counter);
-
+/*
             if (transition_index >= 0)
             {
                 printf("transition_index: %i\n", transition_index);
@@ -1736,23 +1737,27 @@ void half_sarcomere::myosin_kinetics(double time_step)
                 printf("p_event->a_f: %i\n", p_event[transition_index]->a_f);
                 printf("p_event->a_n: %i\n", p_event[transition_index]->a_n);
                 printf("p_event->mol_type: %c\n", p_event[transition_index]->mol_type);
+                printf("p_event->parent_state: %i\n", p_event[transition_index]->p_trans->p_parent_m_state->state_number);
+                printf("p_event->new_state: %i\n", p_event[transition_index]->p_trans->new_state);
+                printf("p_event->rate_type: %s\n", p_event[transition_index]->p_trans->rate_type);
+                printf("p_event->transition_type: %c\n", p_event[transition_index]->p_trans->transition_type);
             }
-
+*/
             if (transition_index >= 0)
             {
                 // Transition occurred
-//                cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, cb_counter);
-  //              cb_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, cb_counter);
-    //            p_m_state = p_m_scheme[cb_isotype - 1]->p_m_states[cb_state - 1];
+                cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, cb_counter);
+                cb_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, cb_counter);
+                p_m_state = p_m_scheme[cb_isotype - 1]->p_m_states[cb_state - 1];
 
-      //          old_type = p_m_state->state_type;
-                //
-               // new_state = p_m_state->p_transitions[transition_index]->new_state;
-               // new_type = p_m_scheme[cb_isotype - 1]->p_m_states[new_state - 1]->state_type;
+                old_type = p_m_state->state_type;
+
+                new_state = p_m_state->p_transitions[transition_index]->new_state;
+                new_type = p_m_scheme[cb_isotype - 1]->p_m_states[new_state - 1]->state_type;
 
                 // Implement transition
                 handle_lattice_event(p_event[transition_index]);
-/*
+
                 // If the head is transitioning into or out of a S state, do the same
                 // for the partner head
                 if ((old_type == 'S') || (new_type == 'S'))
@@ -1785,7 +1790,6 @@ void half_sarcomere::myosin_kinetics(double time_step)
                         }
                     }
                 }
-*/
             }
         }
     }
@@ -1852,7 +1856,7 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     // This vector is max_transitions * m_attachment_span
     // Binding events to different actin nodes are in different elements
     // Non-binding transitions are single elements
-    transition_probs = gsl_vector_alloc(max_transitions * m_attachment_span);
+    transition_probs = gsl_vector_alloc((size_t)max_transitions * (size_t)m_attachment_span);
     gsl_vector_set_zero(transition_probs);
 
     // Get the a_f and the a_n for the myosin head
@@ -1869,7 +1873,8 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     // Get the a_f for the partner dimer
     if (cb_counter < (m_cbs_per_thick_filament - 2))
     {
-        a_f_partner = gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_f, cb_counter + 1);
+        a_f_partner = gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_f,
+            (size_t)cb_counter + 1);
     }
     else
     {
@@ -1899,8 +1904,6 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     // Prepare for calculating rates
     gsl_vector_set_zero(transition_probs);
 
-//printf("cb_state: %i\n", cb_state);
-
     // Cycle through transitions, adding up rates
     holder = 0.0;
     for (int t_counter = 0; t_counter < max_transitions; t_counter++)
@@ -1910,8 +1913,6 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
 
         if (new_state > 0)
         {
-//printf("new_state: %i\n", new_state);
-
             // It's a possible transition
             if (p_trans->transition_type == 'a')
             {
@@ -1943,7 +1944,7 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
                                             // being attached
                     }
 
-                    // Traansition is possible
+                    // Transition is possible
                     x = gsl_vector_get(p_mf[m_counter]->cb_x, cb_counter) -
                         gsl_vector_get(p_af[a_f]->bs_x, bs_ind);
 
@@ -1964,16 +1965,13 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
                     p_event[prob_index]->a_f = a_f;
                     p_event[prob_index]->a_n = bs_ind;
                     p_event[prob_index]->p_trans = p_trans;
-
-
                 }
             }
             else
             {
                 // It's a simpler event, entry goes into a single row
 
-                // If head is attached, calculate a_f, a_n, and x
-                a_f = gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_f, cb_counter);
+                // If head is attached, calculate a_n, and x
                 if (a_f >= 0)
                 {
                     a_n = gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_n, cb_counter);
@@ -1988,13 +1986,6 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
 
                 prob = (1.0 - exp(-time_step *
                     p_trans->calculate_rate(x, node_f, mybpc_state, mybpc_iso)));
-/*
-                printf("node_f: %g\n", node_f);
-                printf("x: %g\n", x);
-                printf("old_state: %i\n", cb_state);
-                printf("new_state: %i\n", new_state);
-                printf("prob: %g\n", prob);
-*/
 
                 // Update the probability vector
                 prob_index = (t_counter * m_attachment_span);
@@ -2011,21 +2002,36 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
         }
     }
 
-/*
-printf("prob = [");
-for (int i = 0; i < transition_probs->size; i++)
-{
-    printf("%.3f ", gsl_vector_get(transition_probs, i));
-}
-printf("]\n");
-exit(1);
-*/
-
     // Use random number to determine which event (if any) occurred
     event_index = return_event_index(transition_probs);
 
+    if (gsl_vector_get(transition_probs, 4) > 0.0)
+    {
+        printf("prob[ ");
+        for (int i = 0; i < transition_probs->size; i++)
+        {
+            printf("%.3f  ", gsl_vector_get(transition_probs, i));
+        }
+        printf("]\n");
+
+        int j;
+        if (event_index >= 0)
+        {
+            j = event_index;
+            printf("event_index: %i", event_index);
+            printf("mol_type: %c\n", p_event[j]->mol_type);
+            printf("m_f: %i\n", p_event[j]->m_f);
+            printf("m_n: %i\n", p_event[j]->m_n);
+            printf("a_f: %i\n", p_event[j]->a_f);
+            printf("a_n: %i\n", p_event[j]->a_n);
+            printf("p_trans->new: %i\n", p_event[j]->p_trans->new_state);
+        }
+    }
+
     // Tidy up
     gsl_vector_free(transition_probs);
+
+
 
     // Return
     return event_index;
@@ -2152,7 +2158,6 @@ void half_sarcomere::mybpc_kinetics(double time_step)
 void half_sarcomere::handle_lattice_event(lattice_event* p_event)
 {
     //! Handles lattice event
-    printf("Handle lattice event\n");
 
     // Variables
     int current_state;

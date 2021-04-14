@@ -2,7 +2,7 @@
     "muscle": {
         "no_of_half_sarcomeres": 1,
         "no_of_myofibrils": 1,
-        "initial_hs_length": 950,
+        "initial_hs_length": 1100,
         "prop_fibrosis": 0.1,
         "prop_myofilaments": 0.6,
         "m_filament_density": 0.407e15
@@ -94,7 +94,7 @@
               "new_state": 3,
               "rate_type": "gaussian",
               "rate_parameters": [
-                50
+                100
               ]
             }
           ]
@@ -108,7 +108,7 @@
               "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
-                50,
+                10,
                 1,
                 4
               ]
