@@ -80,6 +80,41 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
         stop_status_time_step = (int)std::stoi(ts_string.substr(last_sep+1));
     }
 
+    if (strlen(log_folder) > 0)
+    {
+        if (!strcmp(log_relative_to, "this_file"))
+        {
+            fs::path options_file = JSON_options_file_string;
+            fs::path options_path = options_file.parent_path();
+            fs::path log_path = options_path / log_folder;
+
+            // Make sure the status folder exists
+            if (fs::is_directory(log_path))
+            {
+                // Clean the directory
+                int n = (int)fs::remove_all(log_path);
+                printf("Deleting %i files from status_folder: %s\n",
+                    n, log_path.string().c_str());
+            }
+
+            // Now create the directory
+            if (fs::create_directory(log_path))
+            {
+                printf("Log folder created at: %s\n", log_path.string().c_str());
+            }
+            else
+            {
+                printf("Log folder could not be created: %s\n", log_path.string().c_str());
+                exit(1);
+            }
+
+            // Set the log folder
+            sprintf_s(log_folder, _MAX_PATH, "%s", log_path.string().c_str());
+
+            write_FiberSim_options_to_file();
+        }
+    }
+
 /*
 
         }

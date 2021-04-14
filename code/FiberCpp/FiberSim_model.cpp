@@ -42,7 +42,7 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
 
     set_FiberSim_model_parameters_from_JSON_file_string(JSON_model_file_string);
 
-    if (p_fs_options->log_mode > 0)
+    if (strlen(p_fs_options->log_folder) > 0)
     {
         // Dumps model file
         write_FiberSim_model_to_file();
