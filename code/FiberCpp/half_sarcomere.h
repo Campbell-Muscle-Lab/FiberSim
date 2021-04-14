@@ -511,6 +511,13 @@ public:
     void mybpc_kinetics(double time_step);
 
     /**
+    * int return_c_transition(double time_step)
+    * deduces which, if any transition a mybpc undergoes
+    * @return int, -1 = no transition, >=0 indicates transition index
+    */
+    int return_c_transition(double time_step, int m_counter, int cb_counter);
+
+    /**
     * void handle_lattice_event(lattice_event p_event)
     * adjusts k_matrix and f_vector when myosin or mybp-c attach or detach between filaments
     * the lattice event structure contains

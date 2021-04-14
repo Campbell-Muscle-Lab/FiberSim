@@ -189,7 +189,7 @@ namespace JSON_functions {
         // Write the label for the first col
         for (int col = 0; col < p_v->size2; col++)
         {
-            fprintf_s(output_file, "\t\"%s[:, %i]: \"", label_string, col);
+            fprintf_s(output_file, "\t\"%s[:, %i]\": [", label_string, col);
             for (int row = 0; row < p_v->size1 ; row++)
             {
                 fprintf_s(output_file, "%.*F", precision, gsl_matrix_get(p_v, row, col));
@@ -197,7 +197,7 @@ namespace JSON_functions {
                 {
                     // It's the last entry in the array
                     fprintf_s(output_file, "]");
-                    if (!is_last_entry)
+                    if ((!is_last_entry) || (col == (p_v->size2-1)))
                     {
                         fprintf_s(output_file, ",");
                     }
@@ -211,14 +211,18 @@ namespace JSON_functions {
 
     //! Writes gsl_matrix to JSON file
     void write_gsl_matrix_short_as_JSON_array(gsl_matrix_short* p_v, FILE* output_file,
-        char label_string[], bool is_last_entry)
+        char label_string[], bool is_last_entry, int transpose)
     {
         // Code writes a gsl_matrix to the file which must be open
 
         // Write the label for the first col
         for (int col = 0; col < p_v->size2; col++)
         {
-            fprintf_s(output_file, "\t\"%s[:, %i]: \"", label_string, col);
+            if (transpose==0)
+                fprintf_s(output_file, "\t\"%s[:, %i]\": [", label_string, col);
+            else
+                fprintf_s(output_file, "\t\"%s[%i, :]\": [", label_string, col);
+
             for (int row = 0; row < p_v->size1; row++)
             {
                 fprintf_s(output_file, "%i", gsl_matrix_short_get(p_v, row, col));
@@ -226,7 +230,7 @@ namespace JSON_functions {
                 {
                     // It's the last entry in the array
                     fprintf_s(output_file, "]");
-                    if (!is_last_entry)
+                    if (!(is_last_entry) || (col<(p_v->size2-1)))
                     {
                         fprintf_s(output_file, ",");
                     }

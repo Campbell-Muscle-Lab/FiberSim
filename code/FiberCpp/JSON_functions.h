@@ -119,6 +119,6 @@ namespace JSON_functions {
    * +if it is not, add a, to the end of the line
    */
     void write_gsl_matrix_short_as_JSON_array(gsl_matrix_short* p_v, FILE* output_file,
-        char label_string[], bool is_last_entry);
+        char label_string[], bool is_last_entry, int transpose=0);
 
 };

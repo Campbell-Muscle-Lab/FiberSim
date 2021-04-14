@@ -98,7 +98,7 @@
             "column": 1,
             "y_info":
             {
-                "label": "Thick\nfilament",
+                "label": "Myosin",
                 "series":
                 [
                     {
@@ -112,6 +112,24 @@
                     {
                         "field": "m_pop_2",
                         "field_label": "M_{2}"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "MyBP-C",
+                "series":
+                [
+                    {
+                        "field": "c_pop_0",
+                        "field_label": "C_0"
+                    },
+                    {
+                        "field": "c_pop_1",
+                        "field_label": "C_{1}"
                     }
                 ]
             }

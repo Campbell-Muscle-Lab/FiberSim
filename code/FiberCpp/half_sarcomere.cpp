@@ -206,8 +206,8 @@ half_sarcomere::half_sarcomere(
 
     // Allocate space for tri-diagonal solve used by iterative technique
     tri_d_vector = gsl_vector_alloc(hs_total_nodes);
-    tri_e_vector = gsl_vector_alloc((size_t)(hs_total_nodes-1));
-    tri_f_vector = gsl_vector_alloc(size_t(hs_total_nodes-1));
+    tri_e_vector = gsl_vector_alloc((size_t)hs_total_nodes-1);
+    tri_f_vector = gsl_vector_alloc((size_t)hs_total_nodes-1);
 
     // Intialise them
     initialize_tridiagonal_vectors();
@@ -478,14 +478,14 @@ void half_sarcomere::initialize_tridiagonal_vectors(void)
 
             if ((node_counter > 0) && (node_counter < (a_nodes_per_thin_filament - 1)))
             {
-                gsl_vector_set(tri_f_vector, (int)(row_index - 1), -1.0 * a_k_stiff);
+                gsl_vector_set(tri_f_vector, ((size_t)row_index - 1), -1.0 * a_k_stiff);
                 gsl_vector_set(tri_d_vector, row_index, 2.0 * a_k_stiff);
                 gsl_vector_set(tri_e_vector, row_index, -1.0 * a_k_stiff);
             }
 
             if (node_counter == (a_nodes_per_thin_filament - 1))
             {
-                gsl_vector_set(tri_f_vector, (int)(row_index - 1), -1.0 * a_k_stiff);
+                gsl_vector_set(tri_f_vector, ((size_t)row_index - 1), -1.0 * a_k_stiff);
                 gsl_vector_set(tri_d_vector, row_index, 1.0 * a_k_stiff);
             }
 
@@ -506,14 +506,14 @@ void half_sarcomere::initialize_tridiagonal_vectors(void)
 
             if ((node_counter > 0) && (node_counter < (m_nodes_per_thick_filament - 1)))
             {
-                gsl_vector_set(tri_f_vector, (int)(row_index - 1), -1.0 * m_k_stiff);
+                gsl_vector_set(tri_f_vector, ((size_t)row_index - 1), -1.0 * m_k_stiff);
                 gsl_vector_set(tri_d_vector, row_index, 2.0 * m_k_stiff);
                 gsl_vector_set(tri_e_vector, row_index, -1.0 * m_k_stiff);
             }
 
             if (node_counter == (m_nodes_per_thick_filament - 1))
             {
-                gsl_vector_set(tri_f_vector, (int)(row_index - 1), -1.0 * m_k_stiff);
+                gsl_vector_set(tri_f_vector, ((size_t)row_index - 1), -1.0 * m_k_stiff);
                 gsl_vector_set(tri_d_vector, row_index, 1.0 * m_k_stiff);
             }
 
@@ -764,8 +764,6 @@ size_t half_sarcomere::calculate_x_positions()
         }
         else
         {
-            //printf("max_deviation: %g  x_pos_rel_tol: %g\n", max_deviation, p_fs_options->x_pos_rel_tol);
-
             // Update vectors for next loop
             calculate_g_vector(x_worker);
             calculate_df_vector(x_worker);
@@ -1208,7 +1206,7 @@ void half_sarcomere::calculate_a_pops(void)
     }
 
     // Turn into proportions
-    gsl_vector_scale(a_pops, 1.0 / (double)(a_n * a_bs_per_thin_filament));
+    gsl_vector_scale(a_pops, 1.0 / ((double)a_n * (double)a_bs_per_thin_filament));
 }
 
 void half_sarcomere::calculate_m_pops(void)
@@ -1402,6 +1400,15 @@ int half_sarcomere::node_index(char molecule_type, int filament_index, int n_ind
                             (n_index / m_cbs_per_node);
             break;
         }
+        case 'c':
+        {
+            // It's a mybpc
+            node_index = (a_n * a_nodes_per_thin_filament) +
+                            (filament_index * m_nodes_per_thick_filament) +
+                                gsl_vector_short_get(
+                                    p_mf[filament_index]->pc_node_index, n_index);
+            break;
+        }
         default:
         {
             printf("Error, half_sarcomere::node_index called with %c", molecule_type);
@@ -1498,7 +1505,7 @@ void half_sarcomere::set_cb_nearest_a_n(void)
             {
                 double x1 = gsl_vector_get(p_mf[m_counter]->cb_x, cb_counter);
                 double x2 = gsl_vector_get(x_vector,
-                    ((int)cb_nearest_a_f * a_nodes_per_thin_filament) + node_counter);
+                    (size_t)((cb_nearest_a_f * a_nodes_per_thin_filament) + node_counter));
 
                 gsl_vector_set(cb_to_thin_node_x, node_counter, fabs(x1 - x2));
             }
@@ -1530,13 +1537,13 @@ void half_sarcomere::set_cb_nearest_a_n(void)
 
                 // Set the index as the bs that has the biggest angular difference from the cb
                 gsl_matrix_short_set(p_mf[m_counter]->cb_nearest_a_n,
-                    cb_counter, span_i + adjacent_bs,
-                    (thin_node_ind * a_bs_per_node) +
-                    (short)gsl_vector_max_index(angle_differences));
+                    cb_counter, (span_i + adjacent_bs),
+                        (short)((thin_node_ind * a_bs_per_node) +
+                            gsl_vector_max_index(angle_differences)));
 
                 // Note the angular difference
                 gsl_matrix_set(p_mf[m_counter]->cb_nearest_bs_angle_diff,
-                    cb_counter, span_i + adjacent_bs,
+                    cb_counter, (size_t)(span_i + adjacent_bs),
                     gsl_vector_max(angle_differences));
             }
         }
@@ -1632,7 +1639,7 @@ void half_sarcomere::set_pc_nearest_a_n(void)
                     gsl_vector_short_get(p_mf[m_counter]->pc_node_index, pc_counter);
                 double x1 = gsl_vector_get(x_vector, pc_index);
                 double x2 = gsl_vector_get(x_vector,
-                    ((int)pc_nearest_a_f * a_nodes_per_thin_filament) + node_counter);
+                    (size_t)((pc_nearest_a_f * a_nodes_per_thin_filament) + node_counter));
 
                 gsl_vector_set(pc_to_thin_node_x, node_counter, fabs(x1 - x2));
             }
@@ -1665,9 +1672,14 @@ void half_sarcomere::set_pc_nearest_a_n(void)
 
                 // Set the index as the bs that has the biggest angular difference the cb
                 gsl_matrix_short_set(p_mf[m_counter]->pc_nearest_a_n,
-                    pc_counter, span_i + adjacent_bs,
+                    pc_counter, size_t(span_i + adjacent_bs),
                     (thin_node_ind * a_bs_per_node) +
                         (short)gsl_vector_max_index(angle_differences));
+                
+                // Set the angular difference
+                gsl_matrix_set(p_mf[m_counter]->pc_nearest_bs_angle_diff,
+                    pc_counter, (size_t)(span_i + adjacent_bs),
+                        gsl_vector_max(angle_differences));
             }
         }
     }
@@ -1690,7 +1702,8 @@ void half_sarcomere::thick_filament_kinetics(double time_step)
 
     myosin_kinetics(time_step);
 
-    mybpc_kinetics(time_step);
+
+//    mybpc_kinetics(time_step);
   
 }
 
@@ -1753,29 +1766,56 @@ void half_sarcomere::myosin_kinetics(double time_step)
                 }
                 else
                 {
-                    // Check whether the other head will undergo a transition
-                    transition_index = return_m_transition(time_step, m_counter, cb_counter + 1);
-
-                    if (transition_index >= 0)
+                    if (false)
                     {
-                        // Get the potential transition
-                        cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, (size_t)cb_counter + 1);
-                        cb_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, (size_t)cb_counter + 1);
-                        p_m_state = p_m_scheme[cb_isotype - 1]->p_m_states[cb_state - 1];
+                        // Check whether the other head will undergo a transition
+                        transition_index = return_m_transition(time_step, m_counter, cb_counter + 1);
 
-                        old_type = p_m_state->state_type;
-
-                        new_state = p_event[transition_index]->p_trans->new_state;
-                        new_type = p_m_scheme[cb_isotype - 1]->p_m_states[new_state - 1]->state_type;
-
-                        // Exclude transitions to or from 'S'
-                        if (!((old_type != 'S') || (new_type != 'S')))
+                        if (transition_index >= 0)
                         {
-                            printf("old_type: %c new_type: %c\n", old_type, new_type);
-                            handle_lattice_event(p_event[transition_index]);
+                            // Get the potential transition
+                            cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, (size_t)cb_counter + 1);
+                            cb_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, (size_t)cb_counter + 1);
+                            p_m_state = p_m_scheme[cb_isotype - 1]->p_m_states[cb_state - 1];
+
+                            old_type = p_m_state->state_type;
+
+                            new_state = p_event[transition_index]->p_trans->new_state;
+                            new_type = p_m_scheme[cb_isotype - 1]->p_m_states[new_state - 1]->state_type;
+
+                            // Exclude transitions to or from 'S'
+                            if ((old_type != 'S') && (new_type != 'S'))
+                            {
+                                handle_lattice_event(p_event[transition_index]);
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+void half_sarcomere::mybpc_kinetics(double time_step)
+{
+    //! Code implements mybpc kinetics
+
+    int transition_index;           // index to a transition
+                                    // -1, if nothing happens
+
+    // Code
+
+    // Cycle through filaments
+    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    {
+        for (int pc_counter = 0; pc_counter < p_mf[m_counter]->c_no_of_pcs; pc_counter++)
+        {
+            // Check for event
+            transition_index = return_c_transition(time_step, m_counter, pc_counter);
+
+            if (transition_index >= 0)
+            {
+                handle_lattice_event(p_event[transition_index]);
             }
         }
     }
@@ -1811,7 +1851,6 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     int max_transitions;
 
     double x;                           // distance between cn and relevant bs
-
     double node_f;                      // node_force
 
     gsl_vector* transition_probs;
@@ -1821,7 +1860,6 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
                                         // between cb and bs
 
     double prob;                        // doubles to do with transition probabilities
-    double holder;
 
     double angle;                       // aiignment angle between head and bs
 
@@ -1890,8 +1928,7 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     // Prepare for calculating rates
     gsl_vector_set_zero(transition_probs);
 
-    // Cycle through transitions, adding up rates
-    holder = 0.0;
+    // Cycle through transitions
     for (int t_counter = 0; t_counter < max_transitions; t_counter++)
     {
         p_trans = p_m_state->p_transitions[t_counter];
@@ -1994,129 +2031,194 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     // Tidy up
     gsl_vector_free(transition_probs);
 
-
-
     // Return
     return event_index;
 }
 
-void half_sarcomere::mybpc_kinetics(double time_step)
+int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_counter)
 {
-/*    //! Code implements mybpc kinetics
+    // Code returns the transition a mybpc undergoes
 
     // Variables
-    int pc_state;                   // pc state
-    int pc_isotype;                 // pc isotype 
-    int max_transitions;            // potential number of transitions
-    int new_state;                  // new pc state after transition
+    int c_state;                    // state of mybpc
+    int c_isotype;                  // isotype of mybpc
 
-    int a_f;                        // nearest actin filament
-    int a_n;                        // nearest binding site
+    int a_f;                        // index of actin filament
+    int a_n;                        // index of actin binding site
 
-    m_state* p_state;               // Pointer to a state
-    transition* p_trans;            // Pointer to a transition
+    int bs_ind;                     // index of binding site
 
-    double x;                       // PC node position - actin node position
+    int new_state;                  // state after transition
 
-    gsl_vector* transition_probs;   // gsl_vector holder probability of different transitions
+    int max_transitions;            // max number of transitions
 
-    double prob;
-    double holder;
-    double rand_number;
+    int prob_index;                 // index in the probability vector
+
+    int event_index;                // -1 if no event occurs
+                                    // otherwise, indices to a p_event
+
+    double node_force;              // force at the node the mypbc is
+                                    // associated with
+
+    double pc_x;                    // position of mybpc
+
+    double x;                       // distance between mybpc and actin bs
+
+    double angle;                   // angle between mybpc and actin bs
+
+    double alignment_factor;        // allows for angle between mybpc and bs
+
+    double prob;                    // probability of transition
+
+    m_state* p_c_state;             // pointer to a state
+    transition* p_trans;            // pointer to a transition
+
+    gsl_vector* transition_probs;   // vector of transition probabilities
 
     // Code
 
-    // Cycle through filaments
-    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    // Set values
+    c_state = gsl_vector_short_get(p_mf[m_counter]->pc_state, pc_counter);
+    c_isotype = gsl_vector_short_get(p_mf[m_counter]->pc_iso, pc_counter);
+    
+    p_c_state = p_c_scheme[c_isotype - 1]->p_m_states[c_state - 1];
+
+    max_transitions = p_c_scheme[c_isotype - 1]->max_no_of_transitions;
+
+    // Allocate and zero the transition vector
+    // This vector is max_transitions * m_attachment_span
+    // Binding events to different actin nodes are in different elements
+    // Non-binding transitions are single elements
+    transition_probs = gsl_vector_alloc((size_t)max_transitions * (size_t)m_attachment_span);
+    gsl_vector_set_zero(transition_probs);
+
+    // Allocate and zero the transition vector
+    // This vector is max_transitions * m_attachment_span
+    // Binding events to different actin nodes are in different elements
+    // Non-binding transitions are single elements
+    transition_probs = gsl_vector_alloc((size_t)max_transitions * (size_t)m_attachment_span);
+    gsl_vector_set_zero(transition_probs);
+
+    // Get the a_f and the a_n for the mybpc
+    if (p_c_state->state_type == 'A')
     {
-        for (int pc_counter = 0; pc_counter < p_mf[m_counter]->c_no_of_pcs; pc_counter++)
+        a_f = gsl_vector_short_get(p_mf[m_counter]->pc_bound_to_a_f, pc_counter);
+        a_n = gsl_vector_short_get(p_mf[m_counter]->pc_bound_to_a_n, pc_counter);
+    }
+    else
+    {
+        a_f = gsl_vector_short_get(p_mf[m_counter]->pc_nearest_a_f, pc_counter);
+    }
+
+    // Deduce the node force
+    node_force = gsl_vector_get(p_mf[m_counter]->node_forces,
+        gsl_vector_short_get(p_mf[m_counter]->pc_node_index, pc_counter));
+
+    // Cycle through transitions
+    for (int t_counter = 0; t_counter < max_transitions; t_counter++)
+    {
+        p_trans = p_c_state->p_transitions[t_counter];
+        new_state = p_trans->new_state;
+
+        if (new_state > 0)
         {
-            pc_state = p_mf[m_counter]->pc_state[pc_counter];
-            pc_isotype = p_mf[m_counter]->pc_iso[pc_counter];
-            p_state = p_c_scheme[pc_isotype]->p_m_states[pc_state - 1];
-
-            max_transitions = p_c_scheme[pc_isotype]->max_no_of_transitions;
-
-            // Allocate vector
-            transition_probs = gsl_vector_alloc(max_transitions);
-
-            if (p_state->state_type == 'a' || p_state->state_type == 'A')
+            // It's a possible transition
+            
+            if (p_trans->transition_type == 'a')
             {
-                a_f = p_mf[m_counter]->pc_bound_to_a_f[pc_counter];
-                a_n = p_mf[m_counter]->pc_bound_to_a_n[pc_counter];
-            }
-            else {
-                a_f = p_mf[m_counter]->pc_nearest_a_f[pc_counter];
-                a_n = p_mf[m_counter]->pc_nearest_a_n[pc_counter];
-            }
-
-            // Set x
-            int pc_index = (this->a_n * a_nodes_per_thin_filament) +
-                (m_counter * m_nodes_per_thick_filament) +
-                (p_mf[m_counter]->pc_node_index[pc_counter]);
-
-            x = gsl_vector_get(x_vector, pc_index) -
-                    gsl_vector_get(p_af[a_f]->bs_x, a_n);
-
-            gsl_vector_set_zero(transition_probs);
-
-            // Cycle through transitions adding up rates
-            holder = 0.0;
-            for (int t_counter = 0; t_counter < max_transitions; t_counter++)
-            {
-                p_trans = p_state->p_transitions[t_counter];
-                new_state = p_trans->new_state;
-
-                if (new_state > 0)
+                // Need to cycle through adjacent bs, searching for possibilities
+                for (int bs_counter = 0; bs_counter < m_attachment_span; bs_counter++)
                 {
-                    if ((p_trans->transition_type == 'a') && (p_af[a_f]->bound_to_m_f[a_n] >= 0))
+                    bs_ind = gsl_matrix_short_get(
+                        p_mf[m_counter]->pc_nearest_a_n, pc_counter, bs_counter);
+                    
+                    if ((bs_ind < 0) || (bs_ind >= a_bs_per_thin_filament))
                     {
-                        continue;       // binding site is occupied, no attachment possible
-                    }
-                    if ((p_trans->transition_type == 'a') && (p_af[a_f]->bs_state[a_n] == 0))
-                    {
-                        continue;       // binding site is off, no attachment possible
+                        continue;       // binding site is not on filament
                     }
 
-                    // Calculate probability of transition, accumulating in the holder
-                    prob = (1.0 - exp(-time_step * p_trans->calculate_rate(x, 0.0, 0, 0)));
+                    if (gsl_vector_short_get(p_af[a_f]->bound_to_m_f, bs_ind) >= 0)
+                    {
+                        continue;       // binding site is already occupied
+                    }
 
-                    holder = holder + prob;
-                    gsl_vector_set(transition_probs, t_counter, prob);
+                    if (gsl_vector_short_get(p_af[a_f]->bs_state, bs_ind) == 1)
+                    {
+                        continue;       // binding site is off
+                    }
+
+                    // Transition is possible
+                    // Deduce the x and the angle
+                    pc_x = gsl_vector_get(x_vector,
+                            node_index('c', m_counter, pc_counter));
+                    x = pc_x - gsl_vector_get(p_af[a_f]->bs_x, bs_ind);
+
+                    angle = gsl_matrix_get(p_mf[m_counter]->pc_nearest_bs_angle_diff,
+                        pc_counter, bs_counter);
+                    alignment_factor = -cos(angle * M_PI / 180.0);
+
+                    prob = (1.0 - exp(-time_step * alignment_factor *
+                            p_trans->calculate_rate(x, node_force, c_state, c_isotype)));
+
+                    // Update the probability vector
+                    prob_index = (t_counter * m_attachment_span) + bs_counter;
+                    gsl_vector_set(transition_probs, prob_index, prob);
+
+                    // Note the transition
+                    p_event[prob_index]->mol_type = 'c';
+                    p_event[prob_index]->m_f = m_counter;
+                    p_event[prob_index]->m_n = pc_counter;
+                    p_event[prob_index]->a_f = a_f;
+                    p_event[prob_index]->a_n = bs_ind;
+                    p_event[prob_index]->p_trans = p_trans;
                 }
             }
-
-            // Scale vector if required
-            if (holder > 1.0)
-                gsl_vector_scale(transition_probs, 1.0 / holder);
-
-            // Get a random number and loop through transitions
-            // If the random number lies in the cum sum bracket, the transition occurs
-            // If you get to the end, no transition occurred
-            holder = 0.0;
-            rand_number = gsl_rng_uniform(rand_generator);
-
-            for (int t_counter = 0; t_counter < max_transitions; t_counter++)
+            else
             {
-                if ((rand_number > holder) &&
-                    (rand_number < (holder + gsl_vector_get(transition_probs, t_counter))))
+                // It's a simpler event, entry goes into a single row
+
+                // If head is attached, calculate a_n and x
+                if (a_f >= 0)
                 {
-                    // Transition occurred
-                    handle_lattice_event('c', p_state->p_transitions[t_counter],
-                        m_counter, pc_counter, a_f, a_n);
-                    break;
+                    a_n = gsl_vector_short_get(p_mf[m_counter]->pc_bound_to_a_n,
+                            pc_counter);
+                    pc_x = gsl_vector_get(x_vector,
+                            node_index('c', m_counter, pc_counter));
+                    x = pc_x - gsl_vector_get(p_af[a_f]->bs_x, a_n);
+                }
+                else
+                {
+                    a_n = -1;
+                    x = 0.0;
                 }
 
-                holder = holder + gsl_vector_get(transition_probs, t_counter);
-            }
+                prob = (1.0 - exp(-time_step *
+                    p_trans->calculate_rate(x, node_force, c_state, c_isotype)));
 
-            // Free up vector
-            gsl_vector_free(transition_probs);
+                // Update the probability vector
+                prob_index = (t_counter * m_attachment_span);
+                gsl_vector_set(transition_probs, prob_index, prob);
+
+                // Note the transition
+                p_event[prob_index]->mol_type = 'c';
+                p_event[prob_index]->m_f = m_counter;
+                p_event[prob_index]->m_n = pc_counter;
+                p_event[prob_index]->a_f = a_f;
+                p_event[prob_index]->a_n = a_n;
+                p_event[prob_index]->p_trans = p_trans;
+            }
         }
     }
-*/
-}
 
+    // Use random number to determine which event (if any) occurred
+    event_index = return_event_index(transition_probs);
+
+    // Tidy up
+    gsl_vector_free(transition_probs);
+
+    // Return
+    return event_index;
+}
 
 void half_sarcomere::handle_lattice_event(lattice_event* p_event)
 {
@@ -2183,19 +2285,18 @@ void half_sarcomere::handle_lattice_event(lattice_event* p_event)
                 gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_f, p_event->a_n, p_event->m_f);
                 gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_n, p_event->a_n, p_event->m_n);
 
-                gsl_vector_short_set(p_mf[p_event->m_f]->cb_bound_to_a_f, p_event->m_n, p_event->a_f);
-                gsl_vector_short_set(p_mf[p_event->m_f]->cb_bound_to_a_n, p_event->m_n, p_event->a_n);
+                gsl_vector_short_set(p_mf[p_event->m_f]->pc_bound_to_a_f, p_event->m_n, p_event->a_f);
+                gsl_vector_short_set(p_mf[p_event->m_f]->pc_bound_to_a_n, p_event->m_n, p_event->a_n);
     
                 break;
 
-        case 'd':
-
+            case 'd':
                 gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_type, p_event->a_n, 0);
                 gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_f, p_event->a_n, -1);
                 gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_n, p_event->a_n, -1);
 
-                gsl_vector_short_set(p_mf[p_event->m_f]->cb_bound_to_a_f, p_event->m_n, -1);
-                gsl_vector_short_set(p_mf[p_event->m_f]->cb_bound_to_a_n, p_event->m_n, -1);
+                gsl_vector_short_set(p_mf[p_event->m_f]->pc_bound_to_a_f, p_event->m_n, -1);
+                gsl_vector_short_set(p_mf[p_event->m_f]->pc_bound_to_a_n, p_event->m_n, -1);
         }
     }
 }
@@ -2235,14 +2336,14 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                 if (unit_counter >= a_strands_per_filament)
                     down_neighbor_status =
                         gsl_vector_short_get(p_af[a_counter]->unit_status,
-                                (int)(unit_counter - a_strands_per_filament));
+                                ((size_t)unit_counter - (size_t)a_strands_per_filament));
                 else
                     down_neighbor_status = -1;
 
                 if (unit_counter <= (a_strands_per_filament * a_regulatory_units_per_strand - a_strands_per_filament - 1))
                     up_neighbor_status =
                         gsl_vector_short_get(p_af[a_counter]->unit_status,
-                            (int)(unit_counter + a_strands_per_filament));
+                            ((size_t)unit_counter + (size_t)a_strands_per_filament));
                 else
                     up_neighbor_status = -1;
 
@@ -2375,7 +2476,7 @@ void half_sarcomere::write_gsl_spmatrix_to_file(gsl_spmatrix* p_sparse_matrix, c
 {
     //! Writes gsl_sparse_triplet_matrix to file
 
-    FILE* output_file;
+    FILE* output_file = NULL;
 
     // Check file can be opened, abort if not
     errno_t err = fopen_s(&output_file, output_file_string, "w");
@@ -2387,11 +2488,12 @@ void half_sarcomere::write_gsl_spmatrix_to_file(gsl_spmatrix* p_sparse_matrix, c
     }
 
     // Output
-    for (int r = 0; r < p_sparse_matrix->size1; r++)
+    for (size_t r = 0; r < p_sparse_matrix->size1; r++)
     {
-        for (int c = 0; c < p_sparse_matrix->size2; c++)
+        for (size_t c = 0; c < p_sparse_matrix->size2; c++)
         {
-            fprintf_s(output_file, "%g", gsl_spmatrix_get(p_sparse_matrix, r, c));
+            fprintf_s(output_file, "%g",
+                gsl_spmatrix_get(p_sparse_matrix, r, c));
             if (c < (p_sparse_matrix->size2 - 1))
                 fprintf_s(output_file, "\t");
             else
@@ -2400,7 +2502,8 @@ void half_sarcomere::write_gsl_spmatrix_to_file(gsl_spmatrix* p_sparse_matrix, c
     }
 
     // Tidy up
-    fclose(output_file);
+    if (output_file != NULL)
+        fclose(output_file);
 }
 
 void half_sarcomere::write_gsl_vector_to_file(gsl_vector* p_vector, char output_file_string[])
@@ -2512,7 +2615,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         JSON_functions::write_gsl_matrix_short_as_JSON_array(
             nearest_actin_matrix,
             output_file, temp_string,
-            false);
+            false, 1);
 
         sprintf_s(temp_string, _MAX_PATH, "cb_x");
         JSON_functions::write_gsl_vector_as_JSON_array(

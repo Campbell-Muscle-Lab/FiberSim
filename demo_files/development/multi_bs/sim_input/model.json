@@ -94,7 +94,7 @@
               "new_state": 3,
               "rate_type": "gaussian",
               "rate_parameters": [
-                100
+                50
               ]
             }
           ]
@@ -108,7 +108,7 @@
               "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
-                10,
+                50,
                 1,
                 4
               ]
@@ -144,7 +144,7 @@
               "new_state": 2,
               "rate_type": "gaussian",
               "rate_parameters": [
-                100
+                50
               ]
             }
           ]
@@ -158,7 +158,7 @@
               "new_state": 1,
               "rate_type": "poly",
               "rate_parameters": [
-                100,
+                50,
                 0,
                 0
               ]
