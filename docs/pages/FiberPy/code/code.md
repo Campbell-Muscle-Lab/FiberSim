@@ -5,8 +5,5 @@ has_children: false
 nav_order: 3
 ---
 
-# Code
+# Structure
 
-The [FiberPy code](http://github.com/Campbell-Muscle-Lab/FiberSim/tree/master/code/FiberPy) is hosted on GitHub.
-
-[Documentation - link to be added](link) is coming soon.
