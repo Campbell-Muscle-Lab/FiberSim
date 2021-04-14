@@ -12,15 +12,15 @@ You need a Windows PC to run a simulation but you can analyze output from the mo
 
 The main components are:
 + [FiberCpp](pages/FiberCpp/FiberCpp.html) - the core model that implements the calculations underlying the simulations.
-  + This software is written in C++ but is currently only compiled for Windows pCs.
+  + This software is written in C++ but is currently only compiled for Windows PCs.
 + [FiberPy](pages/FiberPy/FiberPy.html) - accessory code that makes it easier to run different types of simulations, fit models to data, and analyze output.
   + This component is written in Python.
 
 ## Getting started
 
 Check the [demos](pages/demos/demos.html) to see how to:
-+ run simulations
-+ fit models to data
-+ create videos and snap-shots of the model
++ Run simulations
++ Fit models to data
++ Create videos and snap-shots of the model
 
 ![Render of FiberSim](FiberSim_render.png)
