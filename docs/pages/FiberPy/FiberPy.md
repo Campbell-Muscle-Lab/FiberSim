@@ -12,7 +12,7 @@ FiberPy is a suite of software tools witten in Python that make it easier to use
 + make figures
 + fit models to experimental data
 
-as explained in the [Structure] section(structure/structure.html).
+as explained in the [Structure](structure/structure.html) section.
 
 FiberPy can also use [Blender](http://www.blender.org) to create snapshots of the model and movies.
 

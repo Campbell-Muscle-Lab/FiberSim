@@ -2,7 +2,7 @@
 title: Make figures
 has_children: false
 parent: Demos
-nav_order: 4
+nav_order: 5
 ---
 
 # Make figures

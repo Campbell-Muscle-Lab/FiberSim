@@ -42,14 +42,14 @@ OR
  python FiberPy.py run_batch "../../../demo_files/getting_started/single_run/batch_single_run.json"
  ```
 
- This command line launches the batch file to run a single job simulation. See [here](../../installation/installation.html) for more information on the batch structure.
+ This command line launches the batch file to run a single job simulation. See [here](../../../FiberPy/structure/structure.html) for more information on the batch structure.
 
 
 * You should see some text appearing in the terminal window
 
 
 <p align="center">
-<img src="prompt.png" alt="drawing" width="600"/>
+<img src="prompt.PNG" width="600"/>
 </p>
 
 ## Viewing the results

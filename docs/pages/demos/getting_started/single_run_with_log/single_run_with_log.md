@@ -106,7 +106,7 @@ OR
 * You should see some text appearing in the terminal window
 
 <p align="center">
-<img src="prompt.png" alt="drawing" width="600"/>
+<img src="prompt.PNG" width="600"/>
 </p>
 
 ## Viewing the results
