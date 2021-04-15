@@ -686,6 +686,38 @@ void half_sarcomere::calculate_df_vector(gsl_vector* x_trial)
             }
         }
     }
+
+    // Add in mybpc
+    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    {
+        for (int pc_counter = 0; pc_counter < c_no_of_pcs; pc_counter++)
+        {
+            // Check for a link
+            if (gsl_vector_short_get(p_mf[m_counter]->pc_bound_to_a_f, pc_counter) >= 0)
+            {
+                // Check whether there is an extension
+                int pc_state = gsl_vector_short_get(p_mf[m_counter]->pc_state, pc_counter);
+                int pc_iso = gsl_vector_short_get(p_mf[m_counter]->pc_iso, pc_counter);
+                double ext = p_c_scheme[pc_iso - 1]->p_m_states[pc_state - 1]->extension;
+
+                if (fabs(ext) > 0.0)
+                {
+                    int thick_node_index = node_index('c', m_counter, pc_counter);
+                    int thin_node_index = node_index('a',
+                        gsl_vector_short_get(p_mf[m_counter]->pc_bound_to_a_f, pc_counter),
+                        gsl_vector_short_get(p_mf[m_counter]->pc_bound_to_a_n, pc_counter));
+
+                    double df_adjustment = c_k_stiff * ext;
+
+                    gsl_vector_set(df_vector, thin_node_index,
+                        gsl_vector_get(df_vector, thin_node_index) + df_adjustment);
+
+                    gsl_vector_set(df_vector, thick_node_index,
+                        gsl_vector_get(df_vector, thick_node_index) - df_adjustment);
+                }
+            }
+        }
+    }
 }
 
 size_t half_sarcomere::calculate_x_positions()
@@ -1501,18 +1533,19 @@ void half_sarcomere::set_cb_nearest_a_n(void)
                 p_mf[m_counter]->cb_nearest_a_f, cb_counter);
 
             // Fill vector with distance from cb to nearest_node
-            for (int node_counter = 0; node_counter < a_nodes_per_thin_filament; node_counter++)
+            for (size_t node_counter = 0; node_counter < a_nodes_per_thin_filament; node_counter++)
             {
                 double x1 = gsl_vector_get(p_mf[m_counter]->cb_x, cb_counter);
                 double x2 = gsl_vector_get(x_vector,
-                    (size_t)((cb_nearest_a_f * a_nodes_per_thin_filament) + node_counter));
+                    ((size_t)cb_nearest_a_f * (size_t)a_nodes_per_thin_filament) +
+                        node_counter);
 
                 gsl_vector_set(cb_to_thin_node_x, node_counter, fabs(x1 - x2));
             }
             nearest_thin_node = (int)gsl_vector_min_index(cb_to_thin_node_x);
 
             // Now loop throug the attachment span
-            for (int span_i = -adjacent_bs; span_i <= adjacent_bs; span_i++)
+            for (size_t span_i = -adjacent_bs; span_i <= adjacent_bs; span_i++)
             {
                 int thin_node_ind = nearest_thin_node + span_i;
 
@@ -1537,13 +1570,13 @@ void half_sarcomere::set_cb_nearest_a_n(void)
 
                 // Set the index as the bs that has the biggest angular difference from the cb
                 gsl_matrix_short_set(p_mf[m_counter]->cb_nearest_a_n,
-                    cb_counter, (span_i + adjacent_bs),
+                    cb_counter, (span_i + (size_t)adjacent_bs),
                         (short)((thin_node_ind * a_bs_per_node) +
                             gsl_vector_max_index(angle_differences)));
 
                 // Note the angular difference
                 gsl_matrix_set(p_mf[m_counter]->cb_nearest_bs_angle_diff,
-                    cb_counter, (size_t)(span_i + adjacent_bs),
+                    cb_counter, (span_i + (size_t)adjacent_bs),
                     gsl_vector_max(angle_differences));
             }
         }
@@ -1632,21 +1665,22 @@ void half_sarcomere::set_pc_nearest_a_n(void)
                 p_mf[m_counter]->pc_nearest_a_f, pc_counter);
 
             // Fill vector with distance from cb to nearest_node
-            for (int node_counter = 0; node_counter < a_nodes_per_thin_filament; node_counter++)
+            for (size_t node_counter = 0; node_counter < a_nodes_per_thin_filament; node_counter++)
             {
                 int pc_index = (a_n * a_nodes_per_thin_filament) +
                     (m_counter * m_nodes_per_thick_filament) +
                     gsl_vector_short_get(p_mf[m_counter]->pc_node_index, pc_counter);
                 double x1 = gsl_vector_get(x_vector, pc_index);
                 double x2 = gsl_vector_get(x_vector,
-                    (size_t)((pc_nearest_a_f * a_nodes_per_thin_filament) + node_counter));
+                    (((size_t)pc_nearest_a_f * (size_t)a_nodes_per_thin_filament) +
+                        node_counter));
 
                 gsl_vector_set(pc_to_thin_node_x, node_counter, fabs(x1 - x2));
             }
             nearest_thin_node = (int)gsl_vector_min_index(pc_to_thin_node_x);
 
             // Now loop through the attachment span
-            for (int span_i = -adjacent_bs; span_i <= adjacent_bs; span_i++)
+            for (size_t span_i = -adjacent_bs; span_i <= adjacent_bs; span_i++)
             {
                 int thin_node_ind = nearest_thin_node + span_i;
 
@@ -1672,13 +1706,13 @@ void half_sarcomere::set_pc_nearest_a_n(void)
 
                 // Set the index as the bs that has the biggest angular difference the cb
                 gsl_matrix_short_set(p_mf[m_counter]->pc_nearest_a_n,
-                    pc_counter, size_t(span_i + adjacent_bs),
+                    pc_counter, (span_i + (size_t)adjacent_bs),
                     (thin_node_ind * a_bs_per_node) +
                         (short)gsl_vector_max_index(angle_differences));
                 
                 // Set the angular difference
                 gsl_matrix_set(p_mf[m_counter]->pc_nearest_bs_angle_diff,
-                    pc_counter, (size_t)(span_i + adjacent_bs),
+                    pc_counter, (span_i + (size_t)adjacent_bs),
                         gsl_vector_max(angle_differences));
             }
         }
@@ -1702,14 +1736,13 @@ void half_sarcomere::thick_filament_kinetics(double time_step)
 
     myosin_kinetics(time_step);
 
-
-//    mybpc_kinetics(time_step);
+    //mybpc_kinetics(time_step);
   
 }
 
 void half_sarcomere::myosin_kinetics(double time_step)
 {
-    //! Code implements myosin kienetics
+    //! Code implements myosin kinetics
 
     // Variables
 
@@ -2123,7 +2156,6 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
         if (new_state > 0)
         {
             // It's a possible transition
-            
             if (p_trans->transition_type == 'a')
             {
                 // Need to cycle through adjacent bs, searching for possibilities

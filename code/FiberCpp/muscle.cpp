@@ -144,8 +144,10 @@ void muscle::implement_time_step(int protocol_index)
 
 		if ((protocol_index % 100) == 0)
 		{
-			printf("muscle->hs[%i]->time_step: %i ->calculate_x_iterations: %i  force: %g\n",
-				hs_counter, protocol_index, (int)calculate_x_iterations, p_hs[hs_counter]->hs_force);
+			printf("muscle->hs[%i]->time_step: %i ->calculate_x_iterations: %i  force: %g a_pops[1]: %g\n",
+				hs_counter, protocol_index, (int)calculate_x_iterations,
+				p_hs[hs_counter]->hs_force,
+				gsl_vector_get(p_hs[hs_counter]->a_pops, 1));
 		}
 	}
 
