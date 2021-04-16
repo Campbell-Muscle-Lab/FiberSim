@@ -157,6 +157,7 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 		rate = gsl_vector_get(rate_parameters, 0) +
 			(gsl_vector_get(rate_parameters, 1) *
 				gsl_pow_int(x, (int)gsl_vector_get(rate_parameters, 2)));
+		//printf("x: %f  rate: %f\n", x, rate);
 	}
 
 	// Curtail at max rate

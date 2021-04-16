@@ -45,7 +45,7 @@
     },
     "titin_parameters": {
         "t_passive_mode": "linear",
-        "t_k_stiff": 5e-5,
+        "t_k_stiff": 5e-6,
         "t_slack_length": 0
     },
     "extracellular_parameters": {
@@ -72,7 +72,7 @@
               "new_state": 2,
               "rate_type": "force_dependent",
               "rate_parameters": [
-                1000,
+                10,
                 1000
               ]
             }
@@ -116,7 +116,7 @@
               "rate_type": "poly",
               "rate_parameters": [
                 100,
-                1,
+                10,
                 4
               ]
             },
@@ -128,8 +128,7 @@
               ]
             }
           ]
-        }
-        ,
+        },
         {
           "number": 4,
           "type": "A",
@@ -139,8 +138,8 @@
               "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
-                30,
-                1,
+                100,
+                10,
                 4
               ]
             },
@@ -197,8 +196,8 @@
               "rate_type": "poly",
               "rate_parameters": [
                 50,
-                0,
-                0
+                10,
+                4
               ]
             }
           ]

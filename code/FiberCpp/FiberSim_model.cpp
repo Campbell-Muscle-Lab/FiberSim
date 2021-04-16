@@ -46,6 +46,7 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     {
         // Dumps model file
         write_FiberSim_model_to_file();
+        //sprintf_s(p_fs_options->log_folder, _MAX_PATH, "c:\\temp");
 
         // Dumps the kinetic scheme separarately
         char model_JSON_file_string[_MAX_PATH];
