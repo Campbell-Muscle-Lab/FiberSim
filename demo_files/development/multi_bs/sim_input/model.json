@@ -2,13 +2,13 @@
     "muscle": {
         "no_of_half_sarcomeres": 1,
         "no_of_myofibrils": 1,
-        "initial_hs_length": 1100,
+        "initial_hs_length": 1200,
         "prop_fibrosis": 0.1,
         "prop_myofilaments": 0.6,
         "m_filament_density": 0.407e15
     },
   "thick_structure": {
-    "m_n": 9,
+    "m_n": 25,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,
@@ -36,9 +36,9 @@
     "thin_parameters": {
         "a_no_of_bs_states": 2,
         "a_k_stiff": 100,
-        "a_k_on": 2.0e6,
+        "a_k_on": 2e7,
         "a_k_off": 100,
-        "a_k_coop": 8
+        "a_k_coop": 5
     },
     "thick_parameters": {
         "m_k_stiff": 100
@@ -60,8 +60,8 @@
   },
   "m_kinetics": [
     {
-      "no_of_states": 3,
-      "max_no_of_transitions": 2,
+      "no_of_states": 4,
+      "max_no_of_transitions": 3,
       "scheme": [
         {
           "number": 1,
@@ -72,7 +72,7 @@
               "new_state": 2,
               "rate_type": "force_dependent",
               "rate_parameters": [
-                10,
+                1000,
                 1000
               ]
             }
@@ -87,7 +87,7 @@
               "new_state": 1,
               "rate_type": "constant",
               "rate_parameters": [
-                100
+                10
               ]
             },
             {
@@ -96,21 +96,59 @@
               "rate_parameters": [
                 100
               ]
+            },
+            {
+              "new_state": 4,
+              "rate_type": "constant",
+              "rate_parameters": [
+                0
+              ]
             }
           ]
         },
         {
           "number": 3,
           "type": "A",
-          "extension": 5.0,
+          "extension": 0.0,
           "transition": [
             {
               "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
-                50,
+                100,
                 1,
                 4
+              ]
+            },
+            {
+              "new_state": 4,
+              "rate_type": "constant",
+              "rate_parameters": [
+                200
+              ]
+            }
+          ]
+        }
+        ,
+        {
+          "number": 4,
+          "type": "A",
+          "extension": 7.0,
+          "transition": [
+            {
+              "new_state": 2,
+              "rate_type": "poly",
+              "rate_parameters": [
+                30,
+                1,
+                4
+              ]
+            },
+            {
+              "new_state": 3,
+              "rate_type": "constant",
+              "rate_parameters": [
+                0
               ]
             }
           ]
@@ -152,13 +190,13 @@
         {
           "number": 2,
           "type": "A",
-          "extension": 5.0,
+          "extension": 0.0,
           "transition": [
             {
               "new_state": 1,
               "rate_type": "poly",
               "rate_parameters": [
-                10,
+                50,
                 0,
                 0
               ]

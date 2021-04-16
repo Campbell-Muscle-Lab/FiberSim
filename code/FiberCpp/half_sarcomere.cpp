@@ -83,7 +83,7 @@ half_sarcomere::half_sarcomere(
     // Create an array of lattice events
     for (int i = 0; i < (MAX_NO_OF_ADJACENT_BS * MAX_NO_OF_TRANSITIONS); i++)
     {
-        p_event[i] = new lattice_event{-1,-1,-1,-1};
+        p_event[i] = new lattice_event{'x',1,-1,-1,-1,NULL};
     }
 
     // Initialize macroscopic state variables
@@ -369,7 +369,7 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force)
     const gsl_root_fsolver_type* T;
     gsl_root_fsolver* s;
     double r = 0.0;
-    double x_lo = -150, x_hi = 150.0;
+    double x_lo = -100, x_hi = 100.0;
     struct force_control_params params = { target_force, this };
 
     gsl_function F;
@@ -392,8 +392,6 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force)
         x_hi = gsl_root_fsolver_x_upper(s);
         status = gsl_root_test_interval(x_lo, x_hi, 0, 0.01);
 
-//        printf("%5d [%f, %f] %f %f %f\n",
-  //          iter, x_lo, x_hi, r, r - 0, x_hi - x_lo);
     } while (status == GSL_CONTINUE && iter < max_iter);
 
     gsl_root_fsolver_free(s);
@@ -437,7 +435,6 @@ double half_sarcomere::test_force_for_delta_hsl(double delta_hsl, void *params)
     // Solve the x positions and calculate force
     calculate_x_positions();
     test_force = calculate_force();
-    printf("test_force: %g\n", test_force);
 
     // Restore the half_sarcomere
     hs_length = original_hs_length;
@@ -740,7 +737,7 @@ size_t half_sarcomere::calculate_x_positions()
     gsl_vector* f_temp = gsl_vector_alloc(hs_total_nodes);
 
     // Code
-    
+
     // Copy x_vector to x_last for comparison
     gsl_vector_memcpy(x_last, x_vector);
 
@@ -1509,8 +1506,9 @@ void half_sarcomere::set_cb_nearest_a_n(void)
 
     // Variables
     int cb_nearest_a_f;
-    int nearest_thin_node;
-    int bs_ind;
+
+    size_t nearest_thin_node;
+    size_t bs_ind;
 
     double bs_angle;
     double temp_diff;
@@ -1522,7 +1520,7 @@ void half_sarcomere::set_cb_nearest_a_n(void)
     // Code
 
     // Loop through thick filaments
-    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    for (size_t m_counter = 0; m_counter < m_n; m_counter++)
     {
         // Reset the matrix for the thick filament
         gsl_matrix_short_set_all(p_mf[m_counter]->cb_nearest_a_n, -1);
@@ -1542,12 +1540,12 @@ void half_sarcomere::set_cb_nearest_a_n(void)
 
                 gsl_vector_set(cb_to_thin_node_x, node_counter, fabs(x1 - x2));
             }
-            nearest_thin_node = (int)gsl_vector_min_index(cb_to_thin_node_x);
+            nearest_thin_node = gsl_vector_min_index(cb_to_thin_node_x);
 
             // Now loop throug the attachment span
-            for (size_t span_i = -adjacent_bs; span_i <= adjacent_bs; span_i++)
+            for (size_t span_i = 0; span_i < m_attachment_span; span_i++)
             {
-                int thin_node_ind = nearest_thin_node + span_i;
+                int thin_node_ind = (int)nearest_thin_node - adjacent_bs + (int)span_i;
 
                 if ((thin_node_ind < 0) ||
                     (thin_node_ind >= a_nodes_per_thin_filament))
@@ -1557,9 +1555,9 @@ void half_sarcomere::set_cb_nearest_a_n(void)
                 }
 
                 // There are a_bs_per_node binding sites at this node. Find the one pointing to the cb
-                for (int bs_counter = 0; bs_counter < a_bs_per_node; bs_counter++)
+                for (size_t bs_counter = 0; bs_counter < a_bs_per_node; bs_counter++)
                 {
-                    bs_ind = (thin_node_ind * a_bs_per_node) + bs_counter;
+                    bs_ind = ((size_t)thin_node_ind * (size_t)a_bs_per_node) + bs_counter;
                     bs_angle = gsl_vector_get(p_af[cb_nearest_a_f]->bs_angle, bs_ind);
 
                     temp_diff = fabs(fmod(gsl_vector_get(p_mf[m_counter]->cb_angle, cb_counter) - bs_angle, 360.0));
@@ -1570,13 +1568,13 @@ void half_sarcomere::set_cb_nearest_a_n(void)
 
                 // Set the index as the bs that has the biggest angular difference from the cb
                 gsl_matrix_short_set(p_mf[m_counter]->cb_nearest_a_n,
-                    cb_counter, (span_i + (size_t)adjacent_bs),
+                    cb_counter, span_i,
                         (short)((thin_node_ind * a_bs_per_node) +
                             gsl_vector_max_index(angle_differences)));
 
                 // Note the angular difference
                 gsl_matrix_set(p_mf[m_counter]->cb_nearest_bs_angle_diff,
-                    cb_counter, (span_i + (size_t)adjacent_bs),
+                    cb_counter, span_i,
                     gsl_vector_max(angle_differences));
             }
         }
@@ -1643,8 +1641,9 @@ void half_sarcomere::set_pc_nearest_a_n(void)
 
     // Variables
     int pc_nearest_a_f;
-    int nearest_thin_node;
-    int bs_ind;
+    
+    size_t nearest_thin_node;
+    size_t bs_ind;
 
     double bs_angle;
     double temp_diff;
@@ -1677,12 +1676,12 @@ void half_sarcomere::set_pc_nearest_a_n(void)
 
                 gsl_vector_set(pc_to_thin_node_x, node_counter, fabs(x1 - x2));
             }
-            nearest_thin_node = (int)gsl_vector_min_index(pc_to_thin_node_x);
+            nearest_thin_node = gsl_vector_min_index(pc_to_thin_node_x);
 
             // Now loop through the attachment span
-            for (size_t span_i = -adjacent_bs; span_i <= adjacent_bs; span_i++)
+            for (int span_i = -adjacent_bs; span_i <= adjacent_bs; span_i++)
             {
-                int thin_node_ind = nearest_thin_node + span_i;
+                int thin_node_ind = (int)nearest_thin_node + span_i;
 
                 if ((thin_node_ind < 0) ||
                     (thin_node_ind >= a_nodes_per_thin_filament))
@@ -1695,7 +1694,8 @@ void half_sarcomere::set_pc_nearest_a_n(void)
                 // pointing to the pc
                 for (int bs_counter = 0; bs_counter < a_bs_per_node; bs_counter++)
                 {
-                    bs_ind = (thin_node_ind * a_bs_per_node) + bs_counter;
+                    bs_ind = ((size_t)thin_node_ind * (size_t)a_bs_per_node) +
+                                (size_t)bs_counter;
                     bs_angle = gsl_vector_get(p_af[pc_nearest_a_f]->bs_angle, bs_ind);
 
                     temp_diff = fabs(fmod(gsl_vector_get(p_mf[m_counter]->pc_angle, pc_counter) - bs_angle, 360.0));
@@ -1707,8 +1707,8 @@ void half_sarcomere::set_pc_nearest_a_n(void)
                 // Set the index as the bs that has the biggest angular difference the cb
                 gsl_matrix_short_set(p_mf[m_counter]->pc_nearest_a_n,
                     pc_counter, (span_i + (size_t)adjacent_bs),
-                    (thin_node_ind * a_bs_per_node) +
-                        (short)gsl_vector_max_index(angle_differences));
+                    (short)((thin_node_ind * (size_t)a_bs_per_node) +
+                        gsl_vector_max_index(angle_differences)));
                 
                 // Set the angular difference
                 gsl_matrix_set(p_mf[m_counter]->pc_nearest_bs_angle_diff,
@@ -1736,8 +1736,7 @@ void half_sarcomere::thick_filament_kinetics(double time_step)
 
     myosin_kinetics(time_step);
 
-    //mybpc_kinetics(time_step);
-  
+    mybpc_kinetics(time_step);
 }
 
 void half_sarcomere::myosin_kinetics(double time_step)
@@ -1799,29 +1798,26 @@ void half_sarcomere::myosin_kinetics(double time_step)
                 }
                 else
                 {
-                    if (false)
+                    // Check whether the other head will undergo a transition
+                    transition_index = return_m_transition(time_step, m_counter, cb_counter + 1);
+
+                    if (transition_index >= 0)
                     {
-                        // Check whether the other head will undergo a transition
-                        transition_index = return_m_transition(time_step, m_counter, cb_counter + 1);
+                       // Get the potential transition
+                       cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, (size_t)cb_counter + 1);
+                       cb_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, (size_t)cb_counter + 1);
+                       p_m_state = p_m_scheme[cb_isotype - 1]->p_m_states[cb_state - 1];
 
-                        if (transition_index >= 0)
-                        {
-                            // Get the potential transition
-                            cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, (size_t)cb_counter + 1);
-                            cb_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, (size_t)cb_counter + 1);
-                            p_m_state = p_m_scheme[cb_isotype - 1]->p_m_states[cb_state - 1];
+                       old_type = p_m_state->state_type;
 
-                            old_type = p_m_state->state_type;
+                       new_state = p_event[transition_index]->p_trans->new_state;
+                       new_type = p_m_scheme[cb_isotype - 1]->p_m_states[new_state - 1]->state_type;
 
-                            new_state = p_event[transition_index]->p_trans->new_state;
-                            new_type = p_m_scheme[cb_isotype - 1]->p_m_states[new_state - 1]->state_type;
-
-                            // Exclude transitions to or from 'S'
-                            if ((old_type != 'S') && (new_type != 'S'))
-                            {
-                                handle_lattice_event(p_event[transition_index]);
-                            }
-                        }
+                       // Exclude transitions to or from 'S'
+                       if ((old_type != 'S') && (new_type != 'S'))
+                       {
+                          handle_lattice_event(p_event[transition_index]);
+                       }
                     }
                 }
             }
@@ -1914,7 +1910,6 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     // Binding events to different actin nodes are in different elements
     // Non-binding transitions are single elements
     transition_probs = gsl_vector_alloc((size_t)max_transitions * (size_t)m_attachment_span);
-    gsl_vector_set_zero(transition_probs);
 
     // Get the a_f and the a_n for the myosin head
     if (p_m_state->state_type == 'A')
@@ -2002,9 +1997,10 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
 
                     // Transition is possible
                     x = gsl_vector_get(p_mf[m_counter]->cb_x, cb_counter) -
-                        gsl_vector_get(p_af[a_f]->bs_x, bs_ind);
+                            gsl_vector_get(p_af[a_f]->bs_x, bs_ind);
 
-                    angle = gsl_matrix_get(p_mf[m_counter]->cb_nearest_bs_angle_diff, cb_counter, bs_ind);
+                    angle = gsl_matrix_get(p_mf[m_counter]->cb_nearest_bs_angle_diff,
+                                cb_counter, bs_counter);
                     alignment_factor = -cos(angle * M_PI / 180.0);
 
                     prob = (1.0 - exp(-time_step * alignment_factor *
@@ -2192,6 +2188,12 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
                     prob = (1.0 - exp(-time_step * alignment_factor *
                             p_trans->calculate_rate(x, node_force, c_state, c_isotype)));
 
+                    if (gsl_isnan(prob))
+                    {
+                        printf("isnan, stopping\n");
+                        exit(1);
+                    }
+
                     // Update the probability vector
                     prob_index = (t_counter * m_attachment_span) + bs_counter;
                     gsl_vector_set(transition_probs, prob_index, prob);
@@ -2226,6 +2228,12 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
 
                 prob = (1.0 - exp(-time_step *
                     p_trans->calculate_rate(x, node_force, c_state, c_isotype)));
+
+                if (gsl_isnan(prob))
+                {
+                    printf("isnan - single level, stopping\n");
+                    exit(1);
+                }
 
                 // Update the probability vector
                 prob_index = (t_counter * m_attachment_span);
@@ -2481,7 +2489,9 @@ int half_sarcomere::return_event_index(gsl_vector* prob)
 
     // Scale if requried (where the probabilities are very high)
     if (holder > 1.0)
+    {
         gsl_vector_scale(cum_prob, 1.0 / holder);
+    }
 
     // Set the event index to -1 (nothing happened)
     event_index = -1;
@@ -2760,7 +2770,14 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         JSON_functions::write_gsl_matrix_short_as_JSON_array(
             p_mf[thick_counter]->pc_nearest_a_n,
             output_file,
-            temp_string, true);
+            temp_string, false);
+
+        sprintf_s(temp_string, _MAX_PATH, "pc_nearest_bs_angle_diff");
+        JSON_functions::write_gsl_matrix_as_JSON_array(
+            p_mf[thick_counter]->pc_nearest_bs_angle_diff, output_file,
+            temp_string, true, p_fs_options->dump_precision);
+
+
 
         if (thick_counter == (m_n - 1))
         {

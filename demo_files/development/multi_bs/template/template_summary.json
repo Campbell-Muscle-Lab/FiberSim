@@ -43,6 +43,7 @@
             "y_info":
             {
                 "label": "HS length\n(nm)",
+                "scaling_type": "close_fit",
                 "series":
                 [
                     {
@@ -112,6 +113,10 @@
                     {
                         "field": "m_pop_2",
                         "field_label": "M_{2}"
+                    },
+                    {
+                        "field": "m_pop_3",
+                        "field_label": "M_{3}"
                     }
                 ]
             }

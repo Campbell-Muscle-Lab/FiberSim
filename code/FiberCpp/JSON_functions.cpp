@@ -197,11 +197,14 @@ namespace JSON_functions {
                 {
                     // It's the last entry in the array
                     fprintf_s(output_file, "]");
-                    if ((!is_last_entry) || (col == (p_v->size2-1)))
+                    if ((is_last_entry) && (col == (p_v->size2-1)))
                     {
-                        fprintf_s(output_file, ",");
+                        fprintf_s(output_file, "\n");
                     }
-                    fprintf_s(output_file, "\n");
+                    else
+                    {
+                        fprintf_s(output_file, ",\n");
+                    }
                 }
                 else
                     fprintf_s(output_file, ", ");
