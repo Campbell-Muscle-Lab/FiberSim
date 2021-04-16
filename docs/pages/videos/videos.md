@@ -19,6 +19,6 @@ This webinar covers:
 
 ## FiberSim videos
 
-Here are some videos obtained with the [Blender vizualisation framework](../Demos/Visualization/visualization.html). 
+Here are some videos obtained with the [Blender vizualisation framework](../demos/visualization/visualization.html). 
 
 [links to be added]

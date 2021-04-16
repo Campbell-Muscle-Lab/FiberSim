@@ -16,9 +16,9 @@ This demo builds on the [single_run_demo](../single_run/single_run.html) and sho
 
 In addition to saving a results data file and a summary figure, this simulation:
 
-* Writes status files to a log folder: these are useful for debugging
+* Writes status files to a log folder - these are useful for debugging
 
-* Saves a snapshot of the simulation for each time-step specified in the option file: these are useful for debugging and for creating vizualizations
+* Saves a snapshot of the simulation for each time-step specified in the option file - these are useful for debugging and for creating visualizations
 
 ### How this works
 
@@ -46,7 +46,7 @@ The demo `single_run_with_log.py` initiates a simulation using this batch file:
 }
 ````
 
-The model, protocol, results, and output_handler_file are the same files as those used for the [single run demo](../single_run/single_run.html). The only significant difference is in the options file which is shown below.
+The model, protocol, results, and output_handler_file are the same files as those used for the [single run demo](../single_run/single_run.html). The only significant difference is in the options file which is shown below:
 
 ````
 {
@@ -69,9 +69,9 @@ The model, protocol, results, and output_handler_file are the same files as thos
 ````
 
 Two options have been added:
-+ `logging`:
++ `logging`
 	+ `log_folder` - relative path to the folder where the log file will be created 
-+ `status_files`:
++ `status_files`
   + `status_folder` - relative path to the folder where the simulation snapshots will be saved
   + `time_steps` - snapshots of the simulation are saved for each specified time-steps. In this case, one in ten snapshots between time-step = 1 and time-step = 300 will be saved 
 
@@ -79,19 +79,12 @@ Two options have been added:
 
 ### Getting ready
 
-1. Start Anaconda Navigator
-2. Select the Environments tab (left-hand side)
-3. Open a FiberSim terminal (left-click on the arrow-head to the right of FiberSim)
-4. Change directory to `<repo>/code/FiberPy/FiberPy`, where `<repo>` is the directory you installed the software (e.g. `c:\temp\FiberSim`)
-
-OR
-
 1. Open an Anaconda Prompt
 2. Activate the FiberSim Anaconda Environment by executing:
     ```
     conda activate fibersim
     ```
-3. Change directory to `<repo>/code/FiberPy/FiberPy`, where `<repo>` is the directory you installed the software (e.g. `c:\temp\FiberSim`)
+3. Change directory to `<repo>/code/FiberPy/FiberPy`, where `<repo>` is the directory where you installed FiberSim
 
 ### Run a simulation
 
@@ -99,9 +92,6 @@ OR
  ```
  python FiberPy.py run_batch "../../../demo_files/getting_started/single_run_with_log/batch_single_run_with_log.json"
  ```
-
- This command line launches the batch file to run a single job simulation. See [here](../../installation/installation.html) for more information on the batch structure.
-
 
 * You should see some text appearing in the terminal window
 
