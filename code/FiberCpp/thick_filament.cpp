@@ -46,7 +46,7 @@ thick_filament::thick_filament(
     m_myosins_per_hub = p_fs_model->m_myosins_per_hub;
 
     m_inter_crown_rest_length = p_fs_model->m_inter_crown_rest_length;
-    
+
     // Set m_lambda allowing for potential random jitter
     m_lambda = p_fs_model->m_lambda +
         (gsl_rng_uniform(p_parent_hs->rand_generator) *
@@ -55,6 +55,9 @@ thick_filament::thick_filament(
     m_starting_angle = p_fs_model->m_starting_angle;
     m_inter_crown_twist = p_fs_model->m_inter_crown_twist;
     m_within_hub_twist = p_fs_model->m_within_hub_twist;
+
+    // Copy attachment span from parent_hs
+    m_attachment_span = p_parent_hs->m_attachment_span;
 
     // Calculate number of cross-bridges
     m_no_of_cbs = m_crowns_per_filament * m_hubs_per_crown *
@@ -71,18 +74,18 @@ thick_filament::thick_filament(
     cb_x = gsl_vector_alloc(m_no_of_cbs);
     cb_angle = gsl_vector_alloc(m_no_of_cbs);
 
-    cb_nearest_bs_angle_diff = gsl_vector_alloc(m_no_of_cbs);
+    cb_state = gsl_vector_short_alloc(m_no_of_cbs);
+    cb_iso = gsl_vector_short_alloc(m_no_of_cbs);
 
-    cb_state = new short int[m_no_of_cbs];
-    cb_iso = new short int[m_no_of_cbs];
+    cb_bound_to_a_f = gsl_vector_short_alloc(m_no_of_cbs);
+    cb_bound_to_a_n = gsl_vector_short_alloc(m_no_of_cbs);
 
-    cb_bound_to_a_f = new short int[m_no_of_cbs];
-    cb_bound_to_a_n = new short int[m_no_of_cbs];
+    cb_nearest_a_f = gsl_vector_short_alloc(m_no_of_cbs);
+    cb_nearest_a_n = gsl_matrix_short_alloc(m_no_of_cbs, m_attachment_span);
 
-    cb_nearest_a_f = new short int[m_no_of_cbs];
-    cb_nearest_a_n = new short int[m_no_of_cbs];
+    cb_nearest_bs_angle_diff = gsl_matrix_alloc(m_no_of_cbs, m_attachment_span);
 
-    cb_controlling_pc_index = new short int[m_no_of_cbs];
+    cb_controlling_pc_index = gsl_vector_short_alloc(m_no_of_cbs);
 
     // Allocate space for node_forces
     node_forces = gsl_vector_alloc(m_crowns_per_filament);
@@ -92,52 +95,23 @@ thick_filament::thick_filament(
     // Use special function for cb_x and cb_angle
     initalise_cb_x_and_cb_angle();
 
-    // Initialise the random number generator
-    const gsl_rng_type* T;
-    gsl_rng_env_setup();
+    // Set the cb_isotype for each dimer based on probabilities
+    for (int cb_counter = 0; cb_counter < m_no_of_cbs; cb_counter = cb_counter + 2)
+    {
+        int iso_index = p_parent_hs->return_event_index(p_fs_model->m_isotype_props);
 
-    T = gsl_rng_default;
-    rand_generator_iso = gsl_rng_alloc(T);
-    gsl_rng_set(rand_generator_iso, unsigned long(100));
-
+        // Set the dimer
+        gsl_vector_short_set(cb_iso, cb_counter, iso_index + 1);
+        gsl_vector_short_set(cb_iso, cb_counter + 1, iso_index + 1);
+    }
 
     // Other arrays are intialized with constants
-    for (int i = 0; i < m_no_of_cbs; i++)
-    {
-        cb_state[i] = 1;
-
-        // Now set cb_iso depending on the isotype proportion
-
-        if (GSL_IS_EVEN(i)){ 
-
-            if (p_fs_model->m_no_of_isotypes == 2) {
-
-                double rand_iso = gsl_rng_uniform(rand_generator_iso);
-                double first_pop = gsl_vector_get(p_fs_model->m_isotype_props,0);
-
-                if (rand_iso < first_pop) {
-                    cb_iso[i] = 0;
-                    cb_iso[i + 1] = 0; // Pairs of myosin heads are the same isotype
-                }
-                else {
-                    cb_iso[i] = 1;
-                    cb_iso[i+1] = 1; // Pairs of myosin heads are the same isotype
-                }
-            }
-
-            else {
-                int rand_iso = gsl_rng_uniform_int(rand_generator_iso, p_fs_model->m_no_of_isotypes); // random assignment between 3 or more isotypes
-                cb_iso[i] = (short)rand_iso;
-                cb_iso[i + 1] = (short)rand_iso; // Pairs of myosin heads are the same isotype
-            }
-
-        }
-
-        cb_bound_to_a_f[i] = -1;
-        cb_bound_to_a_n[i] = -1;
-        cb_nearest_a_f[i] = -1;
-        cb_nearest_a_n[i] = -1;
-    }
+    // All myosins are in state 1 with none bound
+    gsl_vector_short_set_all(cb_state, 1);
+    gsl_vector_short_set_all(cb_bound_to_a_f, -1);
+    gsl_vector_short_set_all(cb_bound_to_a_n, -1);
+    gsl_vector_short_set_all(cb_nearest_a_f, -1);
+    gsl_matrix_short_set_all(cb_nearest_a_n, -1);
 
     // Allocate space for MyBPC arrays
     c_thick_proximal_node = p_fs_model->c_thick_proximal_node;
@@ -145,55 +119,41 @@ thick_filament::thick_filament(
     c_thick_node_spacing = p_fs_model->c_thick_node_spacing;
     c_mols_per_node = p_fs_model->c_mols_per_node;
     c_starting_angle = p_fs_model->c_starting_angle;
-    
+
     c_no_of_pcs = c_thick_stripes * c_mols_per_node;
 
     pc_angle = gsl_vector_alloc(c_no_of_pcs);
 
-    pc_node_index = new short int[c_no_of_pcs];
-    pc_state = new short int[c_no_of_pcs];
-    pc_iso = new short int[c_no_of_pcs];
+    pc_node_index = gsl_vector_short_alloc(c_no_of_pcs);
+    pc_state = gsl_vector_short_alloc(c_no_of_pcs);
+    pc_iso = gsl_vector_short_alloc(c_no_of_pcs);
 
-    pc_bound_to_a_f = new short int[c_no_of_pcs];
-    pc_bound_to_a_n = new short int[c_no_of_pcs];
+    pc_bound_to_a_f = gsl_vector_short_alloc(c_no_of_pcs);
+    pc_bound_to_a_n = gsl_vector_short_alloc(c_no_of_pcs);
 
-    pc_nearest_a_f = new short int[c_no_of_pcs];
-    pc_nearest_a_n = new short int[c_no_of_pcs];
+    pc_nearest_a_f = gsl_vector_short_alloc(c_no_of_pcs);
+    pc_nearest_a_n = gsl_matrix_short_alloc(c_no_of_pcs, m_attachment_span);
+
+    pc_nearest_bs_angle_diff = gsl_matrix_alloc(c_no_of_pcs, m_attachment_span);
 
     // Use special function for cb_x and cb_angle
     initalise_pc_node_index_and_pc_angle();
 
-    // Other arrays are initialised with constants
-    for (int i = 0; i < c_no_of_pcs; i++)
+    // Set the pc_isotype based on probabilities
+    for (int pc_counter = 0; pc_counter < c_no_of_pcs; pc_counter++)
     {
-        pc_state[i] = 1;
+        int iso_index = p_parent_hs->return_event_index(p_fs_model->c_isotype_props);
 
-        // Now set pc_isotype depending on the isotype proportion
-
-        if (p_fs_model->c_no_of_isotypes == 2) {
-
-            double rand_iso = gsl_rng_uniform(rand_generator_iso);
-            double first_pop = gsl_vector_get(p_fs_model->c_isotype_props, 0);
-
-            if (rand_iso < first_pop) {
-                pc_iso[i] = 0;
-            }
-            else {
-                pc_iso[i] = 1;
-            }
-        }
-
-        else
-        {
-            int rand_iso = gsl_rng_uniform_int(rand_generator_iso, p_fs_model->c_no_of_isotypes); // random assignment between 3 or more isotypes
-            pc_iso[i] = (short)rand_iso;
-        }
-
-        pc_bound_to_a_f[i] = -1;
-        pc_bound_to_a_n[i] = -1;
-        pc_nearest_a_f[i] = -1;
-        pc_nearest_a_n[i] = -1;
+        // Set the pc_iso
+        gsl_vector_short_set(pc_iso, pc_counter, iso_index + 1);
     }
+
+    // Other arrays are initialized with constants
+    gsl_vector_short_set_all(pc_state, 1);
+    gsl_vector_short_set_all(pc_bound_to_a_f, -1);
+    gsl_vector_short_set_all(pc_bound_to_a_n, -1);
+    gsl_vector_short_set_all(pc_nearest_a_f, -1);
+    gsl_matrix_short_set_all(pc_nearest_a_n, -1);
 
     // Initialise cb_controlling_pc_index
     initialise_cb_controlling_pc_index();
@@ -221,32 +181,32 @@ thick_filament::~thick_filament()
     // Delete gsl_vectors
     gsl_vector_free(cb_x);
     gsl_vector_free(cb_angle);
-    gsl_vector_free(cb_nearest_bs_angle_diff);
 
-    // Delete the integer vectors
-    delete [] cb_state;
-    delete [] cb_iso;
-    delete [] cb_bound_to_a_f;
-    delete [] cb_bound_to_a_n;
-    delete [] cb_nearest_a_f;
-    delete [] cb_nearest_a_n;
-    delete [] cb_controlling_pc_index;
+    gsl_vector_short_free(cb_iso);
+    gsl_vector_short_free(cb_state);
+    gsl_vector_short_free(cb_bound_to_a_f);
+    gsl_vector_short_free(cb_bound_to_a_n);
+    gsl_vector_short_free(cb_nearest_a_f);
+    gsl_matrix_short_free(cb_nearest_a_n);
+
+    gsl_vector_short_free(cb_controlling_pc_index);
+
+    gsl_matrix_free(cb_nearest_bs_angle_diff);
 
     // Delete MyBPC
     gsl_vector_free(pc_angle);
 
-    delete [] pc_node_index;
-    delete [] pc_state;
-    delete [] pc_iso;
-    delete [] pc_bound_to_a_f;
-    delete [] pc_bound_to_a_n;
-    delete [] pc_nearest_a_f;
-    delete [] pc_nearest_a_n;
+    gsl_vector_short_free(pc_node_index);
+    gsl_vector_short_free(pc_state);
+    gsl_vector_short_free(pc_bound_to_a_f);
+    gsl_vector_short_free(pc_bound_to_a_n);
+    gsl_vector_short_free(pc_nearest_a_f);
+    gsl_matrix_short_free(pc_nearest_a_n);
+
+    gsl_matrix_free(pc_nearest_bs_angle_diff);
 
     // Delete node forces
     gsl_vector_free(node_forces);
-
-    gsl_rng_free(rand_generator_iso);
 }
 
 void thick_filament::initalise_cb_x_and_cb_angle(void)
@@ -315,8 +275,8 @@ void thick_filament::initalise_pc_node_index_and_pc_angle(void)
         for (int pc_counter = 0; pc_counter < c_mols_per_node; pc_counter++)
         {
             // Set the index
-            pc_node_index[ind] = c_thick_proximal_node +
-                (stripe_counter * c_thick_node_spacing) - 1;
+            gsl_vector_short_set(pc_node_index, ind,
+                c_thick_proximal_node + (stripe_counter * c_thick_node_spacing) - 1);
 
             // Now the angle
             double angle = c_starting_angle + (double)pc_counter * inter_pc_angle;
@@ -366,7 +326,7 @@ void thick_filament::initialise_cb_controlling_pc_index(void)
                 if ((crown_counter < proximal_crown_index) ||
                     (crown_counter > (distal_crown_index + c_thick_node_spacing - 1)))
                 {
-                    cb_controlling_pc_index[cb_index] = -1;
+                    gsl_vector_short_set(cb_controlling_pc_index, cb_index, -1);
                 }
                 else
                 {
@@ -385,7 +345,8 @@ void thick_filament::initialise_cb_controlling_pc_index(void)
                     int keep_going = 1;
                     while (keep_going)
                     {
-                        if (pc_node_index[pc_index] == pc_crown_index)
+                        if (gsl_vector_short_get(pc_node_index, pc_index) ==
+                                pc_crown_index)
                         {
                             gsl_vector_int_set(pc_indices, counter, pc_index);
 
@@ -406,8 +367,8 @@ void thick_filament::initialise_cb_controlling_pc_index(void)
                             keep_going = 0;
                     }
 
-                    cb_controlling_pc_index[cb_index] = 
-                        gsl_vector_int_get(pc_indices, gsl_vector_min_index(angle_differences));
+                    gsl_vector_short_set(cb_controlling_pc_index, cb_index,
+                        gsl_vector_int_get(pc_indices, gsl_vector_min_index(angle_differences)));
                 }
 
                 cb_index = cb_index + 1;

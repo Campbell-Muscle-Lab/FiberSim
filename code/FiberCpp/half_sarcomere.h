@@ -28,6 +28,8 @@ class kinetic_scheme;
 class thick_filament;
 class thin_filament;
 
+struct lattice_event;
+
 class half_sarcomere
 {
 public:
@@ -84,6 +86,16 @@ public:
     int m_cbs_per_node;             /**< integer defining the number of cbs
                                          per node */
 
+    int adjacent_bs;                /**< integer defining how many adjacent binding sites
+                                         a myosin or mybpc can attach to. It is copied
+                                         from p_fs_model->adjacent_bs
+                                         0, restricts binding to the nearest site
+                                         2, allows binding to (a_n-2 : 1 : a_n+2) */
+
+    int m_attachment_span;          /**< integer defining the total number of binding sites
+                                         a myosin of mypbpc can attach to. It is calculated
+                                         as 1 + (2 * adjacent_bs) */
+
     double m_inter_crown_rest_length;
                                     /**< double defining the rest-length of the spring
                                          between crowns in nm */
@@ -134,9 +146,10 @@ public:
     gsl_vector* a_z;                /**< gsl_vector holding z_coordinates of
                                          thin filaments */
 
-    short int** nearest_actin_matrix;
-                                    /**< short int matrix holding the indices for
-                                         the a filaments surrounding each m filament */
+    gsl_matrix_short* nearest_actin_matrix;
+                                    /** pointer to gsl_short matrix holding the
+                                        indices for the a filaments surrounding
+                                        each m filament */
 
     // Titin structure
 
@@ -145,6 +158,12 @@ public:
 
     int t_attach_m_node;                /**< int defining the thick node at which titin
                                              attaches */
+
+    // Lattice events
+    lattice_event* p_event[MAX_NO_OF_ADJACENT_BS * MAX_NO_OF_TRANSITIONS];
+                                        /**< an array of lattice events, each one
+                                             noting which myosin head is interacting
+                                             with each binding site */
 
     // Lattice calculations
 
@@ -480,6 +499,7 @@ public:
     /**
     * int return_m_transition(double time_step)
     * deduces which, if any transition a myosin head undergoes
+    * works for the first head
     * @return int, -1 = no transition, >=0 indicates transition index
     */
     int return_m_transition(double time_step, int m_counter, int cb_counter);
@@ -492,8 +512,16 @@ public:
     void mybpc_kinetics(double time_step);
 
     /**
-    * void handle_lattice_event(char mol_type, char event_type, int thick_f, int thick_n, int thin_f, int thin_n)
+    * int return_c_transition(double time_step)
+    * deduces which, if any transition a mybpc undergoes
+    * @return int, -1 = no transition, >=0 indicates transition index
+    */
+    int return_c_transition(double time_step, int m_counter, int cb_counter);
+
+    /**
+    * void handle_lattice_event(lattice_event p_event)
     * adjusts k_matrix and f_vector when myosin or mybp-c attach or detach between filaments
+    * the lattice event structure contains
     * @param mol_type char 'm' for myosin, or 'c' for myosin binding protein-C
     * @param p_trans pointer to the transition
     * @param thick_f int index for the thick filament
@@ -502,7 +530,15 @@ public:
     * @param thin_n int index for the thin binding site
     * @return void
     */
-    void handle_lattice_event(char mol_type, transition* p_trans, int thick_f, int thick_n, int thin_f, int thin_n);
+    void handle_lattice_event(lattice_event* p_event);
+
+    /*
+    * int return_event_index(gsl_vector* p_prob)
+    * returns a 0-based index corresponding to an event
+    * @param p_prob holds probabilities of individual events
+    * @return -1 if no event occurs, >=0 for event
+    */
+    int return_event_index(gsl_vector* p_prob);
 
     // Debugging functions
     

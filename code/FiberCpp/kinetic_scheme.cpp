@@ -84,8 +84,28 @@ void kinetic_scheme::set_transition_types(void)
 
 			char new_state_type = p_m_states[new_state - 1]->state_type;
 
+			if (current_state_type == 'S')
+			{
+				if (new_state_type == 'S')
+				{
+					p_m_states[state_counter]->p_transitions[t_counter]->transition_type = 'n';
+				}
+				if (new_state_type == 'D')
+				{
+					p_m_states[state_counter]->p_transitions[t_counter]->transition_type = 'n';
+				}
+				if (new_state_type == 'A')
+				{
+					p_m_states[state_counter]->p_transitions[t_counter]->transition_type = 'a';
+				}
+			}
+
 			if (current_state_type == 'D')
 			{
+				if (new_state_type == 'S')
+				{
+					p_m_states[state_counter]->p_transitions[t_counter]->transition_type = 'n';
+				}
 				if (new_state_type == 'D')
 				{
 					p_m_states[state_counter]->p_transitions[t_counter]->transition_type = 'n';
@@ -98,6 +118,10 @@ void kinetic_scheme::set_transition_types(void)
 
 			if (current_state_type == 'A')
 			{
+				if (new_state_type == 'S')
+				{
+					p_m_states[state_counter]->p_transitions[t_counter]->transition_type = 'd';
+				}
 				if (new_state_type == 'D')
 				{
 					p_m_states[state_counter]->p_transitions[t_counter]->transition_type = 'd';

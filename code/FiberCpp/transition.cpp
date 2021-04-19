@@ -97,7 +97,7 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 	if (!strcmp(rate_type, "force_dependent"))
 	{
 		rate = gsl_vector_get(rate_parameters, 0) *
-			(1.0 + (node_force * gsl_vector_get(rate_parameters, 1)));
+			(1.0 + (gsl_max(node_force,0.0) * gsl_vector_get(rate_parameters, 1)));
 	}
 
 	// Force and MyBPC-dependent
@@ -137,7 +137,7 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 			modifier_force = gsl_vector_get(rate_parameters, force_index);
 		}
 
-		rate = k_base * modifier_base * (1.0 + (node_force * k_force * modifier_force));
+		rate = k_base * modifier_base * (1.0 + (gsl_max(node_force,0.0) * k_force * modifier_force));
 	}
 
 	// Gaussian
@@ -157,6 +157,7 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 		rate = gsl_vector_get(rate_parameters, 0) +
 			(gsl_vector_get(rate_parameters, 1) *
 				gsl_pow_int(x, (int)gsl_vector_get(rate_parameters, 2)));
+		//printf("x: %f  rate: %f\n", x, rate);
 	}
 
 	// Curtail at max rate

@@ -55,24 +55,28 @@ public:
     gsl_vector* bs_angle;           /**< pointer to a gsl_vector holding
                                          bs angles */
 
-    signed short int* bs_state;     /**< pointer to an array of signed short
+    gsl_vector_short* bs_state;     /**< pointer to a gsl array of signed short
                                          integers indicating which state the
-                                         bs is in */
+                                         bs is in
+                                         1 means off 
+                                         2 means on */
 
-    signed short int* bs_isoform;   /**< pointer to an array of signed short
+    gsl_vector_short* bs_isoform;   /**< pointer to a gsl array of signed short
                                          integers indicating the isoform of
                                          the bs */
 
-    signed short int* bs_unit;      /**< pointer to an array of signed short
+    gsl_vector_short* bs_unit;      /**< pointer to a gsl array of signed short
                                          integers indicating the regulatory
                                          unit the binding site is part of */
 
-    signed short int* unit_status;  /**< pointer to an array of signed short
+    gsl_vector_short* unit_status;  /**< pointer to a gsl array of signed short
                                          integers indicating the status of
-                                         the unit */
+                                         the unit
+                                         1 means off
+                                         2 means on */
 
-    signed short int* bound_to_m_type;
-                                    /**< pointer to an array of signed short
+    gsl_vector_short* bound_to_m_type;
+                                    /**< pointer to a gsl array of signed short
                                          integers indicating what the site is
                                          bound to:
                                          0 = nothing
@@ -80,19 +84,12 @@ public:
                                          2 = mybpc
                                          */
 
-    signed short int* bound_to_m_f; /**< pointer to an array of signed short
+    gsl_vector_short* bound_to_m_f; /**< pointer to a gsl array of signed short
                                          integers indicating which m_f the bs
                                          is bound to */
-    signed short int* bound_to_m_n; /**< pointer to an array of signed short
+    gsl_vector_short* bound_to_m_n; /**< pointer to a gsl array of signed short
                                          integers indicating which m_n the bs
                                          is bound to */
-
-    signed short int* nearest_m_f;  /**< pointer to an array of signed short
-                                         integers indicating which m_f the bs
-                                         is closest to */
-    signed short int* nearest_m_n;  /**< pointer to an array of signed short
-                                         integers indicating which m_n the bs
-                                         is closest to */
 
     /**
     * Constructor
@@ -133,6 +130,6 @@ public:
     * fills an integer array with the indices of the specified regulatory unit
     * @return void
     */
-    void set_regulatory_unit_indices(int unit_ind, int bs_indices[]);
+    void set_regulatory_unit_indices(int unit_ind, gsl_vector_short*  bs_indices);
 
 };

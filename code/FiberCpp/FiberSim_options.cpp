@@ -25,6 +25,10 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     x_pos_rel_tol = 0.001;                  /**< default value of relative tolerance for
                                                  calculating x positions */
 
+    adjacent_bs = 0;                        /**< default value of adjacent binding sites
+                                                 available for myosin or mybpc attachment
+                                                 0 restricts to nearest site */
+
     max_rate = 5000.0;                      /**< default value for maximum rate allowed
                                                  in calculations */
 
@@ -224,16 +228,22 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
 
     // Check we have entries and set them
 
-    if (JSON_functions::is_JSON_member(options, "x_pos_rel_tol"))
-    {
-        JSON_functions::check_JSON_member_number(options, "x_pos_rel_tol");
-        x_pos_rel_tol = options["x_pos_rel_tol"].GetDouble();
-    }
-
     if (JSON_functions::is_JSON_member(options, "max_rate"))
     {
         JSON_functions::check_JSON_member_number(options, "max_rate");
         max_rate = options["max_rate"].GetDouble();
+    }
+
+    if (JSON_functions::is_JSON_member(options, "adjacent_bs"))
+    {
+        JSON_functions::check_JSON_member_int(options, "adjacent_bs");
+        adjacent_bs = options["adjacent_bs"].GetInt();
+    }
+
+    if (JSON_functions::is_JSON_member(options, "x_pos_rel_tol"))
+    {
+        JSON_functions::check_JSON_member_number(options, "x_pos_rel_tol");
+        x_pos_rel_tol = options["x_pos_rel_tol"].GetDouble();
     }
 
     // Check if the dump precision was specified.

@@ -55,19 +55,16 @@ thin_filament::thin_filament(
     bs_x = gsl_vector_alloc(a_no_of_bs);
     bs_angle = gsl_vector_alloc(a_no_of_bs);
 
-    bs_state = new short int[a_no_of_bs];
-    bs_isoform = new short int[a_no_of_bs];
-    bs_unit = new short int[a_no_of_bs];
+    bs_state = gsl_vector_short_alloc(a_no_of_bs);
+    bs_isoform = gsl_vector_short_alloc(a_no_of_bs);
+    bs_unit = gsl_vector_short_alloc(a_no_of_bs);
 
-    unit_status = new short int[a_regulatory_units_per_strand * a_strands_per_filament];
+    unit_status = gsl_vector_short_alloc(a_regulatory_units_per_strand * a_strands_per_filament);
 
-    bound_to_m_type = new short int[a_no_of_bs];
+    bound_to_m_type = gsl_vector_short_alloc(a_no_of_bs);
 
-    bound_to_m_f = new short int[a_no_of_bs];
-    bound_to_m_n = new short int[a_no_of_bs];
-
-    nearest_m_f = new short int[a_no_of_bs];
-    nearest_m_n = new short int[a_no_of_bs];
+    bound_to_m_f = gsl_vector_short_alloc(a_no_of_bs);
+    bound_to_m_n = gsl_vector_short_alloc(a_no_of_bs);
 
     // Initialise arrays
 
@@ -75,23 +72,12 @@ thin_filament::thin_filament(
     initialise_bs_x_bs_angle_bs_unit();
 
     // Other arrays are initialized with constants
-    for (int i = 0; i < a_no_of_bs; i++)
-    {
-        bs_state[i] = 0;
-        bs_isoform[i] = 0;
-
-        bound_to_m_type[i] = 0;
-
-        bound_to_m_f[i] = -1;
-        bound_to_m_n[i] = -1;
-        nearest_m_f[i] = -1;
-        nearest_m_n[i] = -1;
-    }
-
-    for (int i = 0; i < (a_regulatory_units_per_strand * a_strands_per_filament); i++)
-    {
-        unit_status[i] = 0;
-    }
+    gsl_vector_short_set_all(bs_state, 1);
+    gsl_vector_short_set_all(bs_isoform, 1);
+    gsl_vector_short_set_all(bound_to_m_type, 0);
+    gsl_vector_short_set_all(bound_to_m_f, -1);
+    gsl_vector_short_set_all(bound_to_m_n, -1);
+    gsl_vector_short_set_all(unit_status, 1);
 
     // Log
     if (p_fs_options->log_mode > 0)
@@ -118,18 +104,13 @@ thin_filament::~thin_filament()
     gsl_vector_free(bs_angle);
 
     // Delete the integer vectors
-    delete[] bs_state;
-    delete[] bs_isoform;
-    delete[] bs_unit;
-
-    delete[] unit_status;
-
-    delete[] bound_to_m_type;
-
-    delete[] bound_to_m_f;
-    delete[] bound_to_m_n;
-    delete[] nearest_m_f;
-    delete[] nearest_m_n;
+    gsl_vector_short_free(bs_state);
+    gsl_vector_short_free(bs_isoform);
+    gsl_vector_short_free(bs_unit);
+    gsl_vector_short_free(unit_status);
+    gsl_vector_short_free(bound_to_m_type);
+    gsl_vector_short_free(bound_to_m_f);
+    gsl_vector_short_free(bound_to_m_n);
 }
 
 // Functions
@@ -170,8 +151,8 @@ void thin_filament::initialise_bs_x_bs_angle_bs_unit(void)
                 gsl_vector_set(bs_angle, bs_counter, fmod(angle, 360.0));
 
                 // Set the bs_unit, which has values starting at 1
-                bs_unit[bs_counter] = (unit_counter * a_strands_per_filament) +
-                                        strand_counter + 1;
+                gsl_vector_short_set(bs_unit, bs_counter,
+                    (unit_counter * a_strands_per_filament) + strand_counter + 1);
 
                 // Update counter
                 bs_counter = bs_counter + 1;
@@ -189,7 +170,12 @@ void thin_filament::set_unit_status(void)
     //! Code sets the status of each unit
 
     // Variables
-    int * bs_indices = new int[a_bs_per_unit];
+    gsl_vector_short* bs_indices;
+
+    // Code
+
+    // Allocate
+    bs_indices = gsl_vector_short_alloc(a_bs_per_unit);
 
     // Code
     for (int unit_counter = 0; unit_counter < (a_strands_per_filament * a_regulatory_units_per_strand);
@@ -199,15 +185,16 @@ void thin_filament::set_unit_status(void)
         set_regulatory_unit_indices(unit_counter, bs_indices);
 
         // Set the unit status from the first entry
-        unit_status[unit_counter] = bs_state[bs_indices[0]];
+        gsl_vector_short_set(unit_status, unit_counter,
+            gsl_vector_short_get(bs_state, gsl_vector_short_get(bs_indices, 0)));
     }
 
     // Tidy up
-    delete bs_indices;
+    gsl_vector_short_free(bs_indices);
 }
 
 
-void thin_filament::set_regulatory_unit_indices(int unit_ind, int bs_indices[])
+void thin_filament::set_regulatory_unit_indices(int unit_ind, gsl_vector_short* bs_indices)
 {
     //! Fills the bs_indices array with the indices of the binding sites in the unit
 
@@ -221,6 +208,6 @@ void thin_filament::set_regulatory_unit_indices(int unit_ind, int bs_indices[])
 
     for (int i = 0; i < a_bs_per_unit; i++)
     {
-        bs_indices[i] = offset + (i * a_strands_per_filament);
+        gsl_vector_short_set(bs_indices, i, offset + (i * a_strands_per_filament));
     }
 }

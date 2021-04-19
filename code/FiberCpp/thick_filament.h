@@ -10,6 +10,7 @@
 #include "rapidjson/istreamwrapper.h"
 
 #include "gsl_vector.h"
+#include "gsl_matrix.h"
 #include "gsl_rng.h"
 
 class FiberSim_model;
@@ -84,6 +85,9 @@ public:
     int m_myosins_per_hub;              /**< integer defining the number of myosins per hub */
     int m_no_of_cbs;                    /**< integer defining the total number of myosins per filament */
 
+    int m_attachment_span;              /**< integer defining how many adjacent binding sites
+                                             a myosin or mybpc can attach to. Set by parent_hs */
+
     double m_inter_crown_rest_length;   /**< double defining the rest-length of the spring
                                              between crowns in nm */
     double m_lambda;                    /**< double defining the barezone length in nm */
@@ -102,30 +106,35 @@ public:
     gsl_vector* cb_x;                   /**< pointer to gsl_vector holding cb_x positions */
     gsl_vector* cb_angle;               /**< pointer to gsl_vector holding cb_angles */
 
-    gsl_vector* cb_nearest_bs_angle_diff;
-                                        /**< pointer to gsl_vector holding angular difference
-                                             between cb and nearest bs */
-
-    signed short int* cb_state;         /**< pointer to an array of signed short integers
+    gsl_vector_short* cb_state;         /**< pointer to a gsl array of signed short integers
                                              indicating which state the cb is in */
     
-    signed short int* cb_iso;           /**< pointer to an array of signed short integers
+    gsl_vector_short* cb_iso;           /**< pointer to a gsl array of signed short integers
                                              indicating which isoform type the cb is */
 
-    signed short int* cb_bound_to_a_f;  /**< pointer to an array of signed short integers
+    gsl_vector_short* cb_bound_to_a_f;  /**< pointer to a gsl_array of signed short integers
                                              indicating which a_f, the cb is bound to */
-    signed short int* cb_bound_to_a_n;  /**< pointer to an array of signed short integers
+    gsl_vector_short* cb_bound_to_a_n;  /**< pointer to a gsl array of signed short integers
                                              indicating which a_n on the corresponding a_f
                                              the cb is bound to */
 
-    signed short int* cb_nearest_a_f;   /**< pointer to an array of signed short integers
+    gsl_vector_short* cb_nearest_a_f;   /**< pointer to a gsl array of signed short integers
                                              indicating which a_f, the cb is nearest to */
-    signed short int* cb_nearest_a_n;   /**< pointer to an array of signed short integers
-                                             indicating which a_n on the corresponding a_f
-                                             the cb is nearest to */
 
-    signed short int* cb_controlling_pc_index;
-                                        /**< pointer to an array of signed short integers
+    gsl_matrix_short* cb_nearest_a_n;   /**< pointer to a matrix of signed short integers
+                                             indicating which a_n on the corresponding a_f
+                                             the cb is closest to. The second dimension holds
+                                             the information for adjacent_bs with the nearest bs
+                                             in the middle */
+
+    gsl_matrix* cb_nearest_bs_angle_diff;
+                                        /**< pointer to gsl_matrix holding angular differences
+                                             between cb and nearest bs. The second dimension holds
+                                             the information for adjacent_bs with the nearest bs
+                                             in the middle */
+
+    gsl_vector_short* cb_controlling_pc_index;
+                                        /**< pointer to a gsl array of signed short integers
                                              indicating the index of the MyBP-C that
                                              influences the myosin head */
 
@@ -148,30 +157,34 @@ public:
 
     gsl_vector* pc_angle;               /**< pointer to gsl_vector holding pc_x positions */
 
-    signed short int* pc_node_index;    /**< pointer to an array of signed short integers
+    gsl_vector_short* pc_node_index;    /**< pointer to a gsl array of signed short integers
                                              indicating which node the pc is associated
                                              with */
 
-    signed short int* pc_state;         /**< pointer to an array of signed short integers
+    gsl_vector_short* pc_state;         /**< pointer to a gsl array of signed short integers
                                              indicating which state the pc is in */
 
-    signed short int* pc_iso;          /**< pointer to an array of signed short integers
+    gsl_vector_short* pc_iso;          /**< pointer to a gsl array of signed short integers
                                              indicating where pc is phosphorylated */
 
-    signed short int* pc_bound_to_a_f;  /**< pointer to an array of signed short integers
+    gsl_vector_short* pc_bound_to_a_f;  /**< pointer to a gsl array of signed short integers
                                              indicating which a_f the pc is bound to */
-    signed short int* pc_bound_to_a_n;  /**< pointer to an array of signed short integers
+    gsl_vector_short* pc_bound_to_a_n;  /**< pointer to a gsl array of signed short integers
                                              indicating which a_n the pc is bound to */
 
-    signed short int* pc_nearest_a_f;   /**< pointer to an array of signed short integers
+    gsl_vector_short* pc_nearest_a_f;   /**< pointer to a gsl array of signed short integers
                                              indicating which a_f the pc is nearest to */
-    signed short int* pc_nearest_a_n;   /**< pointer to an array of signed short integers
+
+    gsl_matrix_short* pc_nearest_a_n;   /**< pointer to a gsl matrix of signed short integers
                                              indicating which a_n the pc is nearest to */
+
+    gsl_matrix* pc_nearest_bs_angle_diff;
+                                        /**< pointer to gsl_matrix holding angular differences
+                                             between pc and nearest bs. The second dimension holds
+                                             the information for adjacent_bs with the nearest bs
+                                             in the middle */
 
     // Nodes
     gsl_vector* node_forces;            /**< pointer to gsl_vector holding force at each node */
-
-    // Random numbers
-    gsl_rng* rand_generator_iso;            /**< pointer to a random number generator */
 };
 

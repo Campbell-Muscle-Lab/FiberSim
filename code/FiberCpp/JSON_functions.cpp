@@ -152,6 +152,99 @@ namespace JSON_functions {
         }
     }
 
+    //! Writes gsl_vector_short to JSON file
+    void write_gsl_vector_short_as_JSON_array(gsl_vector_short* p_v, FILE* output_file,
+        char label_string[], bool is_last_entry)
+    {
+        // Code writes a gsl_vector to the file which must be open
+
+        // Write the label
+        fprintf_s(output_file, "\t\"%s\": [", label_string);
+
+        // Write the values
+        for (int i = 0; i < (p_v->size); i++)
+        {
+            fprintf(output_file, "%i", gsl_vector_short_get(p_v, i));
+            if (i == ((p_v->size) - 1))
+            {
+                // It's the last entry in the array
+                fprintf_s(output_file, "]");
+                if (!is_last_entry)
+                {
+                    fprintf_s(output_file, ",");
+                }
+                fprintf_s(output_file, "\n");
+            }
+            else
+                fprintf_s(output_file, ", ");
+        }
+    }
+
+    //! Writes gsl_matrix to JSON file
+    void write_gsl_matrix_as_JSON_array(gsl_matrix* p_v, FILE* output_file,
+        char label_string[], bool is_last_entry, int precision)
+    {
+        // Code writes a gsl_matrix to the file which must be open
+
+        // Write the label for the first col
+        for (int col = 0; col < p_v->size2; col++)
+        {
+            fprintf_s(output_file, "\t\"%s[x_%i]\": [", label_string, col);
+            for (int row = 0; row < p_v->size1 ; row++)
+            {
+                fprintf_s(output_file, "%.*F", precision, gsl_matrix_get(p_v, row, col));
+                if (row == (p_v->size1 - 1))
+                {
+                    // It's the last entry in the array
+                    fprintf_s(output_file, "]");
+                    if ((is_last_entry) && (col == (p_v->size2-1)))
+                    {
+                        fprintf_s(output_file, "\n");
+                    }
+                    else
+                    {
+                        fprintf_s(output_file, ",\n");
+                    }
+                }
+                else
+                    fprintf_s(output_file, ", ");
+            }
+        }
+    }
+
+    //! Writes gsl_matrix to JSON file
+    void write_gsl_matrix_short_as_JSON_array(gsl_matrix_short* p_v, FILE* output_file,
+        char label_string[], bool is_last_entry, int transpose)
+    {
+        // Code writes a gsl_matrix to the file which must be open
+
+        // Write the label for the first col
+        for (int col = 0; col < p_v->size2; col++)
+        {
+            if (transpose==0)
+                fprintf_s(output_file, "\t\"%s[x_%i]\": [", label_string, col);
+            else
+                fprintf_s(output_file, "\t\"%s[%i_x]\": [", label_string, col);
+
+            for (int row = 0; row < p_v->size1; row++)
+            {
+                fprintf_s(output_file, "%i", gsl_matrix_short_get(p_v, row, col));
+                if (row == (p_v->size1 - 1))
+                {
+                    // It's the last entry in the array
+                    fprintf_s(output_file, "]");
+                    if (!(is_last_entry) || (col<(p_v->size2-1)))
+                    {
+                        fprintf_s(output_file, ",");
+                    }
+                    fprintf_s(output_file, "\n");
+                }
+                else
+                    fprintf_s(output_file, ", ");
+            }
+        }
+    }
+
     void write_short_int_array_as_JSON_array(
         short int p_v[], int n_entries,
         FILE* output_file, char label_string[], bool is_last_entry)

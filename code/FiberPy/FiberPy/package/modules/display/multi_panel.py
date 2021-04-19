@@ -454,7 +454,7 @@ def deduce_axis_limits(lim, mode_string=[]):
     return ((lim[0], lim[1]))
 
 
-def multiple_greater_than(v, multiple=0.2):
+def multiple_greater_than(v, multiple=0.1):
     if (v > 0):
         n = np.floor(np.log10(v))
         m = multiple*np.power(10, n)
@@ -467,7 +467,7 @@ def multiple_greater_than(v, multiple=0.2):
     return v
 
 
-def multiple_less_than(v, multiple=0.2):
+def multiple_less_than(v, multiple=0.1):
     if (v > 0):
         n = np.floor(np.log10(v))
         m = multiple*np.power(10, n)

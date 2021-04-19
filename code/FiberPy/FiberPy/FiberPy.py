@@ -9,6 +9,7 @@ from package.modules.batch.batch import run_batch
 from package.modules.output_handler import output_handler as oh
 from package.modules.fitting import fitting as fit
 from package.modules.visualization import render as viz
+from package.modules.analysis import analysis as anal
 
 def parse_inputs():
 
@@ -27,6 +28,11 @@ def parse_inputs():
     
     if (sys.argv[1] == "movie_with_data"):
         viz.generate_movie_with_data(sys.argv[2])
+    
+    if (sys.argv[1] == "animate_cb_distributions"):
+        an = anal.analysis()
+        an.animate_cb_distributions(
+            sys.argv[2], sys.argv[3])
 
 
 if __name__ == "__main__":
