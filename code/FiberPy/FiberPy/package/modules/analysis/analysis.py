@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-# from modules.half_sarcomere import half_sarcomere as hs
+from package.modules.half_sarcomere import half_sarcomere as hs
 
 import os
 from natsort import natsorted
@@ -23,13 +23,6 @@ class analysis():
       
     def __init__(self):
         """Constructor"""
-        self.k = 1
-        print(self.k)
-        
-#         self.FiberSim_data_file_string = FiberSim_data_file_string
-        
-#         print("FiberSim_data_file_string: %s" % 
-#                self.FiberSim_data_file_string)
         
     def animate_cb_distributions(self, hs_status_directory,
                                 output_gif_file,
@@ -38,9 +31,6 @@ class analysis():
         import os
         from natsort import natsorted
         import imageio
-
-        print(hs_status_directory)
-        print(output_gif_file)
 
         # Get hs_status_files
         hs_files = []
@@ -57,7 +47,7 @@ class analysis():
         # Limit to specific frames if required
         if (frames):
             hs_files = hs_files[frames[0]:frames[1]]
-        
+
         # Create an animated gig
         with imageio.get_writer(output_gif_file, mode='I') as writer:
             # Now loop through files

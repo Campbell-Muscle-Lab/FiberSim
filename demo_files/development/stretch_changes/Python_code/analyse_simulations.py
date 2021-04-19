@@ -45,12 +45,12 @@ def analyze_simulations():
         axs[0+(c)].set_ylabel('pCa')
 
         axs[3+(c)].plot(x, d['hs_length'])
-        axs[3+(c)].set_ylim([1150, 1750])
+        axs[3+(c)].set_ylim([1150, 1350])
         axs[3+c].set_ylabel('HS length')
         
         axs[6+c].plot(x, d['force'], label='Total')
         axs[6+c].plot(x, d['titin_force'], label='Titin')
-        axs[6+c].set_ylim([0, 250000])
+        axs[6+c].set_ylim([0, 200000])
         axs[6+c].set_ylabel('Force')
         if (c==2):
             axs[6+c].legend(loc='upper left',

@@ -499,6 +499,7 @@ public:
     /**
     * int return_m_transition(double time_step)
     * deduces which, if any transition a myosin head undergoes
+    * works for the first head
     * @return int, -1 = no transition, >=0 indicates transition index
     */
     int return_m_transition(double time_step, int m_counter, int cb_counter);

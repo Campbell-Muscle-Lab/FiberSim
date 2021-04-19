@@ -8,7 +8,7 @@
         "m_filament_density": 0.407e15
     },
   "thick_structure": {
-    "m_n": 25,
+    "m_n": 9,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,
@@ -45,8 +45,8 @@
     },
     "titin_parameters": {
         "t_passive_mode": "linear",
-        "t_k_stiff": 5e-6,
-        "t_slack_length": 0
+        "t_k_stiff": 3e-4,
+        "t_slack_length": 200
     },
     "extracellular_parameters": {
         "e_passive_mode": "exponential",
@@ -87,14 +87,14 @@
               "new_state": 1,
               "rate_type": "constant",
               "rate_parameters": [
-                10
+                100
               ]
             },
             {
               "new_state": 3,
               "rate_type": "gaussian",
               "rate_parameters": [
-                50
+                200
               ]
             },
             {
@@ -109,14 +109,14 @@
         {
           "number": 3,
           "type": "A",
-          "extension": 5.0,
+          "extension": 0.0,
           "transition": [
             {
               "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
-                100,
-                10,
+                1000,
+                1,
                 4
               ]
             },
@@ -124,7 +124,7 @@
               "new_state": 4,
               "rate_type": "constant",
               "rate_parameters": [
-                0
+                50
               ]
             }
           ]
@@ -138,8 +138,8 @@
               "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
-                100,
                 10,
+                0.01,
                 4
               ]
             },
@@ -181,7 +181,7 @@
               "new_state": 2,
               "rate_type": "gaussian",
               "rate_parameters": [
-                50
+                0
               ]
             }
           ]

@@ -189,7 +189,7 @@ namespace JSON_functions {
         // Write the label for the first col
         for (int col = 0; col < p_v->size2; col++)
         {
-            fprintf_s(output_file, "\t\"%s[:, %i]\": [", label_string, col);
+            fprintf_s(output_file, "\t\"%s[x_%i]\": [", label_string, col);
             for (int row = 0; row < p_v->size1 ; row++)
             {
                 fprintf_s(output_file, "%.*F", precision, gsl_matrix_get(p_v, row, col));
@@ -222,9 +222,9 @@ namespace JSON_functions {
         for (int col = 0; col < p_v->size2; col++)
         {
             if (transpose==0)
-                fprintf_s(output_file, "\t\"%s[:, %i]\": [", label_string, col);
+                fprintf_s(output_file, "\t\"%s[x_%i]\": [", label_string, col);
             else
-                fprintf_s(output_file, "\t\"%s[%i, :]\": [", label_string, col);
+                fprintf_s(output_file, "\t\"%s[%i_x]\": [", label_string, col);
 
             for (int row = 0; row < p_v->size1; row++)
             {
