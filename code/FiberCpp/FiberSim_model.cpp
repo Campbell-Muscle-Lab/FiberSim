@@ -42,8 +42,8 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
 
     set_FiberSim_model_parameters_from_JSON_file_string(JSON_model_file_string);
 
-        if (p_fs_options->log_mode > 0)
-        {
+    if (strlen(p_fs_options->log_folder) > 0)
+    {
         // Dumps model file
         //write_FiberSim_model_to_file();
         //sprintf_s(p_fs_options->log_folder, _MAX_PATH, "c:\\temp");
@@ -52,7 +52,8 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
         char model_JSON_file_string[_MAX_PATH];
         sprintf_s(model_JSON_file_string, _MAX_PATH, "%s\\kinetic_scheme.json",
                     p_fs_options->log_folder);
-        for (int i = 0; i < m_no_of_isotypes; i ++){
+        for (int i = 0; i < m_no_of_isotypes; i ++)
+        {
             p_m_scheme[i]->write_kinetic_scheme_to_file(model_JSON_file_string);
         }
         
@@ -67,9 +68,6 @@ FiberSim_model::~FiberSim_model()
     {
         fprintf_s(p_fs_options->log_file, "In FiberSim_model destructor\n");
     }
-
-//    if (p_m_scheme != NULL)
-//        delete p_m_scheme;
 
     // Delete thick filaments
     for (int i = 0; i < m_no_of_isotypes; i++)

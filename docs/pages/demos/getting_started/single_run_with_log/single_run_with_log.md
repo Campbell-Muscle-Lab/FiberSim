@@ -12,79 +12,108 @@ nav_order: 2
 
 This demo builds on the [single_run_demo](../single_run/single_run.html) and shows you how to log additional information about the simulations.
 
-The demo will:
-+ write status files to a log folder
-  + these are useful for debugging
-+ save a snapshot of the simulation at each time-step
-  + these are useful for debugging and for creating visualizations
+## What this demo does
 
-## How this works
+In addition to saving a results data file and a summary figure, this simulation:
 
-The demo `single_run_with_log.py` initiates a simulation using this batch file.
+* Writes status files to a log folder - these are useful for debugging
+
+* Saves a snapshot of the simulation for each time-step specified in the option file - these are useful for debugging and for creating visualizations
+
+### How this works
+
+The demo `single_run_with_log.py` initiates a simulation using this batch file:
 
 ````
 {
-  "FiberSim_batch": {
-    "FiberSim_exe_path": "../../../bin/FiberSim.exe",
-    "job":[
-      {
-        "input_folder": "package/demo_files/getting_started/single_run_with_log",
-        "model_file_string": "model_single_run_with_log.json",
-        "options_file_string": "options_single_run_with_log.json",
-        "protocol_file_string": "pCa45_protocol.txt",
-        "output_folder": "package/demo_files/temp/single_run_with_log"
-      }
-    ]
-  }
+    "FiberSim_batch": {
+        "FiberSim_exe":
+        {
+            "relative_to": "this_file",
+            "exe_file": "../../../bin/FiberSim.exe"
+        },
+        "job":[
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input/model.json",
+                "options_file": "sim_input/options.json",
+                "protocol_file": "sim_input/pCa45_protocol.txt",
+                "results_file": "sim_output/results.txt",
+                "output_handler_file": "sim_input/output_handler.json"
+            }
+        ]
+    }
 }
 ````
 
-As you can see, the batch has a single job - that is, you are running just one simulation.
-
-The model, protocol, and output folder are defined as explained in the [single_run_demo](../single_run/single_run.html).
-
-The only significant difference is in the options file which is shown below.
+The model, protocol, results, and output_handler_file are the same files as those used for the [single run demo](../single_run/single_run.html). The only significant difference is in the options file which is shown below:
 
 ````
 {
   "options": {
     "max_rate": 1e4,
-    "x_pos_rel_tol": 1e-3,
-    "log_folder": "package/demo_files/temp/single_run_with_log_dump",
-    "dump_hs_status": 1
+    "x_pos_rel_tol": 1e-3, 
+    "logging": 
+    {
+      "relative_to": "this_file",
+      "log_folder": "../sim_output/log" 
+    },
+    "status_files":
+    {
+      "relative_to": "this_file",
+      "status_folder": "../sim_output/hs",
+      "time_steps": "1:10:300"
+    }
   }
 }
 ````
 
 Two options have been added:
-+ log folder - a relative path to a folder where log files will be created
-+ dump_hs_status
-  + 0 - do not save snapshots of the simulations
-  + 1 - save snapshots of the simulations at each time-step in `<log_folder>/hs_status`
++ `logging`
+	+ `log_folder` - relative path to the folder where the log file will be created 
++ `status_files`
+  + `status_folder` - relative path to the folder where the simulation snapshots will be saved
+  + `time_steps` - snapshots of the simulation are saved for each specified time-steps. In this case, one in ten snapshots between time-step = 1 and time-step = 300 will be saved 
 
 ## Instructions
 
-+ Start Anaconda Navigator
-+ Select the Environments tab (left-hand side)
-+ Open a FiberSim terminal
-+ Change directory to `<repo>/code/FiberPy/FiberPy`
-+ Type `python FiberPy.py demos getting_started single_run_with_log`
-+ You should see
-  + some text appearing in the terminal window
-  + a new figure popping up
-+ Close the figure to return focus to the terminal window
+### Getting ready
 
-## Output
+1. Open an Anaconda Prompt
+2. Activate the FiberSim Anaconda Environment by executing:
+    ```
+    conda activate fibersim
+    ```
+3. Change directory to `<repo>/code/FiberPy/FiberPy`, where `<repo>` is the directory where you installed FiberSim
 
-You should see the same figure output as for [single_run_demo](../single_run/single_run.html).
+### Run a simulation
 
-You will also see additional files in `package/temp/simple_run_with_log_dump`
+* Type:
+ ```
+ python FiberPy.py run_batch "../../../demo_files/getting_started/single_run_with_log/batch_single_run_with_log.json"
+ ```
+
+* You should see some text appearing in the terminal window
+
+<p align="center">
+<img src="prompt.PNG" width="600"/>
+</p>
+
+## Viewing the results
+
+You should see the same figure and results outputs as for [single_run_demo.](../single_run/single_run.html)
+
+You will also see additional folders in `demo_files\getting_started\single_run_with_log\sim_output`
+
++ The `log` folder:
+
 ![log files](log_folder.png)
 
-If you look in the `hs_status` folder, you will see additional files.
-![hs_status_folder](hs_status_folder.png)
++ The `hs` folder:
 
-Each file in the `hs_status_folder` shows a snapshot of the model in json format. Here are the first few lines of one of the files.
+![hs files](hs_folder.png)
+
+Each file in the `hs_folder` shows a snapshot of the model in JSON format. Here are the first few lines of one of the files:
 
 ````
 {

@@ -2,19 +2,19 @@
     "muscle": {
         "no_of_half_sarcomeres": 1,
         "no_of_myofibrils": 1,
-        "initial_hs_length": 950,
-        "prop_fibrosis": 0.1,
-        "prop_myofilaments": 0.6,
-        "m_filament_density": 0.407e15
+        "initial_hs_length": 1100,
+        "prop_fibrosis": 0.0,
+        "prop_myofilaments": 1.0,
+        "m_filament_density": 0.25e15
     },
   "thick_structure": {
     "m_n": 9,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,
-    "m_inter_crown_rest_length": 14.3,
+    "m_inter_crown_rest_length": 13.5,
     "m_lambda": 80.0,
-    "m_starting_angle": -10.0,
+    "m_starting_angle": 0.0,
     "m_inter_crown_twist": 40.0,
     "m_within_hub_twist": 20.0,
     "m_cb_angular_separation": 20.0,
@@ -36,16 +36,16 @@
     "thin_parameters": {
         "a_no_of_bs_states": 2,
         "a_k_stiff": 100,
-        "a_k_on": 2.0e7,
+        "a_k_on": 2.03e7,
         "a_k_off": 100,
-        "a_k_coop": 8
+        "a_k_coop": 8.37
     },
     "thick_parameters": {
         "m_k_stiff": 100
     },
     "titin_parameters": {
         "t_passive_mode": "linear",
-        "t_k_stiff": 5e-5,
+        "t_k_stiff": 8e-6,
         "t_slack_length": 0
     },
     "extracellular_parameters": {
@@ -56,7 +56,7 @@
     },
   "m_parameters": {
     "m_k_cb": 0.001,
-    "m_isotype_proportions": [ 1.0 ]
+    "m_isotype_proportions": [1]
   },
   "m_kinetics": [
     {
@@ -65,7 +65,7 @@
       "scheme": [
         {
           "number": 1,
-          "type": "S",
+          "type": "D",
           "extension": 0,
           "transition": [
             {
@@ -73,7 +73,7 @@
               "rate_type": "force_dependent",
               "rate_parameters": [
                 10,
-                1000
+                500
               ]
             }
           ]
@@ -87,7 +87,7 @@
               "new_state": 1,
               "rate_type": "constant",
               "rate_parameters": [
-                100
+                50
               ]
             },
             {
@@ -108,7 +108,7 @@
               "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
-                50,
+                40,
                 1,
                 4
               ]
@@ -128,7 +128,7 @@
     },
   "mybpc_parameters": {
     "c_k_stiff": 0.0005,
-    "c_isotype_proportions": [1.0]
+    "c_isotype_proportions": [1]
   },
   "c_kinetics": [
     {
@@ -144,7 +144,7 @@
               "new_state": 2,
               "rate_type": "gaussian",
               "rate_parameters": [
-                100
+                0
               ]
             }
           ]
@@ -158,7 +158,7 @@
               "new_state": 1,
               "rate_type": "poly",
               "rate_parameters": [
-                100,
+                0,
                 0,
                 0
               ]
