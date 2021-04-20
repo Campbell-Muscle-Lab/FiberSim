@@ -53,8 +53,7 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
         sprintf_s(model_JSON_file_string, _MAX_PATH, "%s\\kinetic_scheme.json",
                     p_fs_options->log_folder);
         for (int i = 0; i < m_no_of_isotypes; i ++)
-        {
-            p_m_scheme[i]->write_kinetic_scheme_to_file(model_JSON_file_string);
+        {            p_m_scheme[i]->write_kinetic_scheme_to_file(model_JSON_file_string);
         }
         
     }

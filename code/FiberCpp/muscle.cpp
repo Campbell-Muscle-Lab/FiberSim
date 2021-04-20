@@ -129,18 +129,64 @@ void muscle::implement_time_step(int protocol_index)
 	//! Code implements a time-step
 
 	// Variables
-	size_t calculate_x_iterations;
+	size_t calculate_x_iterations;			// number of iterations required to solve
+											// half-sarcomere force balance
+
+	double sim_mode;						// value from protocol file
+
+	double new_length;						// hs_length if muscle is slack
+	double adjustment;						// length change to implose
 
 	// Code
 
 	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
 	{
-		calculate_x_iterations = 
-			p_hs[hs_counter]->implement_time_step(
-			gsl_vector_get(p_fs_protocol->dt, protocol_index),
-			gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index),
-			gsl_vector_get(p_fs_protocol->sim_mode, protocol_index),
-			gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+		// Update the hs_command_length
+		p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_command_length +
+			gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
+
+		// Branch on control mode
+		sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
+
+		if (sim_mode == -1.0)
+		{
+			// Check slack length mode for ktr
+			p_hs[hs_counter]->hs_slack_length =
+				p_hs[hs_counter]->return_hs_length_for_force(0.0);
+
+			// The hs_length cannot be shorter than its slack length
+			new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
+				p_hs[hs_counter]->hs_command_length);
+
+			// The increment might be smaller than delta_hsl if we are catching up
+			// on slack
+			adjustment = new_length - p_hs[hs_counter]->hs_length;
+
+			// Make the adjustment
+			calculate_x_iterations =
+				p_hs[hs_counter]->implement_time_step(
+					gsl_vector_get(p_fs_protocol->dt, protocol_index),
+					adjustment,
+					sim_mode,
+					gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+		}
+		else
+		{
+			// Over-write slack length
+			p_hs[hs_counter]->hs_slack_length = GSL_NAN;
+
+			// Normal operation
+			calculate_x_iterations =
+				p_hs[hs_counter]->implement_time_step(
+					gsl_vector_get(p_fs_protocol->dt, protocol_index),
+					gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index),
+					gsl_vector_get(p_fs_protocol->sim_mode, protocol_index),
+					gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+
+			// Update command length with current hs_length
+			// which will have changed in isotonic mode
+			p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_length;
+		}
 
 		if ((protocol_index % 100) == 0)
 		{
@@ -162,6 +208,8 @@ void muscle::implement_time_step(int protocol_index)
 	// Update FiberSim_data
 	gsl_vector_set(p_fs_data->fs_time, protocol_index, p_hs[0]->time_s);
 	gsl_vector_set(p_fs_data->fs_length, protocol_index, p_hs[0]->hs_length);
+	gsl_vector_set(p_fs_data->fs_command_length, protocol_index, p_hs[0]->hs_command_length);
+	gsl_vector_set(p_fs_data->fs_slack_length, protocol_index, p_hs[0]->hs_slack_length);
 	gsl_vector_set(p_fs_data->fs_force, protocol_index, p_hs[0]->hs_force);
 	gsl_vector_set(p_fs_data->fs_titin_force, protocol_index, p_hs[0]->hs_titin_force);
 	gsl_vector_set(p_fs_data->fs_extracellular_force, protocol_index,

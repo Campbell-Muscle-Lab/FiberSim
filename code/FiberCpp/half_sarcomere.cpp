@@ -97,6 +97,12 @@ half_sarcomere::half_sarcomere(
     // Zero the step_counter
     step_counter = 0;
 
+    // Set the command length
+    hs_command_length = hs_length;
+
+    // Set the slack length to default
+    hs_slack_length = GSL_NAN;
+
     // Initialise the random number generator
     // This needs to be done before the thick filaments are allocated to allow for
     // lambda jitter
@@ -357,6 +363,21 @@ size_t half_sarcomere::implement_time_step(double time_step,
 
     // Return
     return x_solve_iterations;
+}
+
+double half_sarcomere::return_hs_length_for_force(double target_force)
+{
+    //! Returns the half-sarcomere length required for a given force
+    // Builds on half_sarcomere::calculate_delta_hsl_for_force
+
+    // Variables
+    double delta_hsl;
+
+    // Code
+    delta_hsl = calculate_delta_hsl_for_force(target_force);
+
+    // Return
+    return (hs_length + delta_hsl);
 }
 
 double half_sarcomere::calculate_delta_hsl_for_force(double target_force)
@@ -1797,7 +1818,8 @@ void half_sarcomere::myosin_kinetics(double time_step)
                     if (cb_counter < (m_cbs_per_thick_filament - 1))
                     {
                         if (cb_state !=
-                            gsl_vector_short_get(p_mf[m_counter]->cb_state, cb_counter + 1))
+                            gsl_vector_short_get(p_mf[m_counter]->cb_state,
+                                (size_t)cb_counter + 1))
                         {
                             // dimers have different states
                             s_allowed = false;
@@ -2099,14 +2121,7 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
     // Non-binding transitions are single elements
     transition_probs = gsl_vector_alloc((size_t)max_transitions * (size_t)m_attachment_span);
     gsl_vector_set_zero(transition_probs);
-
-    // Allocate and zero the transition vector
-    // This vector is max_transitions * m_attachment_span
-    // Binding events to different actin nodes are in different elements
-    // Non-binding transitions are single elements
-    transition_probs = gsl_vector_alloc((size_t)max_transitions * (size_t)m_attachment_span);
-    gsl_vector_set_zero(transition_probs);
-
+    
     // Get the a_f and the a_n for the mybpc
     if (p_c_state->state_type == 'A')
     {

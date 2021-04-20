@@ -13,7 +13,7 @@ def create_protocol_file():
 
     for i in range(0,3):
         # Make base_vectors vectors
-        n_points = 15000
+        n_points = 45000
         time_step = 0.0001
     
         dt = time_step * np.ones(n_points)
@@ -22,17 +22,17 @@ def create_protocol_file():
         mode = -2 * np.ones(n_points)
     
         # Implement Ca ste
-        pCa[50::] = 5.8
+        pCa[50::] = 6.0
     
         # Implement force control
         if (i==0):
             dhsl[0] = 50
         elif (i==1):
-            dhsl[5000:10000] = 0.01
+            dhsl[25000:30000] = 0.01
         else:
             dhsl[0] = 100
             
-            dhsl[5000:10000] = -0.01
+            dhsl[25000:30000] = -0.01
     
         # Create pandas dataframe
         df = pd.DataFrame({'dt':dt, 'pCa':pCa, 'dhsl':dhsl, 'mode':mode})

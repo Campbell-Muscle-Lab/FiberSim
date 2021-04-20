@@ -221,7 +221,11 @@ def multi_panel_from_flat_data(
             vi = np.nonzero((x >= p_data['x_ticks'][0]) &
                             (x <= p_data['x_ticks'][-1]))
             x = x[vi]
-            y = pandas_data[y_d['field']].to_numpy()[vi]
+            
+            # Pull y data, handling NaNs
+            y = pandas_data[y_d['field']]
+            y = pd.to_numeric(y, errors='coerce')
+            y = y.values[vi]
 
             if 'scaling_factor' in y_d:
                 y = y * y_d['scaling_factor']
@@ -238,8 +242,14 @@ def multi_panel_from_flat_data(
                 max_y = y[0]
             min_x = np.amin([min_x, np.amin(x)])
             max_x = np.amax([max_x, np.amax(x)])
-            min_y = np.amin([min_y, np.amin(y)])
-            max_y = np.amax([max_y, np.amax(y)])
+            
+            y_finite = y[~np.isnan(y)]
+            if (len(y_finite) == 0):
+                min_y = 0
+                max_y = 0
+            else:
+                min_y = np.amin([min_y, np.amin(y_finite)])
+                max_y = np.amax([max_y, np.amax(y_finite)])
 
             # Down sample line if required
             if (x.size > processing['max_points_per_trace']):
