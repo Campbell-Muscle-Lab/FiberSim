@@ -55,6 +55,12 @@ public:
 
 	gsl_vector* fs_length;		/**< gsl_vector holding hs_length (nm) for each time-point */
 
+	gsl_vector* fs_command_length;
+								/**< gsl_vector holding command_length for each time point */
+
+	gsl_vector* fs_slack_length;
+								/**< gsl_vector holding slack length for each time-point */
+
 	gsl_vector* fs_a_length;	/**< gsl_vector holder thin_filament length (nm) for
 										 each time-point */
 

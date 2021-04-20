@@ -69,6 +69,17 @@ public:
 
     double pCa;                     /**< double holding intracellular pCa */
 
+    double hs_command_length;       /**< double holding half-sarcomere length in nm
+                                         defined as the initial_hs_length from the
+                                         model file plus the cum sum of delta_hsl
+                                         from the protocol file.
+                                         hs_length will equal command length except
+                                         if the muscle has fallen slack (force = 0) */
+
+    double hs_slack_length;         /**< double holding half-sarcomere length in nm
+                                         when force is 0, this is calculated when
+                                         mode == -1, is GSL_NaN otherwise */
+
     // Thick filament structure
 
     thick_filament* p_mf[MAX_NO_OF_THICK_FILAMENTS];
@@ -409,6 +420,14 @@ public:
     * @return a double with the delta_hsl required to get target_force
     */
     double calculate_delta_hsl_for_force(double target_force);
+
+    /**
+    * wrapper aronud calculate_delta_hsl_for_force(double target_force)
+    * that returns the hs_length for a given target force
+    * @param target_force a double with the required target force
+    * return a double with the hs_length at the target force
+    */
+    double return_hs_length_for_force(double target_force);
 
     static double test_force_wrapper(double delta_hsl, void* params);
 

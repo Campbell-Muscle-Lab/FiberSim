@@ -10,6 +10,9 @@
 
 #include "muscle.h"
 
+#include "gsl_math.h"
+#include <math.h>
+
 // Pointers
 muscle* p_muscle;       /**< pointer to a muscle */
 
