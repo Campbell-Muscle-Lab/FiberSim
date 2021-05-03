@@ -86,6 +86,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 
     if (strlen(log_folder) > 0)
     {
+        log_mode = 1;
         if (!strcmp(log_relative_to, "this_file"))
         {
             fs::path options_file = JSON_options_file_string;
@@ -115,78 +116,23 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
             // Set the log folder
             sprintf_s(log_folder, _MAX_PATH, "%s", log_path.string().c_str());
 
-            write_FiberSim_options_to_file();
-        }
-    }
-
-/*
-
-        }
-        // Set the log mode
-        log_mode = 1;
-        
-        // Clear log direcory
-        printf("Clearing log folder\n");
-
-        if (is_directory(log_folder))
-        {
-            // This removes the directory as well as the files
-            std::uintmax_t n = remove_all(log_folder);
-            printf("Deleted %i file(s) from %s\n", (int)n, log_folder);
-        }
-
-        // Now create the log directory
-        if (create_directory(log_folder))
-        {
-            printf("Log folder created at: %s\n", log_folder);
-        }
-        else
-        {
-            printf("Log folder could not be created: %s\n", log_folder);
-            exit(1);
-        }
-
-        // Create the log file
-        sprintf_s(log_file_string, _MAX_PATH, "%s/log_file.log", log_folder);
-        errno_t err = fopen_s(&log_file, log_file_string, "w");
-        if (err != 0)
-        {
-            printf("log file: %s\ncould not be opened\n", log_file_string);
-            exit(1);
-        }
-        else
-        {
-            printf("log file opened: %s\n", log_file_string);
-            fprintf_s(log_file, "Log file opened\n");
-        }
-
-        // Check whether we need another folder for the hs_status files
-        if (dump_hs_status)
-        {
-            sprintf_s(hs_status_folder, _MAX_PATH, "%s/%s", log_folder, "hs_status");
-            if (create_directory(hs_status_folder))
+            // Create the log file
+            sprintf_s(log_file_string, _MAX_PATH, "%s/log_file.log", log_folder);
+            errno_t err = fopen_s(&log_file, log_file_string, "w");
+            if (err != 0)
             {
-                printf("HS status folder created at :%s\n", hs_status_folder);
+                printf("log file: %s\ncould not be opened\n", log_file_string);
+                exit(1);
             }
             else
             {
-                printf("HS status folder could not be created: %s\n", hs_status_folder);
-                exit(1);
+                printf("log file opened: %s\n", log_file_string);
+                fprintf_s(log_file, "Log file opened\n");
             }
-        }
-        else
-        {
-            // Set the folder as an emptry string
-            sprintf_s(hs_status_folder, _MAX_PATH, "");
-        }
 
-        //write_FiberSim_options_to_file();
+            write_FiberSim_options_to_file();
+        }
     }
-    else
-    {
-        log_mode = 0;
-    }
-*/
 }
 
 // Destructor

@@ -1814,15 +1814,17 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
                     if (GSL_IS_ODD(cb_counter))
                         s_allowed = false;
-
-                    if (cb_counter < (m_cbs_per_thick_filament - 1))
+                    else 
                     {
-                        if (cb_state !=
-                            gsl_vector_short_get(p_mf[m_counter]->cb_state,
-                                (size_t)cb_counter + 1))
+                        if (cb_counter < (m_cbs_per_thick_filament - 1))
                         {
-                            // dimers have different states
-                            s_allowed = false;
+                            if (cb_state !=
+                                gsl_vector_short_get(p_mf[m_counter]->cb_state,
+                                    (size_t)cb_counter + 1))
+                            {
+                                // dimers have different states
+                                s_allowed = false;
+                            }
                         }
                     }
 
@@ -2641,12 +2643,26 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
             p_mf[thick_counter]->m_lambda);
         fprintf_s(output_file, "\t\"c_no_of_pcs\": %i,\n", c_no_of_pcs);
 
+        /** Whole "nearest actin filaments" matrix is now dumped in the log file 
+        
         sprintf_s(temp_string, _MAX_PATH, "%s", "nearest_actin_filaments");
         JSON_functions::write_gsl_matrix_short_as_JSON_array(
             nearest_actin_matrix,
             output_file, temp_string,
             false, 1);
 
+        */
+
+        fprintf_s(output_file, "\t\"nearest_actin_filaments\": [");
+        for (int i = 0; i < 6; i++)
+        {
+            fprintf_s(output_file, "%i", gsl_matrix_short_get(nearest_actin_matrix, thick_counter, i));
+            if (i < 5)
+                fprintf_s(output_file, ", ");
+            else
+                fprintf_s(output_file, "],\n");
+        }
+        
         sprintf_s(temp_string, _MAX_PATH, "cb_x");
         JSON_functions::write_gsl_vector_as_JSON_array(
             p_mf[thick_counter]->cb_x, output_file,
