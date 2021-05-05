@@ -5,13 +5,6 @@ Created on Mon May  3 17:48:49 2021
 @author: sako231
 """
 
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 21 20:51:24 2021
-
-@author: srhko
-"""
-
 import os, sys
 import json
 
@@ -25,7 +18,7 @@ import path_definitions as pd
 import kinetics_data as kd
 
 import numpy as np
-from natsort import os_sorted
+from natsort import natsorted
 import matplotlib.pyplot as plt
 
 def compute_m_kinetics_rate():
@@ -40,7 +33,7 @@ def compute_m_kinetics_rate():
 
         hs_file.append(filenames)
 
-    hs_file = os_sorted(hs_file) # sorting the dump files
+    hs_file = natsorted(hs_file) # sorting the dump files
     
     ### Get the time step ###
 
@@ -72,32 +65,31 @@ def compute_m_kinetics_rate():
     prob = np.zeros((len(m_kinetics), max_no_of_trans, kd.NB_INTER),dtype=float)
     calculated_rate = np.zeros((len(m_kinetics), max_no_of_trans, kd.NB_INTER),dtype=float)
                
-    # HS at t0
+    # HS at t
     hs_0 = half_sarcomere.half_sarcomere(hs_file[0])["hs_data"]
   
-    for ind in range(1,len(hs_file)):
-                
-        # HS at t0 + delta t
+    for ind in range(1,len(hs_file)): 
+        # HS at t + dt
         hs_1 = half_sarcomere.half_sarcomere(hs_file[ind])["hs_data"]
       
-        for i, thick_fil_0 in enumerate(hs_0["thick"]):
+        for i, thick_fil_0 in enumerate(hs_0["thick"]): # Loop over all thick filaments
             
-            thick_fil_1 = hs_1["thick"][i]
+            thick_fil_1 = hs_1["thick"][i] 
    
-            for cb_ind, state_0 in enumerate(thick_fil_0["cb_state"]):
+            for cb_ind, state_0 in enumerate(thick_fil_0["cb_state"]): # loop over all CBs
                 
-                cb_iso_0 = thick_fil_0["cb_iso"][cb_ind]
-                cb_iso_1 = thick_fil_1["cb_iso"][cb_ind]
+                cb_iso_0 = thick_fil_0["cb_iso"][cb_ind] # CB isotype at t
+                cb_iso_1 = thick_fil_1["cb_iso"][cb_ind] # CB isotype at t + dt
                
                 # Check isotype does not change through time
                 if cb_iso_0 != cb_iso_1:                    
                     raise RuntimeError(f"Isotype #{cb_iso_0} turned into isotype #{cb_iso_1}")
                     
-                cb_state_0 = thick_fil_0["cb_state"][cb_ind] # CB state at t0
-                cb_state_1 = thick_fil_1["cb_state"][cb_ind] # CB state at t0 + time_step
+                cb_state_0 = thick_fil_0["cb_state"][cb_ind] # CB state at t
+                cb_state_1 = thick_fil_1["cb_state"][cb_ind] # CB state at t + dt
                 
-                cb_0_type = m_kinetics[cb_iso_0-1][cb_state_0-1]["state_type"] # CB type at t0 + time_step
-                cb_1_type = m_kinetics[cb_iso_0-1][cb_state_1-1]["state_type"] # CB type at t0 + time_step
+                cb_0_type = m_kinetics[cb_iso_0-1][cb_state_0-1]["state_type"] # CB type at t
+                cb_1_type = m_kinetics[cb_iso_1-1][cb_state_1-1]["state_type"] # CB type at t + dt
                                                 
                 ### Determine if a transition occurred ###
                 
@@ -107,11 +99,14 @@ def compute_m_kinetics_rate():
                     for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]:  # look through all transitions for cb_state_0
                         if trans["to"] == cb_state_1:
                             idx = trans["index"]
+                        else:
+                            raise RuntimeError(f"Transition index not found for transition from \
+                                               state {cb_state_0} to state {cb_state_1}")
                     
                     # Fill the element of the transition counter matrix
                     # with the proper transition index and stretch values
                     
-                    if cb_0_type == 'S':
+                    if cb_0_type == 'S': # NOT IMPLEMENTED YET
                     
                         # Check is cb_ind is odd -> no complete transition to account for
                         # Complete transition if cb_ind is even
@@ -121,10 +116,10 @@ def compute_m_kinetics_rate():
                     elif cb_0_type == 'A': # Get the CB stretch
                         
                         thin_ind = thick_fil_0["cb_bound_to_a_f"][cb_ind]
-                        thin_fil = hs_0["thin"][thin_ind]
+                        thin_fil_0 = hs_0["thin"][thin_ind]
                         bs_ind_0 = thick_fil_0["cb_bound_to_a_n"][cb_ind]
                     
-                        stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind_0]                     
+                        stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil_0["bs_x"][bs_ind_0] 
                         cb_stretch_0 = kd.get_stretch_interval(stretch)
                                             
                         complete_transition[cb_iso_0-1,idx,cb_stretch_0] += 1
@@ -137,7 +132,7 @@ def compute_m_kinetics_rate():
                             thin_fil = hs_0["thin"][thin_ind]
                             bs_ind_1 = thick_fil_1["cb_bound_to_a_n"][cb_ind]
                             
-                            stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind_1]                     
+                            stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind_1] 
                             cb_stretch_0 = kd.get_stretch_interval(stretch)
                                             
                             complete_transition[cb_iso_0-1,idx,cb_stretch_0] += 1
@@ -156,6 +151,7 @@ def compute_m_kinetics_rate():
             
                                 bs_ind[j] = thick_fil_0[f"cb_nearest_a_n[x_{j}]"][cb_ind]                                       
                                 stretch[j] = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind[j]] 
+                                                
                                 cb_stretch_0 = kd.get_stretch_interval(stretch[j])
                                 
                                 complete_transition[cb_iso_0-1,idx,cb_stretch_0] += 1
@@ -188,7 +184,7 @@ def compute_m_kinetics_rate():
                     thin_fil = hs_0["thin"][thin_ind]   # Correction 
                     
                     stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind_0] 
-                    
+
                     cb_stretch_0 = kd.get_stretch_interval(stretch)
                     
                     for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]: 
@@ -214,7 +210,7 @@ def compute_m_kinetics_rate():
     
                         bs_ind[j] = thick_fil_0[f"cb_nearest_a_n[x_{j}]"][cb_ind]                                       
                         stretch[j] = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind[j]] 
-                   
+                                           
                     for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]:
                         
                         new_state = trans["to"]
@@ -228,7 +224,8 @@ def compute_m_kinetics_rate():
                                 
                                 bs_availability = thick_fil_0[f"cb_nearest_a_n_states[x_{k}]"][cb_ind] 
                             
-                                if bs_availability == 2: # bs is free and available for attachment                                                                                
+                                if bs_availability == 2: # bs is free and available for attachment
+        
                                     cb_stretch_0 = kd.get_stretch_interval(stretch[k])
                                     potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0] += 1 
 
@@ -238,7 +235,7 @@ def compute_m_kinetics_rate():
                             # Potential transition if cb_ind is even
                             break 
                         
-                        else: # Transition to a "D" state is always possible
+                        elif m_kinetics[cb_iso_0-1][new_state-1]["state_type"]== 'D': # Transition to a "D" state is always possible
                             for k in range(0, 2*adj_bs +1):   
                                 cb_stretch_0 = kd.get_stretch_interval(stretch[k])
                                 potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0] += 1                                                           
@@ -252,16 +249,18 @@ def compute_m_kinetics_rate():
     
     for iso in range(0, len(m_kinetics)):
         for trans in range(0, max_no_of_trans):
-            for stretch_bin in range(0,kd.NB_INTER-1):
-                if potential_transition[iso, trans, stretch_bin] == 0:          
+            for stretch_bin in range(0,kd.NB_INTER):
+                if potential_transition[iso, trans, stretch_bin] == 0:
+                    #print("No potential transition ! \n")
+                    #print("# completed transition", complete_transition[iso, trans, stretch_bin])
                     prob[iso, trans, stretch_bin] = 0
                 else:
                     prob[iso, trans, stretch_bin] = complete_transition[iso, trans, stretch_bin]/potential_transition[iso, trans, stretch_bin]
                     if prob[iso, trans, stretch_bin] >= 1:
                         print("probability greater than 1")
-                    else:
-                        calculated_rate[iso, trans, stretch_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin]) / time_step
-                        
+
+                calculated_rate[iso, trans, stretch_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin]) / time_step
+                           
     ### Calculate 95% CI ###
     
     # p = (complete_transition + 2)/(potential_transition + 4)
@@ -271,7 +270,7 @@ def compute_m_kinetics_rate():
     # conf_interval_pos = -np.log(1.0 - (p + W)) / time_step    
     # conf_interval_neg = -np.log(1.0 - ( p - W)) / time_step
    
-    x = np.arange(kd.X_MIN,kd.X_MAX, kd.X_STEP)
+    x = np.arange(kd.X_MIN,kd.X_MAX,kd.X_STEP)
 
     kd.calculate_rate_from_m_kinetics(m_kinetics, pd.MODEL_FILE)  
     

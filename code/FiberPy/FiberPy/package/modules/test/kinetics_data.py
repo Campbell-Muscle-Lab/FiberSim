@@ -127,11 +127,11 @@ def get_stretch_interval(stretch):
     no_interval = int(np.floor((stretch - X_MIN) / X_STEP))
     
     if no_interval >= NB_INTER:
-        #print('interval out of bounds')
+        #print(f'interval out of bounds for stretch = {stretch}')
         no_interval = NB_INTER-1
         
     if no_interval <= 0:
-        #print('interval out of bounds')
+        #print(f'interval out of bounds for stretch = {stretch}')
         no_interval = 0
 
     return no_interval
