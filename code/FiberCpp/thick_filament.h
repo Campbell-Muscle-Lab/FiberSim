@@ -127,6 +127,12 @@ public:
                                              the information for adjacent_bs with the nearest bs
                                              in the middle */
 
+    gsl_matrix_short* cb_nearest_a_n_states;   /**< pointer to a matrix of signed short integers
+                                             indicating the state of the closest a_n for each cb
+                                             RIGHT BEFORE RUNNING MYOSIN_KINETICS. 
+                                             The second dimension holds the information for adjacent_bs 
+                                             with the nearest bs in the middle */
+
     gsl_matrix* cb_nearest_bs_angle_diff;
                                         /**< pointer to gsl_matrix holding angular differences
                                              between cb and nearest bs. The second dimension holds

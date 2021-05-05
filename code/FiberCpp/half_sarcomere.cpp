@@ -1779,6 +1779,8 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
     m_state* p_m_state;                 // pointer to a myosin state
 
+    int bs_state;                        // state of closest bs
+
     // Code
 
     // Cycle through filaments
@@ -1787,12 +1789,45 @@ void half_sarcomere::myosin_kinetics(double time_step)
         // Now cycle through dimers
         if (p_mf[m_counter]->m_myosins_per_hub != 2)
         {
-            printf("half_sarcomere::myosin_kinetics() does not work without myosin dimers");
-            exit(1);
+            //printf("half_sarcomere::myosin_kinetics() does not work without myosin dimers");
+            //exit(1);
         }
+
+        // Reset the nearest BS state matrix for the thick filament
+        gsl_matrix_short_set_all(p_mf[m_counter]->cb_nearest_a_n_states, -1);
 
         for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament; cb_counter++)
         {
+            // For each CB, save the state of closest BS 
+            // right before evaluating the transition events
+
+            int a_f = gsl_vector_short_get(p_mf[m_counter]->cb_nearest_a_f, cb_counter);
+
+            for (size_t span_i = 0; span_i < m_attachment_span; span_i++)
+            {
+                int bs_ind = gsl_matrix_short_get(
+                    p_mf[m_counter]->cb_nearest_a_n, cb_counter, span_i);
+
+                if ((bs_ind < 0) || (bs_ind >= a_bs_per_thin_filament))
+                {
+                    bs_state = -1;           // binding site is not on filament
+                }
+
+                else if (gsl_vector_short_get(p_af[a_f]->bound_to_m_f, bs_ind) >= 0)
+                {
+                    bs_state = -1;           // binding site is already occupied
+                }
+
+                else 
+                {
+                    bs_state = gsl_vector_short_get(p_af[a_f]->bs_state, bs_ind);   // binding site state is ON (1) or OFF (2)
+                }
+
+                gsl_matrix_short_set(p_mf[m_counter]->cb_nearest_a_n_states,
+                    cb_counter, span_i, bs_state); // update cb_nearest_a_n_states element
+            }
+
+            
             transition_index = return_m_transition(time_step, m_counter, cb_counter);
 
             if (transition_index >= 0)
@@ -1810,6 +1845,8 @@ void half_sarcomere::myosin_kinetics(double time_step)
                 // Does it involve the S state
                 if ((old_type == 'S') || (new_type == 'S'))
                 {
+                    
+                    printf("There is an S state");
                     s_allowed = true;
 
                     if (GSL_IS_ODD(cb_counter))
@@ -2004,7 +2041,8 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
 
                     angle = gsl_matrix_get(p_mf[m_counter]->cb_nearest_bs_angle_diff,
                         cb_counter, bs_counter);
-                    alignment_factor = -cos(angle * M_PI / 180.0);
+                    //alignment_factor = -cos(angle * M_PI / 180.0);
+                    alignment_factor = 1.0;
 
                     prob = (1.0 - exp(-time_step * alignment_factor *
                         p_trans->calculate_rate(x, node_f, mybpc_state, mybpc_iso)));
@@ -2477,9 +2515,11 @@ int half_sarcomere::return_event_index(gsl_vector* prob)
         gsl_vector_set(cum_prob, i, holder);
     }
 
-    // Scale if requried (where the probabilities are very high)
+    // Scale if required (where the probabilities are very high)
     if (holder > 1.0)
     {
+// Flag
+printf("Probabilities are re-scaled\n");
         gsl_vector_scale(cum_prob, 1.0 / holder);
     }
 
@@ -2708,6 +2748,12 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "cb_nearest_a_n");
         JSON_functions::write_gsl_matrix_short_as_JSON_array(
             p_mf[thick_counter]->cb_nearest_a_n,
+            output_file,
+            temp_string, false);
+
+        sprintf_s(temp_string, _MAX_PATH, "cb_nearest_a_n_states");
+        JSON_functions::write_gsl_matrix_short_as_JSON_array(
+            p_mf[thick_counter]->cb_nearest_a_n_states,
             output_file,
             temp_string, false);
 

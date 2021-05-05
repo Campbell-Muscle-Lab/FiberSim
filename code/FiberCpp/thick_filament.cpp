@@ -83,6 +83,8 @@ thick_filament::thick_filament(
     cb_nearest_a_f = gsl_vector_short_alloc(m_no_of_cbs);
     cb_nearest_a_n = gsl_matrix_short_alloc(m_no_of_cbs, m_attachment_span);
 
+    cb_nearest_a_n_states = gsl_matrix_short_alloc(m_no_of_cbs, m_attachment_span);
+
     cb_nearest_bs_angle_diff = gsl_matrix_alloc(m_no_of_cbs, m_attachment_span);
 
     cb_controlling_pc_index = gsl_vector_short_alloc(m_no_of_cbs);
@@ -112,6 +114,7 @@ thick_filament::thick_filament(
     gsl_vector_short_set_all(cb_bound_to_a_n, -1);
     gsl_vector_short_set_all(cb_nearest_a_f, -1);
     gsl_matrix_short_set_all(cb_nearest_a_n, -1);
+    gsl_matrix_short_set_all(cb_nearest_a_n_states, -1);
 
     // Allocate space for MyBPC arrays
     c_thick_proximal_node = p_fs_model->c_thick_proximal_node;
@@ -188,6 +191,7 @@ thick_filament::~thick_filament()
     gsl_vector_short_free(cb_bound_to_a_n);
     gsl_vector_short_free(cb_nearest_a_f);
     gsl_matrix_short_free(cb_nearest_a_n);
+    gsl_matrix_short_free(cb_nearest_a_n_states);
 
     gsl_vector_short_free(cb_controlling_pc_index);
 
