@@ -16,55 +16,15 @@ import matplotlib.gridspec as gridspec
 import sys
 sys.path.append("..") 
 
-from package.modules.thin_filament import thin_filament as thin
-from package.modules.thick_filament import thick_filament as thick
-
-
-class half_sarcomere():
+class half_sarcomere(dict):
     """Half-sarcomere class"""
     
     def __init__(self, json_file_string):
 
-        
-        
-        
         with open(json_file_string) as json_file:
             json_data = json.load(json_file)
- 
-            # Load hs data
-            hs_data = json_data['hs_data']
-            self.cb_extensions = hs_data['cb_extensions']
-            self.hs_id = hs_data['hs_id']
-            self.time = hs_data['time']
-            self.hs_length = hs_data['hs_length']
-            self.hs_force = hs_data['hs_force']
-            self.pCa = hs_data['pCa']
-            self.m_nodes_per_thick_filament = \
-                hs_data['m_nodes_per_thick_filament']
-            self.a_nodes_per_thin_filament = \
-                hs_data['a_nodes_per_thin_filament']
-
-            
-
-            # Load titin data
-            titin = json_data['titin']
-            self.t_attach_a_node = titin['t_attach_a_node']
-            self.t_attach_m_node = titin['t_attach_m_node']
-            self.t_slack_length = titin['t_slack_length']
-            self.t_k_stiff = titin['t_k_stiff']
-
-
-            #Load thick filaments
-            thick_fil_data = json_data['thick']
-            self.thick_fil = []
-            for t in thick_fil_data:
-                self.thick_fil.append(thick.thick_filament(t))
-
-            #Load thin filaments
-            thin_fil_data = json_data['thin']
-            self.thin_fil = []
-            for t in thin_fil_data:
-                self.thin_fil.append(thin.thin_filament(t))
+        
+        self["hs_data"] = json_data
 
     def draw_cb_distributions(self, output_file_string=""):
         """ Draws cb_x histograms 
@@ -81,24 +41,24 @@ class half_sarcomere():
 
         # Loops through thick filaments looking for bound heads
         cb_displacements = []
-        for t in self.thick_fil:
-            for i, bound_f in enumerate(t.cb_bound_to_a_f):
-                if (bound_f >= 0) and (t.cb_state[i]==2):
-                # if (bound_f >= 0):
-                    nf = t.cb_bound_to_a_f[i]
-                    nn = t.cb_bound_to_a_n[i]
-                    #print("nf: %i nn %i" % (nf, nn))
-                    x1 = t.cb_x[i]
-                    x2 = self.thin_fil[bound_f].bs_x[t.cb_bound_to_a_n[i]]
-                    cb_displacements.append(x1-x2);
+        for t in self["hs_data"]["thick"]:
+            for i, state in enumerate(t["cb_state"]):
+                if state==2:
+                    nf = t["cb_nearest_a_f"][i]
+                    thin_fil = self["hs_data"]["thin"][nf]
+                    for k in range(0,3):
+                        nn = t["cb_bound_to_a_n"][i]
+                        x1 = t["cb_x"][i]
+                        x2 = thin_fil["bs_x"][nn]
+                        cb_displacements.append(x1-x2);
 
         # Generate the histogram
-        b = np.linspace(-100, 100, num=200)
+        b = np.linspace(-15, 15, num=200)
         y, bin_edges = np.histogram(cb_displacements, bins=b)
 
         # Set up for display
         x = b[0:-1]+0.5
-        y = y / (len(self.thick_fil)*self.thick_fil[0].m_no_of_cbs)
+        y = y / (len(self["hs_data"]["thick"])*self["hs_data"]["thick"][0]["m_no_of_cbs"])
 
         # Display
         no_of_rows = 1
@@ -113,9 +73,10 @@ class half_sarcomere():
         ax1.plot(x,y);
         #ax1.set_ylim(0,0.15)
         ax1.set_xlabel("Cross-bridge stretch (nm)")
-        ax1.set_ylim([0, 0.05])
+        ax1.set_ylim([0, 0.2])
         ax1.set_ylabel("Proportion\nof\ncross-bridges")
 
+        plt.show()
         # Image output
         if (output_file_string):
             self.save_figure_to_file(f, output_file_string)

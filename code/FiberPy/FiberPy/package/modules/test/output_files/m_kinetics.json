@@ -1,0 +1,1 @@
+[[{"state_number": 1, "state_type": "D", "transition": [{"to": 2, "index": 0, "rate_type": "gaussian", "rate_parameters": [300]}]}, {"state_number": 2, "state_type": "A", "transition": [{"to": 1, "index": 1, "rate_type": "poly", "rate_parameters": [100, 1, 2]}]}]]

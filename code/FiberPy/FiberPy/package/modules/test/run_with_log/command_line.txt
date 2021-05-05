@@ -1,0 +1,1 @@
+python FiberPy.py run_batch "../../../../../Python Scripts/Kinetic_test_new/run_with_log/batch_test.json"
