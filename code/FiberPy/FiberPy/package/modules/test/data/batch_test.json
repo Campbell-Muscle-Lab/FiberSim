@@ -3,7 +3,7 @@
         "FiberSim_exe":
         {
             "relative_to": "this_file",
-            "exe_file": "../../../GitHub/FiberSim/bin/FiberSim.exe"
+            "exe_file": "../../../../../../../bin/FiberSim.exe"
         },
         "job":[
             {

@@ -12,8 +12,12 @@ Created on Wed Apr 21 20:51:24 2021
 @author: srhko
 """
 
-import os
+import os, sys
 import json
+
+ROOT = os.path.dirname(__file__)
+MODULES_ROOT = os.path.realpath(os.path.join(ROOT, "..", ".."))
+sys.path.append(MODULES_ROOT)
 
 from modules.half_sarcomere import half_sarcomere
 

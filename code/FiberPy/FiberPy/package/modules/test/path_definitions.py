@@ -10,7 +10,7 @@ import os
 # General path definitions
 
 ROOT = os.path.dirname(__file__)
-SIM_FOLDER = os.path.join(ROOT, "run_with_log")
+SIM_FOLDER = os.path.join(ROOT, "data")
 MODEL_FILE = os.path.join(SIM_FOLDER, "sim_input/model.json")
 OPTION_FILE = os.path.join(SIM_FOLDER, "sim_input/options.json")
 PROTOCOL_FILE = os.path.join(SIM_FOLDER, "sim_input/pCa45_protocol.txt")
