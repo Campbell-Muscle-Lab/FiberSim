@@ -44,13 +44,13 @@ for fc = 1 : (numel(dump_files)-1)
                 
                 % Cycle through binding sites
                 for adj_i = 1 : n_bs
-                    a_n = pre.thick{thick_i}.cb_nearest_a_n(adj_i, cb_i);
-                    a_s = pre.thick{thick_i}.cb_nearest_a_n_states(adj_i, cb_i);
+                    a_n = post.thick{thick_i}.cb_nearest_a_n(adj_i, cb_i);
+                    a_s = post.thick{thick_i}.cb_nearest_a_n_states(adj_i, cb_i);
                     
                     if (a_s == 2)
                         % Site is on and available
 
-                        a_x = pre.thin{a_f+1}.bs_x(a_n+1);
+                        a_x = post.thin{a_f+1}.bs_x(a_n+1);
                         span_x = m_x - a_x;
                         bin_i = discretize(span_x, bin_edges);
                         if (~isnan(bin_i))
@@ -59,10 +59,8 @@ for fc = 1 : (numel(dump_files)-1)
                         end
 
                         % Check whether cb is attached at end
-%                         if ((pre.thin{a_f+1}.bound_to_m_f(a_n+1) == (thick_i-1)) && ...
-%                                 (pre.thin{a_f+1}.bound_to_m_n(a_n+1) == (cb_i-1)))
-%                         if ((pre.thin{a_f+1}.bound_to_m_f(a_n+1) == (thick_i-1)))
-                        if ((pre.thin{a_f+1}.bound_to_m_n(a_n+1) == (cb_i-1)))
+                        if ((post.thin{a_f+1}.bound_to_m_f(a_n+1) == (thick_i-1)) && ...
+                                (post.thin{a_f+1}.bound_to_m_n(a_n+1) == (cb_i-1)))
                             % Event happened
                             event(bin_i, m_parity) = event(bin_i, m_parity)+1;
                         end
