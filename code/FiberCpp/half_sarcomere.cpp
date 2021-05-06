@@ -1813,14 +1813,15 @@ void half_sarcomere::myosin_kinetics(double time_step)
                     bs_state = -1;           // binding site is not on filament
                 }
 
-                else if (gsl_vector_short_get(p_af[a_f]->bound_to_m_f, bs_ind) >= 0)
+                else if (gsl_vector_short_get(p_af[a_f]->bound_to_m_n, bs_ind) >= 0)
                 {
-                    bs_state = -1;           // binding site is already occupied
+                    bs_state = -1;
                 }
 
                 else 
                 {
-                    bs_state = gsl_vector_short_get(p_af[a_f]->bs_state, bs_ind);   // binding site state is ON (1) or OFF (2)
+                    bs_state = gsl_vector_short_get(p_af[a_f]->bs_state, bs_ind);
+                                             // binding site state is OFF (1) or ON (2)
                 }
 
                 gsl_matrix_short_set(p_mf[m_counter]->cb_nearest_a_n_states,
