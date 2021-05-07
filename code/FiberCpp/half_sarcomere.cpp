@@ -1789,8 +1789,8 @@ void half_sarcomere::myosin_kinetics(double time_step)
         // Now cycle through dimers
         if (p_mf[m_counter]->m_myosins_per_hub != 2)
         {
-            //printf("half_sarcomere::myosin_kinetics() does not work without myosin dimers");
-            //exit(1);
+            printf("half_sarcomere::myosin_kinetics() does not work without myosin dimers");
+            exit(1);
         }
 
         // Reset the nearest BS state matrix for the thick filament
@@ -1846,12 +1846,10 @@ void half_sarcomere::myosin_kinetics(double time_step)
                 // Does it involve the S state
                 if ((old_type == 'S') || (new_type == 'S'))
                 {
-                    
-                    printf("There is an S state");
                     s_allowed = true;
 
                     if (GSL_IS_ODD(cb_counter))
-                        s_allowed = false;
+                        s_allowed = false;  
                     else 
                     {
                         if (cb_counter < (m_cbs_per_thick_filament - 1))

@@ -94,36 +94,43 @@ def compute_m_kinetics_rate():
                 ### Determine if a transition occurred ###
                 
                 if cb_state_0 != cb_state_1: # A transition occurred
-                    
+                   
                     # Find transition index
                     for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]:  # look through all transitions for cb_state_0
                         if trans["to"] == cb_state_1:
                             idx = trans["index"]
-                        else:
-                            raise RuntimeError(f"Transition index not found for transition from \
-                                               state {cb_state_0} to state {cb_state_1}")
+                            pot_trans = True
+                            
+                    if pot_trans == False:
+                        raise RuntimeError(f"Transition index not found for transition from \
+                                           state {cb_state_0} to state {cb_state_1}")
                     
                     # Fill the element of the transition counter matrix
                     # with the proper transition index and stretch values
                     
-                    if cb_0_type == 'S': # NOT IMPLEMENTED YET
-                    
-                        # Check is cb_ind is odd -> no complete transition to account for
-                        # Complete transition if cb_ind is even
-                        # Check if the SRX dimers transition at the same time
-                        break
-                                      
-                    elif cb_0_type == 'A': # Get the CB stretch
-                        
-                        thin_ind = thick_fil_0["cb_bound_to_a_f"][cb_ind]
-                        thin_fil_0 = hs_0["thin"][thin_ind]
-                        bs_ind_0 = thick_fil_0["cb_bound_to_a_n"][cb_ind]
-                    
-                        stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil_0["bs_x"][bs_ind_0] 
-                        cb_stretch_0 = kd.get_stretch_interval(stretch)
-                                            
-                        complete_transition[cb_iso_0-1,idx,cb_stretch_0] += 1
-                        
+                    if cb_0_type == 'S': 
+                                         
+                        #if cb_1_type != 'D':
+                        #    print(f"Super-relaxed myosin {cb_ind} transitionned to a non-detached state at time {ind}")
+
+                        if (cb_ind % 2) == 0: # Only even heads can "actively" transition
+                                                 
+                            # Get myosin node index
+                            
+                            node_index = int(np.floor(cb_ind/6))
+                            
+                            # Get node force
+                            
+                            node_force = thick_fil_0["node_forces"][node_index]
+                            cb_node_force_0 = kd.get_node_force_interval(node_force)
+                            
+                            complete_transition[cb_iso_0-1,idx,cb_node_force_0] += 1
+                            
+                            # Check that dimer myosins transition together
+                            if thick_fil_1["cb_state"][cb_ind] != thick_fil_1["cb_state"][cb_ind]:
+                                raise RuntimeError(f"Dimers did not follow the same transition from \
+                                               state {cb_state_0} to state {cb_state_1}")                                                        
+                                                       
                     elif cb_0_type == 'D':
                         
                         if cb_1_type == 'A': # Get the CB stretch
@@ -158,11 +165,32 @@ def compute_m_kinetics_rate():
                                 
                         elif cb_1_type == 'S':
                             
-                            # Check is cb_ind is odd -> no complete transition to account for
-                            # Complete transition if cb_ind is even
-                            # Check if the SRX dimers transition at the same time
+                            if (cb_ind % 2) == 0: # Only even heads can "actively" transition
                             
-                            break
+                                if thick_fil_0["cb_state"][cb_ind+1] == cb_state_0: # Transition can occur only if both dimer heads are in the same state at t
+                        
+                                    # Get myosin node index
+                                
+                                    node_index = int(np.floor(cb_ind/6))
+                                
+                                    # Get node force
+                                    
+                                    node_force = thick_fil_0["node_forces"][node_index]
+                                    cb_node_force_0 = kd.get_node_force_interval(node_force)
+                                    
+                                    potential_transition[cb_iso_0-1,idx,cb_node_force_0] += 1
+                                
+                    elif cb_0_type == 'A': # Get the CB stretch
+                        
+                        thin_ind = thick_fil_0["cb_bound_to_a_f"][cb_ind]
+                        thin_fil_0 = hs_0["thin"][thin_ind]
+                        bs_ind_0 = thick_fil_0["cb_bound_to_a_n"][cb_ind]
+                    
+                        stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil_0["bs_x"][bs_ind_0] 
+                        cb_stretch_0 = kd.get_stretch_interval(stretch)
+                                            
+                        complete_transition[cb_iso_0-1,idx,cb_stretch_0] += 1
+                                
                             
                 ### Determine all potential transitions depending on state type (S, D and A) ###
                 
@@ -170,14 +198,29 @@ def compute_m_kinetics_rate():
                 
                 if cb_0_type == 'S':
                     
-                    # Check is cb_ind is odd -> no potential transition to account for
-                    # Potential transition if cb_ind is even
+                    if (cb_ind % 2) == 0: # Only even heads can "actively" transition
                     
-                    break
+                        for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]: 
+
+                            idx_pot = trans["index"]
+                        
+                            if thick_fil_0["cb_state"][cb_ind+1] == cb_state_0: # Transition can occur only if both dimer heads are in the same state at t
+                         
+                                # Get myosin node index
+                                
+                                node_index = int(np.floor(cb_ind/6))
+                                
+                                # Get node force
+                                
+                                node_force = thick_fil_0["node_forces"][node_index]
+                                cb_node_force_0 = kd.get_node_force_interval(node_force)
+                                
+                                potential_transition[cb_iso_0-1,idx_pot,cb_node_force_0] += 1
+
                 
                 # Attached (A)
                 
-                if cb_0_type == 'A': # Get CB stretch
+                elif cb_0_type == 'A': # Get CB stretch
 
                     thin_ind = thick_fil_0["cb_bound_to_a_f"][cb_ind]
                     bs_ind_0 = thick_fil_0["cb_bound_to_a_n"][cb_ind]
@@ -208,7 +251,7 @@ def compute_m_kinetics_rate():
                     
                     for j in range(0, 2*adj_bs+1):
     
-                        bs_ind[j] = thick_fil_0[f"cb_nearest_a_n[x_{j}]"][cb_ind]                                       
+                        bs_ind[j] = thick_fil_1[f"cb_nearest_a_n[x_{j}]"][cb_ind] # nearest bs have been recalculated                                      
                         stretch[j] = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind[j]] 
                                            
                     for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]:
@@ -222,7 +265,7 @@ def compute_m_kinetics_rate():
                             
                             for k in range(0, 2*adj_bs +1):
                                 
-                                bs_availability = thick_fil_0[f"cb_nearest_a_n_states[x_{k}]"][cb_ind] 
+                                bs_availability = thick_fil_1[f"cb_nearest_a_n_states[x_{k}]"][cb_ind] 
                             
                                 if bs_availability == 2: # bs is free and available for attachment
         
@@ -231,11 +274,24 @@ def compute_m_kinetics_rate():
 
                         elif m_kinetics[cb_iso_0-1][new_state-1]["state_type"]== 'S':
                             
-                            # Check is cb_ind is odd -> no potential transition to account for
-                            # Potential transition if cb_ind is even
-                            break 
+                                if (cb_ind % 2) == 0: # Only even heads can "actively" transition
+                    
+                                    if cb_1_type == 'D':
+
+                                        if thick_fil_0["cb_state"][cb_ind+1] == cb_state_0: # Transition can occur only if both dimer heads are in the same state at t
+                         
+                                            # Get myosin node index
+                                            
+                                            node_index = int(np.floor(cb_ind/6))
+                                            
+                                            # Get node force
+                                            
+                                            node_force = thick_fil_0["node_forces"][node_index]
+                                            cb_node_force_0 = kd.get_node_force_interval(node_force)
+                                            
+                                            potential_transition[cb_iso_0-1,idx_pot,cb_node_force_0] += 1 
                         
-                        elif m_kinetics[cb_iso_0-1][new_state-1]["state_type"]== 'D': # Transition to a "D" state is always possible
+                        elif m_kinetics[cb_iso_0-1][new_state-1]["state_type"]== 'D': # Transition to another "D" state is always possible
                             for k in range(0, 2*adj_bs +1):   
                                 cb_stretch_0 = kd.get_stretch_interval(stretch[k])
                                 potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0] += 1                                                           
@@ -279,20 +335,32 @@ def compute_m_kinetics_rate():
         rates_file = os.path.join(pd.OUTPUT_DIR, f"rate_equations_iso_{iso}.txt")  
         rate_values = np.loadtxt(rates_file)
         stretches = rate_values[:, 0]
-        #node_force = rate_values[:,1]
+        node_force = rate_values[:,1]
         
-        title = ["Attachment rate", "Detachment rate"]
+        #title = ["Attachment rate", "Detachment rate"]
         
         for i in range(0, max_no_of_trans):
+            
+            if i == 0:
+                
+                plt.figure()
+                plt.plot(node_force, calculated_rate[iso, i, :], label = "calculated rate")
+                plt.ylabel("Rate")
+                plt.xlabel("Node force (nN)")
+                plt.plot(node_force, rate_values[:, i + 2], label = "rate law")  
+                plt.title("Transition from SRX to DRX (force-dependent)")
+                plt.legend()
+                plt.show()  
+                
+            else:
     
-            plt.figure()
-            plt.plot(x, calculated_rate[iso, i, :], label = "calculated rate")
-            plt.ylabel("Rate")
-            plt.xlabel("CB stretch [nm]")
-            plt.plot(stretches, rate_values[:, i + 2], label = "rate law")  
-            plt.legend()
-            plt.title(title[i])
-            plt.show()  
+                plt.figure()
+                plt.plot(x, calculated_rate[iso, i, :], label = "calculated rate")
+                plt.ylabel("Rate")
+                plt.xlabel("CB stretch [nm]")
+                plt.plot(stretches, rate_values[:, i + 2], label = "rate law")  
+                plt.legend()
+                plt.show()  
             
         # for i in range(0, max_no_of_trans):
             

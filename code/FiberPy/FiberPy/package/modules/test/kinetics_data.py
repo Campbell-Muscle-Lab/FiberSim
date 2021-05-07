@@ -19,7 +19,7 @@ X_STEP = 0.25
 
 F_MIN = -0.5
 F_MAX = 0.5
-F_STEP = 0.25/20
+F_STEP = 0.25/(X_MAX - X_MIN) # same number of bin for stretch and node force
 
 NB_INTER = int((X_MAX - X_MIN)/X_STEP)
 
@@ -111,7 +111,7 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file):
                     
                 elif trans_type == "force_dependent":
                     
-                    rate_trans = [trans_param[0] * (1 + trans_param[1] * nf) for nf in node_force]
+                    rate_trans = [trans_param[0] * (1 + trans_param[1] * max(nf,0)) for nf in node_force]
                     rate_values.append(rate_trans)
                     
                 else:
@@ -132,6 +132,21 @@ def get_stretch_interval(stretch):
         
     if no_interval <= 0:
         #print(f'interval out of bounds for stretch = {stretch}')
+        no_interval = 0
+
+    return no_interval
+
+
+def get_node_force_interval(node):
+    
+    # Get the node force bins for calculating probabilities 
+        
+    no_interval = int(np.floor((node - F_MIN) / F_STEP))
+    
+    if no_interval >= NB_INTER:
+        no_interval = NB_INTER-1
+        
+    if no_interval <= 0:
         no_interval = 0
 
     return no_interval

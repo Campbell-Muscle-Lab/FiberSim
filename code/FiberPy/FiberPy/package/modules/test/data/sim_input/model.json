@@ -60,18 +60,19 @@
   },
   "m_kinetics": [
     {
-      "no_of_states": 2,
-      "max_no_of_transitions": 1,
+      "no_of_states": 3,
+      "max_no_of_transitions": 2,
       "scheme": [
         {
           "number": 1,
-          "type": "D",
+          "type": "S",
           "extension": 0,
           "transition": [
             {
               "new_state": 2,
-              "rate_type": "gaussian",
+              "rate_type": "force_dependent",
               "rate_parameters": [
+                10,
                 100
               ]
             }
@@ -79,16 +80,37 @@
         },
         {
           "number": 2,
-          "type": "A",
+          "type": "D",
           "extension": 7.0,
           "transition": [
             {
               "new_state": 1,
+              "rate_type": "constant",
+              "rate_parameters": [
+                200
+              ]
+            },
+            {
+              "new_state": 3,
+              "rate_type": "gaussian",
+              "rate_parameters": [
+                200
+              ]
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "type": "A",
+          "extension": 7.0,
+          "transition": [
+            {
+              "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
                 100,
                 1,
-                4
+                2
               ]
             }
           ]
