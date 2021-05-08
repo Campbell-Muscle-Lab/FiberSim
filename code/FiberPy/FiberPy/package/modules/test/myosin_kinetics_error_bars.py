@@ -21,6 +21,8 @@ import numpy as np
 from natsort import natsorted
 import matplotlib.pyplot as plt
 
+import pandas
+
 def compute_m_kinetics_rate():
     """Approximates the governing rate functions of FiberSim"""
 
@@ -136,7 +138,7 @@ def compute_m_kinetics_rate():
                         if cb_1_type == 'A': # Get the CB stretch
                             
                             thin_ind = thick_fil_1["cb_bound_to_a_f"][cb_ind]
-                            thin_fil = hs_0["thin"][thin_ind]
+                            thin_fil = hs_0["thin"][thin_ind] 
                             bs_ind_1 = thick_fil_1["cb_bound_to_a_n"][cb_ind]
                             
                             stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind_1] 
@@ -163,7 +165,7 @@ def compute_m_kinetics_rate():
                                 
                                 complete_transition[cb_iso_0-1,idx,cb_stretch_0] += 1
                                 
-                        elif cb_1_type == 'S':
+                        elif cb_1_type == 'S':                        
                             
                             if (cb_ind % 2) == 0: # Only even heads can "actively" transition
                             
@@ -178,7 +180,7 @@ def compute_m_kinetics_rate():
                                     node_force = thick_fil_0["node_forces"][node_index]
                                     cb_node_force_0 = kd.get_node_force_interval(node_force)
                                     
-                                    potential_transition[cb_iso_0-1,idx,cb_node_force_0] += 1
+                                    complete_transition[cb_iso_0-1,idx,cb_node_force_0] += 1
                                 
                     elif cb_0_type == 'A': # Get the CB stretch
                         
@@ -247,7 +249,7 @@ def compute_m_kinetics_rate():
                     stretch = np.zeros(2*adj_bs + 1)
                     
                     thin_ind = thick_fil_0["cb_nearest_a_f"][cb_ind]
-                    thin_fil = hs_0["thin"][thin_ind]
+                    thin_fil = hs_0["thin"][thin_ind] # 
                     
                     for j in range(0, 2*adj_bs+1):
     
@@ -276,20 +278,18 @@ def compute_m_kinetics_rate():
                             
                                 if (cb_ind % 2) == 0: # Only even heads can "actively" transition
                     
-                                    if cb_1_type == 'D':
-
-                                        if thick_fil_0["cb_state"][cb_ind+1] == cb_state_0: # Transition can occur only if both dimer heads are in the same state at t
-                         
-                                            # Get myosin node index
-                                            
-                                            node_index = int(np.floor(cb_ind/6))
-                                            
-                                            # Get node force
-                                            
-                                            node_force = thick_fil_0["node_forces"][node_index]
-                                            cb_node_force_0 = kd.get_node_force_interval(node_force)
-                                            
-                                            potential_transition[cb_iso_0-1,idx_pot,cb_node_force_0] += 1 
+                                    if thick_fil_0["cb_state"][cb_ind+1] == cb_state_0: # Transition can occur only if both dimer heads are in the same state at t
+                     
+                                        # Get myosin node index
+                                        
+                                        node_index = int(np.floor(cb_ind/6))
+                                        
+                                        # Get node force
+                                        
+                                        node_force = thick_fil_0["node_forces"][node_index]
+                                        cb_node_force_0 = kd.get_node_force_interval(node_force)
+                                        
+                                        potential_transition[cb_iso_0-1,idx_pot,cb_node_force_0] += 1 
                         
                         elif m_kinetics[cb_iso_0-1][new_state-1]["state_type"]== 'D': # Transition to another "D" state is always possible
                             for k in range(0, 2*adj_bs +1):   
@@ -314,124 +314,66 @@ def compute_m_kinetics_rate():
                     prob[iso, trans, stretch_bin] = complete_transition[iso, trans, stretch_bin]/potential_transition[iso, trans, stretch_bin]
                     if prob[iso, trans, stretch_bin] >= 1:
                         print("probability greater than 1")
+                        prob[iso, trans, stretch_bin] = 1
 
                 calculated_rate[iso, trans, stretch_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin]) / time_step
                            
     ### Calculate 95% CI ###
     
-    # p = (complete_transition + 2)/(potential_transition + 4)
+    p = (complete_transition + 2)/(potential_transition + 4)
     
-    # W = 2 * np.sqrt( (p * (1 - p))/ (potential_transition + 4) )
+    W = 2 * np.sqrt( (p * (1 - p))/ (potential_transition + 4) )
 
-    # conf_interval_pos = -np.log(1.0 - (p + W)) / time_step    
-    # conf_interval_neg = -np.log(1.0 - ( p - W)) / time_step
+    conf_interval_pos = -np.log(1.0 - (p + W) ) / time_step    
+    conf_interval_neg = -np.log(1.0 - (p - W) ) / time_step
    
-    x = np.arange(kd.X_MIN,kd.X_MAX,kd.X_STEP)
-
-    kd.calculate_rate_from_m_kinetics(m_kinetics, pd.MODEL_FILE)  
+    kd.calculate_rate_from_m_kinetics(m_kinetics, pd.MODEL_FILE) 
     
     for iso in range(0, len(m_kinetics)):
-     
-        rates_file = os.path.join(pd.OUTPUT_DIR, f"rate_equations_iso_{iso}.txt")  
-        rate_values = np.loadtxt(rates_file)
-        stretches = rate_values[:, 0]
-        node_force = rate_values[:,1]
         
-        #title = ["Attachment rate", "Detachment rate"]
+        rates_file = os.path.join(pd.OUTPUT_DIR, f"rate_equations_iso_{iso}.csv")  
+        rate_data = pandas.read_csv(rates_file)
         
-        for i in range(0, max_no_of_trans):
+        for j, col in enumerate(rate_data.columns):
             
-            if i == 0:
+            y_err = [
+              conf_interval_neg[iso, j-3, :],
+              conf_interval_pos[iso, j-3, :]
+            ]
+            
+            filename = os.path.join(pd.OUTPUT_DIR, f"transition_{j-3}.png")
+                        
+            if "force_dependent" in col:
                 
                 plt.figure()
-                plt.plot(node_force, calculated_rate[iso, i, :], label = "calculated rate")
+                plt.plot(rate_data["node_force"], calculated_rate[iso, j-3, :], label = "calculated rate")
+                # plt.errorbar(rate_data["node_force"], calculated_rate[iso, j-3, :], yerr=y_err, label = "calculated rate", 
+                #              ecolor = "tab:grey", fmt='-o', errorevery = 2, markersize = 5)
                 plt.ylabel("Rate")
                 plt.xlabel("Node force (nN)")
-                plt.plot(node_force, rate_values[:, i + 2], label = "rate law")  
-                plt.title("Transition from SRX to DRX (force-dependent)")
-                plt.legend()
-                plt.show()  
+                plt.plot("node_force", col, data = rate_data, label = "rate law")  
+                plt.title(col)
+                plt.legend(loc = "upper left")
+                plt.savefig(filename)
+                plt.show()
+            
                 
-            else:
-    
+            elif "Transition" in col:
+                
                 plt.figure()
-                plt.plot(x, calculated_rate[iso, i, :], label = "calculated rate")
+                plt.plot(rate_data["stretch"], calculated_rate[iso, j-3, :], label = "calculated rate")
+                # plt.errorbar(rate_data["stretch"], calculated_rate[iso, j-3, :], yerr=y_err, label = "calculated rate", 
+                #              ecolor = "tab:grey", fmt='-o', errorevery = 2, markersize = 5)
                 plt.ylabel("Rate")
                 plt.xlabel("CB stretch [nm]")
-                plt.plot(stretches, rate_values[:, i + 2], label = "rate law")  
-                plt.legend()
-                plt.show()  
-            
-        # for i in range(0, max_no_of_trans):
-            
-        #     # Get the asymmetrical y error bars from calculated confidence intervals.
-        #     y_err = [
-        #       abs(calculated_rate[iso, i, :] - conf_interval_neg[iso, i, :]),
-        #       abs(calculated_rate[iso, i, :] + conf_interval_pos[iso, i, :])
-        #     ]
-
-        #     plt.figure()
-        #     plt.plot(stretches, rate_values[:, i + 2], label = "rate law", color = "tab:orange")  
-        #     plt.bar(stretches, calculated_rate[iso, i, :], yerr=y_err, label = "calculated rate")
-        #     plt.ylabel("Rate")
-        #     plt.xlabel("CB stretch [nm]")
-
-        #     plt.legend()
-        #     plt.show() 
+                plt.plot("stretch", col, data = rate_data, label = "rate law")  
+                plt.title(col)
+                plt.legend(loc = "upper left")
+                plt.savefig(filename)
+                plt.show()
+                 
     
     return calculated_rate
 
 
 calc_rate = compute_m_kinetics_rate()
-
-    
-# from scipy.optimize import curve_fit
-
-# def fit_exponential_recovery(x, y, n=1):
-#     """ Fits exponential recovery with a single exponential of form y = offset + amp*(1 - exp(-k*x)) to y data """
-    
-#     if n==1:
-#         def y_single_exp(x_data, offset, amp, k):
-#             y = np.zeros(len(x_data))
-#             for i,x in enumerate(x_data):
-#                 y[i] = offset + amp*(1 - np.exp(-k*x))
-#             return y
-        
-#         popt, pcov = curve_fit(y_single_exp, x, y,
-#                                [y[0], y[-1]-y[0], (1/(0.2*np.amax(x)))])
-        
-#         d = dict()
-#         d['offset'] = popt[0]
-#         d['amp'] = popt[1]
-#         d['k'] = popt[2]
-#         d['x_fit'] = np.linspace(x[0], x[-1], 1000)
-#         d['y_fit'] = y_single_exp(d['x_fit'], *popt)
-        
-#         return d
-
-
-# results_file = os.path.join(pd.OUTPUT_DIR, "results.txt") 
-# results_file = "C:/Users/sako231/OneDrive - University of Kentucky/Documents/Python Scripts/Kinetic_test_new/run_with_log/sim_output/results.txt" 
-# results = np.loadtxt(results_file, skiprows=2, usecols = (0,13))
-
-# time = results[:,0]
-# m_pop_1 = results[:,1]
-
-# plt.figure()
-
-# plt.plot(time, m_pop_1)
-
-# fit_data = fit_exponential_recovery(time, m_pop_1, n=1)
-
-# plt.plot(fit_data['x_fit'], fit_data['y_fit'], color = "tab:red")
-# plt.title("m_pop_1")
-# plt.xlabel("Time (s)")
-# plt.ylabel("Population fraction")
-# print(fit_data['k'])
-
-# plt.show()
-
-
-
-
-

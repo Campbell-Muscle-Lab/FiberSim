@@ -8,6 +8,7 @@ Created on Tue Apr 27 17:11:49 2021
 import json
 import os
 import numpy as np
+import pandas 
 
 import path_definitions as pd
 
@@ -22,6 +23,39 @@ F_MAX = 0.5
 F_STEP = 0.25/(X_MAX - X_MIN) # same number of bin for stretch and node force
 
 NB_INTER = int((X_MAX - X_MIN)/X_STEP)
+
+
+        
+def get_stretch_interval(stretch):
+    
+    # Get the stretch bins for calculating probabilities 
+        
+    no_interval = int(np.floor((stretch - X_MIN) / X_STEP))
+    
+    if no_interval >= NB_INTER:
+        #print(f'interval out of bounds for stretch = {stretch}')
+        no_interval = NB_INTER-1
+        
+    if no_interval <= 0:
+        #print(f'interval out of bounds for stretch = {stretch}')
+        no_interval = 0
+
+    return no_interval
+
+
+def get_node_force_interval(node):
+    
+    # Get the node force bins for calculating probabilities 
+        
+    no_interval = int(np.floor((node - F_MIN) / F_STEP))
+    
+    if no_interval >= NB_INTER:
+        no_interval = NB_INTER-1
+        
+    if no_interval <= 0:
+        no_interval = 0
+
+    return no_interval
 
 
 def get_m_kinetics(model_json_file):
@@ -85,7 +119,11 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file):
 
     for i, iso in enumerate(m_kinetics):
         
-        rate_values = [stretch, node_force]
+        rate_data = pandas.DataFrame()
+        
+        rate_data["stretch"] = stretch
+        
+        rate_data["node_force"] = node_force
     
         for j, state in enumerate(iso):
             
@@ -93,60 +131,28 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file):
                 
                 trans_type = new_state["rate_type"]
                 trans_param = new_state["rate_parameters"]
+                index = new_state["index"]
                 
                 if trans_type == "constant":
                     
                     rate_trans = [trans_param[0] for x in stretch]
-                    rate_values.append(rate_trans)
                                    
                 elif trans_type == "gaussian":
                     
                     rate_trans = [trans_param[0]*np.exp(-0.5 * k_cb * np.power(x, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
-                    rate_values.append(rate_trans)
                                     
                 elif trans_type == "poly":
                     
                     rate_trans = [trans_param[0] + trans_param[1] * np.power(x, trans_param[2]) for x in stretch]
-                    rate_values.append(rate_trans)
                     
                 elif trans_type == "force_dependent":
                     
                     rate_trans = [trans_param[0] * (1 + trans_param[1] * max(nf,0)) for nf in node_force]
-                    rate_values.append(rate_trans)
                     
                 else:
                     raise RuntimeError(f"Transition of type {trans_type} is unknown")
                     
-        filename = os.path.join(pd.OUTPUT_DIR, f"rate_equations_iso_{i}.txt")    
-        np.savetxt(filename, np.transpose(rate_values))
-        
-def get_stretch_interval(stretch):
-    
-    # Get the stretch bins for calculating probabilities 
-        
-    no_interval = int(np.floor((stretch - X_MIN) / X_STEP))
-    
-    if no_interval >= NB_INTER:
-        #print(f'interval out of bounds for stretch = {stretch}')
-        no_interval = NB_INTER-1
-        
-    if no_interval <= 0:
-        #print(f'interval out of bounds for stretch = {stretch}')
-        no_interval = 0
-
-    return no_interval
-
-
-def get_node_force_interval(node):
-    
-    # Get the node force bins for calculating probabilities 
-        
-    no_interval = int(np.floor((node - F_MIN) / F_STEP))
-    
-    if no_interval >= NB_INTER:
-        no_interval = NB_INTER-1
-        
-    if no_interval <= 0:
-        no_interval = 0
-
-    return no_interval
+                rate_data[f"Transition # {index} ({trans_type})"] = rate_trans
+                    
+        filename = os.path.join(pd.OUTPUT_DIR, f"rate_equations_iso_{i}.csv")    
+        rate_data.to_csv(filename)

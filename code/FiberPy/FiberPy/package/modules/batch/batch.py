@@ -82,7 +82,7 @@ def run_batch(json_batch_file_string=[],
             threads.append(t)
         else:
             for thread in threads:
-                if not thread.isAlive():
+                if not thread.is_alive():
                     threads.remove(thread)
 
     # At this point we have run all the simulations
