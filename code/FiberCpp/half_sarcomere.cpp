@@ -1781,8 +1781,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
     int bs_state;                        // state of closest bs
 
-    gsl_vector_int* s_trans_count = gsl_vector_int_alloc(m_cbs_per_thick_filament); // vector containing the number of transitions involving SRX
-   
+    bool t_allowed;                     // transition involving odd heads and the SRX state
 
     // Code
 
@@ -1800,14 +1799,16 @@ void half_sarcomere::myosin_kinetics(double time_step)
         gsl_matrix_short_set_all(p_mf[m_counter]->cb_nearest_a_n_states, -1);
 
         // Set the number of transitions to zero for each myosin
-        gsl_vector_int_set_zero(s_trans_count);
+        //gsl_vector_int_set_zero(s_trans_count);
 
         for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament; cb_counter++)
-        {
+        {            
             // For each CB, save the state of closest BS 
             // right before evaluating the transition events
-
             int a_f = gsl_vector_short_get(p_mf[m_counter]->cb_nearest_a_f, cb_counter);
+
+            if (GSL_IS_EVEN(cb_counter))
+                t_allowed = true; // prepare the flag for tracking SRX transitions
 
             for (size_t span_i = 0; span_i < m_attachment_span; span_i++)
             {
@@ -1875,23 +1876,19 @@ void half_sarcomere::myosin_kinetics(double time_step)
                         // Implement transition for first head
                         handle_lattice_event(p_event[transition_index]);
 
-                        // Count this transition for the even head
-                        gsl_vector_int_set(s_trans_count, cb_counter, 1);
-
                         // And the second
                         p_event[transition_index]->m_n = p_event[transition_index]->m_n + 1;
                         handle_lattice_event(p_event[transition_index]);
 
-                        // Count this transition for the odd head
-                        gsl_vector_int_set(s_trans_count, (int)cb_counter + 1, 1);
+                        t_allowed = false; // this odd head cannot transition anymore within this time-step
 
                     }
                 }
                 else
                 {
                     // Transition does not involve the S state
-                    // Implement only if no other transition already occurred
-                    if (gsl_vector_int_get(s_trans_count, cb_counter) == 0)
+
+                    if (t_allowed == true) // odd head that already transitionned from/to SRX cannot transition a second time
                     {
                         handle_lattice_event(p_event[transition_index]);
                     }
@@ -1900,8 +1897,6 @@ void half_sarcomere::myosin_kinetics(double time_step)
             }
         }
     }
-    // Tidy up
-    gsl_vector_int_free(s_trans_count);
 }
 
 

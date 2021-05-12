@@ -113,9 +113,6 @@ def compute_m_kinetics_rate():
                     
                     if cb_0_type == 'S': 
                                          
-                        if cb_1_type != 'D':
-                            print(f"Super-relaxed myosin {cb_ind} from thick filament {i} transitionned to a non-detached state {cb_1_type} at time {ind}")
-                            print(idx)
                         if (cb_ind % 2) == 0: # Only even heads can "actively" transition
                                                  
                             # Get myosin node index
@@ -183,7 +180,7 @@ def compute_m_kinetics_rate():
                                     
                                     complete_transition[cb_iso_0-1,idx,cb_node_force_0] += 1
                                 
-                    elif cb_0_type == 'A': # Get the CB stretch
+                    elif cb_0_type == 'A': # Get the CB stretch                    
                         
                         thin_ind = thick_fil_0["cb_bound_to_a_f"][cb_ind]
                         thin_fil_0 = hs_0["thin"][thin_ind]
