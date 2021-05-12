@@ -1781,6 +1781,9 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
     int bs_state;                        // state of closest bs
 
+    gsl_vector_int* s_trans_count = gsl_vector_int_alloc(m_cbs_per_thick_filament); // vector containing the number of transitions involving SRX
+   
+
     // Code
 
     // Cycle through filaments
@@ -1795,6 +1798,9 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
         // Reset the nearest BS state matrix for the thick filament
         gsl_matrix_short_set_all(p_mf[m_counter]->cb_nearest_a_n_states, -1);
+
+        // Set the number of transitions to zero for each myosin
+        gsl_vector_int_set_zero(s_trans_count);
 
         for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament; cb_counter++)
         {
@@ -1869,21 +1875,36 @@ void half_sarcomere::myosin_kinetics(double time_step)
                         // Implement transition for first head
                         handle_lattice_event(p_event[transition_index]);
 
+                        // Count this transition for the even head
+                        gsl_vector_int_set(s_trans_count, cb_counter, 1);
+
                         // And the second
                         p_event[transition_index]->m_n = p_event[transition_index]->m_n + 1;
                         handle_lattice_event(p_event[transition_index]);
+
+                        // Count this transition for the odd head
+                        gsl_vector_int_set(s_trans_count, (int)cb_counter + 1, 1);
 
                     }
                 }
                 else
                 {
-                    // Transition does not involve the S state, so implement
-                    handle_lattice_event(p_event[transition_index]);
+                    // Transition does not involve the S state
+                    // Implement only if no other transition already occurred
+                    if (gsl_vector_int_get(s_trans_count, cb_counter) == 0)
+                    {
+                        handle_lattice_event(p_event[transition_index]);
+                    }
+                    
                 }
             }
         }
     }
+    // Tidy up
+    gsl_vector_int_free(s_trans_count);
 }
+
+
 
 void half_sarcomere::mybpc_kinetics(double time_step)
 {

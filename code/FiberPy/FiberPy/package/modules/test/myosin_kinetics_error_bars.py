@@ -96,6 +96,8 @@ def compute_m_kinetics_rate():
                 ### Determine if a transition occurred ###
                 
                 if cb_state_0 != cb_state_1: # A transition occurred
+                
+                    pot_trans = False
                    
                     # Find transition index
                     for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]:  # look through all transitions for cb_state_0
@@ -104,17 +106,16 @@ def compute_m_kinetics_rate():
                             pot_trans = True
                             
                     if pot_trans == False:
-                        raise RuntimeError(f"Transition index not found for transition from \
-                                           state {cb_state_0} to state {cb_state_1}")
+                         raise RuntimeError(f"Transition index not found for transition from state {cb_state_0} to state {cb_state_1}")
                     
                     # Fill the element of the transition counter matrix
                     # with the proper transition index and stretch values
                     
                     if cb_0_type == 'S': 
                                          
-                        #if cb_1_type != 'D':
-                        #    print(f"Super-relaxed myosin {cb_ind} transitionned to a non-detached state at time {ind}")
-
+                        if cb_1_type != 'D':
+                            print(f"Super-relaxed myosin {cb_ind} from thick filament {i} transitionned to a non-detached state {cb_1_type} at time {ind}")
+                            print(idx)
                         if (cb_ind % 2) == 0: # Only even heads can "actively" transition
                                                  
                             # Get myosin node index

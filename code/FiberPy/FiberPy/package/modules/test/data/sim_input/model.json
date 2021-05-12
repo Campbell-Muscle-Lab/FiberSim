@@ -81,7 +81,7 @@
         {
           "number": 2,
           "type": "D",
-          "extension": 7.0,
+          "extension": 0,
           "transition": [
             {
               "new_state": 1,
