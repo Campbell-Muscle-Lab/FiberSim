@@ -108,7 +108,7 @@
               "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
-                100,
+                50,
                 1,
                 2
               ]

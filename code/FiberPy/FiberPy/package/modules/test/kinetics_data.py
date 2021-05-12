@@ -24,6 +24,11 @@ F_STEP = 0.25/(X_MAX - X_MIN) # same number of bin for stretch and node force
 
 NB_INTER = int((X_MAX - X_MIN)/X_STEP)
 
+A_MIN = 90
+A_MAX = 180
+A_STEP = 18
+
+NB_A_INTER = int((A_MAX - A_MIN)/A_STEP)
 
         
 def get_stretch_interval(stretch):
@@ -51,6 +56,20 @@ def get_node_force_interval(node):
     
     if no_interval >= NB_INTER:
         no_interval = NB_INTER-1
+        
+    if no_interval <= 0:
+        no_interval = 0
+
+    return no_interval
+
+def get_alignment_interval(angle):
+    
+    # Get the alignment factor bins for calculating probabilities 
+        
+    no_interval = int(np.floor((angle - A_MIN) / A_STEP))
+    
+    if no_interval >= NB_A_INTER:
+        no_interval = NB_A_INTER-1
         
     if no_interval <= 0:
         no_interval = 0

@@ -2056,8 +2056,7 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
 
                     angle = gsl_matrix_get(p_mf[m_counter]->cb_nearest_bs_angle_diff,
                         cb_counter, bs_counter);
-                    //alignment_factor = -cos(angle * M_PI / 180.0);
-                    alignment_factor = 1.0;
+                    alignment_factor = -cos(angle * M_PI / 180.0);
 
                     prob = (1.0 - exp(-time_step * alignment_factor *
                         p_trans->calculate_rate(x, node_f, mybpc_state, mybpc_iso)));
