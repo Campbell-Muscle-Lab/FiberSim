@@ -340,10 +340,10 @@ def compute_m_kinetics_rate():
                                             potential_transition[cb_iso_0-1,idx_pot,cb_node_force_0, cb_align_factor_0] += 1 
                         
                         elif m_kinetics[cb_iso_0-1][new_state-1]["state_type"]== 'D': # Transition to another "D" state is always possible
-                            for k in range(0, 2*adj_bs +1):   
+                            for k in range(0, 2*adj_bs +1): 
                                 cb_stretch_0 = kd.get_stretch_interval(stretch[k])
                                 cb_align_factor_0 =  kd.get_alignment_interval(angle[k])
-                                potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0, cb_align_factor_0[k]] += 1                                                           
+                                potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0, cb_align_factor_0] += 1                                                           
                 
                 else:
                     raise RuntimeError(f"State #{cb_state_0} is neither type A, D or S")
@@ -352,7 +352,8 @@ def compute_m_kinetics_rate():
         hs_0 = hs_1 
 
     
-    angle = [90, 108, 126, 144, 162]
+    #angle = [90, 108, 126, 144, 162]
+    angle = np.arange(kd.A_MIN,kd.A_MAX, kd.A_STEP)
     for iso in range(0, len(m_kinetics)):
         for trans in range(0, max_no_of_trans):
             for stretch_bin in range(0,kd.NB_INTER):
@@ -367,17 +368,25 @@ def compute_m_kinetics_rate():
                             print("transition =", trans, "angle_bin =", angle_bin)
                             print("probability greater than 1")
                             prob[iso, trans, stretch_bin, angle_bin] = 1
+                    if trans == 0:
+                        calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step / -math.cos((angle[angle_bin] + kd.A_STEP/2)*math.pi/180)
+                    else:
+                        calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step
+
+    # for trans in range(0, max_no_of_trans):
+    #     for angle_bin in range(0,kd.NB_A_INTER):
+    #         print("Transition # ", trans)
+    #         print("Angle value = ", angle[angle_bin] + kd.A_STEP/2)
+    #         print(complete_transition[0, trans, :, angle_bin])
     
-                    calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step / -math.cos((angle[angle_bin] + 18)*math.pi/180)
-                           
     ### Calculate 95% CI ###
     
-    p = (complete_transition + 2)/(potential_transition + 4)
+    # p = (complete_transition + 2)/(potential_transition + 4)
     
-    W = 2 * np.sqrt( (p * (1 - p))/ (potential_transition + 4) )
+    # W = 2 * np.sqrt( (p * (1 - p))/ (potential_transition + 4) )
 
-    conf_interval_pos = -np.log(1.0 - (p + W) ) / time_step    
-    conf_interval_neg = -np.log(1.0 - (p - W) ) / time_step
+    # conf_interval_pos = -np.log(1.0 - (p + W) ) / time_step    
+    # conf_interval_neg = -np.log(1.0 - (p - W) ) / time_step
    
     kd.calculate_rate_from_m_kinetics(m_kinetics, pd.MODEL_FILE) 
     
@@ -390,29 +399,30 @@ def compute_m_kinetics_rate():
         
             for j, col in enumerate(rate_data.columns):
                 
-                y_err = [
-                  conf_interval_neg[iso, j-3, :],
-                  conf_interval_pos[iso, j-3, :]
-                ]
+                # y_err = [
+                #   conf_interval_neg[iso, j-3, :],
+                #   conf_interval_pos[iso, j-3, :]
+                # ]
                 
                 filename = os.path.join(pd.OUTPUT_DIR, f"transition_{j-3}.png")
                             
                 if "force_dependent" in col:
                     
-                    plt.figure()
-                    plt.plot(rate_data["node_force"], calculated_rate[iso, j-3, :, af], label = "calculated rate")
-                    # plt.errorbar(rate_data["node_force"], calculated_rate[iso, j-3, :], yerr=y_err, label = "calculated rate", 
-                    #              ecolor = "tab:grey", fmt='-o', errorevery = 2, markersize = 5)
-                    plt.ylabel("Rate")
-                    plt.xlabel("Node force (nN)")
-                    plt.plot("node_force", col, data = rate_data, label = "rate law")  
-                    plt.title(col)
-                    plt.legend(loc = "upper left")
-                    plt.savefig(filename)
-                    plt.show()
+                    # plt.figure()
+                    # plt.plot(rate_data["node_force"], calculated_rate[iso, j-3, :, af], label = "calculated rate")
+                    # # plt.errorbar(rate_data["node_force"], calculated_rate[iso, j-3, :], yerr=y_err, label = "calculated rate", 
+                    # #              ecolor = "tab:grey", fmt='-o', errorevery = 2, markersize = 5)
+                    # plt.ylabel("Rate")
+                    # plt.xlabel("Node force (nN)")
+                    # plt.plot("node_force", col, data = rate_data, label = "rate law")  
+                    # plt.title(col)
+                    # plt.legend(loc = "upper left")
+                    # plt.savefig(filename)
+                    # plt.show()
+                    print("no fig")
                 
                     
-                elif "Transition" in col:
+                elif "Transition" in col in col:
                     
                     plt.figure()
                     plt.plot(rate_data["stretch"], calculated_rate[iso, j-3, :, af], label = "calculated rate")

@@ -24,9 +24,9 @@ F_STEP = 0.25/(X_MAX - X_MIN) # same number of bin for stretch and node force
 
 NB_INTER = int((X_MAX - X_MIN)/X_STEP)
 
-A_MIN = 90
-A_MAX = 180
-A_STEP = 18
+A_MIN = 92
+A_MAX = 182
+A_STEP = 10
 
 NB_A_INTER = int((A_MAX - A_MIN)/A_STEP)
 
@@ -124,6 +124,68 @@ def get_m_kinetics(model_json_file):
         
     return m_kinetics
 
+def get_a_kinetics(model_json_file):
+    
+    # Extract the actin kinetics from the json model file 
+
+    with open(model_json_file, 'r') as f:
+        mod = json.load(f)
+           
+    k_on = mod["thin_parameters"]["a_k_on"]
+    k_off = mod["thin_parameters"]["a_k_off"]
+    k_coop = mod["thin_parameters"]["a_k_coop"]
+    nb_of_bs = mod["thin_parameters"]["a_no_of_bs_states"]
+        
+    return k_on, k_off, k_coop, nb_of_bs
+
+def get_c_kinetics(model_json_file):
+    
+    # Extract the myosin kinetics from the json model file 
+
+    with open(model_json_file, 'r') as f:
+        mod = json.load(f)
+           
+    c_kinetics = []
+    
+    for i, isotypes in enumerate(mod["c_kinetics"]): # Get data for each isotype
+        
+        idx = 0
+        
+        data_scheme = []
+        
+        for j, state in enumerate(isotypes["scheme"]): # Get kinetic scheme for each state
+            
+            state_data = {}
+                        
+            state_data["state_number"] = state["number"]
+            state_data["state_type"] = state["type"]
+            state_data["transition"] = []  # array for the different transitions
+                       
+            for k, trans in enumerate(state["transition"]): # Get transition data for each new state
+                
+                trans_data = {}
+                
+                trans_data["to"] = trans["new_state"]
+                trans_data["index"] = idx
+                trans_data["rate_type"] = trans["rate_type"]
+                trans_data["rate_parameters"] = trans["rate_parameters"]
+                
+                idx += 1
+                
+                state_data["transition"].append(trans_data)
+                
+            data_scheme.append(state_data)
+        
+        c_kinetics.append(data_scheme)
+        
+    # Save the kinetics structure in a JSON file
+    outfile = os.path.join(pd.OUTPUT_DIR, "c_kinetics.json")  
+    with open(outfile, 'w') as f:
+        json.dump(c_kinetics, f)
+        
+    return c_kinetics
+
+
 def calculate_rate_from_m_kinetics(m_kinetics, model_json_file):
     
     # Extract the rate laws from the kinetic data
@@ -174,4 +236,56 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file):
                 rate_data[f"Transition # {index} ({trans_type})"] = rate_trans
                     
         filename = os.path.join(pd.OUTPUT_DIR, f"rate_equations_iso_{i}.csv")    
+        rate_data.to_csv(filename)
+        
+def calculate_rate_from_c_kinetics(c_kinetics, model_json_file):
+    
+    # Extract the rate laws from the kinetic data
+       
+    stretch = np.arange(X_MIN,X_MAX, X_STEP)    
+    node_force = np.arange(F_MIN,F_MAX, F_STEP)
+    
+    with open(model_json_file, 'r') as f:
+        mod = json.load(f)
+
+    k_pc = mod["mybpc_parameters"]["c_k_stiff"]
+
+    for i, iso in enumerate(c_kinetics):
+        
+        rate_data = pandas.DataFrame()
+        
+        rate_data["stretch"] = stretch
+        
+        rate_data["node_force"] = node_force
+    
+        for j, state in enumerate(iso):
+            
+            for new_state in state["transition"]:
+                
+                trans_type = new_state["rate_type"]
+                trans_param = new_state["rate_parameters"]
+                index = new_state["index"]
+                
+                if trans_type == "constant":
+                    
+                    rate_trans = [trans_param[0] for x in stretch]
+                                   
+                elif trans_type == "gaussian":
+                    
+                    rate_trans = [trans_param[0]*np.exp(-0.5 * k_pc * np.power(x, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
+                                    
+                elif trans_type == "poly":
+                    
+                    rate_trans = [trans_param[0] + trans_param[1] * np.power(x, trans_param[2]) for x in stretch]
+                    
+                elif trans_type == "force_dependent":
+                    
+                    rate_trans = [trans_param[0] * (1 + trans_param[1] * max(nf,0)) for nf in node_force]
+                    
+                else:
+                    raise RuntimeError(f"Transition of type {trans_type} is unknown")
+                    
+                rate_data[f"Transition # {index} ({trans_type})"] = rate_trans
+                    
+        filename = os.path.join(pd.OUTPUT_DIR, f"rate_equations_pc_iso_{i}.csv")    
         rate_data.to_csv(filename)

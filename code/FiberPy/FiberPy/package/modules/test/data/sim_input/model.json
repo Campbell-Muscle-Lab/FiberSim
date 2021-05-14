@@ -36,7 +36,7 @@
     "thin_parameters": {
         "a_no_of_bs_states": 2,
         "a_k_stiff": 100,
-        "a_k_on": 7e7,
+        "a_k_on": 1e7,
         "a_k_off": 100,
         "a_k_coop": 5
     },
@@ -60,55 +60,33 @@
   },
   "m_kinetics": [
     {
-      "no_of_states": 3,
-      "max_no_of_transitions": 2,
+      "no_of_states": 2,
+      "max_no_of_transitions": 1,
       "scheme": [
         {
           "number": 1,
-          "type": "S",
+          "type": "D",
           "extension": 0,
           "transition": [
             {
               "new_state": 2,
-              "rate_type": "force_dependent",
+              "rate_type": "gaussian",
               "rate_parameters": [
-                10,
-                100
+                20
               ]
             }
           ]
         },
         {
           "number": 2,
-          "type": "D",
-          "extension": 0,
-          "transition": [
-            {
-              "new_state": 1,
-              "rate_type": "constant",
-              "rate_parameters": [
-                200
-              ]
-            },
-            {
-              "new_state": 3,
-              "rate_type": "gaussian",
-              "rate_parameters": [
-                200
-              ]
-            }
-          ]
-        },
-        {
-          "number": 3,
           "type": "A",
           "extension": 7.0,
           "transition": [
             {
-              "new_state": 2,
+              "new_state": 1,
               "rate_type": "poly",
               "rate_parameters": [
-                50,
+                10,
                 1,
                 2
               ]
@@ -144,7 +122,7 @@
               "new_state": 2,
               "rate_type": "gaussian",
               "rate_parameters": [
-                0
+                200
               ]
             }
           ]
@@ -158,9 +136,9 @@
               "new_state": 1,
               "rate_type": "poly",
               "rate_parameters": [
-                0,
-                0,
-                0
+                150,
+                1,
+                2
               ]
             }
           ]

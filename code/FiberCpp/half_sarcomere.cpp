@@ -1908,13 +1908,49 @@ void half_sarcomere::mybpc_kinetics(double time_step)
     int transition_index;           // index to a transition
                                     // -1, if nothing happens
 
+    int bs_state;                       // state of closest bs
+
     // Code
 
     // Cycle through filaments
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
+        // Reset the nearest BS state matrix for the thick filament
+        gsl_matrix_short_set_all(p_mf[m_counter]->pc_nearest_a_n_states, -1);
+
         for (int pc_counter = 0; pc_counter < p_mf[m_counter]->c_no_of_pcs; pc_counter++)
         {
+            
+            // For each pc, save the state of closest BS 
+            // right before evaluating the transition events
+
+            int a_f = gsl_vector_short_get(p_mf[m_counter]->pc_nearest_a_f, pc_counter);
+
+            for (size_t span_i = 0; span_i < m_attachment_span; span_i++)
+            {
+                int bs_ind = gsl_matrix_short_get(
+                    p_mf[m_counter]->pc_nearest_a_n, pc_counter, span_i);
+
+                if ((bs_ind < 0) || (bs_ind >= a_bs_per_thin_filament))
+                {
+                    bs_state = -1;           // binding site is not on filament
+                }
+
+                else if (gsl_vector_short_get(p_af[a_f]->bound_to_m_n, bs_ind) >= 0)
+                {
+                    bs_state = -1;
+                }
+
+                else
+                {
+                    bs_state = gsl_vector_short_get(p_af[a_f]->bs_state, bs_ind);
+                    // binding site state is OFF (1) or ON (2)
+                }
+
+                gsl_matrix_short_set(p_mf[m_counter]->pc_nearest_a_n_states,
+                    pc_counter, span_i, bs_state); // update pc_nearest_a_n_states element
+            }
+            
             // Check for event
             transition_index = return_c_transition(time_step, m_counter, pc_counter);
 
@@ -2833,6 +2869,12 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "pc_nearest_a_n");
         JSON_functions::write_gsl_matrix_short_as_JSON_array(
             p_mf[thick_counter]->pc_nearest_a_n,
+            output_file,
+            temp_string, false);
+
+        sprintf_s(temp_string, _MAX_PATH, "pc_nearest_a_n_states");
+        JSON_functions::write_gsl_matrix_short_as_JSON_array(
+            p_mf[thick_counter]->pc_nearest_a_n_states,
             output_file,
             temp_string, false);
 

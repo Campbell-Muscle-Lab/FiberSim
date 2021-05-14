@@ -137,6 +137,8 @@ thick_filament::thick_filament(
     pc_nearest_a_f = gsl_vector_short_alloc(c_no_of_pcs);
     pc_nearest_a_n = gsl_matrix_short_alloc(c_no_of_pcs, m_attachment_span);
 
+    pc_nearest_a_n_states = gsl_matrix_short_alloc(c_no_of_pcs, m_attachment_span);
+
     pc_nearest_bs_angle_diff = gsl_matrix_alloc(c_no_of_pcs, m_attachment_span);
 
     // Use special function for cb_x and cb_angle
@@ -157,6 +159,7 @@ thick_filament::thick_filament(
     gsl_vector_short_set_all(pc_bound_to_a_n, -1);
     gsl_vector_short_set_all(pc_nearest_a_f, -1);
     gsl_matrix_short_set_all(pc_nearest_a_n, -1);
+    gsl_matrix_short_set_all(pc_nearest_a_n_states, -1);
 
     // Initialise cb_controlling_pc_index
     initialise_cb_controlling_pc_index();
@@ -206,6 +209,7 @@ thick_filament::~thick_filament()
     gsl_vector_short_free(pc_bound_to_a_n);
     gsl_vector_short_free(pc_nearest_a_f);
     gsl_matrix_short_free(pc_nearest_a_n);
+    gsl_matrix_short_free(pc_nearest_a_n_states);
 
     gsl_matrix_free(pc_nearest_bs_angle_diff);
 
