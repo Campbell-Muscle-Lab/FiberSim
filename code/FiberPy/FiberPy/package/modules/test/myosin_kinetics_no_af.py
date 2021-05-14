@@ -332,10 +332,10 @@ def compute_m_kinetics_rate():
         
         for j, col in enumerate(rate_data.columns):
             
-            y_err = [
-              conf_interval_neg[iso, j-3, :],
-              conf_interval_pos[iso, j-3, :]
-            ]
+            # y_err = [
+            #   conf_interval_neg[iso, j-3, :],
+            #   conf_interval_pos[iso, j-3, :]
+            # ]
             
             filename = os.path.join(pd.OUTPUT_DIR, f"transition_{j-3}.png")
                         

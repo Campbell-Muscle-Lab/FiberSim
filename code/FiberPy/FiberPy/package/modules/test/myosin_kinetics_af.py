@@ -151,14 +151,18 @@ def compute_m_kinetics_rate():
                             for j in range(0, 2*adj_bs+1): # Get the angle difference
                             
                                 bs_ind = thick_fil_1[f"cb_nearest_a_n[x_{j}]"][cb_ind]    
+                                found = False
                                 
-                                if bs_ind == bs_ind_1: 
+                                if bs_ind == bs_ind_1:
+                                    found = True
                                     angle_diff = thick_fil_1[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
                                     cb_align_factor_0 =  kd.get_alignment_interval(angle_diff)
-                                    complete_transition[cb_iso_0-1,idx,cb_stretch_0, cb_align_factor_0 ] += 1
                                     
-                                # else:
-                                #     print("not found")
+                                    complete_transition[cb_iso_0-1,idx,cb_stretch_0, cb_align_factor_0 ] += 1
+                                    break
+
+                            if found == False:
+                                print("not found")
                             
                         elif cb_1_type == 'D': 
                                                                       
@@ -210,12 +214,19 @@ def compute_m_kinetics_rate():
                         
                         for j in range(0, 2*adj_bs+1): # Get the angle difference
                     
+                            found = False        
                             bs_ind = thick_fil_0[f"cb_nearest_a_n[x_{j}]"][cb_ind]  
                             
                             if bs_ind == bs_ind_0:
+                                found = True
                                 angle_diff = thick_fil_0[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
                                 cb_align_factor_0 =  kd.get_alignment_interval(angle_diff)
+                                
                                 complete_transition[cb_iso_0-1,idx,cb_stretch_0, cb_align_factor_0 ] += 1
+                                break
+                                
+                        if found == False:
+                            print("not found")
 
                 ### Determine all potential transitions depending on state type (S, D and A) ###
                 
@@ -260,26 +271,30 @@ def compute_m_kinetics_rate():
 
                     cb_stretch_0 = kd.get_stretch_interval(stretch)
                     
+                    for j in range(0, 2*adj_bs+1):
+                        
+                        found = False
+                        bs_ind = thick_fil_0[f"cb_nearest_a_n[x_{j}]"][cb_ind]  
+                        
+                        if bs_ind == bs_ind_0:
+                            
+                            found = True 
+                            angle = thick_fil_0[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind] 
+                                   
+                            cb_align_factor_0 =  kd.get_alignment_interval(angle)
+                            break
+                    
+                    if found == False:
+                        print("not found")
+                        
                     for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]: 
                         
                         # All transitions from an attached state are possible
                         
                         idx_pot = trans["index"]
                         
-                        found = False
-
-                        for j in range(0, 2*adj_bs+1):
-                    
-                            bs_ind = thick_fil_0[f"cb_nearest_a_n[x_{j}]"][cb_ind]  
-                            
-                            if bs_ind == bs_ind_0:
-                                angle = thick_fil_0[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
-                                cb_align_factor_0 =  kd.get_alignment_interval(angle)
-                                potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0, cb_align_factor_0] += 1 
-                                found = True
-                        if found == False:
-                            print("not found")
-                        
+                        potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0, cb_align_factor_0] += 1 
+                                
                 # Detached (D)
                 
                 elif cb_0_type == 'D':
@@ -422,7 +437,7 @@ def compute_m_kinetics_rate():
                     print("no fig")
                 
                     
-                elif "Transition" in col in col:
+                elif "Transition" in col:
                     
                     plt.figure()
                     plt.plot(rate_data["stretch"], calculated_rate[iso, j-3, :, af], label = "calculated rate")
