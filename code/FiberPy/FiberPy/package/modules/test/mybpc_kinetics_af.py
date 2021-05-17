@@ -61,6 +61,8 @@ def compute_c_kinetics_rate():
     
     max_no_of_trans = c_kinetics[0][-1]["transition"][-1]["index"] + 1 
     
+    attachement_trans = [] # List of indices for the 'a' type of transition
+    
     ### Initialize transition arrays
     
     complete_transition = np.zeros((len(c_kinetics), max_no_of_trans, kd.NB_INTER, kd.NB_A_INTER),dtype=int)
@@ -115,6 +117,9 @@ def compute_c_kinetics_rate():
                     if pc_0_type == 'D':
                         
                         if pc_1_type == 'A': # Get the pc stretch
+                        
+                            if idx not in attachement_trans: 
+                                attachement_trans.append(idx) 
                             
                             thin_ind = thick_fil_1["pc_bound_to_a_f"][pc_ind]
                             thin_fil = hs_0["thin"][thin_ind] 
@@ -305,9 +310,12 @@ def compute_c_kinetics_rate():
                         if prob[iso, trans, stretch_bin, angle_bin] >= 1:
                             print("probability greater than 1")
                             prob[iso, trans, stretch_bin, angle_bin] = 1
-    
-                    calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step / -math.cos((angle[angle_bin] + 18)*math.pi/180)
-                           
+                    if trans in attachement_trans:
+                        calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step / -math.cos((angle[angle_bin] + 18)*math.pi/180)
+                    else:
+                        calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step
+
+                        
     ### Calculate 95% CI ###
     
     p = (complete_transition + 2)/(potential_transition + 4)

@@ -61,6 +61,8 @@ def compute_m_kinetics_rate():
     
     max_no_of_trans = m_kinetics[0][-1]["transition"][-1]["index"] + 1 
     
+    attachement_trans = [] # List of indices for the 'a' type of transition
+    
     ### Initialize transition arrays
     
     complete_transition = np.zeros((len(m_kinetics), max_no_of_trans, kd.NB_INTER, kd.NB_A_INTER),dtype=int)
@@ -140,6 +142,9 @@ def compute_m_kinetics_rate():
                     elif cb_0_type == 'D':
                         
                         if cb_1_type == 'A': # Get the CB stretch
+                        
+                            if idx not in attachement_trans: 
+                                attachement_trans.append(idx) 
                             
                             thin_ind = thick_fil_1["cb_bound_to_a_f"][cb_ind]
                             thin_fil = hs_0["thin"][thin_ind] 
@@ -162,7 +167,8 @@ def compute_m_kinetics_rate():
                                     break
 
                             if found == False:
-                                print("not found")
+                                print("Attachment site not found")
+                                break
                             
                         elif cb_1_type == 'D': 
                                                                       
@@ -226,7 +232,8 @@ def compute_m_kinetics_rate():
                                 break
                                 
                         if found == False:
-                            print("not found")
+                            print("Attachment site not found due to filaments compliance")
+                            break
 
                 ### Determine all potential transitions depending on state type (S, D and A) ###
                 
@@ -282,19 +289,21 @@ def compute_m_kinetics_rate():
                             angle = thick_fil_0[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind] 
                                    
                             cb_align_factor_0 =  kd.get_alignment_interval(angle)
-                            break
-                    
-                    if found == False:
-                        print("not found")
+                            
+                            for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]: 
                         
-                    for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]: 
+                                # All transitions from an attached state are possible
                         
-                        # All transitions from an attached state are possible
+                                idx_pot = trans["index"]
                         
-                        idx_pot = trans["index"]
-                        
-                        potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0, cb_align_factor_0] += 1 
+                                potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0, cb_align_factor_0] += 1 
                                 
+                            break
+                        
+                    if found == False:
+                        print("Attachment site not found due to filaments compliance")
+                        break
+                               
                 # Detached (D)
                 
                 elif cb_0_type == 'D':
@@ -366,33 +375,24 @@ def compute_m_kinetics_rate():
               
         hs_0 = hs_1 
 
-    
-    #angle = [90, 108, 126, 144, 162]
     angle = np.arange(kd.A_MIN,kd.A_MAX, kd.A_STEP)
     for iso in range(0, len(m_kinetics)):
         for trans in range(0, max_no_of_trans):
             for stretch_bin in range(0,kd.NB_INTER):
                 for angle_bin in range(0,kd.NB_A_INTER):
                     if potential_transition[iso, trans, stretch_bin, angle_bin] == 0:
-                        #print("No potential transition ! \n")
-                        #print("# completed transition", complete_transition[iso, trans, stretch_bin])
+                        print("No potential transition")
                         prob[iso, trans, stretch_bin, angle_bin] = 0
                     else:
                         prob[iso, trans, stretch_bin, angle_bin] = complete_transition[iso, trans, stretch_bin, angle_bin]/potential_transition[iso, trans, stretch_bin, angle_bin]
                         if prob[iso, trans, stretch_bin, angle_bin] >= 1:
-                            print("transition =", trans, "angle_bin =", angle_bin)
-                            print("probability greater than 1")
+                            print("Probability greater than 1")
                             prob[iso, trans, stretch_bin, angle_bin] = 1
-                    if trans == 0:
+                    if trans in attachement_trans:
                         calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step / -math.cos((angle[angle_bin] + kd.A_STEP/2)*math.pi/180)
                     else:
                         calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step
 
-    # for trans in range(0, max_no_of_trans):
-    #     for angle_bin in range(0,kd.NB_A_INTER):
-    #         print("Transition # ", trans)
-    #         print("Angle value = ", angle[angle_bin] + kd.A_STEP/2)
-    #         print(complete_transition[0, trans, :, angle_bin])
     
     ### Calculate 95% CI ###
     
@@ -423,17 +423,17 @@ def compute_m_kinetics_rate():
                             
                 if "force_dependent" in col:
                     
-                    # plt.figure()
-                    # plt.plot(rate_data["node_force"], calculated_rate[iso, j-3, :, af], label = "calculated rate")
-                    # # plt.errorbar(rate_data["node_force"], calculated_rate[iso, j-3, :], yerr=y_err, label = "calculated rate", 
-                    # #              ecolor = "tab:grey", fmt='-o', errorevery = 2, markersize = 5)
-                    # plt.ylabel("Rate")
-                    # plt.xlabel("Node force (nN)")
-                    # plt.plot("node_force", col, data = rate_data, label = "rate law")  
-                    # plt.title(col)
-                    # plt.legend(loc = "upper left")
-                    # plt.savefig(filename)
-                    # plt.show()
+                    plt.figure()
+                    plt.plot(rate_data["node_force"], calculated_rate[iso, j-3, :, af], label = "calculated rate")
+                    # plt.errorbar(rate_data["node_force"], calculated_rate[iso, j-3, :], yerr=y_err, label = "calculated rate", 
+                    #              ecolor = "tab:grey", fmt='-o', errorevery = 2, markersize = 5)
+                    plt.ylabel("Rate")
+                    plt.xlabel("Node force (nN)")
+                    plt.plot("node_force", col, data = rate_data, label = "rate law")  
+                    plt.title(col)
+                    plt.legend(loc = "upper left")
+                    plt.savefig(filename)
+                    plt.show()
                     print("no fig")
                 
                     
