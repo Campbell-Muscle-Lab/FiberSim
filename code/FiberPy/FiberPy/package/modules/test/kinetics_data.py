@@ -14,19 +14,19 @@ import path_definitions as pd
 
 # Create stretch and node_force bins
 
-X_MIN = -10
-X_MAX = 10
-X_STEP = 0.25
+X_MIN = -8
+X_MAX = 8
+X_STEP = 0.5
 
-F_MIN = -0.5
-F_MAX = 0.5
-F_STEP = 0.25/(X_MAX - X_MIN) # same number of bin for stretch and node force
+F_MIN = -0.80
+F_MAX = 0.80
+F_STEP = 0.05 # same number of bin for stretch and node force
 
 NB_INTER = int((X_MAX - X_MIN)/X_STEP)
 
-A_MIN = 92
-A_MAX = 182
-A_STEP = 10
+A_MIN = 90
+A_MAX = 180
+A_STEP = 9
 
 NB_A_INTER = int((A_MAX - A_MIN)/A_STEP)
 
@@ -86,13 +86,13 @@ def get_m_kinetics(model_json_file):
            
     m_kinetics = []
     
-    for i, isotypes in enumerate(mod["m_kinetics"]): # Get data for each isotype
+    for i, isotype in enumerate(mod["m_kinetics"]): # Get data for each isotype
         
         idx = 0
         
         data_scheme = []
         
-        for j, state in enumerate(isotypes["scheme"]): # Get kinetic scheme for each state
+        for j, state in enumerate(isotype["scheme"]): # Get kinetic scheme for each state
             
             state_data = {}
                         
@@ -108,6 +108,15 @@ def get_m_kinetics(model_json_file):
                 trans_data["index"] = idx
                 trans_data["rate_type"] = trans["rate_type"]
                 trans_data["rate_parameters"] = trans["rate_parameters"]
+                
+                if state["type"] == 'D' and isotype["scheme"][trans["new_state"] - 1]["type"] == 'A':
+                    trans_data["trans_type"] = 'a'
+                elif state["type"] == 'A' and isotype["scheme"][trans["new_state"] - 1]["type"] == 'D':
+                    trans_data["trans_type"] = 'd'
+                elif state["type"] == 'S' and isotype["scheme"][trans["new_state"] - 1]["type"] == 'D':
+                    trans_data["trans_type"] = 'srx'
+                else:
+                    trans_data["trans_type"] = 'x'
                 
                 idx += 1
                 
@@ -147,13 +156,13 @@ def get_c_kinetics(model_json_file):
            
     c_kinetics = []
     
-    for i, isotypes in enumerate(mod["c_kinetics"]): # Get data for each isotype
+    for i, isotype in enumerate(mod["c_kinetics"]): # Get data for each isotype
         
         idx = 0
         
         data_scheme = []
         
-        for j, state in enumerate(isotypes["scheme"]): # Get kinetic scheme for each state
+        for j, state in enumerate(isotype["scheme"]): # Get kinetic scheme for each state
             
             state_data = {}
                         
@@ -170,6 +179,16 @@ def get_c_kinetics(model_json_file):
                 trans_data["rate_type"] = trans["rate_type"]
                 trans_data["rate_parameters"] = trans["rate_parameters"]
                 
+                if state["type"] == 'D' and isotype["scheme"][trans["new_state"] - 1]["type"] == 'A':
+                    print('this is an attachment type')
+                    trans_data["trans_type"] = 'a'
+                elif state["type"] == 'A' and isotype["scheme"][trans["new_state"] - 1]["type"] == 'D':
+                    trans_data["trans_type"] = 'd'
+                elif state["type"] == 'S':
+                    trans_data["trans_type"] = 'srx'
+                else:
+                    trans_data["trans_type"] = 'x'
+
                 idx += 1
                 
                 state_data["transition"].append(trans_data)
@@ -220,7 +239,7 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file):
                                    
                 elif trans_type == "gaussian":
                     
-                    rate_trans = [trans_param[0]*np.exp(-0.5 * k_cb * np.power(x, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
+                    rate_trans = [trans_param[0]*np.exp(-0.5 * k_cb * np.power(x + X_STEP/2, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
                                     
                 elif trans_type == "poly":
                     
