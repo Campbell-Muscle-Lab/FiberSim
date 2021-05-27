@@ -133,23 +133,9 @@ def get_m_kinetics(model_json_file):
         
     return m_kinetics
 
-def get_a_kinetics(model_json_file):
-    
-    # Extract the actin kinetics from the json model file 
-
-    with open(model_json_file, 'r') as f:
-        mod = json.load(f)
-           
-    k_on = mod["thin_parameters"]["a_k_on"]
-    k_off = mod["thin_parameters"]["a_k_off"]
-    k_coop = mod["thin_parameters"]["a_k_coop"]
-    nb_of_bs = mod["thin_parameters"]["a_no_of_bs_states"]
-        
-    return k_on, k_off, k_coop, nb_of_bs
-
 def get_c_kinetics(model_json_file):
     
-    # Extract the myosin kinetics from the json model file 
+    # Extract the mybpc kinetics from the json model file 
 
     with open(model_json_file, 'r') as f:
         mod = json.load(f)
@@ -291,7 +277,7 @@ def calculate_rate_from_c_kinetics(c_kinetics, model_json_file):
                                    
                 elif trans_type == "gaussian":
                     
-                    rate_trans = [trans_param[0]*np.exp(-0.5 * k_pc * np.power(x, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
+                    rate_trans = [trans_param[0]*np.exp(-0.5 * k_pc * np.power(x + X_STEP/2, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
                                     
                 elif trans_type == "poly":
                     

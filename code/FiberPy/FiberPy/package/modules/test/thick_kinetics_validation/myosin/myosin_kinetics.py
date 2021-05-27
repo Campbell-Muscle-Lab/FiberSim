@@ -9,7 +9,7 @@ import os, sys
 import json
 
 ROOT = os.path.dirname(__file__)
-MODULES_ROOT = os.path.realpath(os.path.join(ROOT, "..", ".."))
+MODULES_ROOT = os.path.realpath(os.path.join(ROOT, "..", "..", "..", ".."))
 sys.path.append(MODULES_ROOT)
 
 from modules.half_sarcomere import half_sarcomere
@@ -68,16 +68,12 @@ def compute_m_kinetics_rate():
     kd.calculate_rate_from_m_kinetics(m_kinetics, pd.MODEL_FILE) 
     
     
-    ### Initialize transition arrays
+    ### Initialize transition matrices
     
     complete_transition = np.zeros((len(m_kinetics), max_no_of_trans, kd.NB_INTER, kd.NB_A_INTER),dtype=int)
     potential_transition = np.zeros((len(m_kinetics), max_no_of_trans, kd.NB_INTER, kd.NB_A_INTER),dtype=int)
-    prob = np.zeros((len(m_kinetics), max_no_of_trans, kd.NB_INTER, kd.NB_A_INTER),dtype=float)
-    calculated_rate = np.zeros((len(m_kinetics), max_no_of_trans, kd.NB_INTER, kd.NB_A_INTER),dtype=float)
     
-    conf_interval_pos = np.zeros((len(m_kinetics), max_no_of_trans, kd.NB_INTER, kd.NB_A_INTER),dtype=float)
-    
-    conf_interval_neg = np.zeros((len(m_kinetics), max_no_of_trans, kd.NB_INTER, kd.NB_A_INTER),dtype=float)
+    ### Fill the transition matrices
                
     # # HS at t
     hs_0 = half_sarcomere.half_sarcomere(hs_file[0])["hs_data"]
@@ -390,26 +386,8 @@ def compute_m_kinetics_rate():
               
         hs_0 = hs_1
         
-    angle = np.arange(kd.A_MIN,kd.A_MAX, kd.A_STEP)
-    for iso in range(0, len(m_kinetics)):
-        for trans in range(0, max_no_of_trans):
-            for stretch_bin in range(0,kd.NB_INTER):
-                for angle_bin in range(0,kd.NB_A_INTER):
-                    if potential_transition[iso, trans, stretch_bin, angle_bin] == 0:
-                        #print("No potential transition")
-                        prob[iso, trans, stretch_bin, angle_bin] = 0
-                    else:
-                        prob[iso, trans, stretch_bin, angle_bin] = complete_transition[iso, trans, stretch_bin, angle_bin]/potential_transition[iso, trans, stretch_bin, angle_bin]
-                        if prob[iso, trans, stretch_bin, angle_bin] >= 1:
-                            print("Probability greater than 1")
-                            prob[iso, trans, stretch_bin, angle_bin] = 1
-                    if trans in attachement_trans:
-                        calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step # / -math.cos((angle[angle_bin] + kd.A_STEP/2)*math.pi/180)
-                    else:
-                        calculated_rate[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - prob[iso, trans, stretch_bin, angle_bin]) / time_step
 
-    
-    ### NEW METHODS
+    ### Calculate the rates
     
     calculated_rates_dict = []
     
@@ -442,17 +420,17 @@ def compute_m_kinetics_rate():
                     conf_interval_pos = np.zeros((kd.NB_INTER, kd.NB_A_INTER),dtype=float)
                     conf_interval_neg = np.zeros((kd.NB_INTER, kd.NB_A_INTER),dtype=float)
                     
-                        # Save the kinetics structure in a JSON file
-                    comp = complete_transition[iso, trans, :, :].tolist()
-                    pot = potential_transition[iso, trans, :, :].tolist()
+                    # # Save the kinetics structure in a JSON file
+                    # comp = complete_transition[iso, trans, :, :].tolist()
+                    # pot = potential_transition[iso, trans, :, :].tolist()
 
-                    outfile = os.path.join(pd.OUTPUT_DIR, "comp_event_attachment.json")  
-                    with open(outfile, 'w') as f:
-                        json.dump(comp, f)
+                    # outfile = os.path.join(pd.OUTPUT_DIR, "comp_event_attachment.json")  
+                    # with open(outfile, 'w') as f:
+                    #     json.dump(comp, f)
                         
-                    outfile = os.path.join(pd.OUTPUT_DIR, "pot_event_attachment.json")  
-                    with open(outfile, 'w') as f:
-                        json.dump(pot, f)
+                    # outfile = os.path.join(pd.OUTPUT_DIR, "pot_event_attachment.json")  
+                    # with open(outfile, 'w') as f:
+                    #     json.dump(pot, f)
                 
                     for stretch_bin in range(0,kd.NB_INTER):
                         for angle_bin in range(0,kd.NB_A_INTER):
@@ -589,21 +567,18 @@ def compute_m_kinetics_rate():
                 
         calculated_rates_dict.append(iso_data)
                 
-    
-    
-    # Save the kinetics structure in a JSON file
+    # Save the calculated rates structure in a JSON file
     outfile = os.path.join(pd.OUTPUT_DIR, "calc_dict.json")  
     with open(outfile, 'w') as f:
         json.dump(calculated_rates_dict, f)
-        
 
-    # load calculated rates
+    # Load calculated rates
 
     outfile = os.path.join(pd.OUTPUT_DIR, "calc_dict.json")  
     with open(outfile, 'r') as f:
         calculated_rates_dict = json.load(f)
         
-    ## NEW PLOTS
+    ### PLOTS
     
     angle = np.arange(kd.A_MIN,kd.A_MAX, kd.A_STEP)
 
@@ -616,37 +591,39 @@ def compute_m_kinetics_rate():
             
             if trans["trans_type"] == 'a':
                 
-                #subplots for the different alignment factor
-                
                 idx = trans["trans_idx"]
-                #trans_type = trans["trans_type"]
                 rate_type = trans["rate_type"]
+                
                 calc_rate = np.array(trans["calculated_rate"])
                 conf_pos = np.array(trans["conf_pos"])
                 conf_neg = np.array(trans["conf_neg"])
                 
-                for af in range(0, len(angle)):
+                
+                # # Individual plots 
+                
+                # for af in range(0, len(angle)):
 
-                    y_err = [
-                      abs(calc_rate[:,af] - conf_neg[:,af]),
-                      abs(calc_rate[:,af] - conf_pos[:,af])
-                    ]
+                #     y_err = [
+                #       abs(calc_rate[:,af] - conf_neg[:,af]),
+                #       abs(calc_rate[:,af] - conf_pos[:,af])
+                #     ]
                     
-                    align_factor = abs(-math.cos((angle[af] + kd.A_STEP/2)*math.pi/180))
+                #     align_factor = abs(-math.cos((angle[af] + kd.A_STEP/2)*math.pi/180))
                     
-                    plt.figure()
-                    plt.errorbar(rate_data["stretch"], calc_rate[:,af], yerr=y_err, label = "calculated rate",
-                                   ecolor = "tab:grey", fmt='-o', markersize = 2)
-                    plt.ylabel("Rate")
-                    plt.xlabel("CB stretch [nm]")
-                    #plt.plot(rate_data["stretch"], abs(rate_data[f"Transition # {idx} ({rate_type})"]*align_factor - calc_rate[:,af])/(rate_data[f"Transition # {idx} ({rate_type})"]*align_factor) * 100, label = "rate law")  
-                    plt.plot(rate_data["stretch"], rate_data[f"Transition # {idx} ({rate_type})"]*align_factor, label = "rate law")  
+                #     plt.figure()
+                #     plt.errorbar(rate_data["stretch"], calc_rate[:,af], yerr=y_err, label = "calculated rate",
+                #                    ecolor = "tab:grey", fmt='-o', markersize = 2)
+                #     plt.ylabel("Rate")
+                #     plt.xlabel("CB stretch [nm]")
+                #     plt.plot(rate_data["stretch"], rate_data[f"Transition # {idx} ({rate_type})"]*align_factor, label = "rate law")  
 
-                    plt.title(f"Transition # {idx} ({rate_type})")
-                    plt.legend(loc = "upper left")
-                    plt.show()
+                #     plt.title(f"Transition # {idx} ({rate_type})")
+                #     plt.legend(loc = "upper left")
+                #     plt.show()
                     
                     
+                # SUBPLOTS
+                
                 n_rows = int(np.floor(kd.NB_A_INTER/2)) 
  
                 # Now create figure
@@ -655,6 +632,8 @@ def compute_m_kinetics_rate():
                                          ncols=2,
                                          figure=fig)
                 ax = []
+                
+                # First column
                 
                 for i in range(0, n_rows):
                     
@@ -666,11 +645,13 @@ def compute_m_kinetics_rate():
                     ]
                                 
                     align_factor = abs(-math.cos((angle[i] + kd.A_STEP/2)*math.pi/180))
+                    
+                    true_rate = rate_data[f"Transition # {idx} ({rate_type})"] * align_factor
             
                     ax[i].errorbar(rate_data["stretch"], calc_rate[:,i], yerr=y_err, label = "calculated rate",
                                  ecolor = "tab:grey", fmt='-o', markersize = 2)
 
-                    ax[i].plot(rate_data["stretch"], rate_data[f"Transition # {idx} ({rate_type})"]*align_factor, label = f"rate law (angle diff = {angle[i] + kd.A_STEP/2}")  
+                    ax[i].plot(rate_data["stretch"], true_rate, label = f"rate law (angle diff = {angle[i] + kd.A_STEP/2})")  
                     ax[0].set_title(f"Transition # {idx} ({rate_type})")
                     ax[i].legend(loc = "upper left")
                     ax[i].spines['right'].set_visible(False)
@@ -679,6 +660,8 @@ def compute_m_kinetics_rate():
                     ax[i].set_ylim([0, max(rate_data[f"Transition # {idx} ({rate_type})"])])
                     
                 ax[i].set_xlabel("CB stretch [nm]")
+                
+                # Second column
                 
                 for j in range(n_rows, n_rows + int(np.floor(kd.NB_A_INTER/2))):  
                     
@@ -707,7 +690,6 @@ def compute_m_kinetics_rate():
             elif trans["trans_type"] == 'd':
                 
                 idx = trans["trans_idx"]
-                #trans_type = trans["trans_type"]
                 rate_type = trans["rate_type"]
                 calc_rate = np.array(trans["calculated_rate"])
                 conf_pos = np.array(trans["conf_pos"])
@@ -719,7 +701,6 @@ def compute_m_kinetics_rate():
                     ]
                 
                 plt.figure()
-                #plt.plot(rate_data["stretch"], calculated_rate[iso, j-3, :, af], label = "calculated rate")
                 plt.errorbar(rate_data["stretch"] + kd.X_STEP/2, calc_rate, yerr=y_err, label = "calculated rate",
                              ecolor = "tab:grey", fmt='-o', markersize = 2)
                 plt.ylabel("Rate")
@@ -727,13 +708,11 @@ def compute_m_kinetics_rate():
                 plt.plot("stretch", f"Transition # {idx} ({rate_type})", data = rate_data, label = "rate law")  
                 plt.title(f"Transition # {idx} ({rate_type})")
                 plt.legend(loc = "upper left")
-                #plt.savefig(filename)
                 plt.show()
                 
             elif trans["trans_type"] == 'srx':
                 
                 idx = trans["trans_idx"]
-                #trans_type = trans["trans_type"]
                 rate_type = trans["rate_type"]
                 calc_rate = np.array(trans["calculated_rate"])
                 conf_pos = np.array(trans["conf_pos"])
@@ -745,7 +724,6 @@ def compute_m_kinetics_rate():
                     ]
                 
                 plt.figure()
-                #plt.plot(rate_data["stretch"], calculated_rate[iso, j-3, :, af], label = "calculated rate")
                 plt.errorbar(rate_data["node_force"], calc_rate, yerr=y_err, label = "calculated rate",
                              ecolor = "tab:grey", fmt='-o', markersize = 2)
                 plt.ylabel("Rate")
@@ -755,13 +733,11 @@ def compute_m_kinetics_rate():
                 plt.legend(loc = "upper left")
                 plt.xlim([-0.8,0.8])
                 plt.xticks([-0.8,-0.4,-0.2,0,0.4,0.8])
-                #plt.savefig(filename)
                 plt.show()
                 
             elif trans["trans_type"] == 'x':
                 
                 idx = trans["trans_idx"]
-                #trans_type = trans["trans_type"]
                 rate_type = trans["rate_type"]
                 calc_rate = np.array(trans["calculated_rate"])
                 conf_pos = np.array(trans["conf_pos"])
@@ -785,90 +761,7 @@ def compute_m_kinetics_rate():
                 plt.plot([0,1,2], [true_rate, true_rate, true_rate], label = "rate law")   
                 plt.title(f"Transition # {idx} ({rate_type})")
                 plt.legend(loc = "upper left")
-                #plt.savefig(filename)
                 plt.show()
+      
 
-    ### OLD METHOD
-    # ### Calculate 95% CI ###
-    
-    # p = (complete_transition + 2)/(potential_transition + 4)
-    
-    # W = 2 * np.sqrt( (p * (1 - p))/ (potential_transition + 4) )
-    
-    # for iso in range(0, len(m_kinetics)):
-    #     for trans in range(0, max_no_of_trans):
-    #         for stretch_bin in range(0,kd.NB_INTER):
-    #             for angle_bin in range(0,kd.NB_A_INTER):
-                    
-    #                 if (p[iso, trans, stretch_bin, angle_bin] + W[iso, trans, stretch_bin, angle_bin]) < 1:
-                        
-    #                     if trans in attachement_trans:
-                    
-    #                         conf_interval_pos[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - (p[iso, trans, stretch_bin, angle_bin] + W[iso, trans, stretch_bin, angle_bin]) ) / time_step / -math.cos((angle[angle_bin] + kd.A_STEP/2)*math.pi/180)
-    #                         conf_interval_neg[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - (p[iso, trans, stretch_bin, angle_bin] - W[iso, trans, stretch_bin, angle_bin]) ) / time_step / -math.cos((angle[angle_bin] + kd.A_STEP/2)*math.pi/180)
-    #                     else:
-    #                         conf_interval_pos[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - (p[iso, trans, stretch_bin, angle_bin] + W[iso, trans, stretch_bin, angle_bin]) ) / time_step 
-    #                         conf_interval_neg[iso, trans, stretch_bin, angle_bin] = -np.log(1.0 - (p[iso, trans, stretch_bin, angle_bin] - W[iso, trans, stretch_bin, angle_bin]) ) / time_step 
-    #                 else:
-    #                     print("Problem in CI calculation")
-
-                        
-    # kd.calculate_rate_from_m_kinetics(m_kinetics, pd.MODEL_FILE) 
-    
-    # for iso in range(0, len(m_kinetics)):
-
-    #     rates_file = os.path.join(pd.OUTPUT_DIR, f"rate_equations_iso_{iso}.csv")  
-    #     rate_data = pandas.read_csv(rates_file)
-        
-    #     for af in range(0, len(angle)):
-        
-    #         for j, col in enumerate(rate_data.columns):
-                
-                
-    #             filename = os.path.join(pd.OUTPUT_DIR, f"transition_{j-3}.png")
-                            
-    #             if "force_dependent" in col:
-                    
-    #                 y_err = [
-    #                   abs(calculated_rate[iso, j-3, :, af] - conf_interval_neg[iso, j-3, :, af]),
-    #                   abs(calculated_rate[iso, j-3, :, af] - conf_interval_pos[iso, j-3, :, af])
-    #                 ]
-                    
-    #                 plt.figure()
-    #                 #plt.plot(rate_data["node_force"], calculated_rate[iso, j-3, :, af], label = "calculated rate")
-    #                 plt.errorbar(rate_data["node_force"] + kd.F_STEP/2, calculated_rate[iso, j-3, :, af], yerr=y_err, label = "calculated rate",
-    #                                 ecolor = "tab:grey", fmt='-o', errorevery = 1, markersize = 5)
-    #                 plt.ylabel("Rate")
-    #                 plt.xlabel("Node force (nN)")
-    #                 plt.plot("node_force", col, data = rate_data, label = "rate law")  
-    #                 plt.title(col)
-    #                 plt.legend(loc = "upper left")
-    #                 plt.savefig(filename)
-    #                 plt.show()
-                
-                    
-    #             elif "Transition" in col:
-                    
-    #                 y_err = [
-    #                   abs(calculated_rate[iso, j-3, :, af] - conf_interval_neg[iso, j-3, :, af]),
-    #                   abs(calculated_rate[iso, j-3, :, af] - conf_interval_pos[iso, j-3, :, af])
-    #                 ]
-                    
-    #                 plt.figure()
-    #                 #plt.plot(rate_data["stretch"], calculated_rate[iso, j-3, :, af], label = "calculated rate")
-    #                 plt.errorbar(rate_data["stretch"] + kd.X_STEP/2, calculated_rate[iso, j-3, :, af], yerr=y_err, label = "calculated rate",
-    #                              ecolor = "tab:grey", fmt='-o', errorevery = 1, markersize = 2)
-    #                 plt.ylabel("Rate")
-    #                 plt.xlabel("CB stretch [nm]")
-    #                 plt.plot("stretch", col, data = rate_data, label = "rate law")  
-    #                 plt.title(col)
-    #                 plt.legend(loc = "upper left")
-    #                 plt.savefig(filename)
-    #                 plt.show()
-                
-                 
-    
-    return calculated_rate
-
-
-calc_rate = compute_m_kinetics_rate()
+compute_m_kinetics_rate()

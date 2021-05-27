@@ -10,20 +10,17 @@ import os, sys
 import json
 
 ROOT = os.path.dirname(__file__)
-MODULES_ROOT = os.path.realpath(os.path.join(ROOT, "..", ".."))
+MODULES_ROOT = os.path.realpath(os.path.join(ROOT, "..", "..", ".."))
 sys.path.append(MODULES_ROOT)
 
 from modules.half_sarcomere import half_sarcomere
 
 import path_definitions as pd
-import kinetics_data as kd
 
 import numpy as np
 from natsort import natsorted
 import matplotlib.pyplot as plt
 
-import pandas
-import math
 
 def compute_a_kinetics_rate():
     """Approximates the governing rate functions of FiberSim"""
@@ -172,8 +169,8 @@ def compute_a_kinetics_rate():
     conf_inter_on_neg = p_on - W_on
     conf_inter_on_pos = p_on + W_on
 
-    rate_conf_inter_on_neg = -np.log(1.0 -conf_inter_on_neg) / time_step
-    rate_conf_inter_on_pos = -np.log(1.0 -conf_inter_on_pos) / time_step
+    rate_conf_inter_on_neg = -np.log(1.0 -conf_inter_on_neg) / time_step / calcium
+    rate_conf_inter_on_pos = -np.log(1.0 -conf_inter_on_pos) / time_step / calcium
 
     
     p_off = (trans_off + 2)/(pot_off + 4)
@@ -193,32 +190,33 @@ def compute_a_kinetics_rate():
     k_off = [k_off * ( 1 + 2 * k_coop), k_off * (1 + k_coop), k_off]
     
     # Transition from OFF to ON
+    
+    y_err = [abs(rate_conf_inter_on_neg - rate_on), 
+             abs(rate_conf_inter_on_pos - rate_on)]
+        
     plt.figure()
-    plt.errorbar(coop, rate_on, yerr = [rate_conf_inter_on_neg, rate_conf_inter_on_pos], label = "calculated rate", 
+    plt.errorbar(coop, rate_on, yerr = y_err, label = "calculated rate", 
               ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
     plt.plot(coop, k_on, 'ro', label = "model rate", markersize = 6, zorder=2)
     plt.ylabel("Rate (s$^{-1}$)")
-    #plt.xlabel("Cooperativity level")
     plt.xlim([0,4])
     plt.xticks([1,2,3], labels = ["no coop", "coop", "double coop"])
-    #plt.yticks([])
-    #plt.legend(loc = "upper left")
     plt.gca().spines['top'].set_visible(False)
     plt.gca().spines['right'].set_visible(False)
     plt.show()
     
     # Transition from ON to OFF
+    
+    y_err = [abs(rate_conf_inter_off_neg - rate_off), 
+             abs(rate_conf_inter_off_pos - rate_off)]
         
     plt.figure()
-    plt.errorbar(coop, rate_off, yerr = [rate_conf_inter_off_neg, rate_conf_inter_off_pos], label = "calculated rate", 
+    plt.errorbar(coop, rate_off, yerr = y_err, label = "calculated rate", 
                   ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
     plt.plot(coop, k_off, 'ro', label = "model rate", markersize = 6, zorder=2)
     plt.ylabel("Rate (s$^{-1}$)")
-    #plt.xlabel("Cooperativity level")
     plt.xlim([0,4])
     plt.xticks([1,2,3], labels = ["double coop", "coop", "no coop"])
-    #plt.yticks([])
-    #plt.legend(loc = "upper left")
     plt.gca().spines['top'].set_visible(False)
     plt.gca().spines['right'].set_visible(False)
     plt.show()

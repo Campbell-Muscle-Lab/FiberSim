@@ -8,7 +8,7 @@
         "m_filament_density": 0.25e15
     },
   "thick_structure": {
-    "m_n": 25,
+    "m_n":25,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,
@@ -35,13 +35,13 @@
     },
     "thin_parameters": {
         "a_no_of_bs_states": 2,
-        "a_k_stiff": 100,
-        "a_k_on": 1e7,
+        "a_k_stiff": 1000,
+        "a_k_on": 2e7,
         "a_k_off": 100,
         "a_k_coop": 5
     },
     "thick_parameters": {
-        "m_k_stiff": 100
+        "m_k_stiff": 1000
     },
     "titin_parameters": {
         "t_passive_mode": "linear",
@@ -60,16 +60,38 @@
   },
   "m_kinetics": [
     {
-      "no_of_states": 2,
-      "max_no_of_transitions": 1,
+      "no_of_states": 3,
+      "max_no_of_transitions": 2,
       "scheme": [
         {
           "number": 1,
-          "type": "D",
+          "type": "S",
           "extension": 0,
           "transition": [
             {
               "new_state": 2,
+              "rate_type": "force_dependent",
+              "rate_parameters": [
+                100,
+                100
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "type": "D",
+          "extension": 0,
+          "transition": [
+            {
+              "new_state": 1,
+              "rate_type": "constant",
+              "rate_parameters": [
+                200
+              ]
+            },
+            {
+              "new_state": 3,
               "rate_type": "gaussian",
               "rate_parameters": [
                 200
@@ -78,12 +100,12 @@
           ]
         },
         {
-          "number": 2,
+          "number": 3,
           "type": "A",
           "extension": 7.0,
           "transition": [
             {
-              "new_state": 1,
+              "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
                 150,
