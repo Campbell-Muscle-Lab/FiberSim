@@ -134,14 +134,14 @@ def worker(render_file):
         generate_path = os.path.join(parent_path, 'generate2.py')
         
         # Add in background mode
-        if (blender_data['blender_data']['background_mode']):
+        if ("back_ground_mode" in blender_data['blender_data'].keys()):
             background_string = '--background'
         else:
             background_string = ''
     
         # Complete the commmand line
         command_string = command_string + \
-              ('blender -noaudio %s --python "%s" -- -j %s' %
+              ('blender -noaudio %s --python "%s" -- -j "%s"' %
                   (background_string,
                    generate_path,
                    os.path.abspath(render_file)))

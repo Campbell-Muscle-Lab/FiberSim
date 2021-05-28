@@ -77,7 +77,7 @@ def run_render_job(frame_data, template_data, blender_data):
     hs_blend = hs_b.hs_blender(h, frame_data, template_data, blender_data,
                                output_image_file)
 
-    #bpy.ops.wm.quit_blender()
+    bpy.ops.wm.quit_blender()
 
     return
 

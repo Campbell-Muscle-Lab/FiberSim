@@ -77,34 +77,23 @@
                 "cat_height": 1.4,
                 "cat_radius": 1.2,
                 "cat_vertices": 20,
-              "isotypes": [
-                {
-                  "states": [
+                "isotypes":
+                [
                     {
-                      "type": "D",
-                      "color": [ 0.75, 0, 0.75, 1 ]
-                    },
-                    {
-                      "type": "A",
-                      "extension": 3,
-                      "color": [ 0, 0.75, 0.75, 1 ]
+                        "states":
+                        [
+                            {
+                                "type": "D",
+                                "color": [0.8, 0.8, 0.0, 1]
+                            },
+                            {
+                                "type": "A",
+                                "extension": 3,
+                                "color": [0, 0.8, 0.8, 1]
+                            }
+                        ]
                     }
-                  ]
-                },
-                {
-                  "states": [
-                    {
-                      "type": "D",
-                      "color": [ 0.75, 0, 0.75, 1 ]
-                    },
-                    {
-                      "type": "A",
-                      "extension": 3,
-                      "color": [ 0, 0.75, 0.75, 1 ]
-                    }
-                  ]
-                }
-              ]
+                ]
             }
         },
         "thin_filament":

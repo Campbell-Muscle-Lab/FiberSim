@@ -1,24 +1,21 @@
 {
     "frames":
     [
-        {
-            "status_file": "snapshots/hs_1_time_step_201.json",
-            "image_file": "renders/hs_201.png",
-            "camera":
-            {
-                "location":
-                {
-                    "x": 72,
-                    "y": 48,
-                    "z": 56
-                },
-                "rotation":
-                {
-                    "x": 75,
-                    "y": 0,
-                    "z": -90
-                }
-            }
+      {
+        "status_file": "snapshots/hs_1_time_step_201.json",
+        "image_file": "renders/hs_201.png",
+        "camera": {
+          "location": {
+            "x": 237,
+            "y": 30,
+            "z": 55
+          },
+          "rotation": {
+            "x": 75,
+            "y": 0,
+            "z": -100
+          }
         }
+      }
    ]
 }
