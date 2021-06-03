@@ -25,10 +25,10 @@ FiberPy transmits the input files to FiberCpp and extracts the results for analy
 ````
 {
     "FiberSim_batch": {
-        "FiberSim_exe":
+        "FiberCpp_exe":
         {
             "relative_to": "this_file",
-            "exe_file": "../../../bin/FiberSim.exe"
+            "exe_file": "../../../bin/FiberCpp.exe"
         },
         "job":[
             {
@@ -44,7 +44,7 @@ FiberPy transmits the input files to FiberCpp and extracts the results for analy
 }
 ````
 
-* `FiberSim_exe` contains the path to the FiberSim executable 
+* `FiberCpp_exe` contains the path to the FiberSim executable 
 
 * `job` is a list of protocols to run. Here only one job (or simulation) will be run
 
