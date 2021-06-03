@@ -1,7 +1,7 @@
 ---
 title: Single curve
 has_children: false
-parent: pCa_curves
+parent: pCa curves
 grand_parent: Demos
 nav_order: 1
 ---

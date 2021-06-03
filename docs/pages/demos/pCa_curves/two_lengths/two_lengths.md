@@ -1,7 +1,7 @@
 ---
 title: Two lengths
 has_children: false
-parent: pCa_curves
+parent: pCa curves
 grand_parent: Demos
 nav_order: 2
 ---
