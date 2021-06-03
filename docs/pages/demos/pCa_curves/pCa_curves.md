@@ -1,6 +1,6 @@
 ---
 title: pCa curves 
-has_children: false
+has_children: true
 parent: Demos
 nav_order: 2
 ---
