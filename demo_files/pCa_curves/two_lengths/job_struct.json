@@ -1,0 +1,134 @@
+{
+    "FiberSim_batch": {
+        "job": [
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\1\\model_1.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_800\\prot_pCa_800.txt",
+                "results_file": "sim_output\\1\\pCa_800_results.txt",
+                "output_handler_file": "sim_input\\1\\pCa_800\\output_handler_800.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\1\\model_1.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_640\\prot_pCa_640.txt",
+                "results_file": "sim_output\\1\\pCa_640_results.txt",
+                "output_handler_file": "sim_input\\1\\pCa_640\\output_handler_640.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\1\\model_1.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_620\\prot_pCa_620.txt",
+                "results_file": "sim_output\\1\\pCa_620_results.txt",
+                "output_handler_file": "sim_input\\1\\pCa_620\\output_handler_620.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\1\\model_1.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_600\\prot_pCa_600.txt",
+                "results_file": "sim_output\\1\\pCa_600_results.txt",
+                "output_handler_file": "sim_input\\1\\pCa_600\\output_handler_600.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\1\\model_1.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_580\\prot_pCa_580.txt",
+                "results_file": "sim_output\\1\\pCa_580_results.txt",
+                "output_handler_file": "sim_input\\1\\pCa_580\\output_handler_580.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\1\\model_1.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_560\\prot_pCa_560.txt",
+                "results_file": "sim_output\\1\\pCa_560_results.txt",
+                "output_handler_file": "sim_input\\1\\pCa_560\\output_handler_560.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\1\\model_1.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_540\\prot_pCa_540.txt",
+                "results_file": "sim_output\\1\\pCa_540_results.txt",
+                "output_handler_file": "sim_input\\1\\pCa_540\\output_handler_540.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\1\\model_1.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_480\\prot_pCa_480.txt",
+                "results_file": "sim_output\\1\\pCa_480_results.txt",
+                "output_handler_file": "sim_input\\1\\pCa_480\\output_handler_480.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\2\\model_2.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\2\\pCa_800\\prot_pCa_800.txt",
+                "results_file": "sim_output\\2\\pCa_800_results.txt",
+                "output_handler_file": "sim_input\\2\\pCa_800\\output_handler_800.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\2\\model_2.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\2\\pCa_640\\prot_pCa_640.txt",
+                "results_file": "sim_output\\2\\pCa_640_results.txt",
+                "output_handler_file": "sim_input\\2\\pCa_640\\output_handler_640.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\2\\model_2.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\2\\pCa_620\\prot_pCa_620.txt",
+                "results_file": "sim_output\\2\\pCa_620_results.txt",
+                "output_handler_file": "sim_input\\2\\pCa_620\\output_handler_620.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\2\\model_2.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\2\\pCa_600\\prot_pCa_600.txt",
+                "results_file": "sim_output\\2\\pCa_600_results.txt",
+                "output_handler_file": "sim_input\\2\\pCa_600\\output_handler_600.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\2\\model_2.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\2\\pCa_580\\prot_pCa_580.txt",
+                "results_file": "sim_output\\2\\pCa_580_results.txt",
+                "output_handler_file": "sim_input\\2\\pCa_580\\output_handler_580.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\2\\model_2.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\2\\pCa_560\\prot_pCa_560.txt",
+                "results_file": "sim_output\\2\\pCa_560_results.txt",
+                "output_handler_file": "sim_input\\2\\pCa_560\\output_handler_560.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\2\\model_2.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\2\\pCa_540\\prot_pCa_540.txt",
+                "results_file": "sim_output\\2\\pCa_540_results.txt",
+                "output_handler_file": "sim_input\\2\\pCa_540\\output_handler_540.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input\\2\\model_2.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\2\\pCa_480\\prot_pCa_480.txt",
+                "results_file": "sim_output\\2\\pCa_480_results.txt",
+                "output_handler_file": "sim_input\\2\\pCa_480\\output_handler_480.json"
+            }
+        ]
+    }
+}

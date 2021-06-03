@@ -15,6 +15,8 @@ from pathlib import Path
 
 from ..output_handler import output_handler as oh
 
+from ..display import analyses
+
 
 def run_batch(json_batch_file_string=[],
               batch_structure=[]):
@@ -31,7 +33,7 @@ def run_batch(json_batch_file_string=[],
             batch_structure = json_data['FiberSim_batch']
 
     # Pull off the exe path
-    exe_structure = batch_structure['FiberSim_exe']
+    exe_structure = batch_structure['FiberCpp_exe']
     exe_string = exe_structure['exe_file']
     if (not exe_structure['relative_to']):
         exe_string = os.path.abspath(exe_string)
@@ -41,6 +43,7 @@ def run_batch(json_batch_file_string=[],
     else:
         base_directory = exe_structure['relative_to']
         exe_string = os.path.join(base_directory, exe_string)
+
 
     # Parse the job data into a list of command strings
     job_data = batch_structure['job']
@@ -86,6 +89,7 @@ def run_batch(json_batch_file_string=[],
                     threads.remove(thread)
 
     # At this point we have run all the simulations
+    # Run the output handlers
     for i, j in enumerate(job_data):
         if ('output_handler_file' in j):
             fs = j['output_handler_file']
@@ -99,6 +103,16 @@ def run_batch(json_batch_file_string=[],
                 fs = os.path.join(base_directory, fs)
             oh.output_handler(fs,
                               sim_results_file_string=results_file_strings[i])
+
+    # Now see if we have to make any figures
+    if ('batch_figures' in batch_structure):
+        batch_figures = batch_structure['batch_figures']
+
+        # Dive into the structure
+        if ('pCa_curves' in batch_figures):
+            for fig_data in batch_figures['pCa_curves']:
+                analyses.create_y_pCa_figure(fig_data,
+                                             json_batch_file_string)
 
     print('FiberPy: run_batch() closing correctly')
 
