@@ -4,7 +4,7 @@
         "FiberCpp_exe":
         {
             "relative_to": "this_file",
-            "exe_file": "../../../bin/fibersim.exe"
+            "exe_file": "../../../bin/fibercpp.exe"
         },
         "job": [
             {
