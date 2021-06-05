@@ -1779,6 +1779,10 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
     m_state* p_m_state;                 // pointer to a myosin state
 
+    int bs_state;                        // state of closest bs
+
+    bool t_allowed;                     // transition involving odd heads and the SRX state
+
     // Code
 
     // Cycle through filaments
@@ -1791,8 +1795,47 @@ void half_sarcomere::myosin_kinetics(double time_step)
             exit(1);
         }
 
+        // Reset the nearest BS state matrix for the thick filament
+        gsl_matrix_short_set_all(p_mf[m_counter]->cb_nearest_a_n_states, -1);
+
+        // Set the number of transitions to zero for each myosin
+        //gsl_vector_int_set_zero(s_trans_count);
+
         for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament; cb_counter++)
-        {
+        {            
+            // For each CB, save the state of closest BS 
+            // right before evaluating the transition events
+            int a_f = gsl_vector_short_get(p_mf[m_counter]->cb_nearest_a_f, cb_counter);
+
+            if (GSL_IS_EVEN(cb_counter))
+                t_allowed = true; // prepare the flag for tracking SRX transitions
+
+            for (size_t span_i = 0; span_i < m_attachment_span; span_i++)
+            {
+                int bs_ind = gsl_matrix_short_get(
+                    p_mf[m_counter]->cb_nearest_a_n, cb_counter, span_i);
+
+                if ((bs_ind < 0) || (bs_ind >= a_bs_per_thin_filament))
+                {
+                    bs_state = -1;           // binding site is not on filament
+                }
+
+                else if (gsl_vector_short_get(p_af[a_f]->bound_to_m_n, bs_ind) >= 0)
+                {
+                    bs_state = -1;
+                }
+
+                else 
+                {
+                    bs_state = gsl_vector_short_get(p_af[a_f]->bs_state, bs_ind);
+                                             // binding site state is OFF (1) or ON (2)
+                }
+
+                gsl_matrix_short_set(p_mf[m_counter]->cb_nearest_a_n_states,
+                    cb_counter, span_i, bs_state); // update cb_nearest_a_n_states element
+            }
+
+            
             transition_index = return_m_transition(time_step, m_counter, cb_counter);
 
             if (transition_index >= 0)
@@ -1813,7 +1856,7 @@ void half_sarcomere::myosin_kinetics(double time_step)
                     s_allowed = true;
 
                     if (GSL_IS_ODD(cb_counter))
-                        s_allowed = false;
+                        s_allowed = false;  
                     else 
                     {
                         if (cb_counter < (m_cbs_per_thick_filament - 1))
@@ -1837,17 +1880,26 @@ void half_sarcomere::myosin_kinetics(double time_step)
                         p_event[transition_index]->m_n = p_event[transition_index]->m_n + 1;
                         handle_lattice_event(p_event[transition_index]);
 
+                        t_allowed = false; // this odd head cannot transition anymore within this time-step
+
                     }
                 }
                 else
                 {
-                    // Transition does not involve the S state, so implement
-                    handle_lattice_event(p_event[transition_index]);
+                    // Transition does not involve the S state
+
+                    if (t_allowed == true) // odd head that already transitionned from/to SRX cannot transition a second time
+                    {
+                        handle_lattice_event(p_event[transition_index]);
+                    }
+                    
                 }
             }
         }
     }
 }
+
+
 
 void half_sarcomere::mybpc_kinetics(double time_step)
 {
@@ -1856,13 +1908,49 @@ void half_sarcomere::mybpc_kinetics(double time_step)
     int transition_index;           // index to a transition
                                     // -1, if nothing happens
 
+    int bs_state;                       // state of closest bs
+
     // Code
 
     // Cycle through filaments
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
+        // Reset the nearest BS state matrix for the thick filament
+        gsl_matrix_short_set_all(p_mf[m_counter]->pc_nearest_a_n_states, -1);
+
         for (int pc_counter = 0; pc_counter < p_mf[m_counter]->c_no_of_pcs; pc_counter++)
         {
+            
+            // For each pc, save the state of closest BS 
+            // right before evaluating the transition events
+
+            int a_f = gsl_vector_short_get(p_mf[m_counter]->pc_nearest_a_f, pc_counter);
+
+            for (size_t span_i = 0; span_i < m_attachment_span; span_i++)
+            {
+                int bs_ind = gsl_matrix_short_get(
+                    p_mf[m_counter]->pc_nearest_a_n, pc_counter, span_i);
+
+                if ((bs_ind < 0) || (bs_ind >= a_bs_per_thin_filament))
+                {
+                    bs_state = -1;           // binding site is not on filament
+                }
+
+                else if (gsl_vector_short_get(p_af[a_f]->bound_to_m_n, bs_ind) >= 0)
+                {
+                    bs_state = -1;
+                }
+
+                else
+                {
+                    bs_state = gsl_vector_short_get(p_af[a_f]->bs_state, bs_ind);
+                    // binding site state is OFF (1) or ON (2)
+                }
+
+                gsl_matrix_short_set(p_mf[m_counter]->pc_nearest_a_n_states,
+                    pc_counter, span_i, bs_state); // update pc_nearest_a_n_states element
+            }
+            
             // Check for event
             transition_index = return_c_transition(time_step, m_counter, pc_counter);
 
@@ -2477,9 +2565,11 @@ int half_sarcomere::return_event_index(gsl_vector* prob)
         gsl_vector_set(cum_prob, i, holder);
     }
 
-    // Scale if requried (where the probabilities are very high)
+    // Scale if required (where the probabilities are very high)
     if (holder > 1.0)
     {
+// Flag
+printf("Probabilities are re-scaled\n");
         gsl_vector_scale(cum_prob, 1.0 / holder);
     }
 
@@ -2711,6 +2801,12 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
             output_file,
             temp_string, false);
 
+        sprintf_s(temp_string, _MAX_PATH, "cb_nearest_a_n_states");
+        JSON_functions::write_gsl_matrix_short_as_JSON_array(
+            p_mf[thick_counter]->cb_nearest_a_n_states,
+            output_file,
+            temp_string, false);
+
         sprintf_s(temp_string, _MAX_PATH, "cb_nearest_bs_angle_diff");
         JSON_functions::write_gsl_matrix_as_JSON_array(
             p_mf[thick_counter]->cb_nearest_bs_angle_diff, output_file,
@@ -2773,6 +2869,12 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "pc_nearest_a_n");
         JSON_functions::write_gsl_matrix_short_as_JSON_array(
             p_mf[thick_counter]->pc_nearest_a_n,
+            output_file,
+            temp_string, false);
+
+        sprintf_s(temp_string, _MAX_PATH, "pc_nearest_a_n_states");
+        JSON_functions::write_gsl_matrix_short_as_JSON_array(
+            p_mf[thick_counter]->pc_nearest_a_n_states,
             output_file,
             temp_string, false);
 
