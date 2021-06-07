@@ -116,10 +116,7 @@ def fit_straight_line(x, y):
     model  = sm.OLS(y, x)
 
     results = model.fit()
-    print(results.summary())
-    
-    print(results.params)
-    
+
     # Create a dictionary for the results
     d = dict()
     d['x'] = x

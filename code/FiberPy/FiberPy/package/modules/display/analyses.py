@@ -350,33 +350,44 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                         color=ax_pow.lines[-1].get_color())
 
         # Tidy up
-        # ax_fv.set_xlabel('Force (kN m$\\mathregular{^{-2}}$)',
-        #                  fontfamily=formatting['fontname'],
-        #                  loc='center')
-        # ax_fv.set_ylabel('Shortening\nvelocity\n(m s$\\mathregular{^{-1}}$)',
-        #                  fontfamily=formatting['fontname'],
-        #                  loc='center',
-        #                  rotation=formatting['y_label_rotation'])
-        # ax_fv.set_xticklabels(ax_fv.get_xticks(),
-        #                   fontsize=formatting['tick_labels_fontsize'],
-        #                   fontfamily=formatting['fontname'])
-        # ax_fv.set_yticklabels(ax_fv.get_yticks(),
-        #                   fontsize=formatting['tick_labels_fontsize'],
-        #                   fontfamily=formatting['fontname'])
+        ax_fv.set_xlabel('Force (kN m$\\mathregular{^{-2}}$)',
+                          fontfamily=formatting['fontname'],
+                          loc='center')
+        ax_fv.set_ylabel('Shortening\nvelocity\n(m s$\\mathregular{^{-1}}$)',
+                          fontfamily=formatting['fontname'],
+                          loc='center',
+                          rotation=formatting['y_label_rotation'])
+        xt = ut.tidy_limits(rc['hs_force'])
+        ax_fv.set_xlim(xt)
+        ax_fv.set_xticks(xt)
+        ax_fv.set_xticklabels(ax_fv.get_xticks(),
+                          fontsize=formatting['tick_labels_fontsize'],
+                          fontfamily=formatting['fontname'])
+        yt = ut.tidy_limits(rc['hs_velocity'])
+        ax_fv.set_ylim(yt)
+        ax_fv.set_yticks(yt)
+        ax_fv.set_yticklabels(ax_fv.get_yticks(),
+                          fontsize=formatting['tick_labels_fontsize'],
+                          fontfamily=formatting['fontname'])
 
-        # ax_pow.set_xlabel('Force (kN m$\\mathregular{^{-2}}$)',
-        #                  fontfamily=formatting['fontname'],
-        #                  loc='center')
-        # ax_pow.set_ylabel('Power',
-        #                  fontfamily=formatting['fontname'],
-        #                  loc='center',
-        #                  rotation=formatting['y_label_rotation'])
-        # ax_pow.set_xticklabels(ax_pow.get_xticks(),
-        #                   fontsize=formatting['tick_labels_fontsize'],
-        #                   fontfamily=formatting['fontname'])
-        # ax_pow.set_yticklabels(ax_pow.get_yticks(),
-        #                   fontsize=formatting['tick_labels_fontsize'],
-        #                   fontfamily=formatting['fontname'])
+        ax_pow.set_xlabel('Force (kN m$\\mathregular{^{-2}}$)',
+                          fontfamily=formatting['fontname'],
+                          loc='center')
+        ax_pow.set_ylabel('Power',
+                          fontfamily=formatting['fontname'],
+                          loc='center',
+                          rotation=formatting['y_label_rotation'])
+        ax_pow.set_xlim(xt)
+        ax_pow.set_xticks(xt)
+        ax_pow.set_xticklabels(ax_pow.get_xticks(),
+                          fontsize=formatting['tick_labels_fontsize'],
+                          fontfamily=formatting['fontname'])
+        yt = ut.tidy_limits(rc['hs_power'])
+        ax_pow.set_ylim(yt)
+        ax_pow.set_yticks(yt)
+        ax_pow.set_yticklabels(ax_pow.get_yticks(),
+                          fontsize=formatting['tick_labels_fontsize'],
+                          fontfamily=formatting['fontname'])
 
 
         # Save figure
@@ -395,5 +406,6 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         output_file_string = fig_data['output_data_file_string']
     print('Writing force-velocity data to %s' % output_file_string)
     r.to_excel(output_file_string,
-               engine='openpyxl')
+               engine='openpyxl',
+               index=False)
     
