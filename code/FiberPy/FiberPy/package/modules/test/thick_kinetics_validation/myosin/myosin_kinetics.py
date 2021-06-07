@@ -76,11 +76,11 @@ def compute_m_kinetics_rate():
     ### Fill the transition matrices
                
     # # HS at t
-    hs_0 = half_sarcomere.half_sarcomere(hs_file[0])["hs_data"]
+    hs_0 = half_sarcomere.half_sarcomere(hs_file[0])
   
     for ind in range(1,len(hs_file)): 
         # HS at t + dt
-        hs_1 = half_sarcomere.half_sarcomere(hs_file[ind])["hs_data"]
+        hs_1 = half_sarcomere.half_sarcomere(hs_file[ind])
       
         for i, thick_fil_0 in enumerate(hs_0["thick"]): # Loop over all thick filaments
             

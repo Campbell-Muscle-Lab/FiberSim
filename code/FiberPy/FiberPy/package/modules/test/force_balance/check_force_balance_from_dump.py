@@ -17,11 +17,11 @@ import force_balance as fb
 import matplotlib.pyplot as plt
 
 ROOT = os.path.dirname(__file__)
-MODULES_ROOT = os.path.realpath(os.path.join(ROOT, "..", "..", ".."))
-sys.path.append(MODULES_ROOT)
+PACKAGE_ROOT = os.path.realpath(os.path.join(ROOT, "..", "..", "..", ".."))
+sys.path.append(PACKAGE_ROOT)
 
-from modules.half_sarcomere import half_sarcomere
-from modules.batch import batch as b
+from package.modules.half_sarcomere import half_sarcomere
+from package.modules.batch import batch as b
 
 def error_and_dump_precision(precision_array, run_sim = True, output_dir = []):
     
@@ -65,7 +65,7 @@ def error_and_dump_precision(precision_array, run_sim = True, output_dir = []):
     
         hs_file = natsorted(hs_file) # sorting the dump files    
     
-        hs = half_sarcomere.half_sarcomere(hs_file[-1])["hs_data"] # get last dump_file
+        hs = half_sarcomere.half_sarcomere(hs_file[-1]) # get last dump_file
 
         thick_err, thin_err = fb.get_hs_thin_and_thick_errors(hs)
         

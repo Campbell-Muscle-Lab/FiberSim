@@ -22,9 +22,12 @@ class half_sarcomere(dict):
     def __init__(self, json_file_string):
 
         with open(json_file_string) as json_file:
-            json_data = json.load(json_file)
-        
-        self["hs_data"] = json_data
+           json_data = json.load(json_file)
+ 
+           self['hs_data'] = json_data['hs_data']
+           self['titin'] = json_data['titin']
+           self['thick'] = json_data['thick']
+           self['thin'] = json_data['thin']
 
     def draw_cb_distributions(self, output_file_string=""):
         """ Draws cb_x histograms 
@@ -41,16 +44,14 @@ class half_sarcomere(dict):
 
         # Loops through thick filaments looking for bound heads
         cb_displacements = []
-        for t in self["hs_data"]["thick"]:
-            for i, state in enumerate(t["cb_state"]):
-                if state==2:
-                    nf = t["cb_nearest_a_f"][i]
-                    thin_fil = self["hs_data"]["thin"][nf]
-                    for k in range(0,3):
-                        nn = t["cb_bound_to_a_n"][i]
-                        x1 = t["cb_x"][i]
-                        x2 = thin_fil["bs_x"][nn]
-                        cb_displacements.append(x1-x2);
+        for t in self["thick"]:
+            for i, bound_f in enumerate(t['cb_bound_to_a_f']):
+                if (bound_f >= 0):
+                    nf = t['cb_bound_to_a_f'][i]
+                    nn = t['cb_bound_to_a_n'][i]
+                    x1 = t['cb_x'][i]
+                    x2 = self['thin'][nf]['bs_x'][nn]
+                    cb_displacements.append(x1-x2);
 
         # Generate the histogram
         b = np.linspace(-15, 15, num=200)
@@ -58,7 +59,7 @@ class half_sarcomere(dict):
 
         # Set up for display
         x = b[0:-1]+0.5
-        y = y / (len(self["hs_data"]["thick"])*self["hs_data"]["thick"][0]["m_no_of_cbs"])
+        y = y / (len(self["thick"])*self["thick"][0]["m_no_of_cbs"])
 
         # Display
         no_of_rows = 1
@@ -105,14 +106,14 @@ class half_sarcomere(dict):
         spec = gridspec.GridSpec(nrows = no_of_rows, ncols = no_of_cols,
                                  figure = f)
 
-        y_m = np.ones((self.thick_fil[0].m_no_of_cbs, 1))
-        y_c = np.ones((self.thick_fil[0].c_no_of_pcs, 1))
-        y_a = 1+np.ones((self.thin_fil[0].a_no_of_bs, 1))
+        y_m = np.ones((self["thick"][0]["m_no_of_cbs"], 1))
+        y_c = np.ones((self["thick"][0]["c_no_of_pcs"], 1))
+        y_a = 1+np.ones((self["thin"][0]["a_no_of_bs"], 1))
         
         ax1 = f.add_subplot(spec[0,0]);
-        ax1.plot(self.thick_fil[0].cb_x, y_m, 'b+', label = "thick")
-        ax1.plot(self.thick_fil[0].pc_x, y_c, 'ro', label = "C-protein")
-        ax1.plot(self.thin_fil[0].bs_x, y_a, 'g+', label = "thin")
+        ax1.plot(self["thick"][0]["cb_x"], y_m, 'b+', label = "thick")
+        #ax1.plot(self["thick"][0]["pc_x"], y_c, 'ro', label = "C-protein")
+        ax1.plot(self["thin"][0]["bs_x"], y_a, 'g+', label = "thin")
         ax1.set_yticks([])
         ax1.set_xlabel("x axis (nm)")
         ax1.set_ylim([0,2.1])
@@ -139,24 +140,24 @@ class half_sarcomere(dict):
     
 
         # Map thick filaments
-        for i, t in enumerate(self.thick_fil):
+        for i, t in enumerate(self["thick"]):
             if (i==0):
-                m = np.zeros([no_of_states,len(self.thick_fil),len(t.cb_state)])
-                m_x = t.cb_x
+                m = np.zeros([no_of_states,len(self["thick"]),len(t["cb_state"])])
+                m_x = t["cb_x"]
             for s in range(0,no_of_states):
-                m[s,i,:] = (t.cb_state/(s+1)) * (t.cb_state == (s+1))
+                m[s,i,:] = [state/(s+1) * (state == (s+1)) for state in t["cb_state"]]
 
         # Map thin filaments
-        for i, t in enumerate(self.thin_fil):
+        for i, t in enumerate(self["thin"]):
             if (i==0):
-                a = np.zeros([2,len(self.thin_fil),len(t.bs_state)])
-                a_x = t.bs_x
+                a = np.zeros([2,len(self["thin"]),len(t["bs_state"])])
+                a_x = t["bs_x"]
             for s in range(0,2):
                 if (s==0):
-                    vi = np.nonzero(t.bs_state==0)
+                    vi = np.nonzero([x==1 for x in t["bs_state"]])
                     a[s,i,vi]=1
                 else:
-                    a[s,i,:] = (t.bs_state/(s)) * (t.bs_state == (s))
+                    a[s,i,:] = [ (x/(s + 1)) * (x == (s + 1)) for x in t["bs_state"] ]
 
         no_of_rows = 1
         no_of_cols = 1
@@ -215,17 +216,17 @@ class half_sarcomere(dict):
         spec = gridspec.GridSpec(nrows = no_of_rows, ncols = no_of_cols,
                                  figure = f)    
                 
-        for i, t in enumerate(self.thick_fil):
+        for i, t in enumerate(self["thick"]):
             
             if (i==0):
-                s = np.zeros([len(t.cb_state), no_of_states])    
+                s = np.zeros([len(t["cb_state"]), no_of_states])    
                 
             for state in range (0, no_of_states):
-                s[:, state] = s[:, state] + (t.cb_state * (t.cb_state == state + 1))
+                s[:, state] = s[:, state] + [x * (x == state + 1) for x in t["cb_state"]]
         
         for state in range (0, no_of_states):
             
-            s[:, state] = s[:, state]/( (state + 1) * len(self.thick_fil)) 
+            s[:, state] = s[:, state]/( (state + 1) * len(self["thick"])) 
                 
             ax = f.add_subplot(spec[state, 0])
             ax.plot(s[:, state],'-')
@@ -266,17 +267,17 @@ class half_sarcomere(dict):
         spec = gridspec.GridSpec(nrows = no_of_rows, ncols = no_of_cols,
                                  figure = f)    
                 
-        for i, t in enumerate(self.thick_fil):
+        for i, t in enumerate(self["thick"]):
             
             if (i==0):
-                s = np.zeros([len(t.pc_state), no_of_states])    
+                s = np.zeros([len(t["pc_state"]), no_of_states])    
                 
             for state in range (0, no_of_states):
-                s[:, state] = s[:, state] + (t.pc_state * (t.pc_state == state + 1))
+                s[:, state] = s[:, state] + [x * (x == state + 1) for x in t["pc_state"]]
         
         for state in range (0, no_of_states):
             
-            s[:, state] = s[:, state]/( (state + 1) * len(self.thick_fil)) 
+            s[:, state] = s[:, state]/( (state + 1) * len(self["thick"])) 
                 
             ax = f.add_subplot(spec[state, 0])
             ax.plot(s[:, state],'-')
@@ -331,25 +332,25 @@ class half_sarcomere(dict):
 
         # Thick filaments
         ax2 = f.add_subplot(spec[0,0])
-        for t in self.thick_fil:
-            ax2.plot(t.cb_x)
+        for t in self["thick"]:
+            ax2.plot(t["cb_x"])
         ax2.set_ylabel('Cross-bridge\npositions\n(nm)',
                        rotation=90)
         ax2.set_ylim(0,1800)
         ax2.set_xlabel("# cb")
         
-        thin_0 = self.thin_fil[0]
-        thick_0 = self.thick_fil[0] 
+        thin_0 = self["thin"][0]
+        thick_0 = self["thick"][0] 
         
         # Beginning of overlap for the thick filament
                       
-        overlap_start = max(thin_0.bs_x)        
-        cb_overlap_start = min(thick_0.cb_x, key=lambda x:abs(x-overlap_start))       
-        thick_node = np.where(thick_0.cb_x == cb_overlap_start)[0]/6
+        overlap_start = max(thin_0["bs_x"])    
+        cb_overlap_start = min(thick_0["cb_x"], key=lambda x:abs(x-overlap_start))  
+        thick_node = np.where([x == cb_overlap_start for x in thick_0["cb_x"]])[0]/6
         
         ax4 = f.add_subplot(spec[1,0])
-        for t in self.thick_fil:
-            ax4.plot(-np.diff(t.cb_x[0:-1:6]), label = "_")
+        for t in self["thick"]:
+            ax4.plot(-np.diff(t["cb_x"][0:-1:6]), label = "_")
             
         ax4.axvline(x=54-thick_node[0], label = "Overlap starts")
         ax4.set_ylabel('Inter-\ncrown\ndistance\n(nm)')
@@ -359,8 +360,8 @@ class half_sarcomere(dict):
 
         # Thin filaments
         ax3 = f.add_subplot(spec[0,1])
-        for t in self.thin_fil:
-            ax3.plot(t.bs_x)
+        for t in self["thin"]:
+            ax3.plot(t["bs_x"])
         ax3.set_ylabel('Binding site\npositions\n(nm)',
                        rotation=90)
         
@@ -368,13 +369,13 @@ class half_sarcomere(dict):
         
         # Beginning of overlap for the thin filament
              
-        overlap_start = min(thick_0.cb_x)        
-        bs_overlap_start = min(thin_0.bs_x, key=lambda x:abs(x-overlap_start))       
-        thin_node = np.where(thin_0.bs_x == bs_overlap_start)[0]/2
+        overlap_start = min(thick_0["cb_x"])        
+        bs_overlap_start = min(thin_0["bs_x"], key=lambda x:abs(x-overlap_start))       
+        thin_node = np.where([x == bs_overlap_start for x in thin_0["bs_x"]])[0]/2
 
         ax5 = f.add_subplot(spec[1,1])
-        for t in self.thin_fil:
-            ax5.plot(np.diff(t.bs_x[0:-1:2]))
+        for t in self["thin"]:
+            ax5.plot(np.diff(t["bs_x"][0:-1:2]))
             
         ax5.axvline(x=thin_node[0])
         ax5.set_ylabel('Inter-site\ndistance\n(nm)',
@@ -388,29 +389,7 @@ class half_sarcomere(dict):
         if (output_file_string):
             self.save_figure_to_file(f, output_file_string)
             plt.close()
-            
-    def calculate_duty_fraction(self, attach_state = 2, output_file_string=""):
-        """
-        Sums up the numbers of CBs in the attached state over the thick filaments
-
-        Parameters
-        ----------
-        attach_state : int, optional
-            Number associated with the attached state. The default is 2.
-
-        Returns
-        -------
-        s : list
-            List containing the number of attached CBs.
-
-        """
-                
-        for i, t in enumerate(self.thick_fil):           
-            if (i==0):
-                s = np.zeros([len(t.cb_state), len(self.thick_fil)])    
-            s[:,i] = s[:,i] + (t.cb_state/attach_state * (t.cb_state == attach_state))
-        
-        return s
+      
                     
     def save_figure_to_file(self, f, im_file_string, dpi=150, verbose=1):
         """
