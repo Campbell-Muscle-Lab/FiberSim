@@ -121,7 +121,7 @@ class hs_blender():
             bpy.context.scene.view_settings.view_transform = 'Filmic'
             bpy.context.scene.display.shading.show_object_outline = True
             bpy.context.scene.view_settings.exposure = 1.5
-            bpy.context.scene.view_settings.gamma = 1.1
+            bpy.context.scene.view_settings.gamma = 0.8
             bpy.context.scene.display.shading.show_specular_highlight = True
             bpy.context.scene.display.shading.shadow_intensity = 0.1
 

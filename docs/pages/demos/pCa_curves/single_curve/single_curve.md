@@ -38,7 +38,7 @@ conda activate fibersim
 
 + Type:
  ```
- python FiberPy.py run_batch "../../../demo_files/tension_pCa/single_curve/batch_single_curve.json"
+ python FiberPy.py run_batch "../../../demo_files/pCa_curves/single_curve/batch_single_curve.json"
  ```
 
 + You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take a few minutes), you should see something similar to the image below.
