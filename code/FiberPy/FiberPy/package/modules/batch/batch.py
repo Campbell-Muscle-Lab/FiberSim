@@ -85,7 +85,11 @@ def run_batch(json_batch_file_string=[],
             threads.append(t)
         else:
             for thread in threads:
+<<<<<<< Updated upstream
                 if not thread.is_alive():
+=======
+                if not thread.isAlive():
+>>>>>>> Stashed changes
                     threads.remove(thread)
 
     # At this point we have run all the simulations
