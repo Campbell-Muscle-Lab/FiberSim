@@ -30,7 +30,7 @@ class thick_filament():
         
         self.cb_x = np.array(thick_data['cb_x'])
         self.cb_angle = np.array(thick_data['cb_angle'])
-        self.cb_nearest_bs_angle_diff = np.array(thick_data['cb_nearest_bs_angle_diff'])   
+        self.cb_nearest_bs_angle_diff = np.array(thick_data['cb_nearest_bs_angle_diff[x_0]'])   
         self.node_forces = np.array(thick_data['node_forces'])
         self.cb_state = np.array(thick_data['cb_state']).astype(int)
         self.cb_iso = np.array(thick_data['cb_iso']).astype(int)
@@ -41,7 +41,7 @@ class thick_filament():
         self.cb_nearest_a_f = \
             np.array(thick_data['cb_nearest_a_f']).astype(int)
         self.cb_nearest_a_n = \
-            np.array(thick_data['cb_nearest_a_n']).astype(int)
+            np.array(thick_data['cb_nearest_a_n[x_0]']).astype(int)
         self.pc_node_index = \
             np.array(thick_data['pc_node_index']).astype(int)
         self.pc_angle = np.array(thick_data['pc_angle'])
@@ -56,7 +56,7 @@ class thick_filament():
         self.pc_nearest_a_f = \
             np.array(thick_data['pc_nearest_a_f']).astype(int)
         self.pc_nearest_a_n = \
-            np.array(thick_data['pc_nearest_a_n']).astype(int)
+            np.array(thick_data['pc_nearest_a_n[x_0]']).astype(int)
 
         self.pc_x = np.zeros((self.c_no_of_pcs,1))
         for i, ni in enumerate(self.pc_node_index):

@@ -121,7 +121,7 @@ class hs_blender():
             bpy.context.scene.view_settings.view_transform = 'Filmic'
             bpy.context.scene.display.shading.show_object_outline = True
             bpy.context.scene.view_settings.exposure = 1.5
-            bpy.context.scene.view_settings.gamma = 1.1
+            bpy.context.scene.view_settings.gamma = 0.8
             bpy.context.scene.display.shading.show_specular_highlight = True
             bpy.context.scene.display.shading.shadow_intensity = 0.1
 
@@ -302,7 +302,7 @@ class hs_blender():
         bs_indices = np.arange(0, thin_f.a_no_of_bs)
         for bs_i in bs_indices:
             s = thin_f.bs_state[bs_i]
-            bs_mesh = 'a_state_%i' % (s+1)
+            bs_mesh = 'a_state_%i' % (s)
             bs = self.hs_b['primitives'][bs_mesh].copy()
 
             bs.name = ('a_bs_%i_%i' % (thin_id, bs_i))
@@ -401,11 +401,11 @@ class hs_blender():
                     print('Creating cross-bridges: thick_fil[%i] cb[%i]' % (thick_i, cb_i))
 
                 # Get the isotype and state
-                cb_isotype = thick_f.cb_iso[cb_i]
-                cb_state = thick_f.cb_state[cb_i]
+                cb_isotype = thick_f.cb_iso[cb_i] 
+                cb_state = thick_f.cb_state[cb_i] 
                 
-                isotype_data = self.template['thick_filament']['myosin']['isotypes'][cb_isotype]
-                state_data = isotype_data['states'][cb_state-1]
+                isotype_data = self.template['thick_filament']['myosin']['isotypes'][cb_isotype - 1]
+                state_data = isotype_data['states'][cb_state -1]
                 state_type = state_data['type']
 
                 # Generate names - these change depending on the isotype and stub
@@ -680,7 +680,7 @@ class hs_blender():
                 pc_isotype = thick_f.pc_iso[pc_i]
                 pc_state = thick_f.pc_state[pc_i]
                 
-                isotype_data = self.template['thick_filament']['mybpc']['isotypes'][pc_isotype]
+                isotype_data = self.template['thick_filament']['mybpc']['isotypes'][pc_isotype-1]
                 state_data = isotype_data['states'][pc_state-1]
                 state_type = state_data['type']
 
@@ -1002,7 +1002,7 @@ class hs_blender():
 
                     m = bpy.context.object
                     mesh = m.data
-                    m_name = 'm_%s_iso_%i_state_%i' % (f, i,j+1)
+                    m_name = 'm_%s_iso_%i_state_%i' % (f, i+1,j+1)
                     mat = bpy.data.materials.new(name=m_name)
                     mat.diffuse_color = s['color']
                     mesh.materials.append(mat)
@@ -1033,7 +1033,7 @@ class hs_blender():
 
                     c = bpy.context.object
                     mesh = c.data
-                    c_name = 'c_%s_iso_%i_state_%i' % (f, i,j+1)
+                    c_name = 'c_%s_iso_%i_state_%i' % (f, i+1,j+1)
                     mat = bpy.data.materials.new(name=c_name)
                     mat.diffuse_color = s['color']
                     mesh.materials.append(mat)

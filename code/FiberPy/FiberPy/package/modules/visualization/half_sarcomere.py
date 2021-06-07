@@ -23,10 +23,10 @@ class half_sarcomere():
  
            # Load hs data
            hs_data = json_data['hs_data']
-           self.t_attach_a_node = hs_data['titin']['t_attach_a_node']
-           self.t_attach_m_node = hs_data['titin']['t_attach_m_node']
-           self.t_slack_length = hs_data['titin']['t_slack_length']
-           self.t_k_stiff = hs_data['titin']['t_k_stiff']
+           self.t_attach_a_node = json_data['titin']['t_attach_a_node']
+           self.t_attach_m_node = json_data['titin']['t_attach_m_node']
+           self.t_slack_length = json_data['titin']['t_slack_length']
+           self.t_k_stiff = json_data['titin']['t_k_stiff']
            self.cb_extensions = hs_data['cb_extensions']
            self.hs_id = hs_data['hs_id']
            self.time = hs_data['time']
@@ -39,13 +39,13 @@ class half_sarcomere():
                hs_data['a_nodes_per_thin_filament']
 
            #Load thick filaments
-           thick_fil_data = hs_data['thick']
+           thick_fil_data = json_data['thick']
            self.thick_fil = []
            for t in thick_fil_data:
                self.thick_fil.append(thick.thick_filament(t))
 
            #Load thin filaments
-           thin_fil_data = hs_data['thin']
+           thin_fil_data = json_data['thin']
            self.thin_fil = []
            for t in thin_fil_data:
                self.thin_fil.append(thin.thin_filament(t))
