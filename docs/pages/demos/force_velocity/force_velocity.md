@@ -1,12 +1,10 @@
 ---
 title: Force-velocity 
 parent: Demos
-has_children: false
+has_children: true
 nav_order: 3
 ---
 
-# Force-velocity curve
-
-To be written.
+# Force-velocity demos
 
 
