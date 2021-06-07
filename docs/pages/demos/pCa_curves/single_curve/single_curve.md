@@ -64,8 +64,9 @@ For each pCa value, there is:
 
 ![results text file](results_text_file.png)
 
-![sim_summary_figure](sim_summary_figure.png)
-
+<html>
+<img src="sim_summary_figure.png" width="50%">
+</html>
 
 ## How this worked
 

@@ -114,6 +114,11 @@ def run_batch(json_batch_file_string=[],
                 analyses.create_y_pCa_figure(fig_data,
                                              json_batch_file_string)
 
+        if ('force_velocity' in batch_figures):
+            for fig_data in batch_figures['force_velocity']:
+                analyses.create_fv_and_power_figure(fig_data,
+                                          json_batch_file_string)
+
     print('FiberPy: run_batch() closing correctly')
 
 def worker(cmd):

@@ -105,4 +105,23 @@ def fit_exponential_recovery(x, y, n=1):
         d['y_fit'] = y_single_exp(d['x_fit'], *popt)
         
         return d
-        
+
+def fit_straight_line(x, y):
+    """ Fits a straight line to data """
+
+    import statsmodels.api as sm
+
+    # Create a regression model
+    x = sm.add_constant(x)
+    model  = sm.OLS(y, x)
+
+    results = model.fit()
+
+    # Create a dictionary for the results
+    d = dict()
+    d['x'] = x
+    d['y'] = y
+    d['intercept'] = results.params[0]
+    d['slope'] = results.params[1]
+
+    return d
