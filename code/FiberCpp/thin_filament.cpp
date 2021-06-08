@@ -160,7 +160,7 @@ void thin_filament::initialise_bs_x_bs_angle_bs_unit(void)
 
             // Update x and base_angle
             x = x + a_inter_bs_rest_length;
-            base_angle = base_angle + a_inter_bs_twist;
+            base_angle = base_angle - a_inter_bs_twist; // thin fil has a right-handed helix structure
         }
     }
 }
