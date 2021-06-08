@@ -65,7 +65,7 @@ class hs_blender():
         # by adding an array into the hs.thick_fil structure
         self.set_nearest_thin_filaments()
 
-        # # Draws titin filaments
+        # # # Draws titin filaments
         self.create_titin_filaments()
 
         # Create cross-bridges
@@ -395,6 +395,9 @@ class hs_blender():
         # Loop through myosin filaments
         for thick_i, thick_f in enumerate(self.hs.thick_fil):
 
+            if (thick_i>=3):
+                break
+            
             # Loop through myosin heads
             for cb_i in np.arange(0, thick_f.m_no_of_cbs):
                 if ((cb_i % 50)==0):
@@ -444,6 +447,24 @@ class hs_blender():
 
                 bpy.context.collection.objects.link(stub)
 
+                # Draw sphere and link
+                sp_name = 'm_sphere_stub_dist_iso_%i_state_%i' % \
+                    (cb_isotype, cb_state)
+                stub_top = self.hs_b['primitives'][sp_name].copy()
+                stub_top.name = ('m_stub_top_%i_%i' % (thick_i, cb_i))
+                stub_top.location=(top_x, top_y, top_z)
+
+                bpy.context.collection.objects.link(stub_top)
+
+                sp_name = 'm_sphere_stub_prox_iso_%i_state_%i' % \
+                    (cb_isotype, cb_state)
+                stub_bot = self.hs_b['primitives'][sp_name].copy()
+                stub_bot.name = ('m_stub_bot_%i_%i' % (thick_i, cb_i))
+                stub_bot.location=(bot_x, bot_y, bot_z)
+
+                bpy.context.collection.objects.link(stub_bot)
+
+
                 # Now move on to the remainder
                 if (thick_f.cb_bound_to_a_f[cb_i] >= 0):
                     # Head is bound
@@ -489,6 +510,15 @@ class hs_blender():
 
                     bpy.context.collection.objects.link(cat)
 
+                    # Draw sphere and link
+                    sp_name = 'm_sphere_cat_prox_iso_%i_state_%i' % \
+                        (cb_isotype, cb_state)
+                    cat_prox = self.hs_b['primitives'][sp_name].copy()
+                    cat_prox.name = ('m_stub_top_%i_%i' % (thick_i, cb_i))
+                    cat_prox.location=(cat_proximal_x, cat_proximal_y, cat_proximal_z)
+
+                    bpy.context.collection.objects.link(cat_prox)
+
                     # Lever arm coordinates
                     lever_proximal_x = cat_distal_x - state_data['extension']
                     lever_proximal_y = cat_distal_y + \
@@ -511,6 +541,15 @@ class hs_blender():
 
                     bpy.context.collection.objects.link(lever)
 
+                    # Draw sphere and link
+                    sp_name = 'm_sphere_lever_prox_iso_%i_state_%i' % \
+                        (cb_isotype, cb_state)
+                    lever_prox = self.hs_b['primitives'][sp_name].copy()
+                    lever_prox.name = ('m_lever_prox_%i_%i' % (thick_i, cb_i))
+                    lever_prox.location=(lever_proximal_x, lever_proximal_y, lever_proximal_z)
+
+                    bpy.context.collection.objects.link(lever_prox)
+
                     # Link distal coordinates
                     link_distal_x = top_x
                     link_distal_y = lever_proximal_y
@@ -532,6 +571,15 @@ class hs_blender():
                     # Copy the link primitive and set its name
                     link = self.hs_b['primitives'][prim_names['link']].copy()
                     link.name = ('m_link_%i_%i' % (thick_i, cb_i))
+                    
+                    # Draw sphere and link
+                    sp_name = 'm_sphere_link_dist_iso_%i_state_%i' % \
+                        (cb_isotype, cb_state)
+                    link_dist = self.hs_b['primitives'][sp_name].copy()
+                    link_dist.name = ('m_link_dist_%i_%i' % (thick_i, cb_i))
+                    link_dist.location=(link_distal_x, link_distal_y, link_distal_z)
+
+                    bpy.context.collection.objects.link(link_dist)
 
                     # Draw and link
                     self.replot_primitive_cylinder(
@@ -579,6 +627,15 @@ class hs_blender():
                         self.template['thick_filament']['myosin']['lever_height'])
 
                     bpy.context.collection.objects.link(lever)
+                    
+                    # Draw sphere and link
+                    sp_name = 'm_sphere_link_dist_iso_%i_state_%i' % \
+                        (cb_isotype, cb_state)
+                    link_dist = self.hs_b['primitives'][sp_name].copy()
+                    link_dist.name = ('m_link_dist_%i_%i' % (thick_i, cb_i))
+                    link_dist.location=(link_distal_x, link_distal_y, link_distal_z)
+
+                    bpy.context.collection.objects.link(link_dist)
 
                     # Lever arm coordinates
                     cat_distal_x = lever_distal_x + self.template['thick_filament']['myosin']['cat_height']
@@ -597,6 +654,15 @@ class hs_blender():
                         self.template['thick_filament']['myosin']['cat_height'])
 
                     bpy.context.collection.objects.link(cat)
+
+                    # Draw sphere and link
+                    sp_name = 'm_sphere_cat_prox_iso_%i_state_%i' % \
+                        (cb_isotype, cb_state)
+                    cat_prox = self.hs_b['primitives'][sp_name].copy()
+                    cat_prox.name = ('m_stub_top_%i_%i' % (thick_i, cb_i))
+                    cat_prox.location=(lever_distal_x, lever_distal_y, lever_distal_z)
+
+                    bpy.context.collection.objects.link(cat_prox)
 
                 else:
                     # It's DRX
@@ -621,6 +687,15 @@ class hs_blender():
                         np.asarray([top_x, top_y, top_z]),
                         np.asarray([link_distal_x, link_distal_y, link_distal_z]),
                         self.template['thick_filament']['myosin']['link_height'])
+
+                    # Draw sphere and link
+                    sp_name = 'm_sphere_link_dist_iso_%i_state_%i' % \
+                        (cb_isotype, cb_state)
+                    link_dist = self.hs_b['primitives'][sp_name].copy()
+                    link_dist.name = ('m_link_dist_%i_%i' % (thick_i, cb_i))
+                    link_dist.location=(link_distal_x, link_distal_y, link_distal_z)
+
+                    bpy.context.collection.objects.link(link_dist)
 
                     # Lever arm coordinates
                     lever_distal_x = link_distal_x
@@ -665,6 +740,16 @@ class hs_blender():
                         self.template['thick_filament']['myosin']['cat_height'])
 
                     bpy.context.collection.objects.link(cat)
+ 
+                    # Draw sphere and link
+                    sp_name = 'm_sphere_cat_prox_iso_%i_state_%i' % \
+                        (cb_isotype, cb_state)
+                    cat_prox = self.hs_b['primitives'][sp_name].copy()
+                    cat_prox.name = ('m_stub_top_%i_%i' % (thick_i, cb_i))
+                    cat_prox.location=(lever_distal_x, lever_distal_y, lever_distal_z)
+
+                    bpy.context.collection.objects.link(cat_prox)
+
 
     def create_mybpcs(self):
         """ Draws myosin binding protein c molecules """
@@ -719,6 +804,24 @@ class hs_blender():
                     self.template['thick_filament']['mybpc']['stub_height'])
 
                 bpy.context.collection.objects.link(stub)
+
+                # Draw sphere and link
+                sp_name = 'c_sphere_stub_dist_iso_%i_state_%i' % \
+                    (pc_isotype, pc_state)
+                stub_top = self.hs_b['primitives'][sp_name].copy()
+                stub_top.name = ('c_stub_top_%i_%i' % (thick_i, pc_i))
+                stub_top.location=(top_x, top_y, top_z)
+
+                bpy.context.collection.objects.link(stub_top)
+
+                sp_name = 'c_sphere_stub_prox_iso_%i_state_%i' % \
+                    (pc_isotype, pc_state)
+                stub_bot = self.hs_b['primitives'][sp_name].copy()
+                stub_bot.name = ('c_stub_bot_%i_%i' % (thick_i, pc_i))
+                stub_bot.location=(bot_x, bot_y, bot_z)
+
+                bpy.context.collection.objects.link(stub_bot)
+
 
                 # Now move on to the remainder
                 if (thick_f.pc_bound_to_a_f[pc_i] >= 0):
@@ -818,6 +921,15 @@ class hs_blender():
 
                     bpy.context.collection.objects.link(link)
 
+                    # Draw sphere and link
+                    sp_name = 'c_sphere_link_dist_iso_%i_state_%i' % \
+                        (pc_isotype, pc_state)
+                    link_dist = self.hs_b['primitives'][sp_name].copy()
+                    link_dist.name = ('c_link_dist_%i_%i' % (thick_i, pc_i))
+                    link_dist.location=(link_distal_x, link_distal_y, link_distal_z)
+
+                    bpy.context.collection.objects.link(link_dist)
+
                 else:
                     # It's not attached
                     link_distal_x = top_x
@@ -840,6 +952,15 @@ class hs_blender():
                         np.asarray([top_x, top_y, top_z]),
                         np.asarray([link_distal_x, link_distal_y, link_distal_z]),
                         self.template['thick_filament']['mybpc']['link_height'])
+
+                    # Draw sphere and link
+                    sp_name = 'c_sphere_link_dist_iso_%i_state_%i' % \
+                        (pc_isotype, pc_state)
+                    link_dist = self.hs_b['primitives'][sp_name].copy()
+                    link_dist.name = ('c_link_dist_%i_%i' % (thick_i, pc_i))
+                    link_dist.location=(link_distal_x, link_distal_y, link_distal_z)
+
+                    bpy.context.collection.objects.link(link_dist)
 
                     # Lever arm coordinates
                     lever_distal_x = link_distal_x
@@ -884,6 +1005,15 @@ class hs_blender():
                         self.template['thick_filament']['myosin']['cat_height'])
 
                     bpy.context.collection.objects.link(cat)
+
+                    # Draw sphere and link
+                    sp_name = 'c_sphere_cat_prox_iso_%i_state_%i' % \
+                        (pc_isotype, pc_state)
+                    cat_prox = self.hs_b['primitives'][sp_name].copy()
+                    cat_prox.name = ('m_stub_top_%i_%i' % (thick_i, pc_i))
+                    cat_prox.location=(lever_distal_x, lever_distal_y, lever_distal_z)
+
+                    bpy.context.collection.objects.link(cat_prox)
 
 
     def create_end_disks(self):
@@ -1008,6 +1138,37 @@ class hs_blender():
                     mesh.materials.append(mat)
 
                     self.hs_b['primitives'][m_name] = m
+                    
+            # Add in spheres to 'round' corners
+            for j, s in enumerate(states):
+                for f in ['stub_prox','stub_dist','link_dist','lever_prox','cat_prox']:
+                    if ('stub' in f):
+                        r = self.template['thick_filament']['myosin']['stub_radius']
+                        v = self.template['thick_filament']['myosin']['stub_vertices']
+                    elif ('link' in f):
+                        r = self.template['thick_filament']['myosin']['link_radius']
+                        v = self.template['thick_filament']['myosin']['link_vertices']
+                    elif ('lever' in f):
+                        r = self.template['thick_filament']['myosin']['lever_radius']
+                        v = self.template['thick_filament']['myosin']['lever_vertices']
+                    else:
+                        r = self.template['thick_filament']['myosin']['cat_radius']
+                        v = self.template['thick_filament']['myosin']['cat_vertices']
+
+                    bpy.ops.mesh.primitive_ico_sphere_add(
+                        radius=r,
+                        enter_editmode=False,
+                        subdivisions=4,
+                        location=(0,0,0))
+                    
+                    m = bpy.context.object
+                    mesh = m.data
+                    m_name = 'm_sphere_%s_iso_%i_state_%i' % (f, i+1, j+1)
+                    mat = bpy.data.materials.new(name=m_name)
+                    mat.diffuse_color = s['color']
+                    mesh.materials.append(mat)
+                    
+                    self.hs_b['primitives'][m_name] = m
 
     def create_pc_primitives(self):
         """ Cycle though the mybpc isotypes and states, making a mesh for the
@@ -1039,6 +1200,38 @@ class hs_blender():
                     mesh.materials.append(mat)
 
                     self.hs_b['primitives'][c_name] = c
+
+            # Add in spheres to 'round' corners
+            for j, s in enumerate(states):
+                for f in ['stub_prox','stub_dist','link_dist','lever_prox','cat_prox']:
+                    if ('stub' in f):
+                        r = self.template['thick_filament']['mybpc']['stub_radius']
+                        v = self.template['thick_filament']['mybpc']['stub_vertices']
+                    elif ('link' in f):
+                        r = self.template['thick_filament']['mybpc']['link_radius']
+                        v = self.template['thick_filament']['mybpc']['link_vertices']
+                    elif ('lever' in f):
+                        r = self.template['thick_filament']['mybpc']['lever_radius']
+                        v = self.template['thick_filament']['mybpc']['lever_vertices']
+                    else:
+                        r = self.template['thick_filament']['mybpc']['cat_radius']
+                        v = self.template['thick_filament']['mybpc']['cat_vertices']
+
+                    bpy.ops.mesh.primitive_ico_sphere_add(
+                        radius=r,
+                        enter_editmode=False,
+                        subdivisions=4,
+                        location=(0,0,0))
+                    
+                    m = bpy.context.object
+                    mesh = m.data
+                    m_name = 'c_sphere_%s_iso_%i_state_%i' % (f, i+1, j+1)
+                    mat = bpy.data.materials.new(name=m_name)
+                    mat.diffuse_color = s['color']
+                    mesh.materials.append(mat)
+                    
+                    self.hs_b['primitives'][m_name] = m
+
 
     def create_primitive_a_backbone(self):
         """ Creates an a_backbone """
