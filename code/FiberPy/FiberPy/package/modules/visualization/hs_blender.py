@@ -394,9 +394,6 @@ class hs_blender():
 
         # Loop through myosin filaments
         for thick_i, thick_f in enumerate(self.hs.thick_fil):
-
-            if (thick_i>=3):
-                break
             
             # Loop through myosin heads
             for cb_i in np.arange(0, thick_f.m_no_of_cbs):

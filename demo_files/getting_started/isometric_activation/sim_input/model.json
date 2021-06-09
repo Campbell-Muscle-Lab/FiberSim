@@ -8,7 +8,7 @@
         "m_filament_density": 0.407e15
     },
   "thick_structure": {
-    "m_n": 16,
+    "m_n": 9,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,
@@ -36,16 +36,16 @@
   "thin_parameters": {
     "a_no_of_bs_states": 2,
     "a_k_stiff": 100,
-    "a_k_on": 2.03e7,
+    "a_k_on": 2e7,
     "a_k_off": 100,
-    "a_k_coop": 8.37
+    "a_k_coop": 5
   },
     "thick_parameters": {
         "m_k_stiff": 100
     },
     "titin_parameters": {
         "t_passive_mode": "linear",
-        "t_k_stiff": 5e-6,
+        "t_k_stiff": 1.5e-5,
         "t_slack_length": 0
     },
     "extracellular_parameters": {
@@ -65,7 +65,7 @@
       "scheme": [
         {
           "number": 1,
-          "type": "D",
+          "type": "S",
           "extension": 0,
           "transition": [
             {
@@ -73,7 +73,7 @@
               "rate_type": "force_dependent",
               "rate_parameters": [
                 10,
-                1000
+                200
               ]
             }
           ]
@@ -87,14 +87,14 @@
               "new_state": 1,
               "rate_type": "constant",
               "rate_parameters": [
-                50
+                200
               ]
             },
             {
               "new_state": 3,
               "rate_type": "gaussian",
               "rate_parameters": [
-                50
+                55
               ]
             }
           ]
@@ -124,7 +124,7 @@
       "c_thick_stripes": 10,
       "c_thick_node_spacing": 3,
       "c_mols_per_node": 3,
-      "c_starting_angle": 30.0
+      "c_starting_angle": 40.0
     },
   "mybpc_parameters": {
     "c_k_stiff": 0.0005,

@@ -1,82 +1,82 @@
 {
   "frames": [
     {
-      "status_file": "snapshots/hs_1_time_step_201.json",
-      "image_file": "renders/hs_1.png",
+      "status_file": "snapshots/hs_1_time_step_400.json",
+      "image_file": "renders/hs_400.png",
       "camera": {
         "location": {
-          "x": 237,
-          "y": 30,
-          "z": 55
+          "x": 602.29,
+          "y": 51.964,
+          "z": 22.383
         },
         "rotation": {
-          "x": 75,
-          "y": 0,
-          "z": -100
+          "x": 88.8,
+          "y": 0.698,
+          "z": -91.5
         }
       }
     },
     {
-      "status_file": "snapshots/hs_1_time_step_221.json",
-      "image_file": "renders/hs_2.png",
+      "status_file": "snapshots/hs_1_time_step_410.json",
+      "image_file": "renders/hs_410.png",
       "camera": {
         "location": {
-          "x": 237,
-          "y": 30,
-          "z": 55
+          "x": 602.29,
+          "y": 51.964,
+          "z": 22.383
         },
         "rotation": {
-          "x": 75,
-          "y": 0,
-          "z": -100
+          "x": 88.8,
+          "y": 0.698,
+          "z": -91.5
         }
       }
     },
     {
-      "status_file": "snapshots/hs_1_time_step_241.json",
-      "image_file": "renders/hs_3.png",
+      "status_file": "snapshots/hs_1_time_step_420.json",
+      "image_file": "renders/hs_420.png",
       "camera": {
         "location": {
-          "x": 237,
-          "y": 30,
-          "z": 55
+          "x": 602.29,
+          "y": 51.964,
+          "z": 22.383
         },
         "rotation": {
-          "x": 75,
-          "y": 0,
-          "z": -100
+          "x": 88.8,
+          "y": 0.698,
+          "z": -91.5
         }
       }
     },
     {
-      "status_file": "snapshots/hs_1_time_step_261.json",
-      "image_file": "renders/hs_4.png",
+      "status_file": "snapshots/hs_1_time_step_430.json",
+      "image_file": "renders/hs_430.png",
       "camera": {
         "location": {
-          "x": 237,
-          "y": 30,
-          "z": 55
+          "x": 602.29,
+          "y": 51.964,
+          "z": 22.383
         },
         "rotation": {
-          "x": 75,
-          "y": 0,
-          "z": -100
+          "x": 88.8,
+          "y": 0.698,
+          "z": -91.5
         }
       }
     },
     {
-      "status_file": "snapshots/hs_1_time_step_281.json",
-      "image_file": "renders/hs_5.png",
+      "status_file": "snapshots/hs_1_time_step_440.json",
+      "image_file": "renders/hs_440.png",
       "camera": {
         "location": {
-          "x": 237,
-          "y": 30,
-          "z": 55
+          "x": 602.29,
+          "y": 51.964,
+          "z": 22.383
         },
         "rotation": {
-          "x": 75,
-          "y": 0,
-          "z": -100
+          "x": 88.8,
+          "y": 0.698,
+          "z": -91.5
         }
       }
     }

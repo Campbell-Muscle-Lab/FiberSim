@@ -2,18 +2,18 @@
     "frames":
     [
       {
-        "status_file": "snapshots/hs_1_time_step_201.json",
-        "image_file": "renders/hs_201.png",
+        "status_file": "snapshots/hs_1_time_step_401.json",
+        "image_file": "renders/hs_401.png",
         "camera": {
           "location": {
-            "x": 544.34,
-            "y": 55.447,
-            "z": 21.932
+            "x": 602.29,
+            "y": 51.964,
+            "z": 22.383
           },
           "rotation": {
-            "x": 64.3,
-            "y": 0.688,
-            "z": -104
+            "x": 88.8,
+            "y": 0.698,
+            "z": -91.5
           }
         }
       }
