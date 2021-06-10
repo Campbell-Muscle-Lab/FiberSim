@@ -40,6 +40,7 @@ def default_formatting():
     formatting['table_y_spacing'] = 0.1
     formatting['table_x_spacing'] = 0.5
     formatting['table_fontsize'] = 11
+    formatting['color_set'] = ["tab:orange", "tab:blue", "tab:black", "tab:green", "tab:red"]
 
     return formatting
 
@@ -86,8 +87,9 @@ def create_y_pCa_figure(fig_data, batch_file_string):
 
     pCa_50 = []
     n_H = []
-    marker_color = []
 
+#    marker_color = []
+        
     # Keep track of max_y
     max_y = -np.inf
 
@@ -120,11 +122,13 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                 a.plot(pCa_values[curve_counter-1],
                     y_values[curve_counter-1],
                     formatting['marker_symbols'][curve_counter-1],
-                    markersize=formatting['marker_size'])
-                if (a==ax_left):
-                    marker_color.append(a.lines[-1].get_color())
+                    markersize=formatting['marker_size'],
+                    markerfacecolor = formatting['color_set'][curve_counter - 1],
+                    markeredgewidth=0.0)
+#                if (a==ax_left):
+#                    marker_color.append(a.lines[-1].get_color())
                 a.plot(res['x_fit'], res['y_fit'],'-',
-                    color=a.lines[-1].get_color())
+                    color = formatting['color_set'][curve_counter - 1])
 
             # Loop on to the next folder
             curve_counter = curve_counter + 1
@@ -165,7 +169,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     ax_right.set_xticks(formatting['low_pCa_ticks'])
 
     y_ticks = [0, ut.multiple_greater_than(max_y,
-                                           0.2*np.power(10, np.ceil(np.log10(max_y))))]
+                                           0.05*np.power(10, np.ceil(np.log10(max_y))))]
 
     for a in [ax_left, ax_right]:
         a.set_xticklabels(a.get_xticks(),
@@ -216,8 +220,8 @@ def create_y_pCa_figure(fig_data, batch_file_string):
         ax_right.plot(x_anchor + formatting['table_x_spacing'],
                     y_anchor,
                     formatting['marker_symbols'][i],
-                    mfc = marker_color[i],
-                    mec = marker_color[i],
+                    mfc = formatting['color_set'][i],
+                    mec = formatting['color_set'][i],
                     markersize=formatting['marker_size'],
                     clip_on=False)
 

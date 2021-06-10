@@ -151,6 +151,18 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 			(1e18 * 1.38e-23 * 310.0));
 	}
 
+	// Gaussian MyBP-C 
+
+	if (!strcmp(rate_type, "gaussian_pc"))
+	{
+		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+		double k_pc = p_model->c_k_stiff; // use MyBPC stiffness
+
+		rate = gsl_vector_get(rate_parameters, 0) *
+			exp(-(0.5 * k_pc * gsl_pow_int(x, 2)) /
+				(1e18 * 1.38e-23 * 310.0));
+	}
+
 	// Poly
 	if (!strcmp(rate_type, "poly"))
 	{

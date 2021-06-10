@@ -277,6 +277,9 @@ def multi_panel_from_flat_data(
                                lw=formatting['data_linewidth']))
                     legend_strings.append(y_d['field_label'])
 
+                if y_d['field_label'] == 'pCa':
+                    ax[i].invert_yaxis()
+
             if (y_d['style'] == 'envelope'):
                 envelope_width = processing['envelope_rel_width'] * \
                     (max_x - min_x)
