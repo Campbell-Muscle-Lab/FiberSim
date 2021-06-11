@@ -247,7 +247,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     dir_name = os.path.dirname(output_image_file_string)
     if (not os.path.isdir(dir_name)):
         os.makedirs(dir_name)
-    fig.savefig(output_image_file_string, dpi=100)
+    fig.savefig(output_image_file_string, dpi=200)
     plt.close()
 
 

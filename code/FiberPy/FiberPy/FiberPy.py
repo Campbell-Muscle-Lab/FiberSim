@@ -9,6 +9,7 @@ from package.modules.batch.batch import run_batch
 from package.modules.output_handler import output_handler as oh
 from package.modules.fitting import fitting as fit
 from package.modules.visualization import render as viz
+from package.modules.visualization.create_movie import create_hs_movie as cm
 from package.modules.analysis import analysis as anal
 
 def parse_inputs():
@@ -33,6 +34,9 @@ def parse_inputs():
         an = anal.analysis()
         an.animate_cb_distributions(
             sys.argv[2], sys.argv[3])
+
+    if (sys.argv[1] == "spatial_visualization"):
+        cm(sys.argv[2], sys.argv[3])
 
 
 if __name__ == "__main__":
