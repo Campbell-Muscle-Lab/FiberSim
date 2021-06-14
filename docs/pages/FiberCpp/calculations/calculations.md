@@ -62,9 +62,9 @@ where  $k_{cb}$ is the crossbridge spring stiffness and $x_{ps}$ is the crossbri
 
 This additional force on the filaments should be added to the force-balance equations :
 
-++-  k_a \, a_{i-1} + 2 \, k_a \, a_i - k_a \, a_{i+1} \, \color{red}{- \, k_{cb} \, a_i + k_{cb} \, m_j} = \color{blue}{f_{cb} \, x_{ps}}++
+++-  k_a \, a_{i-1} + 2 \, k_a \, a_i - k_a \, a_{i+1} \, \color{red}{+ \, k_{cb} \, a_i - k_{cb} \, m_j} = \color{blue}{k_{cb} \, x_{ps}}++
 
-++-  k_m \, m_{j-1} + 2 \, k_m \, m_j - k_m \, m_{j+1} \, \color{red}{+ \, k_{cb} \, a_i - k_{cb} \, m_j} = \color{blue}{-f_{cb} \, x_{ps}}++ 
+++-  k_m \, m_{j-1} + 2 \, k_m \, m_j - k_m \, m_{j+1} \, \color{red}{- \, k_{cb} \, a_i + k_{cb} \, m_j} = \color{blue}{-k_{cb} \, x_{ps}}++ 
 
 The terms in red will add non-tridiagonal, opposite elements to the $K$ matrix: 
 

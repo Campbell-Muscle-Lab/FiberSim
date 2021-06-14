@@ -53,20 +53,26 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
             if (fs::is_directory(status_path))
             {
                 // Clean the directory
-                int n = (int) fs::remove_all(status_path);
+
+                printf("Cleaning status_folder: %s\n", status_path.string().c_str());
+
+                int n = (int)fs::remove_all(status_path);
                 printf("Deleting %i files from status_folder: %s\n",
                     n, status_path.string().c_str());
             }
+            else {
 
-            // Now create the directory
-            if (fs::create_directory(status_path))
-            {
-                printf("Status folder created at: %s\n", status_path.string().c_str());
-            }
-            else
-            {
-                printf("Status folder could not be created: %s\n", status_path.string().c_str());
-                exit(1);
+                // Create the directory
+                if (fs::create_directories(status_path))
+                {
+                    printf("Status folder created at: %s\n", status_path.string().c_str());
+                }
+                else
+                {
+                    printf("Status folder could not be created: %s\n", status_path.string().c_str());
+                    exit(1);
+                }
+                
             }
 
             // Set the status folder
@@ -103,7 +109,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
             }
 
             // Now create the directory
-            if (fs::create_directory(log_path))
+            if (fs::create_directories(log_path))
             {
                 printf("Log folder created at: %s\n", log_path.string().c_str());
             }

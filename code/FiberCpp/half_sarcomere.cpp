@@ -2665,7 +2665,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     errno_t err = fopen_s(&output_file, output_file_string, "w");
     if (err != 0)
     {
-        printf("Options log file file: %s\ncould not be opened\n",
+        printf("Dump file: %s\ncould not be opened\n",
             output_file_string);
         exit(1);
     }
