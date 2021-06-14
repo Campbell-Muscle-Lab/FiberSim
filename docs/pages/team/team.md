@@ -9,14 +9,22 @@ nav_order: 8
 Key contributors to the FiberSim team include:
 
 + [Ken Campbell](http://www.campbellmusclelab.org)
-  + manages the overall project
+  + managed the overall project
   + wrote the first version of FiberCpp
+  + wrote FiberPy
   + created many of the demos
+
++ Sarah Kosta (postdoc)
+  + optimized and tested FiberCpp
+  + helped develop the website
+
+## Alumni
 
 + Dylan Colli (post-bac student)
   + wrote the first test suites
   + planned the documentation
-  + developed the visualizations
+  + developed the first visualizations
 
-+ Sarah Kosta (postdoc)
+
+
 
