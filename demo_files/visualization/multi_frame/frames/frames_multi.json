@@ -2,7 +2,7 @@
   "frames": [
     {
       "status_file": "snapshots/hs_1_time_step_400.json",
-      "image_file": "renders/hs_400.png",
+      "image_file": "renders/hs_1.png",
       "camera": {
         "location": {
           "x": 602.29,
@@ -18,7 +18,7 @@
     },
     {
       "status_file": "snapshots/hs_1_time_step_410.json",
-      "image_file": "renders/hs_410.png",
+      "image_file": "renders/hs_2.png",
       "camera": {
         "location": {
           "x": 602.29,
@@ -34,7 +34,7 @@
     },
     {
       "status_file": "snapshots/hs_1_time_step_420.json",
-      "image_file": "renders/hs_420.png",
+      "image_file": "renders/hs_3.png",
       "camera": {
         "location": {
           "x": 602.29,
@@ -50,7 +50,7 @@
     },
     {
       "status_file": "snapshots/hs_1_time_step_430.json",
-      "image_file": "renders/hs_430.png",
+      "image_file": "renders/hs_4.png",
       "camera": {
         "location": {
           "x": 602.29,
@@ -66,7 +66,7 @@
     },
     {
       "status_file": "snapshots/hs_1_time_step_440.json",
-      "image_file": "renders/hs_440.png",
+      "image_file": "renders/hs_5.png",
       "camera": {
         "location": {
           "x": 602.29,

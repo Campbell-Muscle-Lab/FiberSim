@@ -28,7 +28,7 @@ First, download Blender at (https://www.blender.org/).
     ```
     conda activate fibersim
     ```
-3. Change directory to `<repo>/code/FiberPy/FiberPy`, where `<repo>` is the directory where you installed FiberSim (e.g. `c:\temp\FiberSim`)
+3. Change directory to `<FiberSim_dir>/code/FiberPy/FiberPy`, where `<FiberSim_dir>` is the directory where you installed FiberSim.
 
 4. Type `python fiberpy.py render_model ../../../demo_files/visualization/single_frame/render_batch.json`
 
@@ -38,8 +38,8 @@ First, download Blender at (https://www.blender.org/).
 
 + Use Windows File Explorer to open `<repo>/demo_files/visualization/single_frame/renders`
 + You should see
-  + hs_1.png
+  + hs_401.png
   
 <p align="center">
-    <img src="hs_1.png" alt="drawing" width="600"/>
+    <img src="hs_401.png" alt="drawing" width="600"/>
 </p>

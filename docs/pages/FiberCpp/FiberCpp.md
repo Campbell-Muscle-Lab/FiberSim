@@ -9,7 +9,7 @@ nav_order: 3
 FiberCpp is the 'core model' of the FiberSim suite. The [code](code/code.html)
 + implements the [calculations](calculations/calculations.html) underlying the simulation
 + is written in C++ for speed
-+ is a low-level console application stored as `FiberSim.exe` in `repo/bin`
++ is a low-level console application stored as `FiberCpp.exe` in `FiberSim/bin`
 
 FiberCpp is designed to run simulations as quickly and efficiently as possible. It does not have a sophisticated user-interface.
 

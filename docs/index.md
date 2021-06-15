@@ -23,4 +23,4 @@ Check the [demos](pages/demos/demos.html) to see how to:
 + Fit models to data
 + Create videos and snap-shots of the model
 
-![Render of FiberSim](FiberSim_render.png)
+![Render of FiberSim](FiberSim_render_new.PNG)

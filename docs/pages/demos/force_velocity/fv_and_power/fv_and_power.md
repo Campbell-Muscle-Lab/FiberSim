@@ -34,7 +34,7 @@ Before proceeding, make sure that you have followed the [installation instructio
 ```
 conda activate fibersim
 ```
-+ Change directory to `<repo>/code/FiberPy/FiberPy`, where `<repo>` is the directory where you installed FiberSim
++ Change directory to `<FiberSim_dir>/code/FiberPy/FiberPy`, where `<FiberSim_dir>` is the directory where you installed FiberSim.
 
 ### Run a simulation
 

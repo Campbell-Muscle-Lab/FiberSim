@@ -24,7 +24,7 @@ This demo uses the visualization tool from FiberPy to get multiple snap shots fr
     ```
     conda activate fibersim
     ```
-3. Change directory to `<repo>/code/FiberPy/FiberPy`, where `<repo>` is the directory where you installed FiberSim (e.g. `c:\temp\FiberSim`)
+3. Change directory to `<FiberSim_dir>/code/FiberPy/FiberPy`, where `<FiberSim_dir>` is the directory where you installed FiberSim.
 
 4. Type `python fiberpy.py render_model ../../../demo_files/visualization/multi_frame/render_batch.json`
 
