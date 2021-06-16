@@ -2,5 +2,7 @@
 
 Latest release:
 
-[![DOI](https://zenodo.org/badge/248878056.svg)](https://zenodo.org/badge/latestdoi/248878056)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4966312.svg)](https://doi.org/10.5281/zenodo.4966312)
+
+
 
