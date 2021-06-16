@@ -73,7 +73,7 @@ Within each sub-folder, for each pCa value, there is:
 ![results text file](results.PNG)
 
 <html>
-<img src="summary.PNG" width="50%">
+<img src="summary.png" width="50%">
 </html>
 
 

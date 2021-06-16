@@ -43,7 +43,7 @@ conda activate fibersim
 
 + You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take several minutes), you should see something similar to the image below.
 
-<img src='command_window.PNG' width="75%">
+![command window](command_window.png)
 
 ### Viewing the results
 
@@ -63,7 +63,7 @@ All of the results from the simulation are written to files in `<FiberSim_dir>/d
 
 + Simulations for each pCa value are stored in the sub-folder named `1`.
 
-![sim_output_folder](sim_output_folder.PNG)
+![sim_output_folder](sim_output_folder.png)
 
 For each pCa value, there is:
 

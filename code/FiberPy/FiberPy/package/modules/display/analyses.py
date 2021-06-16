@@ -266,16 +266,17 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     fig.savefig(output_image_file_string, dpi=200)
     plt.close()
 
-    # Save the data as an excel file
-    if (fig_data['relative_to'] == 'this_file'):
-        output_file_string = os.path.join(base_folder,
-                                          fig_data['output_data_file_string'])
-    else:
-        output_file_string = fig_data['output_data_file_string']
-    print('Writing tension-pCa data to %s' % output_file_string)
-    r.to_excel(output_file_string,
-               engine='openpyxl',
-               index=False)
+    # Save the data as an excel file if required in the batch file
+    if(fig_data['output_data_file_string']):
+        if (fig_data['relative_to'] == 'this_file'):
+            output_file_string = os.path.join(base_folder,
+                                              fig_data['output_data_file_string'])
+        else:
+            output_file_string = fig_data['output_data_file_string']
+        print('Writing tension-pCa data to %s' % output_file_string)
+        r.to_excel(output_file_string,
+                   engine='openpyxl',
+                   index=False)
 
 
 def create_fv_and_power_figure(fig_data, batch_file_string):

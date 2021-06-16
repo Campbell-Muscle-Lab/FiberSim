@@ -19,7 +19,7 @@ This demo uses the visualization tool from FiberPy to get a single snap shot fro
 
 ### Download Blender
 
-First, download Blender at https://www.blender.org/. This model utilizes Blender 2.92. If your edition is different than this, navigate to `<FiberSim_dir>/demo_files/visualization/single_frame` and open `blender_data.json` as a text file. Change the instance of "Blender 2.9.2" to your current version. 
+First, download Blender at https://www.blender.org/. This demo utilizes Blender 2.92. If your edition is different than this, navigate to `<FiberSim_dir>/demo_files/visualization/single_frame` and open `blender_data.json` as a text file. Change the instance of "Blender 2.92" to your current version. 
 
 ![blender path](blender_path.PNG)
 
