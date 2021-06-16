@@ -1,9 +1,12 @@
 var searchData=
 [
-  ['test_5fforce_5ffor_5fdelta_5fhsl_347',['test_force_for_delta_hsl',['../classhalf__sarcomere.html#ac7fb354ca7b5da9c3fb8a121fcc05ae4',1,'half_sarcomere']]],
-  ['thick_5ffilament_348',['thick_filament',['../classthick__filament.html#a338d2dd8f6565608da1315f9c0ef766e',1,'thick_filament']]],
-  ['thick_5ffilament_5fkinetics_349',['thick_filament_kinetics',['../classhalf__sarcomere.html#a356b556b361132b5aad8c6209a9e64bb',1,'half_sarcomere']]],
-  ['thin_5ffilament_350',['thin_filament',['../classthin__filament.html#ae7fa33a3a8da4497d29c260c19c8e63f',1,'thin_filament']]],
-  ['thin_5ffilament_5fkinetics_351',['thin_filament_kinetics',['../classhalf__sarcomere.html#ad0546a5ac3cb80f27c1613a2ab8f0e2a',1,'half_sarcomere']]],
-  ['transition_352',['transition',['../classtransition.html#a4d30ac0d4b68d60dd62fd19337197937',1,'transition::transition(const rapidjson::Value &amp;m_ks, m_state *set_p_m_state)'],['../classtransition.html#ad42373578409e44b43e00fb900b87060',1,'transition::transition()']]]
+  ['set_5fcb_5fnearest_5fa_5ff_382',['set_cb_nearest_a_f',['../classhalf__sarcomere.html#a4225c959263551326d0bd63405dfd7d5',1,'half_sarcomere']]],
+  ['set_5fcb_5fnearest_5fa_5fn_383',['set_cb_nearest_a_n',['../classhalf__sarcomere.html#a94fd0f7530d29c0d1af92d477180b8b2',1,'half_sarcomere']]],
+  ['set_5ffibersim_5fmodel_5fparameters_5ffrom_5fjson_5ffile_5fstring_384',['set_FiberSim_model_parameters_from_JSON_file_string',['../class_fiber_sim__model.html#aaa7b031471c7c3f68408456f9fbc20b1',1,'FiberSim_model']]],
+  ['set_5ffibersim_5foptions_5ffrom_5fjson_5ffile_5fstring_385',['set_FiberSim_options_from_JSON_file_string',['../class_fiber_sim__options.html#a0eafd95e52046318daac315f7c6bced5',1,'FiberSim_options']]],
+  ['set_5fpc_5fnearest_5fa_5ff_386',['set_pc_nearest_a_f',['../classhalf__sarcomere.html#a492514241c5c0f0111f16dfa0ae3c1be',1,'half_sarcomere']]],
+  ['set_5fpc_5fnearest_5fa_5fn_387',['set_pc_nearest_a_n',['../classhalf__sarcomere.html#af80144d9584aaa544769b239475e80d1',1,'half_sarcomere']]],
+  ['set_5fregulatory_5funit_5findices_388',['set_regulatory_unit_indices',['../classthin__filament.html#a97b303b1564d3bbc5529172ba538853e',1,'thin_filament']]],
+  ['set_5ftransition_5ftypes_389',['set_transition_types',['../classkinetic__scheme.html#a96a73fe753e07b8c4077f785e728c927',1,'kinetic_scheme']]],
+  ['set_5funit_5fstatus_390',['set_unit_status',['../classthin__filament.html#a8e8f5499f915f9640b2eef4cb759dbec',1,'thin_filament']]]
 ];

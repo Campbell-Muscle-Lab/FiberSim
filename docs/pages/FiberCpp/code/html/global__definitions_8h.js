@@ -1,6 +1,8 @@
 var global__definitions_8h =
 [
+    [ "MAX_NO_OF_ADJACENT_BS", "global__definitions_8h.html#a946770d73c71e95479ab0ce1981d40a5", null ],
     [ "MAX_NO_OF_HALF_SARCOMERES", "global__definitions_8h.html#a06f1d917b0352b488c7eecf1b19adb33", null ],
+    [ "MAX_NO_OF_ISOTYPES", "global__definitions_8h.html#a178e5a7886b96202d4ed5c0800b3971a", null ],
     [ "MAX_NO_OF_KINETIC_STATES", "global__definitions_8h.html#a24b84b691f35ffbe1ec8ccfb53974be6", null ],
     [ "MAX_NO_OF_RATE_PARAMETERS", "global__definitions_8h.html#adbc5b1de1b1bbc9762546e73bc74ff17", null ],
     [ "MAX_NO_OF_THICK_FILAMENTS", "global__definitions_8h.html#a7e44f1467b9b303143bdced825177c9a", null ],

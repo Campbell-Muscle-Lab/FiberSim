@@ -1,7 +1,7 @@
 ---
 title: Videos
 has_children: True
-nav_order: 6
+nav_order: 20
 ---
 
 # Videos
@@ -16,9 +16,3 @@ This webinar covers:
 + a brief introduction to computational modeling
 + an overview of the FiberSim software
 + some numerical results obtained with FiberSim
-
-## FiberSim videos
-
-Here are some videos obtained with the [Blender vizualisation framework](../demos/visualization/visualization.html). 
-
-[links to be added]

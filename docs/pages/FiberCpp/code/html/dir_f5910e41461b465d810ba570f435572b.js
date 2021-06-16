@@ -14,7 +14,8 @@ var dir_f5910e41461b465d810ba570f435572b =
     ] ],
     [ "global_definitions.h", "global__definitions_8h.html", "global__definitions_8h" ],
     [ "half_sarcomere.cpp", "half__sarcomere_8cpp.html", [
-      [ "force_control_params", "structforce__control__params.html", "structforce__control__params" ]
+      [ "force_control_params", "structforce__control__params.html", "structforce__control__params" ],
+      [ "lattice_event", "structlattice__event.html", "structlattice__event" ]
     ] ],
     [ "half_sarcomere.h", "half__sarcomere_8h.html", [
       [ "half_sarcomere", "classhalf__sarcomere.html", "classhalf__sarcomere" ]

@@ -1,7 +1,7 @@
 ---
 title: Getting help
 has_children: false
-nav_order: 7
+nav_order: 25
 ---
 
 # Getting help

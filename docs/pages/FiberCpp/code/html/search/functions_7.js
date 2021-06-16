@@ -1,12 +1,6 @@
 var searchData=
 [
-  ['set_5fcb_5fnearest_5fa_5ff_338',['set_cb_nearest_a_f',['../classhalf__sarcomere.html#a4225c959263551326d0bd63405dfd7d5',1,'half_sarcomere']]],
-  ['set_5fcb_5fnearest_5fa_5fn_339',['set_cb_nearest_a_n',['../classhalf__sarcomere.html#a94fd0f7530d29c0d1af92d477180b8b2',1,'half_sarcomere']]],
-  ['set_5ffibersim_5fmodel_5fparameters_5ffrom_5fjson_5ffile_5fstring_340',['set_FiberSim_model_parameters_from_JSON_file_string',['../class_fiber_sim__model.html#aaa7b031471c7c3f68408456f9fbc20b1',1,'FiberSim_model']]],
-  ['set_5ffibersim_5foptions_5ffrom_5fjson_5ffile_5fstring_341',['set_FiberSim_options_from_JSON_file_string',['../class_fiber_sim__options.html#a0eafd95e52046318daac315f7c6bced5',1,'FiberSim_options']]],
-  ['set_5fpc_5fnearest_5fa_5ff_342',['set_pc_nearest_a_f',['../classhalf__sarcomere.html#a492514241c5c0f0111f16dfa0ae3c1be',1,'half_sarcomere']]],
-  ['set_5fpc_5fnearest_5fa_5fn_343',['set_pc_nearest_a_n',['../classhalf__sarcomere.html#af80144d9584aaa544769b239475e80d1',1,'half_sarcomere']]],
-  ['set_5fregulatory_5funit_5findices_344',['set_regulatory_unit_indices',['../classthin__filament.html#a01ce39f55597bb33b31b7189a6b85d82',1,'thin_filament']]],
-  ['set_5ftransition_5ftypes_345',['set_transition_types',['../classkinetic__scheme.html#a96a73fe753e07b8c4077f785e728c927',1,'kinetic_scheme']]],
-  ['set_5funit_5fstatus_346',['set_unit_status',['../classthin__filament.html#a8e8f5499f915f9640b2eef4cb759dbec',1,'thin_filament']]]
+  ['return_5fc_5ftransition_379',['return_c_transition',['../classhalf__sarcomere.html#a449706f1d3413fc288877a645c02d812',1,'half_sarcomere']]],
+  ['return_5fhs_5flength_5ffor_5fforce_380',['return_hs_length_for_force',['../classhalf__sarcomere.html#a2fc0d1a788e9dea821393db6cc28bc5c',1,'half_sarcomere']]],
+  ['return_5fm_5ftransition_381',['return_m_transition',['../classhalf__sarcomere.html#a068fd6285e81dbb59d05192a7134b11d',1,'half_sarcomere']]]
 ];

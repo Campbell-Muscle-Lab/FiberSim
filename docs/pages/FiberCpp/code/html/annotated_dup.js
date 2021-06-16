@@ -7,6 +7,7 @@ var annotated_dup =
     [ "force_control_params", "structforce__control__params.html", "structforce__control__params" ],
     [ "half_sarcomere", "classhalf__sarcomere.html", "classhalf__sarcomere" ],
     [ "kinetic_scheme", "classkinetic__scheme.html", "classkinetic__scheme" ],
+    [ "lattice_event", "structlattice__event.html", "structlattice__event" ],
     [ "m_state", "classm__state.html", "classm__state" ],
     [ "muscle", "classmuscle.html", "classmuscle" ],
     [ "thick_filament", "classthick__filament.html", "classthick__filament" ],

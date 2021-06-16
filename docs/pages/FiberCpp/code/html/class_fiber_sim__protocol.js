@@ -6,6 +6,5 @@ var class_fiber_sim__protocol =
     [ "dt", "class_fiber_sim__protocol.html#a9576b56b53fe3f870daad373452a2daf", null ],
     [ "no_of_time_points", "class_fiber_sim__protocol.html#ac0cd367c09ae9adede1f093af26b5f66", null ],
     [ "pCa", "class_fiber_sim__protocol.html#a80340a6aafa95b3cfeb50412a45ecca6", null ],
-    [ "sim_mode", "class_fiber_sim__protocol.html#acff372367f4ef600e868f4903479c11a", null ],
-    [ "time_step", "class_fiber_sim__protocol.html#a42b09de95958292151d77d629f662452", null ]
+    [ "sim_mode", "class_fiber_sim__protocol.html#acff372367f4ef600e868f4903479c11a", null ]
 ];
