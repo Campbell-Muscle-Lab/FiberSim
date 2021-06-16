@@ -24,7 +24,7 @@ This demo:
 
 ## Instructions
 
-Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html). You need the FiberSim repository, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
+Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html). You need the FiberSim folder, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
 
 ### Getting ready
 
@@ -43,7 +43,7 @@ conda activate fibersim
  python FiberPy.py run_batch "../../../demo_files/force_velocity/fv_and_power/batch_fv_and_power.json"
  ```
 
-+ You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take a few minutes), you should see something similar to the image below.
++ You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take several minutes), you should see something similar to the image below.
 
 ![command window](command_window.png)
 
@@ -63,9 +63,9 @@ The underlying data are stored in `analysis.xlsx`
 
 + Simulations for each isotonic load are stored in the sub-folder named `1`.
 
-![sub_folder]sub_folder.png)
+![sub_folder](sub_folder.png)
 
-For each pCa value, there is:
+For each isotonic force value, there is:
 
 + a `*.txt` file with the main simulation results
 + a `*.png` file with a summary figure

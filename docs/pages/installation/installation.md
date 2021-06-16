@@ -7,20 +7,28 @@ nav_order: 2
 
 This page discusses how to install FiberSim and the necessary support software.
 
-## Cloning the GitHub repository
+## Downloading the FiberSim software
 
-The FiberSim code is hosted on GitHub as a repository. You need to download a local copy of this repository on your computer to use FiberSim. To clone the GitHub repository, we recommend using the GitHub Desktop client. You can download the installer for this at [this link](https://desktop.github.com/).
+FiberSim is available for free download under the GPL3 license. The latest release in hosted on Zenodo and can be downloaded [here](https://zenodo.org/badge/latestdoi/248878056). 
 
-To clone the FiberSim repository, follow the instructions from this video:
+1. Download the .zip file hosted on https://zenodo.org/badge/latestdoi/248878056. Make sure you download version 1.1.2.
+2. Extract the data. We recommend to use a simple path such as `C:\Users\<user-name>\Documents`.
+3. Rename the extracted folder to `FiberSim` (instead of `Campbell-Muscle-Lab-FiberSim-xxxxxx`).
+4. Make sure the `FiberSim` folder look like this:
 
-[![](installation.PNG)](https://drive.google.com/file/d/1FsMi-QV3wuRo4hMaZE2oW7NQe3Qpn77n/view?usp=sharing)
-
-1. Open GitHub Desktop and click on the "Files" tab.
-2. Click on the "Clone repository..." option.
-3. Type "campbell-muscle-lab/fibersim" into the search bar.
-4. Click on the `Campbell-Muscle-Lab/FiberSim` repository, then choose where you would like the repository to be located on your machine.
-5. Click on "Clone".
-
+```
+C:\Users\<user-name>\Documents\FiberSim
+                      |
+                      |- bin\
+                      |- code\
+                      |- demo_files\
+                      |- docs\
+                      |- doxygen\
+                      |- manuscripts\           
+                      |- .gitignore
+                      |- README.md  
+                      |- README.txt                                                                              
+```
 
 ## Installing Anaconda
 
@@ -33,7 +41,7 @@ FiberSim utilizes the Anaconda platform for managing external python packages. A
 Before running any FiberSim simulation, you have to install the FiberSim environment.
 
 1. Open an Anaconda Prompt by typing "Anaconda Prompt" in the Windows Start Menu
-2. The command prompt shows the directory you are currently in. Most of the time, the directory is `C:\Users\Name_of_the_user`. You need to change the directory to `<repo>/code/FiberPy/environment`, where `<repo>` is the directory where you cloned the FiberSim repo. To navigate inside the folders, use the "change directory command" (`cd`), as shown here: [![](environment.PNG)](https://drive.google.com/file/d/1L3ANPuRpob6eoh3Vyam4no6U9J6TgpuF/view?usp=sharing)
+2. The command prompt shows the directory you are currently in. Most of the time, the directory is `C:\Users\<user-name>`. You need to change the directory to `<FiberSim_dir>\code\FiberPy\environment`, where `<FiberSim_dir>` is the directory where you downloaded the FiberSim software. To navigate inside the folders, use the "change directory command" (`cd`), as shown here: [![](environment.PNG)](https://drive.google.com/file/d/1L3ANPuRpob6eoh3Vyam4no6U9J6TgpuF/view?usp=sharing)
 
 3. Type the following in the prompt:
 

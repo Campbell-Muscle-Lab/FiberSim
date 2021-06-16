@@ -14,10 +14,10 @@
     },
     "formatting":
     {
-        "x_label_fontsize": 12,
-        "y_label_fontsize": 12,
-        "tick_fontsize": 12,
-        "legend_fontsize": 12,
+        "x_label_fontsize": 14,
+        "y_label_fontsize": 14,
+        "tick_fontsize": 14,
+        "legend_fontsize": 14,
         "y_label_pad": 25,
         "legend_bbox_to_anchor": [1.0, 1],
         "patch_alpha": 0.3
@@ -26,37 +26,33 @@
     [
         {
             "column": 1,
-            "y_info":
-            {
-                "label": "pCa",
-                "ticks": [9, 4.5],
-                "series":
-                [
-                    {
-                        "field": "pCa"
-                    }
-                ]
-            }
+          "y_info": {
+            "label": "pCa",
+            "ticks": [ 9, 4.5 ],
+            "series": [
+              {
+                "field": "pCa"
+              }
+            ]
+          }
+        },
+        {
+            "column": 1,
+          "y_info": {
+            "label": "HS length\n(nm)",
+            "ticks": [ 1180, 1210 ],
+            "series": [
+              {
+                "field": "hs_length"
+              }
+            ]
+          }
         },
         {
             "column": 1,
             "y_info":
             {
-                "label": "HS length\n(nm)",
-                "ticks": [1180, 1210],
-                "series":
-                [
-                    {
-                        "field": "hs_length"
-                    }
-                ]
-            }
-        },
-        {
-            "column": 1,
-            "y_info":
-            {
-                "label": "Stress\n(kN m$^{-2}$)",
+                "label": "Force \n(kN m$^{-2})$",
                 "series":
                 [
                     {
@@ -81,36 +77,34 @@
                 [
                     {
                         "field": "a_pop_0",
-                        "field_label": "N$_{off}$"
+                        "field_label": "Inactive"
                     },
                     {
                         "field": "a_pop_1",
-                        "field_label": "N$_{on}$"
+                        "field_label": "Active"
                     }
                 ]
             }
         },
-        {
-            "column": 1,
-            "y_info":
+      {
+        "column": 1,
+        "y_info": {
+          "label": "Thick\nfilament",
+          "series": [
             {
-                "label": "Thick\nfilament",
-                "series":
-                [
-                    {
-                        "field": "m_pop_0",
-                        "field_label": "M$_{0}$"
-                    },
-                    {
-                        "field": "m_pop_1",
-                        "field_label": "M$_{1}$"
-                    },
-                    {
-                        "field": "m_pop_2",
-                        "field_label": "M$_{2}$"
-                    }
-                ]
+              "field": "m_pop_0",
+              "field_label": "SRX"
+            },
+            {
+              "field": "m_pop_1",
+              "field_label": "DRX"
+            },
+            {
+              "field": "m_pop_2",
+              "field_label": "FG"
             }
+          ]
         }
+      }
     ]
 }

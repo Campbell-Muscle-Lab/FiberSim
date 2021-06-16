@@ -85,6 +85,11 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     curve_counter = 1
     keep_going = True
 
+    # Create lists to hold data
+    curve = []
+    hs_force = []
+    hs_pCa = []
+
     pCa_50 = []
     n_H = []
 
@@ -109,13 +114,19 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     y_values[curve_counter-1].append(y)
                     if (np.amax(y) > max_y):
                         max_y = np.amax(y)
-                
+
+                    curve.append(curve_counter)
+                    hs_force.append(y)
+                    hs_pCa.append(d['pCa'].iloc[-1])
+
             # Add in curve
             res=cv.fit_pCa_data(pCa_values[curve_counter-1],
                                 y_values[curve_counter-1])
             # Store data
             pCa_50.append(res['pCa_50'])
             n_H.append(res['n_H'])
+            
+
 
             # plot
             for a in [ax_left, ax_right]:
@@ -135,6 +146,11 @@ def create_y_pCa_figure(fig_data, batch_file_string):
 
         else:
             keep_going = False
+
+    # Take lists and create a data frame
+    r = pd.DataFrame({'curve': curve,
+                      'hs_pCa': hs_pCa,
+                      'hs_force': hs_force})
 
     # Tidy up axis
     ax_left.set_xlim(formatting['high_pCa_tick'] +
@@ -249,6 +265,17 @@ def create_y_pCa_figure(fig_data, batch_file_string):
         os.makedirs(dir_name)
     fig.savefig(output_image_file_string, dpi=200)
     plt.close()
+
+    # Save the data as an excel file
+    if (fig_data['relative_to'] == 'this_file'):
+        output_file_string = os.path.join(base_folder,
+                                          fig_data['output_data_file_string'])
+    else:
+        output_file_string = fig_data['output_data_file_string']
+    print('Writing tension-pCa data to %s' % output_file_string)
+    r.to_excel(output_file_string,
+               engine='openpyxl',
+               index=False)
 
 
 def create_fv_and_power_figure(fig_data, batch_file_string):

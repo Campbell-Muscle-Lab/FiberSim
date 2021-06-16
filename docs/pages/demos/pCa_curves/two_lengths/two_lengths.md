@@ -22,7 +22,7 @@ This demo:
 
 ## Instructions
 
-Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html). You need the FiberSim repository, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
+Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html). You need the FiberSim folder, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
 
 ### Getting ready
 
@@ -41,7 +41,7 @@ conda activate fibersim
  python FiberPy.py run_batch "../../../demo_files/pCa_curves/two_lengths/batch_two_lengths.json"
  ```
 
-+ You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take a few minutes), you should see something similar to the image below.
++ You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take ~15 minutes), you should see something similar to the image below.
 
 ![command window](command_window.png)
 
@@ -49,18 +49,32 @@ conda activate fibersim
 
 All of the results from the simulation are written to files in `<repo>/demo_files/tension_pCa/two_lengths/sim_output`
 
+<img src='folder.PNG' width="100%">
+
 + The file `force_pCa_curve.png` in the main `sim_output` folder shows the steady-state force values and Hill curves fitted to the data at each length.
 
-![pCa_curve](force_pCa_curves.png)
+<html>
+<img src="force_pCa_curves.png" width="50%">
+</html>
+
++ The underlying data are stored in `analysis.xlsx`
+
+<img src='analysis.PNG' width="50%">
 
 + Simulations for each pCa value are stored in the sub-folders named `1` and `2`. The first folder contains all the simulations for a sarcomere length of 1.9 µm. The second folder contains the simulations for 2.3 µm.
 
-![sim_output_folder](sim_output_folder.png)
+![sim_output_folder](sub_folder.PNG)
 
 Within each sub-folder, for each pCa value, there is:
 
 + a `*.txt` file with the main simulation results
 + a `*.png` file with a summary figure
+
+![results text file](results.PNG)
+
+<html>
+<img src="summary.PNG" width="50%">
+</html>
 
 
 ## How this worked

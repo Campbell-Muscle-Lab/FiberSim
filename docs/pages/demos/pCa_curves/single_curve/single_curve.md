@@ -22,7 +22,7 @@ This demo:
 
 ## Instructions
 
-Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html). You need the FiberSim repository, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
+Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html). You need the FiberSim folder, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
 
 ### Getting ready
 
@@ -41,28 +41,36 @@ conda activate fibersim
  python FiberPy.py run_batch "../../../demo_files/pCa_curves/single_curve/batch_single_curve.json"
  ```
 
-+ You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take a few minutes), you should see something similar to the image below.
++ You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take several minutes), you should see something similar to the image below.
 
-![command window](command_window.png)
+<img src='command_window.PNG' width="75%">
 
 ### Viewing the results
 
-All of the results from the simulation are written to files in `<repo>/demo_files/tension_pCa/single_curve/sim_output`
+All of the results from the simulation are written to files in `<FiberSim_dir>/demo_files/tension_pCa/single_curve/sim_output`
+
+<img src='folder.PNG' width="100%">
 
 + The file `force_pCa_curve.png` in the main `sim_output` folder shows the steady-state force values and a fitted Hill curve.
 
-![pCa_curve](force_pCa_curve.png)
+<html>
+<img src="force_pCa_curve.png" width="50%">
+</html>
+
++ The underlying data are stored in `analysis.xlsx`
+
+<img src='analysis.PNG' width="50%">
 
 + Simulations for each pCa value are stored in the sub-folder named `1`.
 
-![sim_output_folder](sim_output_folder.png)
+![sim_output_folder](sim_output_folder.PNG)
 
 For each pCa value, there is:
 
 + a `*.txt` file with the main simulation results
 + a `*.png` file with a summary figure
 
-![results text file](results_text_file.png)
+![results text file](results.PNG)
 
 <html>
 <img src="sim_summary_figure.png" width="50%">

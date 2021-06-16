@@ -22,7 +22,7 @@ This demo:
 
 ## Instructions
 
-Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html). You need the FiberSim repository, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
+Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html). You need the FiberSim folder, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
 
 ### Getting ready
 
@@ -32,7 +32,9 @@ Before proceeding, make sure that you have followed the [installation instructio
 ```
 conda activate fibersim
 ```
-+ Change directory to `<FiberSim_dir>/code/FiberPy/FiberPy`, where `<FiberSim_dir>` is the directory where you installed FiberSim.
++ Change directory to `<FiberSim_dir>/code/FiberPy/FiberPy`, where `<FiberSim_dir>` is the directory where you installed FiberSim. Here is a short video showing you how to use the `cd` command.
+
+[![](cd_video.PNG)](https://drive.google.com/file/d/1g90Awaesj1UyHP0lA-S-X5uSDjvw26II/view?usp=sharing)
 
 ### Run a simulation
 
@@ -57,7 +59,7 @@ The file `summary.png` shows pCa, length, force per cross-sectional area (stress
 
 The underlying data are stored in `results.txt`
 
-<img src='results.png' width="50%">
+<img src='results.png' width="100%">
 
 ## How this worked
 

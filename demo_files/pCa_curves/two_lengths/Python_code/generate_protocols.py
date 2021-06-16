@@ -19,13 +19,13 @@ def generate_protocols():
     # Variables
     job_file_string = '../job_struct.json'
 
-    pCa_values = [8.0, 6.4, 6.2, 6.0, 5.8, 5.6, 5.4, 4.8]
+    pCa_values = [8.0, 6.0, 5.8, 5.7, 5.6, 5.4, 5.2, 4.8]
     
     prot = dict()
-    prot['dt'] = 0.001
-    prot['n_points'] = 750
+    prot['dt'] = 0.0001
+    prot['n_points'] = 7000
     prot['initial_pCa'] = 8.0
-    prot['n_step_pCa'] = 20
+    prot['n_step_pCa'] = 200
     prot['step_pCa'] = 8.0
 
     # Create a job_struct

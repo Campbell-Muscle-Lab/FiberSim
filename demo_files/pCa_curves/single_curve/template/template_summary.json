@@ -29,7 +29,7 @@
             "y_info":
             {
                 "label": "pCa",
-                "scaling_type": "close_fit",
+                "ticks": [9, 4.5],
                 "series":
                 [
                     {
@@ -43,6 +43,7 @@
             "y_info":
             {
                 "label": "HS length\n(nm)",
+                "scaling_type": "close_fit",
                 "series":
                 [
                     {
@@ -80,11 +81,11 @@
                 [
                     {
                         "field": "a_pop_0",
-                        "field_label": "N$_{off}$"
+                        "field_label": "Inactive"
                     },
                     {
                         "field": "a_pop_1",
-                        "field_label": "N$_{on}$"
+                        "field_label": "Active"
                     }
                 ]
             }
@@ -98,15 +99,15 @@
                 [
                     {
                         "field": "m_pop_0",
-                        "field_label": "M$_{0}$"
+                        "field_label": "SRX"
                     },
                     {
                         "field": "m_pop_1",
-                        "field_label": "M$_{1}$"
+                        "field_label": "DRX"
                     },
                     {
                         "field": "m_pop_2",
-                        "field_label": "M$_{2}$"
+                        "field_label": "FG"
                     }
                 ]
             }
