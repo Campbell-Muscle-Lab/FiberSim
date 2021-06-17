@@ -173,14 +173,14 @@ The final section of the batch file, labeled `batch_figures`, tells FiberPy to c
             "pCa_curves":
             [
                 {
-                    "relative_to": "this_file",
-                    "results_folder": "sim_output",
-                    "data_field": "force",
-                    "output_image_file_string": "sim_output/force_pCa_curve.png",
-                    "formatting":
-                    {
-                        "y_scaling_factor": 0.001,
-                        "y_axis_label": "Force\n(kN m$\\mathregular{^{-2}}$)"
+					"relative_to": "this_file",
+					"results_folder": "sim_output",
+					"data_field": "force",
+					"output_image_file_string": "sim_output/force_pCa_curve.png",
+					"output_data_file_string": "sim_output/analysis.xlsx",
+					"formatting": {
+					  "y_scaling_factor": 0.001,
+					  "y_axis_label": "Force\n(kN m$\\mathregular{^{-2}}$)"
                     }
                 }
             ]
