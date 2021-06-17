@@ -11,6 +11,7 @@ nav_order: 30
 Key contributors to the FiberSim team include:
 
 + [Ken Campbell](http://www.campbellmusclelab.org)
+  + Principal Investigator, University of Kentucky Department of Physiology & Cardiovascular Medicine
   + manages the overall project
   + wrote the first version of FiberCpp
   + wrote the first version of FiberPy
@@ -18,7 +19,7 @@ Key contributors to the FiberSim team include:
 
 
 + [Sarah Kosta](https://sites.google.com/g.uky.edu/campbellmusclelab/people)
-  + Post-doc
+  + Post-doc, University of Kentucky Department of Physiology
   + optimized algorithms for the FiberCpp code
   + validated the calculations
   + helped develop the website and demonstrations
@@ -36,5 +37,6 @@ Key contributors to the FiberSim team include:
 ## Special thanks to
 
 + [Qiang Ye](https://math.as.uky.edu/users/qye3)
+  + Principal Investigator, University of Kentucky Department of Mathematics
   + helped optimize the iterative algorithm used to perform the force-balance calculation in FiberCpp
 

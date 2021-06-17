@@ -9,7 +9,7 @@ nav_order: 10
 
 ## Overview
 
-In FiberSim, a `job` defines a single simulation.  is defined using a [JSON structure](https://en.wikipedia.org/wiki/JSON) that points to additional files.
+In FiberSim, a `job` defines a single simulation. Jobs are defined in [JSON format](https://en.wikipedia.org/wiki/JSON) and include pointers to additional files.
 
 Here is an example of a job.
 

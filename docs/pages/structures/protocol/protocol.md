@@ -43,15 +43,15 @@ The `mode` value for each time-step controls the loading condition for the time-
 + -2 - the simulation is in length control mode
   + if `dhsl` is
     + 0, the simulation is isometric
-    + >0, the muscle is extended
-    + <0, the muscle is shortened
+    + \>0, the muscle is extended
+    + \<0, the muscle is shortened
 
 + -1 - slack mode
-  + this means check whether the muscle has fallen slack (that is, force < 0>)
+  + this means check whether the muscle has fallen slack (that is, stress \< 0>)
     + if it is slack, shorten against zero load
     + if not, change length as defined by `dhsl`
 
-+ >=0 - isotonic mode
++ \>=0 - isotonic mode
   + lengthen or shorten the muscle as required to keep stress equal to the mode value
 
 ## Example

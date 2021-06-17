@@ -9,7 +9,9 @@ nav_order: 2
 
 FiberPy is computer code that interfaces with FiberCpp and makes it easier to use FiberSim for research.
 
-The simplest thing with FiberPy is run a simulation. As shown below, you can do this by passing three files to FiberPy. It will transfer these files to FiberCpp, coordinate the simulation, save the results to a new file, and plot the results.
+FiberPy provides options for many different tasks including fitting models to experimental data and generating videos of model renderings. Typically, these strategies build on the basic task of running a simulation.
+
+As shown below, to run a simulation using FiberPy, the user passes three files to FiberPy. The code transfers these files to FiberCpp, coordinates the simulation, saves the results to a new file, and (optionally) plots the results.
 
 <img src="code_structure.png" width="75%">
 
