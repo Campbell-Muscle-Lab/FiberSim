@@ -116,7 +116,7 @@
                 "output_data_file_string": "sim_output/analysis.xlsx",
                 "formatting": {
                   "y_scaling_factor": 0.001,
-                  "y_axis_label": "Force\n(kN m$\\mathregular{^{-2}}$)",
+                  "y_axis_label": "Force \n (kN m$^{\\mathregular{-2}}$)",
                   "color_set": [ "#00297ffd", "#a0001bff" ]
                 }
               }

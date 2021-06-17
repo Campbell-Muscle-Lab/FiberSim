@@ -13,9 +13,9 @@
         "label": "Time (s)"
     },
   "formatting": {
-    "x_label_fontsize": 20,
-    "y_label_fontsize": 20,
-    "tick_fontsize": 20,
+    "x_label_fontsize": 24,
+    "y_label_fontsize": 24,
+    "tick_fontsize": 24,
     "legend_fontsize": 20,
     "y_label_pad": 25,
     "legend_bbox_to_anchor": [ 1.0, 1 ],
@@ -30,7 +30,7 @@
             {
                 "label": "pCa",
               "scaling_type": "close_fit",
-              "ticks": [9, 4],
+              "ticks": [ 9, 5.6 ],
                 "series":
                 [
                     {
@@ -41,22 +41,9 @@
         },
         {
             "column": 1,
-            "y_info":
-            {
-                "label": "HS length\n(nm)",
-                "series":
-                [
-                    {
-                        "field": "hs_length"
-                    }
-                ]
-            }
-        },
-        {
-            "column": 1,
           "y_info": {
-            "label": "Force\n(kN m$^{-2}$)",
-            "ticks": [0,90],
+            "label": "Force \n (kN m$^{\\mathregular{-2}}$)",
+            "ticks": [ 0, 90 ],
             "series": [
               {
                 "field": "force",
