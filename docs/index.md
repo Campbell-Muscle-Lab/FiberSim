@@ -8,7 +8,7 @@ nav_order: 1
 
 FiberSim is software for spatially-explicit modeling of half-sarcomeres. The code tracks the position and status of each myosin head, each binding site on actin, and each molecule of myosin-binding protein C.
 
-<img src="img/FiberSim_render.png" width="75%">
+<img src="img/FiberSim_render_new.png" width="75%">
 
 You need a Windows PC to run a simulation but you can analyze output from the model on any computer that has an Anaconda-based installation of Python.
 
