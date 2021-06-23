@@ -17,6 +17,8 @@ from ..output_handler import output_handler as oh
 
 from ..display import analyses
 
+from ..validation import validation
+
 
 def run_batch(json_batch_file_string=[],
               batch_structure=[]):
@@ -118,6 +120,11 @@ def run_batch(json_batch_file_string=[],
             for fig_data in batch_figures['force_velocity']:
                 analyses.create_fv_and_power_figure(fig_data,
                                           json_batch_file_string)
+
+    # Now see if we have to do a kinetics check
+    if ('batch_validation' in batch_structure):
+        for validation_data in batch_structure['batch_validation']:
+                validation.run_validation(validation_data,json_batch_file_string)
 
     print('FiberPy: run_batch() closing correctly')
 
