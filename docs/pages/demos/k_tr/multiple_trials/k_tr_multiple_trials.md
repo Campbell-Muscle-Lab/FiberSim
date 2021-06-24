@@ -16,7 +16,7 @@ This demo shows how to simulate a experiments assessing k<sub>tr</sub> at differ
 
 This demo:
 
-+ Builds on the [ktr_single_trial demo](../single_trial/single_trial.html)
++ Builds on the [ktr_single_trial demo](../single_trial/k_tr_single_trial.html)
 + Uses a [batch structure](../../../structures/batch.html) to run mulitple trials, each of which consists of the muscle being activated in a given pCa solution and perturbed by a rapid shortening/re-stretch protocol.
 
 ## Instructions
