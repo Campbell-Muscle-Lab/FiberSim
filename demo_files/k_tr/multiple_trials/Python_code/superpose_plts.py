@@ -20,7 +20,7 @@ from matplotlib.lines import Line2D
 def analyze_simulations():
 
     results_file_string_base = '../sim_output/results_'
-    output_file_string = 'superposed.png'
+    output_file_string = '../temp/superposed.png'
 
     # Make a figure
     fig = plt.figure(constrained_layout=True)
@@ -32,7 +32,7 @@ def analyze_simulations():
         for c in range(0,1):
             axs.append(fig.add_subplot(spec[r,c]))
 
-    for i in range(0,6):
+    for i in range(0,4):
         rfs = ('%s%i.txt' % (results_file_string_base, i))
 
         d = pd.read_csv(rfs, sep='\t')
@@ -44,7 +44,7 @@ def analyze_simulations():
         axs[0].set_ylabel('pCa')
 
         axs[1].plot(x, d['hs_length'])
-        axs[1].set_ylim([1180, 1210])
+        axs[1].set_ylim([1140, 1210])
         axs[1].set_ylabel('HS length')
         
         axs[2].plot(x, d['force'])

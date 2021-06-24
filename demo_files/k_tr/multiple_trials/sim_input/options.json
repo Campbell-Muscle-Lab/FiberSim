@@ -1,9 +1,8 @@
 {
   "options": {
-    "max_rate": 1e5,
-    "adjacent_bs": 0,
+    "max_rate": 1e4,
+    "adjacent_bs": 2,
     "x_pos_rel_tol": 1e-4,
-    "lambda_jitter": 43.0, 
     "xstatus_files":
     {
       "relative_to": "this_file",
