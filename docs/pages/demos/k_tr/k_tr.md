@@ -9,4 +9,4 @@ has_children: True
 
 ## Overview
 
-FiberSim can take simulate experiments that assess k<sub>tr</sub>, the rate of tension recovery.
+FiberSim can simulate experiments that assess k<sub>tr</sub>, the rate of tension recovery.
