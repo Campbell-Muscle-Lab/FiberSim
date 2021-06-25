@@ -39,11 +39,9 @@ A_MAX = 180
 A_STEP = 9
 
 NB_A_INTER = int((A_MAX - A_MIN)/A_STEP)
-        
 
 def compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs = 0):
-    
-    """Approximates the governing rate functions for myosin"""
+    """Approximates the governing rate functions for mybpc"""
 
     ### Get the hs_status dump files ###
 
@@ -60,28 +58,25 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs =
 
     protocol = np.loadtxt(protocol_file, skiprows=1)
     time_step = protocol[0][0]
-        
-    ### Get m_kinetics data
+            
+    ### Get c_kinetics data
 
     # Extract the kinetics data
     
-    m_kinetics = get_m_kinetics(model_file) 
-    max_no_of_trans = m_kinetics[0][-1]["transition"][-1]["index"] + 1 
+    c_kinetics = get_c_kinetics(model_file) 
+    
+    max_no_of_trans = c_kinetics[0][-1]["transition"][-1]["index"] + 1 
     
     attachement_trans = [] # List of indices for the 'a' type of transition
-    detachment_trans = [] # List of indices for the 'd' type of transition
-    srx_recr_trans = [] # List of indices for the SRX-to-DRX type of transition
+    
+    ### Initialize transition arrays
+    
+    complete_transition = np.zeros((len(c_kinetics), max_no_of_trans, NB_INTER, NB_A_INTER),dtype=int)
+    potential_transition = np.zeros((len(c_kinetics), max_no_of_trans, NB_INTER, NB_A_INTER),dtype=int)
 
-        
-    ### Initialize transition matrices
-    
-    complete_transition = np.zeros((len(m_kinetics), max_no_of_trans, NB_INTER, NB_A_INTER),dtype=int)
-    potential_transition = np.zeros((len(m_kinetics), max_no_of_trans, NB_INTER, NB_A_INTER),dtype=int)
-    
-    
     ### Fill the transition matrices
-               
-    # # HS at t
+    
+    # HS at t
     hs_0 = half_sarcomere.half_sarcomere(hs_file[0])
   
     for ind in range(1,len(hs_file)): 
@@ -92,238 +87,169 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs =
             
             thick_fil_1 = hs_1["thick"][i] 
    
-            for cb_ind, state_0 in enumerate(thick_fil_0["cb_state"]): # loop over all CBs
+            for pc_ind, state_0 in enumerate(thick_fil_0["pc_state"]): # loop over all pcs
                 
-                cb_iso_0 = thick_fil_0["cb_iso"][cb_ind] # CB isotype at t
-                cb_iso_1 = thick_fil_1["cb_iso"][cb_ind] # CB isotype at t + dt
+                pc_iso_0 = thick_fil_0["pc_iso"][pc_ind] # pc isotype at t
+                pc_iso_1 = thick_fil_1["pc_iso"][pc_ind] # pc isotype at t + dt
                
                 # Check isotype does not change through time
-                if cb_iso_0 != cb_iso_1:                    
-                    raise RuntimeError(f"Isotype #{cb_iso_0} turned into isotype #{cb_iso_1}")
+                if pc_iso_0 != pc_iso_1:                    
+                    raise RuntimeError(f"Isotype #{pc_iso_0} turned into isotype #{pc_iso_1}")
                     
-                cb_state_0 = thick_fil_0["cb_state"][cb_ind] # CB state at t
-                cb_state_1 = thick_fil_1["cb_state"][cb_ind] # CB state at t + dt
+                pc_state_0 = thick_fil_0["pc_state"][pc_ind] # CB state at t
+                pc_state_1 = thick_fil_1["pc_state"][pc_ind] # CB state at t + dt
                 
-                cb_0_type = m_kinetics[cb_iso_0-1][cb_state_0-1]["state_type"] # CB type at t
-                cb_1_type = m_kinetics[cb_iso_1-1][cb_state_1-1]["state_type"] # CB type at t + dt
+                pc_0_type = c_kinetics[pc_iso_0-1][pc_state_0-1]["state_type"] # CB type at t
+                pc_1_type = c_kinetics[pc_iso_1-1][pc_state_1-1]["state_type"] # CB type at t + dt
                                                 
                 ### Determine if a transition occurred ###
                 
-                if cb_state_0 != cb_state_1: # A transition occurred
+                if pc_state_0 != pc_state_1: # A transition occurred
                 
                     pot_trans = False
                    
                     # Find transition index
-                    for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]:  # look through all transitions for cb_state_0
-                        if trans["to"] == cb_state_1:
+                    for trans in c_kinetics[pc_iso_0-1][pc_state_0-1]["transition"]:  # look through all transitions for pc_state_0
+                        if trans["to"] == pc_state_1:
                             idx = trans["index"]
                             pot_trans = True
                             
                     if pot_trans == False:
-                          raise RuntimeError(f"Transition index not found for transition from state {cb_state_0} to state {cb_state_1}")
+                         raise RuntimeError(f"Transition index not found for transition from state {pc_state_0} to state {pc_state_1}")
                     
                     # Fill the element of the transition counter matrix
                     # with the proper transition index and stretch values
                     
-                    if cb_0_type == 'S': 
+                    if pc_0_type == 'D':
                         
-                        if idx not in srx_recr_trans: 
-                            srx_recr_trans.append(idx)
-                                         
-                        if (cb_ind % 2) == 0: # Only even heads can "actively" transition
-                                                 
-                            # Get myosin node index
-                            
-                            node_index = int(np.floor(cb_ind/6))
-                            
-                            # Get node force
-                            
-                            node_force = thick_fil_0["node_forces"][node_index]
-                            cb_node_force_0 = get_node_force_interval(node_force)
-                            
-                            for j in range(0, 2*adj_bs+1): # Fill matrix for each angle
-    
-                                angle_diff = thick_fil_1[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
-                                cb_align_factor_0 =  get_alignment_interval(angle_diff)
-                            
-                                complete_transition[cb_iso_0-1,idx,cb_node_force_0, cb_align_factor_0] += 1
-                            
-                            # Check that dimer myosins transition together
-                            if thick_fil_1["cb_state"][cb_ind] != thick_fil_1["cb_state"][cb_ind + 1]:
-                                raise RuntimeError(f"Dimers did not follow the same transition from \
-                                                state {cb_state_0} to state {cb_state_1}")                                                        
-                                                       
-                    elif cb_0_type == 'D':
-                        
-                        if cb_1_type == 'A': # Get the CB stretch
+                        if pc_1_type == 'A': # Get the pc stretch
                         
                             if idx not in attachement_trans: 
                                 attachement_trans.append(idx) 
                             
-                            thin_ind = thick_fil_1["cb_bound_to_a_f"][cb_ind]
+                            thin_ind = thick_fil_1["pc_bound_to_a_f"][pc_ind]
                             thin_fil = hs_0["thin"][thin_ind] 
-                            bs_ind_1 = thick_fil_1["cb_bound_to_a_n"][cb_ind]
+                            bs_ind_1 = thick_fil_1["pc_bound_to_a_n"][pc_ind]
                             
-                            stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind_1] 
-                            cb_stretch_0 = get_stretch_interval(stretch)
+                            # Find cb associated with this pc
+                            pc_node_idx = thick_fil_0["pc_node_index"][pc_ind] # crown index                           
+                            cb_ind = pc_node_idx * 6 # cb index
+                            
+                            stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind_1] # x at t0 !
+                            pc_stretch_0 = get_stretch_interval(stretch)
                             
                             for j in range(0, 2*adj_bs+1): # Get the angle difference
                             
-                                bs_ind = thick_fil_1[f"cb_nearest_a_n[x_{j}]"][cb_ind]    
-                                found = False
+                                bs_ind = thick_fil_1[f"pc_nearest_a_n[x_{j}]"][pc_ind] # nearest BS have been recalculated
                                 
-                                if bs_ind == bs_ind_1:
+                                found = False
+                                if bs_ind == bs_ind_1: 
                                     found = True
-                                    angle_diff = thick_fil_1[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
-                                    cb_align_factor_0 =  get_alignment_interval(angle_diff)
+                                    angle_diff = thick_fil_1[f"pc_nearest_bs_angle_diff[x_{j}]"][pc_ind]                                    
+                                    pc_align_factor_0 =  get_alignment_interval(angle_diff)
                                     
-                                    complete_transition[cb_iso_0-1,idx,cb_stretch_0, cb_align_factor_0 ] += 1
+                                    complete_transition[pc_iso_0-1,idx,pc_stretch_0, pc_align_factor_0 ] += 1
                                     break
-
+                                
                             if found == False:
-                                print("Attachment site not found")
-                                break
+                                print("not found")
                             
-                        elif cb_1_type == 'D': 
+                        elif pc_1_type == 'D': 
                                                                       
-                            thin_ind = thick_fil_0["cb_nearest_a_f"][cb_ind]
+                            thin_ind = thick_fil_0["pc_nearest_a_f"][pc_ind]
                             thin_fil = hs_0["thin"][thin_ind]
                             
                             for j in range(0, 2*adj_bs+1): # Loop over the nearest BS
             
-                                bs_ind = thick_fil_1[f"cb_nearest_a_n[x_{j}]"][cb_ind]                                       
-                                stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind] 
+                                bs_ind = thick_fil_1[f"pc_nearest_a_n[x_{j}]"][pc_ind] 
+
+                                # Find cb associated with this pc
+                                pc_node_idx = thick_fil_0["pc_node_index"][pc_ind]  # crown index                          
+                                cb_ind = pc_node_idx * 6
+                                      
+                                stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind] # x at t0 !
                                                 
-                                cb_stretch_0 = get_stretch_interval(stretch)
+                                pc_stretch_0 = get_stretch_interval(stretch)
                                 
-                                angle_diff = thick_fil_1[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
-                                cb_align_factor_0 =  get_alignment_interval(angle_diff)
+                                angle_diff = thick_fil_1[f"pc_nearest_bs_angle_diff[x_{j}]"][pc_ind]                                    
+                                pc_align_factor_0 =  get_alignment_interval(angle_diff)
                                 
-                                complete_transition[cb_iso_0-1,idx,cb_stretch_0, cb_align_factor_0] += 1
-                                
-                        elif cb_1_type == 'S':                        
-                            
-                            if (cb_ind % 2) == 0: # Only even heads can "actively" transition
-                            
-                                if thick_fil_0["cb_state"][cb_ind+1] == cb_state_0: # Transition can occur only if both dimer heads are in the same state at t
+                                complete_transition[pc_iso_0-1,idx,pc_stretch_0, pc_align_factor_0] += 1
+                                                                
+                    elif pc_0_type == 'A': # Get the pc stretch                    
                         
-                                    # Get myosin node index
-                                
-                                    node_index = int(np.floor(cb_ind/6))
-                                
-                                    # Get node force
-                                    
-                                    node_force = thick_fil_0["node_forces"][node_index]
-                                    cb_node_force_0 = get_node_force_interval(node_force)
-                                    
-                                    for j in range(0, 2*adj_bs+1): # Loop over angle difference
-    
-                                        angle_diff = thick_fil_1[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
-                                        cb_align_factor_0 =  get_alignment_interval(angle_diff)
-                                    
-                                        complete_transition[cb_iso_0-1,idx,cb_node_force_0,cb_align_factor_0] += 1
-                                
-                    elif cb_0_type == 'A': # Get the CB stretch    
-                    
-                        if cb_1_type == 'D' and idx not in detachment_trans:
-                            detachment_trans.append(idx)
-                        
-                        thin_ind = thick_fil_0["cb_bound_to_a_f"][cb_ind]
+                        thin_ind = thick_fil_0["pc_bound_to_a_f"][pc_ind]
                         thin_fil_0 = hs_0["thin"][thin_ind]
-                        bs_ind_0 = thick_fil_0["cb_bound_to_a_n"][cb_ind]
+                        bs_ind_0 = thick_fil_0["pc_bound_to_a_n"][pc_ind]
+                        
+                        # Find cb associated with this pc
+                        pc_node_idx = thick_fil_0["pc_node_index"][pc_ind]  # crown index                           
+                        cb_ind = pc_node_idx * 6    # crown index 
                     
                         stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil_0["bs_x"][bs_ind_0] 
-                        cb_stretch_0 = get_stretch_interval(stretch)
+                        pc_stretch_0 = get_stretch_interval(stretch)
                         
                         for j in range(0, 2*adj_bs+1): # Get the angle difference
                     
-                            found = False        
-                            bs_ind = thick_fil_0[f"cb_nearest_a_n[x_{j}]"][cb_ind]  
+                            bs_ind = thick_fil_0[f"pc_nearest_a_n[x_{j}]"][pc_ind]  
+                            found = False
                             
                             if bs_ind == bs_ind_0:
+                                
                                 found = True
-                                angle_diff = thick_fil_0[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
-                                cb_align_factor_0 =  get_alignment_interval(angle_diff)
+                                angle_diff = thick_fil_0[f"pc_nearest_bs_angle_diff[x_{j}]"][pc_ind]                                    
+                                pc_align_factor_0 =  get_alignment_interval(angle_diff)
                                 
-                                complete_transition[cb_iso_0-1,idx,cb_stretch_0, cb_align_factor_0 ] += 1
+                                complete_transition[pc_iso_0-1,idx,pc_stretch_0, pc_align_factor_0 ] += 1
                                 break
-                                
+                            
                         if found == False:
-                            print("Attachment site not found due to filaments compliance")
-                            break
-
-                ### Determine all potential transitions depending on state type (S, D and A) ###
-                
-                # SRX (S)
-                
-                if cb_0_type == 'S':
-                    
-                    if (cb_ind % 2) == 0: # Only even heads can "actively" transition
-                    
-                        for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]: 
-
-                            idx_pot = trans["index"]
-                        
-                            if thick_fil_0["cb_state"][cb_ind+1] == cb_state_0: # Transition can occur only if both dimer heads are in the same state at t
-                         
-                                # Get myosin node index
+                            print("not found")
                                 
-                                node_index = int(np.floor(cb_ind/6))
+                ### Determine all potential transitions depending on state type (D and A) ###
                                 
-                                # Get node force
-                                
-                                node_force = thick_fil_0["node_forces"][node_index]
-                                cb_node_force_0 = get_node_force_interval(node_force)
-                                
-                                for j in range(0, 2*adj_bs+1): # Loop over angle differences
-    
-                                    angle = thick_fil_1[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
-                                    cb_align_factor_0 =  get_alignment_interval(angle)
-                               
-                                    potential_transition[cb_iso_0-1,idx_pot,cb_node_force_0, cb_align_factor_0] += 1
-
-                
                 # Attached (A)
                 
-                elif cb_0_type == 'A': # Get CB stretch
+                if pc_0_type == 'A': # Get pc stretch
 
-                    thin_ind = thick_fil_0["cb_bound_to_a_f"][cb_ind]
-                    bs_ind_0 = thick_fil_0["cb_bound_to_a_n"][cb_ind]
-                    thin_fil = hs_0["thin"][thin_ind]   # Correction 
+                    thin_ind = thick_fil_0["pc_bound_to_a_f"][pc_ind]
+                    bs_ind_0 = thick_fil_0["pc_bound_to_a_n"][pc_ind]
+                    thin_fil = hs_0["thin"][thin_ind]  
+                    
+                    # Find cb associated with this pc
+                    pc_node_idx = thick_fil_1["pc_node_index"][pc_ind]  # crown index                           
+                    cb_ind = pc_node_idx * 6
                     
                     stretch = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind_0] 
 
-                    cb_stretch_0 = get_stretch_interval(stretch)
+                    pc_stretch_0 = get_stretch_interval(stretch)
                     
-                    for j in range(0, 2*adj_bs+1):
-                        
+                    for j in range(0, 2*adj_bs+1): # Get the angle difference
+            
+                        bs_ind = thick_fil_0[f"pc_nearest_a_n[x_{j}]"][pc_ind]  
                         found = False
-                        bs_ind = thick_fil_0[f"cb_nearest_a_n[x_{j}]"][cb_ind]  
                         
                         if bs_ind == bs_ind_0:
+                            found = True
+                            angle_diff = thick_fil_0[f"pc_nearest_bs_angle_diff[x_{j}]"][pc_ind]                                    
+                            pc_align_factor_0 =  get_alignment_interval(angle_diff)
                             
-                            found = True 
-                            angle = thick_fil_0[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind] 
-                                   
-                            cb_align_factor_0 =  get_alignment_interval(angle)
-                            
-                            for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]: 
-                        
+                            for trans in c_kinetics[pc_iso_0-1][pc_state_0-1]["transition"]: 
+                                
                                 # All transitions from an attached state are possible
-                        
+                                
                                 idx_pot = trans["index"]
-                        
-                                potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0, cb_align_factor_0] += 1 
+                                
+                                potential_transition[pc_iso_0-1, idx_pot, pc_stretch_0, pc_align_factor_0] += 1 
                                 
                             break
-                        
+                    
                     if found == False:
-                        print("Attachment site not found due to filaments compliance")
-                        break
-                               
+                        print("not found")
+                        
                 # Detached (D)
                 
-                elif cb_0_type == 'D':
+                elif pc_0_type == 'D':
                     
                     # Get array of nearest BS and calculate stretch and angle difference array
                 
@@ -331,77 +257,62 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs =
                     stretch = np.zeros(2*adj_bs + 1)
                     angle = np.zeros(2*adj_bs + 1)
                     
-                    thin_ind = thick_fil_0["cb_nearest_a_f"][cb_ind]
-                    thin_fil = hs_0["thin"][thin_ind] # 
+                    thin_ind = thick_fil_0["pc_nearest_a_f"][pc_ind]
+                    thin_fil = hs_0["thin"][thin_ind] 
                     
                     for j in range(0, 2*adj_bs+1):
     
-                        bs_ind[j] = thick_fil_1[f"cb_nearest_a_n[x_{j}]"][cb_ind] # nearest bs have been recalculated                                      
-                        stretch[j] = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind[j]]
+                        bs_ind[j] = thick_fil_1[f"pc_nearest_a_n[x_{j}]"][pc_ind] # nearest bs have been recalculated                                      
                         
-                        angle[j] = thick_fil_1[f"cb_nearest_bs_angle_diff[x_{j}]"][cb_ind]                                    
+                        # Find cb associated with this pc
+                        pc_node_idx = thick_fil_1["pc_node_index"][pc_ind] # crown index                            
+                        cb_ind = pc_node_idx * 6
+                        
+                        stretch[j] = thick_fil_0["cb_x"][cb_ind] - thin_fil["bs_x"][bs_ind[j]] # x has not been recalculated
+                        
+                        angle[j] = thick_fil_1[f"pc_nearest_bs_angle_diff[x_{j}]"][pc_ind]  # nearest bs have been recalculated                                    
 
                                            
-                    for trans in m_kinetics[cb_iso_0-1][cb_state_0-1]["transition"]:
+                    for trans in c_kinetics[pc_iso_0-1][pc_state_0-1]["transition"]:
                         
                         new_state = trans["to"]
                         idx_pot = trans["index"]
                         
-                        if m_kinetics[cb_iso_0-1][new_state-1]["state_type"]== 'A':
+                        if c_kinetics[pc_iso_0-1][new_state-1]["state_type"]== 'A':
                             
                             # Check if the potential binding sites are available 
                             
                             for k in range(0, 2*adj_bs +1):
                                 
-                                bs_availability = thick_fil_1[f"cb_nearest_a_n_states[x_{k}]"][cb_ind] 
+                                bs_availability = thick_fil_1[f"pc_nearest_a_n_states[x_{k}]"][pc_ind] 
                             
                                 if bs_availability == 2: # bs is free and available for attachment
         
-                                    cb_stretch_0 = get_stretch_interval(stretch[k])                                    
-                                    cb_align_factor_0 =  get_alignment_interval(angle[k])
-                                    potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0, cb_align_factor_0] += 1 
-
-                        elif m_kinetics[cb_iso_0-1][new_state-1]["state_type"]== 'S':
-                            
-                                if (cb_ind % 2) == 0: # Only even heads can "actively" transition
-                    
-                                    if thick_fil_0["cb_state"][cb_ind+1] == cb_state_0: # Transition can occur only if both dimer heads are in the same state at t
-                     
-                                        # Get myosin node index
-                                        
-                                        node_index = int(np.floor(cb_ind/6))
-                                        
-                                        # Get node force
-                                        
-                                        node_force = thick_fil_0["node_forces"][node_index]
-                                        cb_node_force_0 = get_node_force_interval(node_force)
-                                        
-                                        for k in range(0, 2*adj_bs +1):
-                                            cb_align_factor_0 =  get_alignment_interval(angle[k])
-                                            potential_transition[cb_iso_0-1,idx_pot,cb_node_force_0, cb_align_factor_0] += 1 
+                                    pc_stretch_0 = get_stretch_interval(stretch[k])                                    
+                                    pc_align_factor_0 =  get_alignment_interval(angle[k])
+                                    potential_transition[pc_iso_0-1, idx_pot, pc_stretch_0, pc_align_factor_0] += 1 
                         
-                        elif m_kinetics[cb_iso_0-1][new_state-1]["state_type"]== 'D': # Transition to another "D" state is always possible
-                            for k in range(0, 2*adj_bs +1): 
-                                cb_stretch_0 = get_stretch_interval(stretch[k])
-                                cb_align_factor_0 =  get_alignment_interval(angle[k])
-                                potential_transition[cb_iso_0-1, idx_pot, cb_stretch_0, cb_align_factor_0] += 1                                                           
+                        elif c_kinetics[pc_iso_0-1][new_state-1]["state_type"]== 'D': # Transition to another "D" state is always possible
+                            for k in range(0, 2*adj_bs +1):   
+                                pc_stretch_0 = get_stretch_interval(stretch[k])
+                                pc_align_factor_0 =  get_alignment_interval(angle[k])
+                                potential_transition[pc_iso_0-1, idx_pot, pc_stretch_0, pc_align_factor_0[k]] += 1                                                           
                 
                 else:
-                    raise RuntimeError(f"State #{cb_state_0} is neither type A, D or S")
+                    raise RuntimeError(f"State #{pc_state_0} is neither type A, D or S")
                                 
               
-        hs_0 = hs_1
-        
+        hs_0 = hs_1 
 
     ### Calculate the rates
     
     calculated_rates_dict = []
     
-    for iso in range(0, len(m_kinetics)): # Loop over the isotypes
+    for iso in range(0, len(c_kinetics)): # Loop over the isotypes
     
         iso_data = []
         
-        for i, state in enumerate(m_kinetics[iso]): # Loop over the states
+        for i, state in enumerate(c_kinetics[iso]): # Loop over the states
             
             for j, transition in enumerate(state["transition"]): # For each state, loop over all possible transitions
                 
@@ -425,8 +336,7 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs =
                     
                     conf_interval_pos = np.zeros((NB_INTER, NB_A_INTER),dtype=float)
                     conf_interval_neg = np.zeros((NB_INTER, NB_A_INTER),dtype=float)
-                
-                
+                                    
                     for stretch_bin in range(0,NB_INTER):
                         for angle_bin in range(0,NB_A_INTER):
                             
@@ -485,43 +395,7 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs =
 
                     trans_data["calculated_rate"] = calculated_rate.tolist()
                     trans_data["conf_pos"] = conf_interval_pos.tolist()
-                    trans_data["conf_neg"] = conf_interval_neg.tolist()
-                    
-                elif trans_type == 'srx': # Recruitment from SRX only depends on node_force
-                
-                    complete_transition_srx = np.sum(complete_transition, axis = 3)
-                    potential_transition_srx = np.sum(potential_transition, axis = 3)
-                
-                    calculated_rate = np.zeros(NB_INTER,dtype=float)
-                    prob = np.zeros(NB_INTER,dtype=float)
-                    
-                    p = np.zeros(NB_INTER,dtype=float)
-                    W = np.zeros(NB_INTER,dtype=float)
-                    
-                    conf_interval_pos = np.zeros(NB_INTER,dtype=float)
-                    conf_interval_neg = np.zeros(NB_INTER,dtype=float)
-                
-                    for stretch_bin in range(0,NB_INTER):
-                        
-                        # Calculate rate
-                        
-                        prob[stretch_bin] = complete_transition_srx[iso, trans, stretch_bin]/potential_transition_srx[iso, trans, stretch_bin]
-                        
-                        if prob[stretch_bin] >= 1:
-                            print("Probability greater than 1")
-                        calculated_rate[stretch_bin] = -np.log(1.0 - prob[stretch_bin]) / time_step
-
-                        # Calculate CIs
-                                
-                        p[stretch_bin] = (complete_transition_srx[iso, trans, stretch_bin] + 2)/(potential_transition_srx[iso, trans, stretch_bin] + 4)
-                        W[stretch_bin] = 2 * np.sqrt( (p[stretch_bin] * (1 - p[stretch_bin]))/ (potential_transition_srx[iso, trans, stretch_bin] + 4) )
-                        
-                        conf_interval_pos[stretch_bin] = -np.log(1.0 - (p[stretch_bin] + W[stretch_bin]) ) / time_step 
-                        conf_interval_neg[stretch_bin] = -np.log(1.0 - (p[stretch_bin] - W[stretch_bin]) ) / time_step 
-
-                    trans_data["calculated_rate"] = calculated_rate.tolist()
-                    trans_data["conf_pos"] = conf_interval_pos.tolist()
-                    trans_data["conf_neg"] = conf_interval_neg.tolist()
+                    trans_data["conf_neg"] = conf_interval_neg.tolist()                    
 
                 elif trans_type == 'x': # Transition with a constant rate law
                 
@@ -562,20 +436,15 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs =
                 
         calculated_rates_dict.append(iso_data)
         
-    print("Rates has been calculated from hs dump files")
-    print("Now starting the plot")
-    
-    plot_rate(calculated_rates_dict, m_kinetics, model_file, output_folder)
-                
-    # return calculated_rates_dict
+    plot_rate(calculated_rates_dict, c_kinetics, model_file, output_folder)
 
-def plot_rate(calculated_rates, m_kinetics, model_file, output_folder):
+def plot_rate(calculated_rates, c_kinetics, model_file, output_folder):
     
     angle = np.arange(A_MIN,A_MAX, A_STEP)
 
     for i, iso in enumerate(calculated_rates):
         
-        rate_data = calculate_rate_from_m_kinetics(m_kinetics, model_file, i)
+        rate_data = calculate_rate_from_c_kinetics(c_kinetics, model_file, i)
         
         for j, trans in enumerate(iso):
             
@@ -589,7 +458,7 @@ def plot_rate(calculated_rates, m_kinetics, model_file, output_folder):
                 calc_rate = np.array(trans["calculated_rate"])
                 conf_pos = np.array(trans["conf_pos"])
                 conf_neg = np.array(trans["conf_neg"])
-                    
+                
                 # SUBPLOTS
                 
                 n_rows = int(np.floor(NB_A_INTER/2)) 
@@ -612,11 +481,11 @@ def plot_rate(calculated_rates, m_kinetics, model_file, output_folder):
                       abs(calc_rate[:,i] - conf_pos[:,i])
                     ]
                                 
-                    align_factor = abs(-math.cos((angle[i])*math.pi/180))
+                    align_factor = abs(-math.cos((angle[i] + A_STEP/2)*math.pi/180))
                     
                     true_rate = rate_data[f"Transition # {idx} ({rate_type})"] * align_factor
             
-                    ax[i].errorbar(rate_data["stretch"] + X_STEP/2, calc_rate[:,i], yerr=y_err, label = "calculated rate",
+                    ax[i].errorbar(rate_data["stretch"], calc_rate[:,i], yerr=y_err, label = "calculated rate",
                                  ecolor = "tab:grey", fmt='-o', markersize = 2)
 
                     ax[i].plot(rate_data["stretch"], true_rate, label = f"rate law (angle diff = {angle[i] + A_STEP/2})")  
@@ -640,9 +509,9 @@ def plot_rate(calculated_rates, m_kinetics, model_file, output_folder):
                       abs(calc_rate[:,j] - conf_pos[:,j])
                     ]
                             
-                    align_factor = abs(-math.cos((angle[j])*math.pi/180))
+                    align_factor = abs(-math.cos((angle[j] + A_STEP/2)*math.pi/180))
                     
-                    ax[j].errorbar(rate_data["stretch"] + X_STEP/2, calc_rate[:,j], yerr=y_err, label = "calculated rate",
+                    ax[j].errorbar(rate_data["stretch"], calc_rate[:,j], yerr=y_err, label = "calculated rate",
                              ecolor = "tab:grey", fmt='-o', markersize = 2)
                     ax[j].set_ylabel("Rate")
                     ax[j].plot(rate_data["stretch"], rate_data[f"Transition # {idx} ({rate_type})"]*align_factor, label = f"rate law (angle diff = {angle[j] + A_STEP/2}")  
@@ -677,32 +546,7 @@ def plot_rate(calculated_rates, m_kinetics, model_file, output_folder):
                 plt.title(f"Transition # {idx} ({rate_type})")
                 plt.legend(loc = "upper left")
                 plt.savefig(output_image_file, dpi = 150)
-                
-            elif trans["trans_type"] == 'srx':
-                
-                idx = trans["trans_idx"]
-                rate_type = trans["rate_type"]
-                calc_rate = np.array(trans["calculated_rate"])
-                conf_pos = np.array(trans["conf_pos"])
-                conf_neg = np.array(trans["conf_neg"])
-                
-                y_err = [
-                      abs(calc_rate - conf_neg),
-                      abs(calc_rate - conf_pos)
-                    ]
-                
-                plt.figure()
-                plt.errorbar(rate_data["node_force"] + F_STEP/2, calc_rate, yerr=y_err, label = "calculated rate",
-                             ecolor = "tab:grey", fmt='-o', markersize = 2)
-                plt.ylabel("Rate")
-                plt.xlabel("Node force [nN]")
-                plt.plot(rate_data["node_force"], rate_data[f"Transition # {idx} ({rate_type})"], label = "rate law")  
-                plt.title(f"Transition # {idx} ({rate_type})")
-                plt.legend(loc = "upper left")
-                plt.xlim([-0.8,0.8])
-                plt.xticks([-0.8,-0.4,-0.2,0,0.4,0.8])
-                plt.savefig(output_image_file, dpi = 150)
-                
+                                
             elif trans["trans_type"] == 'x':
                 
                 idx = trans["trans_idx"]
@@ -730,18 +574,17 @@ def plot_rate(calculated_rates, m_kinetics, model_file, output_folder):
                 plt.title(f"Transition # {idx} ({rate_type})")
                 plt.legend(loc = "upper left")
                 plt.savefig(output_image_file, dpi = 150)
-      
-
-def get_m_kinetics(model_json_file):
+                
+def get_c_kinetics(model_json_file):
     
-    # Extract the myosin kinetics from the json model file 
+    # Extract the mybpc kinetics from the json model file 
 
     with open(model_json_file, 'r') as f:
         mod = json.load(f)
            
-    m_kinetics = []
+    c_kinetics = []
     
-    for i, isotype in enumerate(mod["m_kinetics"]): # Get data for each isotype
+    for i, isotype in enumerate(mod["c_kinetics"]): # Get data for each isotype
         
         idx = 0
         
@@ -768,22 +611,22 @@ def get_m_kinetics(model_json_file):
                     trans_data["trans_type"] = 'a'
                 elif state["type"] == 'A' and isotype["scheme"][trans["new_state"] - 1]["type"] == 'D':
                     trans_data["trans_type"] = 'd'
-                elif state["type"] == 'S' and isotype["scheme"][trans["new_state"] - 1]["type"] == 'D':
+                elif state["type"] == 'S':
                     trans_data["trans_type"] = 'srx'
                 else:
                     trans_data["trans_type"] = 'x'
-                
+
                 idx += 1
                 
                 state_data["transition"].append(trans_data)
                 
             data_scheme.append(state_data)
         
-        m_kinetics.append(data_scheme)
-                
-    return m_kinetics
-
-def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
+        c_kinetics.append(data_scheme)
+        
+    return c_kinetics  
+              
+def calculate_rate_from_c_kinetics(c_kinetics, model_json_file, isotype = 1):
     
     # Extract the rate laws from the kinetic data
        
@@ -793,15 +636,15 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
     with open(model_json_file, 'r') as f:
         mod = json.load(f)
 
-    k_cb = mod["m_parameters"]["m_k_cb"]
-        
+    k_pc = mod["mybpc_parameters"]["c_k_stiff"]
+    
     rate_data = pandas.DataFrame()
     
     rate_data["stretch"] = stretch
     
     rate_data["node_force"] = node_force
 
-    for j, state in enumerate(m_kinetics[isotype - 1]):
+    for j, state in enumerate(c_kinetics[isotype - 1]):
         
         for new_state in state["transition"]:
             
@@ -815,7 +658,7 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
                                
             elif trans_type == "gaussian":
                 
-                rate_trans = [trans_param[0]*np.exp(-0.5 * k_cb * np.power(x, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
+                rate_trans = [trans_param[0]*np.exp(-0.5 * k_pc * np.power(x + X_STEP/2, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
                                 
             elif trans_type == "poly":
                 
@@ -829,7 +672,7 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
                 raise RuntimeError(f"Transition of type {trans_type} is unknown")
                 
             rate_data[f"Transition # {index} ({trans_type})"] = rate_trans
-                
+                    
     return rate_data
 
 def get_stretch_interval(stretch):

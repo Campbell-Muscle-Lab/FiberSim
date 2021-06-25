@@ -8,13 +8,14 @@ MODULES_ROOT = os.path.realpath(os.path.join(ROOT, "..", ".."))
 sys.path.append(MODULES_ROOT)
 
 from modules.validation import myosin_kinetics
+from modules.validation import mybpc_kinetics
+from modules.validation import actin_kinetics
 
-# import c_kinetics
-# import a_kinetics
-# import force_balance
 
 def run_validation(kinetic_data, batch_file_string):
     """Entrance function for the FiberSim testing suite"""
+    
+    print("Run_validation starting")
     
     # Get the model/option/protocol file and output folder 
     
@@ -37,6 +38,10 @@ def run_validation(kinetic_data, batch_file_string):
         options_file = kinetic_data['options_file']
         output_folder = kinetic_data['output_data_folder']
         
+    # Creatte output folder if it does not exist
+
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)    
         
     # Get dump_folder from option file
     
@@ -67,19 +72,20 @@ def run_validation(kinetic_data, batch_file_string):
     
     if (val_type == 'm_kinetics'): 
         
-        calculated_rate = myosin_kinetics.compute_rate(model_file, protocol_file, dump_folder, adj_bs)
-        #myosin_kinetics.plot_rate(calculated_rate, output_folder)
+        print("Myosin kinetics check")
+        
+        myosin_kinetics.compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs)
         
     if (val_type == 'c_kinetics'): 
+              
+        print("Mybpc kinetics check")
         
-        calculated_rate = c_kinetics.compute_rate(model_file, dump_folder)
-        c_kinetics.plot_rate(calculated_rate, output_folder)    
+        mybpc_kinetics.compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs)
         
     if (val_type == 'a_kinetics'): 
+                
+        print("Actin kinetics check")
         
-        a_kinetics.compute_rate(model_file, dump_folder, output_folder)
+        actin_kinetics.compute_rate(model_file, protocol_file, dump_folder, output_folder)   
         
-    if (val_type == 'force_balance'): 
-        
-        force_balance.compute_force_balance(model_file, dump_folder, output_folder)
         

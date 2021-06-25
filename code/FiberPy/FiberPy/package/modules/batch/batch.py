@@ -74,37 +74,6 @@ def run_batch(json_batch_file_string=[],
 
         command_strings.append(com_string)
 
-    # Now run the batch using all but 1 cpi
-    num_processes = (multiprocessing.cpu_count() - 1)
-    my_list = command_strings
-
-    threads = []
-    while threads or my_list:
-        if (len(threads) < num_processes) and my_list:
-            t = threading.Thread(target=worker, args=[my_list.pop()])
-            t.setDaemon(True)
-            t.start()
-            threads.append(t)
-        else:
-            for thread in threads:
-                if not thread.is_alive():
-                    threads.remove(thread)
-
-    # At this point we have run all the simulations
-    # Run the output handlers
-    for i, j in enumerate(job_data):
-        if ('output_handler_file' in j):
-            fs = j['output_handler_file']
-            if (not j['relative_to']):
-                fs = os.path.abspath(fs)
-            elif (j['relative_to'] == 'this_file'):
-                base_directory = Path(json_batch_file_string).parent.absolute()
-                fs = os.path.join(base_directory, fs)
-            else:
-                base_directory = j['relative_to']
-                fs = os.path.join(base_directory, fs)
-            oh.output_handler(fs,
-                              sim_results_file_string=results_file_strings[i])
 
     # Now see if we have to make any figures
     if ('batch_figures' in batch_structure):

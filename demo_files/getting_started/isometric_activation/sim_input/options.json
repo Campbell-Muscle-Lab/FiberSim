@@ -1,6 +1,6 @@
 {
   "options": {
     "max_rate": 1e4,
-    "x_pos_rel_tol": 1e-3
+    "x_pos_rel_tol": 1e-1
   }
 }
