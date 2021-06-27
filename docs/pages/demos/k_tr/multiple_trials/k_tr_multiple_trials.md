@@ -17,7 +17,7 @@ This demo shows how to simulate a experiments assessing k<sub>tr</sub> at differ
 This demo:
 
 + Builds on the [ktr_single_trial demo](../single_trial/k_tr_single_trial.html)
-+ Uses a [batch structure](../../../structures/batch.html) to run mulitple trials, each of which consists of the muscle being activated in a given pCa solution and perturbed by a rapid shortening/re-stretch protocol.
++ Uses a [batch structure](../../../structures/batch/batch.html) to run mulitple trials, each of which consists of the muscle being activated in a given pCa solution and perturbed by a rapid shortening/re-stretch protocol.
 
 ## Instructions
 
@@ -60,9 +60,9 @@ If you opened the text files and plotted the results on a single group of axes, 
 
 ## How this worked
 
-This demo uses the same approach as the [ktr_single_trial demo](../single_trial/single_trial.html) but repeats the simulations at different levels of Ca<sup>2+</sup> using a distinct [protocol file](../../../structures/protocol.html) for each job.
+This demo uses the same approach as the [ktr_single_trial demo](../single_trial/k_tr_single_trial.html) but repeats the simulations at different levels of Ca<sup>2+</sup> using a distinct [protocol file](../../../structures/protocol/protocol.html) for each job.
 
-The simulations are initiated using the [batch file](../../../structures/batch.html) below.
+The simulations are initiated using the [batch file](../../../structures/batch/batch.html) below.
 
 ````
 {

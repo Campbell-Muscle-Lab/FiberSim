@@ -10,7 +10,7 @@ nav_order: 4
 
 ## Overview
 
-This demo builds on the [isometric activation demo]('../isometric_activation/isometric_activation.html') and shows how to run a single simulation where the muscle is activated isometrically by a Ca<sup>2+</sup> transient.
+This demo builds on the [isometric activation demo](../isometric_activation/isometric_activation.html) and shows how to run a single simulation where the muscle is activated isometrically by a Ca<sup>2+</sup> transient.
 
 ## What this demo does
 
@@ -55,7 +55,7 @@ The file `summary.png` shows pCa, length, force per cross-sectional area (stress
 
 ## How this worked
 
-As described in the [isometric activation demo]('../isometric_activation/isometric_activation.html'), the simulation was described by a batch file.
+As described in the [isometric activation demo](../isometric_activation/isometric_activation.html), the simulation was described by a batch file.
 
 The only difference is that this simulation used a different protocol file, which is described in the section below.
 

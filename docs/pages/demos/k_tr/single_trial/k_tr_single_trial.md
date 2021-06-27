@@ -59,9 +59,9 @@ All of the results from the simulation are written to files in `<FiberSim_dir>/d
 
 ## How this worked
 
-This demo is very similar to the [getting started - isometric_activation demo](../../getting_started/isometric_activation/isometric_activation.demo).
+This demo is very similar to the [getting started - isometric_activation demo](../../getting_started/isometric_activation/isometric_activation.html).
 
-The only difference is a slight change to the [protocol file](../../../structures/protocol.html).
+The only difference is a slight change to the [protocol file](../../../structures/protocol/protocol.html).
 
 Here's a screenshot from a section close to the beginning of the protocol.
 

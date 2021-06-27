@@ -6,11 +6,11 @@ grand_parent: Demos
 nav_order: 3
 ---
 
-# Ramp shortening
+# Isotonic shortening
 
 ## Overview
 
-This demo builds on the [isometric activation]('../isometric_activation/isometric_activation.html') and [ramp shortening]('../ramp_shortening/ramp_shortening.html')demos and shows how to run a single simulation where the muscle is activated isometrically and then allowed to shorten against a constant load.
+This demo builds on the [isometric activation](../isometric_activation/isometric_activation.html) and [ramp shortening](../ramp_shortening/ramp_shortening.html) demos and shows how to run a single simulation where the muscle is activated isometrically and then allowed to shorten against a constant load.
 
 ## What this demo does
 
