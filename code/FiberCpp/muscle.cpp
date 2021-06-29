@@ -190,12 +190,13 @@ void muscle::implement_time_step(int protocol_index)
 
 		if ((protocol_index % 100) == 0)
 		{
-			printf("muscle->hs[%i][%i] ->calculate_x_iterations: %i hsl: %.2f force: %g  a[0]: %g  m[0]: %g\n",
+			printf("muscle->hs[%i][%i] ->calculate_x_iterations: %i hsl: %.2f force: %g  a[0]: %g  m[0]: %g c[0]: %g\n",
 				hs_counter, protocol_index, (int)calculate_x_iterations,
 				p_hs[hs_counter]->hs_length,
 				p_hs[hs_counter]->hs_force,
 				gsl_vector_get(p_hs[hs_counter]->a_pops, 0),
-				gsl_vector_get(p_hs[hs_counter]->m_pops, 0));
+				gsl_vector_get(p_hs[hs_counter]->m_pops, 0),
+				gsl_vector_get(p_hs[hs_counter]->c_pops, 0));
 		}
 	}
 

@@ -80,10 +80,13 @@ class fitting():
         # Update batch structure for internal use
         job_data = self.batch_structure['job']
         new_job_data = []
+        file_list = ['model_file','options_file', 'protocol_file',
+                     'results_file']
+        if (opt_struct['fit_mode'] == 'fit_in_time_domain'):
+            file_list.append('target_file')
         for i, j in enumerate(job_data):
             d = dict()
-            for f in ['model_file', 'options_file',
-                  'protocol_file', 'results_file']:
+            for f in file_list:
                 fs = j[f]
                 if (not j['relative_to']):
                     fs = os.path.abspath(fs)
@@ -176,7 +179,7 @@ class fitting():
                                            iters = np.round(100*len(self.p_vector)))
         else:
             res = minimize(self.fit_worker, self.p_vector,
-                            method='Nelder-Mead',
+                            method=self.opt_data['optimizer'],
                             tol=1e-3)
 
     def pso_wrapper(self, p_array):
@@ -296,11 +299,10 @@ class fitting():
 
         # Loop through jobs
         for i, j in enumerate(self.batch_structure['job']):
-            sim_file_string = os.path.join(j['output_folder'], 'results.txt')
-            d = pd.read_csv(sim_file_string, sep='\t')
+            d = pd.read_csv(j['results_file'], sep='\t')
             n_data = np.size(d[self.opt_data['fit_variable']])
             # Load in target and add to end of data structure
-            target_file_string = j['target_file_string']
+            target_file_string = j['target_file']
             target = pd.read_csv(target_file_string)
             d['target'] = np.NaN
             # Now copy target into data structure

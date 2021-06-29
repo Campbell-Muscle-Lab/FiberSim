@@ -172,6 +172,19 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 		//printf("x: %f  rate: %f\n", x, rate);
 	}
 
+	// Poly_asymmetric
+	if (!strcmp(rate_type, "poly_asym"))
+	{
+		if (x > 0)
+			rate = gsl_vector_get(rate_parameters, 0) +
+				(gsl_vector_get(rate_parameters, 1) *
+					gsl_pow_int(x, (int)gsl_vector_get(rate_parameters, 3)));
+		else
+			rate = gsl_vector_get(rate_parameters, 0) +
+			(gsl_vector_get(rate_parameters, 2) *
+				gsl_pow_int(x, (int)gsl_vector_get(rate_parameters, 3)));
+	}
+
 	// Curtail at max rate
 	FiberSim_options* p_options = p_parent_m_state->p_parent_scheme->p_fs_options;
 	if (rate > (p_options->max_rate))
