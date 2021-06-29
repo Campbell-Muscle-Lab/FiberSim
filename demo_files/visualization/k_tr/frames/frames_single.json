@@ -1,0 +1,21 @@
+{
+    "frames":
+    [
+     {
+        "status_file": "sim_output/hs/hs_1_time_step_9741.json",
+        "image_file": "renders/im_9741.png",
+        "camera": {
+            "location": {
+                "x": -200.0,
+                "y": 200.0,
+                "z": 100.0
+            },
+            "rotation": {
+                "x": 80.0,
+                "y": 0.0,
+                "z": 250.0
+            }
+        }
+    }
+   ]
+}

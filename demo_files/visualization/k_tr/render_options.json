@@ -1,0 +1,9 @@
+{
+    "render_options":
+    {
+        "blender_exe_path": "C:/Program Files/Blender Foundation/Blender 2.92",
+        "max_render_distance": 1000,
+        "max_smooth_distance": 200,
+        "background_mode": true
+    }
+}

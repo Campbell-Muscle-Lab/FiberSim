@@ -1,0 +1,16 @@
+{
+    "render_batch":
+    {
+        "render_jobs":
+        [
+            {
+                "relative_to": "this_file",
+                "template_file": "render_template/render_template.json",
+                "frames_file": "frames/frames_ktr.json",
+                "blender_file": "blender_data.json",
+                "options_file": "render_options.json"
+            }
+        ]
+        
+    }
+}
