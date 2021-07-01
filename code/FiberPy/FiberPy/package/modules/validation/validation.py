@@ -33,8 +33,6 @@ def run_validation(kinetic_data, batch_file_string):
         
             for elmt in kinetic_data['options_file']:
                 
-                print("LOOK HERE", elmt)
-                
                 if (kinetic_data['relative_to'] == 'this_file'):
                 
                     options_file = os.path.join(base_folder, elmt)
@@ -43,7 +41,7 @@ def run_validation(kinetic_data, batch_file_string):
                 else:
                     
                     options_file = elmt
-                    output_folder = kinetic_data['output_data_folder']
+                    output_folder = kinetic_data['output_data_folder']                   
                     
                 with open(options_file, 'r') as f:
                     opt = json.load(f)
@@ -64,7 +62,12 @@ def run_validation(kinetic_data, batch_file_string):
                 dump_folder_list.append(dump_folder)
                 
         else:
-            raise RuntimeError("Option file(s) not provided in a list form")
+            raise RuntimeError("Option file(s) not provided in a list form")          
+            
+        # Create output folder if it does not exist
+        
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder) 
                                     
         print("force_balance check")
         

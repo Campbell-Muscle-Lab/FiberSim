@@ -340,14 +340,14 @@ def check_total_force(hs):
     """
     Compare the half-sarcomere force to the 
     re-calculated total force from hs dump file
-    """
-    print("myosin filament density is ", 0.25e15)
-    
-    m_filament_density = 0.25e15
-    
+    """    
     hs_force = hs["hs_data"]["hs_force"]
     hs_length = hs["hs_data"]["hs_length"]
     
+    prop_fibrosis = hs["hs_data"]["prop_fibrosis"]
+    prop_myofilaments = hs["hs_data"]["prop_myofilaments"]
+    m_filament_density = hs["hs_data"]["m_filament_density"]
+       
     computed_force = 0.0
     
     for thick_fil in hs["thick"]:
@@ -361,8 +361,8 @@ def check_total_force(hs):
         computed_force += k_m * (hs_length - lamb - m_rl - cb_x_m_line)
         
     computed_force /= len(hs["thick"])     # average over all thick filaments
-    computed_force *= m_filament_density * 1e-9 # force in N/m²
-    
+    computed_force *= (1 - prop_fibrosis) * prop_myofilaments * m_filament_density * 1e-9 # force in N/m²
+       
     err_force = (hs_force - computed_force)/hs_force * 100
     
     return abs(err_force)
