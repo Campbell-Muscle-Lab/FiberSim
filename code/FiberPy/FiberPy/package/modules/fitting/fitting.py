@@ -648,10 +648,10 @@ class fitting():
             json.dump(model_template, f, indent=4)
             print('file_written')
 
-    def replace_m_kinetics(self, model_template, par_dict, new_value):
-        """ replace m_kinetics transition element """
-        m_kinetics = model_template['m_kinetics']
-        sch = m_kinetics[par_dict['isotype']-1]['scheme']
+    def replace_kinetics(self, model_template, par_dict, new_value):
+        """ replace kinetics transition element """
+        x_kinetics = model_template[par_dict['name']]
+        sch = x_kinetics[par_dict['isotype']-1]['scheme']
 
         # Handle extension first
         if ('extension' in par_dict):
@@ -660,7 +660,7 @@ class fitting():
                 if (s['number'] == par_dict['state']):
                     s['extension'] = new_value
                 s_new.append(s)
-            m_kinetics[par_dict['isotype']-1]['scheme'] = s_new
+            x_kinetics[par_dict['isotype']-1]['scheme'] = s_new
         else:
         # Now do rate function parameters
             s_new = []
@@ -673,10 +673,10 @@ class fitting():
                                 new_value
                     t_new.append(t)
                 s_new.append(s)
-            m_kinetics[par_dict['isotype']-1]['scheme'] = s_new
+            x_kinetics[par_dict['isotype']-1]['scheme'] = s_new
 
         # Return
-        model_template['m_kinetics'] = m_kinetics
+        model_template[par_dict['name']] = x_kinetics
         return model_template
 
     def replace_item(self, obj, key, replace_value):
@@ -693,21 +693,18 @@ class fitting():
         key='m_kinetics' or key='c_kinetics' when more complex approach
         is necessary """
 
-        if (par_dict['name'] == 'm_kinetics'):
-            v = self.find_m_kinetics(obj, par_dict)
-        elif (par_dict['name'] == 'c_kinetics'):
-            print('find_c_kinetics not yet implemented')
-            exit(1)
+        if (par_dict['name'].endswith('kinetics')):
+            v = self.find_kinetics(obj, par_dict)
         else:
             v = self.find_item(obj, par_dict['name'])
         
         # Return
         return v
 
-    def find_m_kinetics(self, model_template, par_dict):
+    def find_kinetics(self, model_template, par_dict):
         """ replace m_kinetics transition element """
-        m_kinetics = model_template['m_kinetics']
-        sch = m_kinetics[par_dict['isotype']-1]['scheme']
+        x_kinetics = model_template[par_dict['name']]
+        sch = x_kinetics[par_dict['isotype']-1]['scheme']
 
         v = np.NaN
 
@@ -731,12 +728,9 @@ class fitting():
         """ Replaces value in a model - can handle m_kinetics and c_kinetics
         through helper functions """
 
-        if (par_dict['name'] == 'm_kinetics'):
-            model_template = self.replace_m_kinetics(model_template,
+        if (par_dict['name'].endswith('kinetics')):
+            model_template = self.replace_kinetics(model_template,
                                                      par_dict, new_value)
-        elif (par_dict['name'] == 'c_kinetics'):
-            print('replace_c_kinetics not yet implemented')
-            exit(1)
         else:
             model_template = self.replace_item(model_template,
                                                par_dict['name'], new_value)
