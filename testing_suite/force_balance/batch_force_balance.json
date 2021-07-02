@@ -1,0 +1,52 @@
+{
+  "FiberSim_batch": {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../bin/FiberCpp.exe"
+    },
+    "job": [
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options_2.json",
+        "protocol_file": "sim_input/pCa45_protocol.txt",
+        "results_file": "sim_output/results.txt",
+        "output_handler_file": "sim_input/output_handler.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options_4.json",
+        "protocol_file": "sim_input/pCa45_protocol.txt",
+        "results_file": "sim_output/results.txt",
+        "output_handler_file": "sim_input/output_handler.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options_6.json",
+        "protocol_file": "sim_input/pCa45_protocol.txt",
+        "results_file": "sim_output/results.txt",
+        "output_handler_file": "sim_input/output_handler.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options_8.json",
+        "protocol_file": "sim_input/pCa45_protocol.txt",
+        "results_file": "sim_output/results.txt",
+        "output_handler_file": "sim_input/output_handler.json"
+      }
+    ],
+    "batch_validation": [
+      {
+        "validation_type": "force_balance",
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": [ "sim_input/options_2.json", "sim_input/options_4.json", "sim_input/options_6.json", "sim_input/options_8.json" ],
+        "protocol_file": "sim_input/pCa45_protocol.txt",
+        "output_data_folder": "sim_output/analysis"
+      }
+    ]
+  }
+}

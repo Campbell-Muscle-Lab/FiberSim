@@ -59,6 +59,8 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
                 int n = (int)fs::remove_all(status_path);
                 printf("Deleting %i files from status_folder: %s\n",
                     n, status_path.string().c_str());
+
+                fs::create_directories(status_path);
             }
             else {
 
