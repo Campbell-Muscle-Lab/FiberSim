@@ -1,1 +1,0 @@
-python FiberPy.py run_batch "package/modules/test/thin_kinetics_validation/data/batch_test.json"

@@ -1,1 +1,0 @@
-python FiberPy.py run_batch "package/modules/test/thick_kinetics_validation/mybpc/data/batch_test.json"
