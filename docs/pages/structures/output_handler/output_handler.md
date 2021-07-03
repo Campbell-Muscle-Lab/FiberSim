@@ -110,6 +110,8 @@ The templates have many options. For more details, see the [demos](../../demos/d
         }
     }
 }
+````
+
 
 | Key | Comment |
 | ---- | ---- |
