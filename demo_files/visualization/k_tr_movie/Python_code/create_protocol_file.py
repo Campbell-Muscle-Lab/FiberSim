@@ -33,10 +33,10 @@ def create_protocol_file():
         for j in range(4000, 4000+step_n):
             dhsl[j] = -step_size / step_n
             
-        for j in range(4200, 4200 + step_n):
+        for j in range(4400, 4400 + step_n):
             dhsl[j] = step_size / step_n
         
-        for j in range(39000, 4500):
+        for j in range(3900, 4500):
             mode[j] = -1
     
         # Create pandas dataframe
