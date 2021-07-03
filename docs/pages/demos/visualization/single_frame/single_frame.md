@@ -1,5 +1,5 @@
 ---
-title: Single snap_shot
+title: Single frame
 parent: Visualization
 grand_parent: Demos
 nav_order: 1

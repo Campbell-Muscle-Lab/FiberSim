@@ -104,6 +104,14 @@ The simulations are initiated using the [batch file](../../../structures/batch/b
                 "protocol_file": "sim_input/protocol_3.txt",
                 "results_file": "sim_output/results_3.txt",
                 "output_handler_file": "sim_input/output_handler_3.json"
+            },
+            {
+                "relative_to": "this_file",
+                "model_file": "sim_input/model.json",
+                "options_file": "sim_input/options.json",
+                "protocol_file": "sim_input/protocol_4.txt",
+                "results_file": "sim_output/results_4.txt",
+                "output_handler_file": "sim_input/output_handler_4.json"
             }
         ]
     }

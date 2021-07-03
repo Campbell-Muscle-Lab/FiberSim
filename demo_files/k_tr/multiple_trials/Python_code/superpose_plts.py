@@ -32,7 +32,7 @@ def analyze_simulations():
         for c in range(0,1):
             axs.append(fig.add_subplot(spec[r,c]))
 
-    for i in range(0,5):
+    for i in range(0,6):
         rfs = ('%s%i.txt' % (results_file_string_base, i))
 
         d = pd.read_csv(rfs, sep='\t')
