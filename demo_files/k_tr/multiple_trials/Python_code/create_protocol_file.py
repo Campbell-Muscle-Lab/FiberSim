@@ -14,7 +14,7 @@ def create_protocol_file():
     step_n = 20;
     step_size = 50
     
-    pCa_values = np.asarray([5.5, 5.4, 5.25, 4.5])
+    pCa_values = np.asarray([5.6, 5.55, 5.5, 5.4, 5.2, 4.5])
     
     for i in range(0,(len(pCa_values))):
         # Make base_vectors vectors

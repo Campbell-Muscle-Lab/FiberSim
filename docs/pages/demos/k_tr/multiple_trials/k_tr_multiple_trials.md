@@ -37,7 +37,7 @@ conda activate fibersim
 
 + Type:
  ```
- python FiberPy.py run_batch "../../../demo_files/k_tr/multiple_trials/batch_ktr_multiple_trials.json"
+ python FiberPy.py run_batch "../../../demo_files/k_tr/multiple_trials/batch_k_tr_multiple_trials.json"
  ```
 
 + You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take several minutes), you should see something similar to the image below.
@@ -48,7 +48,7 @@ conda activate fibersim
 
 All of the results from the simulation are written to files in `<FiberSim_dir>/demo_files/k_tr/multiple_trials/sim_output`
 
-<img src='folder.PNG' width="100%">
+<img src='folder.png' width="100%">
 
 Each `*.txt` files contains the summary data for a given simulation.
 

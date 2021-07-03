@@ -41,8 +41,8 @@ def run_render_batch():
                                       render_job['template_file'])
         frame_file = os.path.join(parent_path,
                                     render_job['frame_file'])
-        blender_file = os.path.join(parent_path,
-                                    render_job['blender_file'])
+        options_file = os.path.join(parent_path,
+                                    render_job['options_file'])
 
     # Load json files
     with open(template_file, 'r') as f:
@@ -54,27 +54,22 @@ def run_render_batch():
     frame_data = frame_data['frame_data']
     frame_data['parent_file'] = os.path.abspath(frame_file)
 
-    with open(blender_file, 'r') as f:
-        blender = json.load(f)
-    blender_data = blender['blender_data']
-    
-    print(frame_data)
-    print(template_data)
-    print(blender_data)
+    with open(options_file, 'r') as f:
+        options_struct = json.load(f)
+    options_data = options_struct['render_options']
     
     # Run the job
-    run_render_job(frame_data, template_data, blender_data)
+    run_render_job(frame_data, template_data, options_data)
 
-def run_render_job(frame_data, template_data, blender_data):
+def run_render_job(frame_data, template_data, options_data):
     
     parent_path = Path(frame_data['parent_file']).parent
     status_file = os.path.join(parent_path, frame_data['status_file'])
     output_image_file = os.path.join(parent_path, frame_data['image_file'])
-    
-        
+
     h = hs.half_sarcomere(status_file)
 
-    hs_blend = hs_b.hs_blender(h, frame_data, template_data, blender_data,
+    hs_blend = hs_b.hs_blender(h, frame_data, template_data, options_data,
                                output_image_file)
 
     bpy.ops.wm.quit_blender()

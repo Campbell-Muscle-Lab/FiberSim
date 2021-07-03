@@ -41,7 +41,7 @@ def generate_images(render_batch_file):
             frames_file = os.path.abspath(
                 os.path.join(parent_path, rj['frames_file']))
             template_file = os.path.join(parent_path, rj['template_file'])
-            blender_file = os.path.join(parent_path, rj['blender_file'])
+            options_file = os.path.join(parent_path, rj['options_file'])
 
         with open(frames_file, 'r') as f:
             frames_data = json.load(f)
@@ -76,7 +76,7 @@ def generate_images(render_batch_file):
             job['job_number'] = i
             job['frame_file'] = 'frame_%i.json' % i
             job['template_file'] = os.path.join('..', rj['template_file'])
-            job['blender_file'] = os.path.join('..', rj['blender_file'])
+            job['options_file'] = os.path.join('..', rj['options_file'])
             
             render_job = dict()
             render_job['render_job'] = job
@@ -115,14 +115,15 @@ def worker(render_file):
 
     if (render_job['relative_to'] == 'this_file'):
         parent_path = Path(render_file).parent
-        blender_file = os.path.join(parent_path,
-                                    render_job['blender_file'])
+        options_file = os.path.join(parent_path,
+                                    render_job['options_file'])
 
-        with open(blender_file, 'r') as f:
-            blender_data = json.load(f)
+        with open(options_file, 'r') as f:
+            options_struct = json.load(f)
+        options_data = options_struct['render_options']
     
         # Find the blender executable
-        blender_exe_path = blender_data['blender_data']['blender_exe_path']
+        blender_exe_path = options_data['blender_exe_path']
     
         # Generate the command string
         command_string = ('cd "%s"\n ' % blender_exe_path)
@@ -134,10 +135,10 @@ def worker(render_file):
         generate_path = os.path.join(parent_path, 'generate2.py')
         
         # Add in background mode
-        if ("back_ground_mode" in blender_data['blender_data'].keys()):
-            background_string = '--background'
-        else:
-            background_string = ''
+        background_string = ''
+        if ("background_mode" in options_data.keys()):
+            if (options_data['background_mode']):
+                background_string = '--background'
     
         # Complete the commmand line
         command_string = command_string + \
@@ -145,10 +146,8 @@ def worker(render_file):
                   (background_string,
                    generate_path,
                    os.path.abspath(render_file)))
-        
-        print(command_string)
-        
-        # # Write command to temp.bat
+
+        # Write command to temp.bat
         bat_file_string = 'run_job_%i.bat' % render_job['job_number']
         print(bat_file_string)
         

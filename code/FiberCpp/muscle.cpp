@@ -249,7 +249,7 @@ void muscle::implement_time_step(int protocol_index)
 					hs_counter++)
 				{
 					char hs_status_file_string[_MAX_PATH];
-					sprintf_s(hs_status_file_string, _MAX_PATH, "%s//hs_%i_time_step_%i.json",
+					sprintf_s(hs_status_file_string, _MAX_PATH, "%s/hs_%i_time_step_%i.json",
 						p_fs_options->status_folder, hs_counter + 1, protocol_index + 1);
 					p_hs[hs_counter]->write_hs_status_to_file(hs_status_file_string);
 				}
