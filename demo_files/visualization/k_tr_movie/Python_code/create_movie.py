@@ -21,6 +21,8 @@ def create_movie(im_folder, movie_file):
     
     im_array=[]
     for f in im_files:
+        if not (f.endswith('png')):
+            continue
         print(f)
         im = cv2.imread(f)
         height, width, layers = im.shape
