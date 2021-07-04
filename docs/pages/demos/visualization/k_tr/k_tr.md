@@ -1,5 +1,5 @@
 ---
-title: Multi frame
+title: k_tr
 parent: Visualization
 grand_parent: Demos
 nav_order: 3
