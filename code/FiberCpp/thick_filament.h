@@ -159,6 +159,9 @@ public:
     double c_starting_angle;            /**< double defining the angle of the first MyBPC
                                              on each crown */
 
+    double c_inter_stripe_twist;        /**< double defining the inter-stripe twist between
+                                         MyBPC stripes in degrees */
+
     // Arrays
 
     gsl_vector* pc_angle;               /**< pointer to gsl_vector holding pc_x positions */

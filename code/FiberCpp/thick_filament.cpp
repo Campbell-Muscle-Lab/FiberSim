@@ -122,6 +122,7 @@ thick_filament::thick_filament(
     c_thick_node_spacing = p_fs_model->c_thick_node_spacing;
     c_mols_per_node = p_fs_model->c_mols_per_node;
     c_starting_angle = p_fs_model->c_starting_angle;
+    c_inter_stripe_twist = p_fs_model->c_inter_stripe_twist;
 
     c_no_of_pcs = c_thick_stripes * c_mols_per_node;
 
@@ -293,6 +294,9 @@ void thick_filament::initalise_pc_node_index_and_pc_angle(void)
             // Update index
             ind = ind + 1;
         }
+
+        // Update base_angle for the next stripe
+        c_starting_angle = c_starting_angle + c_inter_stripe_twist;
     }
 }
 

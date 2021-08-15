@@ -346,15 +346,13 @@ class half_sarcomere(dict):
                       
         overlap_start = max(thin_0["bs_x"])    
         cb_overlap_start = min(thick_0["cb_x"], key=lambda x:abs(x-overlap_start))  
-        thick_node = np.where([x == cb_overlap_start for x in thick_0["cb_x"]])[0]/6
-        
+        thick_node = np.where([x == cb_overlap_start for x in thick_0["cb_x"]])[0]/6        
         ax4 = f.add_subplot(spec[1,0])
         for t in self["thick"]:
-            ax4.plot(-np.diff(t["cb_x"][0:-1:6]), label = "_")
-            
-        ax4.axvline(x=54-thick_node[0], label = "Overlap starts")
+            ax4.plot(-np.diff(t["cb_x"][0:-1:6]), label = "_")  
+        ax4.axvline(x=thick_node[0], label = "Overlap starts")
         ax4.set_ylabel('Inter-\ncrown\ndistance\n(nm)')
-        ax4.set_ylim(13.5,13.51)
+        #ax4.set_ylim(13.5,13.51)
         ax4.legend(loc = "upper center")
         ax4.set_xlabel("# thick node")
 

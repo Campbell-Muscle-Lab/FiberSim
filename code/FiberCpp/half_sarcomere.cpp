@@ -616,9 +616,7 @@ void half_sarcomere::calculate_g_vector(gsl_vector* x_trial)
             // Check for a link
             if (gsl_vector_short_get(p_mf[m_counter]->pc_bound_to_a_f, pc_counter) >= 0)
             {
-                int thick_node_index = (a_n * a_nodes_per_thin_filament) +
-                    (m_counter * m_nodes_per_thick_filament) +
-                    gsl_vector_short_get(p_mf[m_counter]->pc_node_index, pc_counter);
+                int thick_node_index = node_index('c', m_counter, pc_counter);
 
                 int thin_node_index = node_index('a',
                     gsl_vector_short_get(p_mf[m_counter]->pc_bound_to_a_f, pc_counter),
@@ -2396,19 +2394,19 @@ void half_sarcomere::handle_lattice_event(lattice_event* p_event)
         gsl_vector_short_set(p_mf[p_event->m_f]->pc_state, p_event->m_n, new_state);
 
         // Handle lattice interactions
-        switch (p_event->p_trans->transition_type)
+        if (p_event->p_trans->transition_type == 'a')
         {
-            case 'a':
-                gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_type, p_event->a_n, 2);
-                gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_f, p_event->a_n, p_event->m_f);
-                gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_n, p_event->a_n, p_event->m_n);
 
-                gsl_vector_short_set(p_mf[p_event->m_f]->pc_bound_to_a_f, p_event->m_n, p_event->a_f);
-                gsl_vector_short_set(p_mf[p_event->m_f]->pc_bound_to_a_n, p_event->m_n, p_event->a_n);
-    
-                break;
+            gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_type, p_event->a_n, 2);
+            gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_f, p_event->a_n, p_event->m_f);
+            gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_n, p_event->a_n, p_event->m_n);
 
-            case 'd':
+            gsl_vector_short_set(p_mf[p_event->m_f]->pc_bound_to_a_f, p_event->m_n, p_event->a_f);
+            gsl_vector_short_set(p_mf[p_event->m_f]->pc_bound_to_a_n, p_event->m_n, p_event->a_n);
+        }
+
+        if (p_event->p_trans->transition_type == 'd')
+        {
                 gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_type, p_event->a_n, 0);
                 gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_f, p_event->a_n, -1);
                 gsl_vector_short_set(p_af[p_event->a_f]->bound_to_m_n, p_event->a_n, -1);

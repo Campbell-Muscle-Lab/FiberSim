@@ -8,6 +8,7 @@ Created on Wed May 12 12:08:32 2021
 import os
 from natsort import natsorted
 import matplotlib.pyplot as plt
+import numpy as np
 
 from modules.half_sarcomere import half_sarcomere
 
@@ -34,9 +35,9 @@ def compute_force_balance(dump_precision_list, dump_folder_list, output_folder) 
         
         thick_err, thin_err = get_hs_thin_and_thick_errors(hs)
         
-        max_thick_node_err.append(max(thick_err))
+        max_thick_node_err.append(sum(thick_err)/len(thick_err))
         
-        max_thin_node_err.append(max(thin_err))
+        max_thin_node_err.append(sum(thin_err)/len(thin_err))
         
         total_force_err.append(check_total_force(hs))
         
@@ -44,6 +45,27 @@ def compute_force_balance(dump_precision_list, dump_folder_list, output_folder) 
     # PLOTS    
     
     output_image_file = os.path.join(output_folder, "Force_error.png")
+
+    #output_image_file2 = os.path.join(output_folder, "fil_draw.png")
+    #hs.draw_cb_distributions(output_image_file2)
+    
+    counter = np.zeros(len(hs["thin"]))
+    
+    for i, thick_fil in enumerate(hs["thick"]): # Loop over all thick filaments 
+    
+        nearest = thick_fil["nearest_actin_filaments"]
+        
+        for thin_fil in nearest:
+            
+            for nearest_thin in thick_fil["pc_nearest_a_f"]:
+            
+                if thin_fil in thick_fil["pc_nearest_a_f"]:
+                    
+                    counter[thin_fil] += 1
+        
+    print("NEAREST ACTIN FILAMENT FOR PC =")
+    print(counter)
+
     
     plt.figure()
     plt.plot(dump_precision_list, total_force_err, color = "tab:red")
@@ -52,7 +74,7 @@ def compute_force_balance(dump_precision_list, dump_folder_list, output_folder) 
     plt.ylabel("Total force error (%)")
     plt.gca().spines['top'].set_visible(False)
     plt.gca().spines['right'].set_visible(False)
-    plt.yscale("log")
+    #plt.xscale("log")
     
     plt.savefig(output_image_file, dpi = 150)
 
@@ -63,7 +85,7 @@ def compute_force_balance(dump_precision_list, dump_folder_list, output_folder) 
     plt.plot(dump_precision_list, max_thin_node_err, color = "tab:blue", label = "max thin node error")
     plt.xlabel("dump precision (# digits)")
     plt.xticks(dump_precision_list)
-    plt.yscale("log")
+    #plt.xscale("log")
     plt.ylabel("[nm]")
     plt.gca().spines['top'].set_visible(False)
     plt.gca().spines['right'].set_visible(False)
@@ -71,7 +93,7 @@ def compute_force_balance(dump_precision_list, dump_folder_list, output_folder) 
     
     plt.savefig(output_image_file, dpi = 150)
 
-def get_hs_thin_and_thick_errors(hs, show_error = False):
+def get_hs_thin_and_thick_errors(hs, show_error = True):
      
     thick_error = get_thick_node_error(hs)
     thin_error = get_thin_node_error(hs)
@@ -82,7 +104,7 @@ def get_hs_thin_and_thick_errors(hs, show_error = False):
         plt.plot(thin_error, color = "tab:blue", label = "thin error")
         plt.xlabel("# fil")
         plt.ylabel(" error (nm)")
-        #plt.yscale("log")
+        plt.yscale("log")
         plt.legend()
         plt.show()
     return thick_error, thin_error
@@ -117,9 +139,13 @@ def get_thick_node_error(hs):
         residual += get_m_cb_force(hs, thick_fil, 0, 0 + cbs_per_node)
         residual += get_m_pc_force(hs, thick_fil, 0)
         residual += get_m_titin_force(hs, thick_fil, 0)
-        # residual += get_pc_force(hs, thick_fil, 0, 0 + cbs_per_node)
+        #residual += get_pc_force(hs, thick_fil, 0, 0 + cbs_per_node)
         
         node_err = max(node_err, abs(residual))
+        
+        # print("RESIDUAL")
+        # print(thick_fil["thick_id"])
+        # print(residual)
 
         # Intermediate nodes
         
@@ -141,7 +167,7 @@ def get_thick_node_error(hs):
         x_0 = thick_fil["cb_x"][(hs["hs_data"]["m_nodes_per_thick_filament"] - 2) * cbs_per_node] # second to last node
         x_1 = thick_fil["cb_x"][-1] # last element
         
-        residual = k_m * (x_0 - x_1 - m_rl)
+        residual = - k_m * (x_0 - x_1 - m_rl) # FIXED ERROR
         residual += get_m_cb_force(hs, thick_fil, (hs["hs_data"]["m_nodes_per_thick_filament"] - 1) * cbs_per_node, (hs["hs_data"]["m_nodes_per_thick_filament"] - 0) * cbs_per_node)
         residual += get_m_pc_force(hs, thick_fil, hs["hs_data"]["m_nodes_per_thick_filament"] - 1)
         residual += get_m_titin_force(hs, thick_fil, hs["hs_data"]["m_nodes_per_thick_filament"] - 1) 
@@ -177,11 +203,10 @@ def get_thin_node_error(hs):
         x_0 = thin_fil["bs_x"][0]
         x_1 = thin_fil["bs_x"][0 + bs_per_node]
                 
-        residual = k_a * (x_1 - x_0 - a_rl)
+        residual = k_a * (x_0 - a_rl) - k_a * (x_1 - x_0 - a_rl) # FIXED ERROR
         residual -= get_a_cb_force(hs, thin_fil, 0, 0 + bs_per_node)
         residual -= get_a_pc_force(hs, thin_fil, 0, 0 + bs_per_node)
         residual -= get_a_titin_force(hs, thin_fil, 0, nearest_thicks)
-        # residual -= get_pc_force(hs, thick_fil, 0, 0 + cbs_per_node)
         
         node_err = max(node_err, abs(residual)) 
 
@@ -255,7 +280,7 @@ def get_a_cb_force(hs, thin_fil, idx_1, idx_2):
       
     for bs_idx in range(idx_1, idx_2):
         
-      if thin_fil["bound_to_m_f"][bs_idx] >= 0:
+      if thin_fil["bound_to_m_type"][bs_idx] == 1: # a cb is bound FIXED ERROR
           
         thick_fil_id = thin_fil["bound_to_m_f"][bs_idx]
         thick_fil = hs["thick"][thick_fil_id]
@@ -310,19 +335,19 @@ def get_a_pc_force(hs, thin_fil, idx_1, idx_2):
       
     for bs_idx in range(idx_1, idx_2):
         
-      if thin_fil["bound_to_m_type"][bs_idx] == 2: # a pc is bound
+        if thin_fil["bound_to_m_type"][bs_idx] == 2: # a pc is bound
           
-        thick_fil_id = thin_fil["bound_to_m_f"][bs_idx]
-        thick_fil = hs["thick"][thick_fil_id]
+            thick_fil_id = thin_fil["bound_to_m_f"][bs_idx]
+            thick_fil = hs["thick"][thick_fil_id]
         
-        pc_idx = thin_fil["bound_to_m_n"][bs_idx]
-        pc_x = thick_fil["cb_x"][pc_idx]
+            pc_idx = thin_fil["bound_to_m_n"][bs_idx]
+            pc_x = thick_fil["cb_x"][pc_idx]
         
-        bs_x = thin_fil["bs_x"][bs_idx]
+            bs_x = thin_fil["bs_x"][bs_idx]
         
-        delta_x = pc_x - bs_x
+            delta_x = pc_x - bs_x
   
-        pc_force += thick_fil["c_k_stiff"] * delta_x
+            pc_force += thick_fil["c_k_stiff"] * delta_x
     
     return pc_force
 

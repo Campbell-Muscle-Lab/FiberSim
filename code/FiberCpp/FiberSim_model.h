@@ -171,6 +171,9 @@ public:
     double c_starting_angle;            /**< double defining the angle of the first MyBPC
                                              on each crown */
 
+    double c_inter_stripe_twist;        /**< double defining the inter-stripe twist between
+                                             MyBPC stripes in degrees */
+
     double c_k_stiff;                   /**< double defining the stiffness of a MyBPC link */
 
     int c_no_of_isotypes;               /**< Number of C-protein isotypes */

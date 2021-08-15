@@ -220,6 +220,20 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(mybpc_structure, "c_starting_angle");
     c_starting_angle = mybpc_structure["c_starting_angle"].GetDouble();
 
+    // Check if c_inter_stripe_twist is specified - This part of the code ensures compatibility with FiberSim V1.1.2
+    int c_inter_stripe_flag = JSON_functions::is_JSON_member(mybpc_structure, "c_inter_stripe_twist");
+
+    if (c_inter_stripe_flag == 1) // User specified inter_stripe_twist
+    {
+        JSON_functions::check_JSON_member_number(mybpc_structure, "c_inter_stripe_twist");
+        c_inter_stripe_twist = mybpc_structure["c_inter_stripe_twist"].GetDouble();
+    }
+
+    else if (c_inter_stripe_flag == 0) // User did not specified inter_stripe_twist, use default value
+    {    
+        c_inter_stripe_twist = 0.0;
+    }
+
     // Load the MyBPC parameters variables
     JSON_functions::check_JSON_member_object(doc, "mybpc_parameters");
     const rapidjson::Value& mybpc_parameters = doc["mybpc_parameters"];
