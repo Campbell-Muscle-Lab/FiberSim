@@ -113,13 +113,21 @@ def run_batch(json_batch_file_string=[],
 
         # Dive into the structure
         if ('pCa_curves' in batch_figures):
+            print('Now generating the tension-pCa curves')
             for fig_data in batch_figures['pCa_curves']:
                 analyses.create_y_pCa_figure(fig_data,
                                              json_batch_file_string)
 
         if ('force_velocity' in batch_figures):
+            print('Now generating the force-velocity curves')
             for fig_data in batch_figures['force_velocity']:
                 analyses.create_fv_and_power_figure(fig_data,
+                                          json_batch_file_string)
+
+        if ('ktr' in batch_figures):
+            print('Now generating the ktr curves')
+            for fig_data in batch_figures['ktr']:
+                analyses.create_ktr_figure(fig_data,
                                           json_batch_file_string)
 
     # Now see if we have to do a kinetics check

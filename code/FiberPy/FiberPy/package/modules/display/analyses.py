@@ -332,7 +332,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                     hs_pow = hs_vel * hs_for
 
                     # Store data
-                    curve = curve_counter
+                    curve.append(curve_counter)
                     hs_velocity.append(hs_vel)
                     hs_force.append(hs_for)
                     hs_power.append(hs_pow)
@@ -440,4 +440,126 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     r.to_excel(output_file_string,
                engine='openpyxl',
                index=False)
-    
+
+
+def create_ktr_figure(fig_data, batch_file_string):
+    """ Creates ktr figure """
+
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    if ('formatting' in fig_data):
+        for entry in fig_data['formatting']:
+            formatting[entry] = fig_data['formatting'][entry]
+
+    # Iterate through the folder structure looking for curve data
+
+    # Pull off the base folder
+    base_folder = os.path.dirname(batch_file_string)
+
+    if (fig_data['relative_to'] == 'this_file'):
+        top_data_folder = os.path.join(base_folder,
+                                       fig_data['results_folder'])
+    else:
+        top_data_folder = fig_data['results_folder']
+
+    curve_counter = 1
+    keep_going = True
+
+    # Create lists to hold data
+    curve = []
+    hs_ktr = []
+    hs_pCa = []
+
+    while keep_going:
+        curve_folder = os.path.join(top_data_folder,
+                                    ('%i' % curve_counter))
+        if (os.path.isdir(curve_folder)):
+            # Find the results files
+            for file in os.listdir(curve_folder):
+                if file.endswith('.txt'):
+                    data_file_string = os.path.join(curve_folder, file)
+
+                    # Load up the results file
+                    d = pd.read_csv(data_file_string, delimiter='\t')
+
+                    # Filter to fit time_interval
+                    d_fit = d.loc[(d['time'] >= fig_data['fit_time_interval_s'][0]) &
+                                  (d['time'] <= fig_data['fit_time_interval_s'][-1])]
+
+                    
+                    # Set the time origin to 0
+                    orig_time = d_fit['time'] - fig_data['fit_time_interval_s'][0]
+
+                    ktr_data = cv.fit_exponential_recovery(orig_time.to_numpy(),
+                                                    d_fit['force'].to_numpy())
+                    
+                    # Store data
+                    curve.append(curve_counter)
+                    hs_ktr.append(ktr_data['k'])
+                    hs_pCa.append(d_fit['pCa'].iloc[-1])
+
+            curve_counter = curve_counter + 1
+
+        else:
+            keep_going = False
+
+    # Take lists and create a data frame
+    r = pd.DataFrame({'curve': curve,
+                    'hs_pCa': hs_pCa,
+                    'hs_ktr': hs_ktr})
+
+    # Create a figure
+    if ('output_image_file_string' in fig_data):
+        # Deduce the output file string
+        if (fig_data['relative_to'] == 'this_file'):
+            output_image_file_string = os.path.join(
+                base_folder, fig_data['output_image_file_string'])
+        else:
+            output_image_file_string = fig_data['output_image_file_string']
+
+        # Make a figure
+        fig = plt.figure(constrained_layout=True)
+        gs = fig.add_gridspec(nrows=1, ncols=1,
+                              wspace = 0.5,
+                              hspace=0.1)
+        fig.set_size_inches([7, 3.5])
+        ax_ktr = fig.add_subplot(gs[0,0])
+
+        # Cycle through curves
+        for c in r['curve']:
+            rc = r[r['curve'] == c]
+
+            # Plot the ktr curve
+            ax_ktr.plot(rc['hs_pCa'], rc['hs_ktr'], '--o')
+
+        # Tidy up
+        ax_ktr.set_xlabel('pCa',
+                          fontfamily=formatting['fontname'],
+                          loc='center')
+        ax_ktr.set_ylabel('ktr\n(s$\\mathregular{^{-1}}$)',
+                          fontfamily=formatting['fontname'],
+                          loc='center',
+                          rotation=formatting['y_label_rotation'])
+
+        ax_ktr.invert_xaxis()
+
+        # Save figure
+        print('Saving fv figure to: %s', output_image_file_string)
+        dir_name = os.path.dirname(output_image_file_string)
+        if (not os.path.isdir(dir_name)):
+            os.makedirs(dir_name)
+        fig.savefig(output_image_file_string)
+        plt.close()
+
+    # Save the data as an excel file
+    if (fig_data['relative_to'] == 'this_file'):
+        output_file_string = os.path.join(base_folder,
+                                          fig_data['output_data_file_string'])
+    else:
+        output_file_string = fig_data['output_data_file_string']
+    print('Writing force-velocity data to %s' % output_file_string)
+    r.to_excel(output_file_string,
+               engine='openpyxl',
+               index=False)
+
