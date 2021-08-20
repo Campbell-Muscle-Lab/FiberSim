@@ -1,11 +1,11 @@
 {
   "options": {
     "max_rate": 1e4,
-    "x_pos_rel_tol": 1e-4,
+    "x_pos_rel_tol": 1,
     "adjacent_bs": 1,
     "status_files": {
       "relative_to": "this_file",
-      "status_folder": "../sim_output/2/hs",
+      "status_folder": "../sim_output/0/hs",
       "time_steps": "99:2:100"
     },
     "dump_precision": 12

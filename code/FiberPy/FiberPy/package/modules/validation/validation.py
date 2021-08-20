@@ -58,7 +58,7 @@ def run_validation(kinetic_data, batch_file_string):
                 else:
                     raise RuntimeError("No dump folder found to run the test")
                     
-                dump_precision_list.append(opt["options"]["dump_precision"])
+                dump_precision_list.append(opt["options"]["x_pos_rel_tol"])
                 dump_folder_list.append(dump_folder)
                 
         else:

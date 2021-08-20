@@ -12,6 +12,9 @@ import numpy as np
 
 from modules.half_sarcomere import half_sarcomere
 
+plt.rcParams.update({'font.family': "Arial"})
+plt.rcParams.update({'font.size': 14}) 
+
 
 def compute_force_balance(dump_precision_list, dump_folder_list, output_folder) :
     
@@ -19,17 +22,7 @@ def compute_force_balance(dump_precision_list, dump_folder_list, output_folder) 
     max_thin_node_err = []
     
     total_force_err = []
-    
-    # cb = np.zeros((2, 25, 54), dtype = float)
-    # cb_stretch = np.zeros((2, 25, 53), dtype = float)
-    # cb_stretch_2 = np.zeros((2, 25, 52), dtype = float)
-    
-    # bs = np.zeros((2, 50, 189), dtype = float)
-    # bs_stretch = np.zeros((2, 50, 188), dtype = float)
-    # bs_stretch_2 = np.zeros((2, 50, 187), dtype = float)
-    
-    # idx_1 = 0
-    
+
     for dump_folder in dump_folder_list: # Loop over each dump folder
     
         hs_file = []
@@ -45,126 +38,40 @@ def compute_force_balance(dump_precision_list, dump_folder_list, output_folder) 
         
         thick_err, thin_err = get_hs_thin_and_thick_errors(hs)
         
-        max_thick_node_err.append(max(thick_err))
+        max_thick_node_err.append(sum(thick_err)/len(thick_err)) # get average maximal thick node error
         
-        max_thin_node_err.append(max(thin_err))
+        max_thin_node_err.append(sum(thin_err)/len(thin_err)) # get average maximal thin node error 
 
         total_force_err.append(check_total_force(hs))
-        
-    #     ### DIFFERENCE IN THICK NODE POSITIONS
-        
-    #     for i, thick_fil in enumerate(hs["thick"]): # Loop over all thick filaments 
-        
-    #         for j in range(54):
-        
-    #             cb[idx_1, i, j] = thick_fil["node_forces"][j]/20 #thick_fil["cb_x"][j * 6] # thick node positions
-                
-    #         for j in range(53):
-                                
-    #             cb_stretch[idx_1, i, j] = thick_fil["cb_x"][j * 6] - thick_fil["cb_x"][(j+1) * 6] # delta x
-        
-    #         for j in range(52):
-                
-    #             cb_stretch_2[idx_1, i, j]  = cb_stretch[idx_1, i, j+1]  -  cb_stretch[idx_1, i, j] 
-        
-    #     for i, thin_fil in enumerate(hs["thin"]): # Loop over all thin filaments 
-        
-    #         for j in range(189):
-        
-    #             bs[idx_1, i, j] = thin_fil["bs_x"][j * 2] # thin node positions
-        
-    #         for j in range(188):
-                                
-    #             bs_stretch[idx_1, i, j] = thin_fil["bs_x"][(j+1) * 2] - thin_fil["bs_x"][j * 2] # delta x
-    #         for j in range(187):
-                                
-    #             bs_stretch_2[idx_1, i, j] = bs_stretch[idx_1, i, j+1] - bs_stretch[idx_1, i, j]
-                
-    #     idx_1 += 1
-
-    # plt.figure()
+         
     
-    # for j in range(9):
-        
-    #     plt.plot(cb[0, j, :] - cb[1, j, :])
-        
-    #     plt.title("Difference in thick nodes positions between low and high tolerance dumped values")
-            
-    # plt.show()
-    
-    # for j in range(9):
-        
-    #     plt.plot(cb_stretch[0, j, :], 'k')
-    #     plt.plot(cb_stretch[1, j, :], 'b')
-        
-    #     plt.title("Difference in thick springs stretches between low and high tolerance dumped values")
-            
-    # plt.show()
-    
-    # for j in range(18):
-        
-    #     plt.plot(bs[0, j, :] - bs[1, j, :])
-        
-    #     plt.title("Difference in thin nodes positions between low and high tolerance dumped values")
-            
-    # plt.show()
-    
-    # for j in range(18):
-        
-    #     plt.plot(bs_stretch[0, j, :], 'k')
-    #     plt.plot(bs_stretch[1, j, :], 'b')
-        
-    #     plt.title("Difference in thin springs stretches between low and high tolerance dumped values")
-            
-    # plt.show()
-    
-    # PLOTS    
-    
-    output_image_file = os.path.join(output_folder, "Force_error.png")
-    
-    ## Check that pc nearest actin distribution is uniform
-    
-    # counter = np.zeros(len(hs["thin"]))
-    
-    # for i, thick_fil in enumerate(hs["thick"]): # Loop over all thick filaments 
-    
-    #     nearest = thick_fil["nearest_actin_filaments"]
-        
-    #     for thin_fil in nearest:
-            
-    #         for nearest_thin in thick_fil["pc_nearest_a_f"]:
-            
-    #             if thin_fil in thick_fil["pc_nearest_a_f"]:
-                    
-    #                 counter[thin_fil] += 1
-        
-    # print("NEAREST ACTIN FILAMENT FOR PC =")
-    # print(counter)
-    
-    plt.figure()
-    plt.plot(dump_precision_list, total_force_err, color = "tab:red")
-    plt.xlabel("dump precision (# digits)")
-    plt.xticks(dump_precision_list)
-    plt.ylabel("Total force error (%)")
-    plt.gca().spines['top'].set_visible(False)
-    plt.gca().spines['right'].set_visible(False)
-    #plt.yscale("log")
-    
-    #plt.savefig(output_image_file, dpi = 150)
+    # PLOT   
 
     output_image_file = os.path.join(output_folder, "Filaments_error.png")
     
-    plt.figure()
-    plt.plot(dump_precision_list, max_thick_node_err, color = "tab:red", label = "average max thick node error")
-    plt.plot(dump_precision_list, max_thin_node_err, color = "tab:blue", label = "average max thin node error")
-    plt.xlabel("dump precision (# digits)")
-    plt.xticks(dump_precision_list)
+    plt.figure(constrained_layout=True)
+    
+    plt.plot(dump_precision_list, max_thick_node_err, color = "tab:red", label = "average maximal thick node error")
+    plt.plot(dump_precision_list, max_thin_node_err, color = "tab:blue", label = "average maximal thin node error")
+    
+    plt.xlabel("Node position tolerance (nm)")
+    plt.ylabel("Node position error [nm]")
+
     plt.xscale("log")
     plt.yscale("log")
-    plt.ylabel("Error [nm]")
+    
+    plt.xticks(dump_precision_list)
+        
+    plt.legend()
+    
     plt.gca().spines['top'].set_visible(False)
     plt.gca().spines['right'].set_visible(False)
-    plt.legend()
+    
+    
+    # plt.xlim(max(dump_precision_list), min(dump_precision_list))
+    # plt.gca().spines['left'].set_bounds(min(max_thick_node_err), max(max_thick_node_err))
+    # plt.yticks([min(max_thick_node_err), max(max_thick_node_err)])
+    # plt.ylim(min(max_thick_node_err), max(max_thick_node_err))
     
     plt.savefig(output_image_file, dpi = 150)
 

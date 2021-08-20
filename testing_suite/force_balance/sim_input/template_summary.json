@@ -39,6 +39,7 @@
       "column": 1,
       "y_info": {
         "label": "HS length\n(nm)",
+        "ticks": [ 1180, 1210 ],
         "series": [
           {
             "field": "hs_length"

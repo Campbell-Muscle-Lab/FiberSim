@@ -656,7 +656,7 @@ def calculate_rate_from_c_kinetics(c_kinetics, model_json_file, isotype = 1):
                 
                 rate_trans = [trans_param[0] for x in stretch]
                                
-            elif trans_type == "gaussian":
+            elif trans_type == "gaussian_pc":
                 
                 rate_trans = [trans_param[0]*np.exp(-0.5 * k_pc * np.power(x + X_STEP/2, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
                                 
