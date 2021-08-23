@@ -47,7 +47,7 @@ def compute_force_balance(dump_precision_list, dump_folder_list, output_folder) 
     
     # PLOT   
 
-    output_image_file = os.path.join(output_folder, "Filaments_error.png")
+    output_image_file = os.path.join(output_folder, "filaments_error.png")
     
     plt.figure(constrained_layout=True)
     

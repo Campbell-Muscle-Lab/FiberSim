@@ -1,0 +1,5 @@
+cd OneDrive\Documents\GitHub\FiberSim\code\FiberPy\FiberPy
+
+python Fiberpy.py run_batch ../../../testing_suite/force_balance/batch_force_balance.json
+
+061053209

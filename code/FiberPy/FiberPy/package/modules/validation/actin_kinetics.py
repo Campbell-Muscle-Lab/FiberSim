@@ -5,6 +5,9 @@ import numpy as np
 from natsort import natsorted
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({'font.family': "Arial"})
+plt.rcParams.update({'font.size': 14}) 
+
 # Add the half-sarcomere package
 
 # ROOT = os.path.dirname(__file__)
@@ -107,17 +110,17 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder):
 
                     # Unit may deactivate only if there is no CB bound within the unit
                     
-                    unit_occupied = False
+                    unit_occupied = 0
                     
                     for j in range(0,a_bs_per_unit): # Loop over all bs from the unit
                         
                         bs_idx = bs_idx_start + 2*j   
                         
                         if thin_fil_0["bound_to_m_f"][bs_idx] != -1:
-                            unit_occupied = True
+                            unit_occupied = 1
                             break
 
-                    if unit_occupied == False: # Unit is freeD FROM DESIRE, MIND AND SENSES PURIFIED
+                    if unit_occupied == 0: # Unit is freeD FROM DESIRE, MIND AND SENSES PURIFIED
                         pot_off[coop_idx] += 1
                             
                     if unit_state_1 == 1: # Unit deactivates
@@ -146,7 +149,7 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder):
 
         rate_on[ind] = -np.log(1.0 - prob_on[ind]) / time_step / calcium    
         rate_off[ind] = -np.log(1.0 - prob_off[ind]) / time_step 
-        
+   
     ### Compute the 95% CI 
     
     rate_conf_inter_off_neg = np.zeros(3, dtype = float)
@@ -178,21 +181,22 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder):
     
     coop = [1,2,3]
     
-    k_on = [k_on, k_on * (1 + k_coop), k_on * ( 1 + 2 * k_coop)]
-    k_off = [k_off * ( 1 + 2 * k_coop), k_off * (1 + k_coop), k_off]
+    k_on = [k_on, k_on * (1.0 + k_coop), k_on * ( 1.0 + 2 * k_coop)]
+    k_off = [k_off * (1.0 + 2 * k_coop), k_off * (1.0 + k_coop), k_off]
     
     # Transition from OFF to ON
     
-    output_image_file = os.path.join(output_folder, "Inactive_to_active.png")
+    output_image_file = os.path.join(output_folder, "inactive_to_active.png")
     
     y_err = [abs(rate_conf_inter_on_neg - rate_on), 
              abs(rate_conf_inter_on_pos - rate_on)]
         
-    plt.figure()
-    plt.errorbar(coop, rate_on, yerr = y_err, label = "calculated rate", 
-              ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
+    plt.figure(constrained_layout=True)
+    # plt.errorbar(coop, rate_on, yerr = y_err, label = "calculated rate", 
+    #           ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
     plt.plot(coop, k_on, 'ro', label = "model rate", markersize = 6, zorder=2)
-    plt.ylabel("Rate (s$^{-1}$)")
+    plt.plot(coop, rate_on, 'bs', label = "calculated rate", markersize = 6, zorder=2)
+    plt.ylabel("Rate (M$^{-1}$ s$^{-1}$)")
     plt.xlim([0,4])
     plt.xticks([1,2,3], labels = ["no coop", "coop", "double coop"])
     plt.gca().spines['top'].set_visible(False)
@@ -203,15 +207,16 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder):
     
     # Transition from ON to OFF
     
-    output_image_file = os.path.join(output_folder, "Active_to_inactive.png")
+    output_image_file = os.path.join(output_folder, "active_to_inactive.png")
     
     y_err = [abs(rate_conf_inter_off_neg - rate_off), 
              abs(rate_conf_inter_off_pos - rate_off)]
         
-    plt.figure()
-    plt.errorbar(coop, rate_off, yerr = y_err, label = "calculated rate", 
-                  ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
+    plt.figure(constrained_layout=True)
+    # plt.errorbar(coop, rate_off, yerr = y_err, label = "calculated rate", 
+    #               ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
     plt.plot(coop, k_off, 'ro', label = "model rate", markersize = 6, zorder=2)
+    plt.plot(coop, rate_off, 'bs', label = "calculated rate", markersize = 6, zorder=2)
     plt.ylabel("Rate (s$^{-1}$)")
     plt.xlim([0,4])
     plt.xticks([1,2,3], labels = ["double coop", "coop", "no coop"])

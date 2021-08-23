@@ -4,10 +4,6 @@
     "x_pos_rel_tol": 1e-3,
     "adjacent_bs": 1,
     "lambda_jitter" : 20.0,
-    "logging": {
-      "relative_to": "this_file",
-      "log_folder": "../sim_output/log"
-    },
     "status_files": {
       "relative_to": "this_file",
       "status_folder": "../sim_output/hs",

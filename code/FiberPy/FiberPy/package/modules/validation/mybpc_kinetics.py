@@ -9,6 +9,9 @@ import matplotlib.gridspec as gridspec
 import pandas
 import math
 
+plt.rcParams.update({'font.family': "Arial"})
+plt.rcParams.update({'font.size': 14}) 
+
 # Add the half-sarcomere package
 
 # ROOT = os.path.dirname(__file__)
@@ -442,13 +445,13 @@ def plot_rate(calculated_rates, c_kinetics, model_file, output_folder):
     
     angle = np.arange(A_MIN,A_MAX, A_STEP)
 
-    for i, iso in enumerate(calculated_rates):
+    for k, iso in enumerate(calculated_rates):
         
-        rate_data = calculate_rate_from_c_kinetics(c_kinetics, model_file, i)
+        rate_data = calculate_rate_from_c_kinetics(c_kinetics, model_file, k+1)
         
         for j, trans in enumerate(iso):
             
-            output_image_file = os.path.join(output_folder, f"iso_{i}_transition_{j}.png")
+            output_image_file = os.path.join(output_folder, f"iso_{k}_transition_{j}.png")
             
             if trans["trans_type"] == 'a':
                 
@@ -493,7 +496,7 @@ def plot_rate(calculated_rates, c_kinetics, model_file, output_folder):
                     ax[i].legend(loc = "upper left")
                     ax[i].spines['right'].set_visible(False)
                     ax[i].spines['top'].set_visible(False)
-                    ax[i].set_ylabel("Rate")
+                    ax[i].set_ylabel("Rate (s$^{-1}$)")
                     ax[i].set_ylim([0, max(rate_data[f"Transition # {idx} ({rate_type})"])])
                     
                 ax[i].set_xlabel("CB stretch [nm]")
@@ -513,7 +516,7 @@ def plot_rate(calculated_rates, c_kinetics, model_file, output_folder):
                     
                     ax[j].errorbar(rate_data["stretch"], calc_rate[:,j], yerr=y_err, label = "calculated rate",
                              ecolor = "tab:grey", fmt='-o', markersize = 2)
-                    ax[j].set_ylabel("Rate")
+                    ax[j].set_ylabel("Rate (s$^{-1}$)")
                     ax[j].plot(rate_data["stretch"], rate_data[f"Transition # {idx} ({rate_type})"]*align_factor, label = f"rate law (angle diff = {angle[j] + A_STEP/2}")  
                     ax[n_rows].set_title(f"Transition # {idx} ({rate_type})")
                     ax[j].legend(loc = "upper left")
@@ -540,11 +543,13 @@ def plot_rate(calculated_rates, c_kinetics, model_file, output_folder):
                 plt.figure()
                 plt.errorbar(rate_data["stretch"] + X_STEP/2, calc_rate, yerr=y_err, label = "calculated rate",
                              ecolor = "tab:grey", fmt='-o', markersize = 2)
-                plt.ylabel("Rate")
+                plt.ylabel("Rate (s$^{-1}$)")
                 plt.xlabel("CB stretch [nm]")
                 plt.plot("stretch", f"Transition # {idx} ({rate_type})", data = rate_data, label = "rate law")  
                 plt.title(f"Transition # {idx} ({rate_type})")
                 plt.legend(loc = "upper left")
+                plt.gca().spines['right'].set_visible(False)
+                plt.gca().spines['top'].set_visible(False)
                 plt.savefig(output_image_file, dpi = 150)
                                 
             elif trans["trans_type"] == 'x':
@@ -563,7 +568,7 @@ def plot_rate(calculated_rates, c_kinetics, model_file, output_folder):
                 plt.figure()
                 plt.errorbar([1,2], [calc_rate, calc_rate], yerr=y_err, label = "calculated rate",
                              ecolor = "tab:grey", fmt='o', markersize = 2)
-                plt.ylabel("Rate")
+                plt.ylabel("Rate (s$^{-1}$)")
                 plt.xlim([0.5,1.5])
                 plt.xticks([])
                 
@@ -573,6 +578,8 @@ def plot_rate(calculated_rates, c_kinetics, model_file, output_folder):
                 plt.plot([0,1,2], [true_rate, true_rate, true_rate], label = "rate law")   
                 plt.title(f"Transition # {idx} ({rate_type})")
                 plt.legend(loc = "upper left")
+                plt.gca().spines['right'].set_visible(False)
+                plt.gca().spines['top'].set_visible(False)
                 plt.savefig(output_image_file, dpi = 150)
                 
 def get_c_kinetics(model_json_file):
