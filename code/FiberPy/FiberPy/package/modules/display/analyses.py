@@ -15,6 +15,8 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
+from natsort import natsorted
+
 from package.modules.analysis import curve_fitting as cv
 from package.modules.utilities import utilities as ut
 
@@ -545,7 +547,7 @@ def create_ktr_figure(fig_data, batch_file_string):
         ax_ktr.invert_xaxis()
 
         # Save figure
-        print('Saving fv figure to: %s', output_image_file_string)
+        print('Saving ktr figure to: %s', output_image_file_string)
         dir_name = os.path.dirname(output_image_file_string)
         if (not os.path.isdir(dir_name)):
             os.makedirs(dir_name)
@@ -563,3 +565,94 @@ def create_ktr_figure(fig_data, batch_file_string):
                engine='openpyxl',
                index=False)
 
+def superpose_plots(fig_data, batch_file_string):
+    """ Superpose data from multiple result files """
+
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    if ('formatting' in fig_data):
+        for entry in fig_data['formatting']:
+            formatting[entry] = fig_data['formatting'][entry]
+
+    # Pull off the base folder
+    base_folder = os.path.dirname(batch_file_string)
+
+    if (fig_data['relative_to'] == 'this_file'):
+        top_data_folder = os.path.join(base_folder,
+                                       fig_data['results_folder'])
+    else:
+        top_data_folder = fig_data['results_folder']
+
+    # Create empty list for legend labels, overwrite it if labels are provided
+    legend_list = []
+        
+    if('legend_labels' in fig_data):
+        legend_list = fig_data['legend_labels']
+
+    # Pull data
+    # Loop through the txt files in top_data_folder
+    # add to a list, then naturally sort the list
+
+    results_files = []
+
+    for file in os.listdir(top_data_folder): # iterate over all files in results_folder
+        if file.endswith('.txt'): # this is a results file
+            file = os.path.join(top_data_folder, file)
+            results_files.append(file)
+
+    results_files = natsorted(results_files) 
+
+    # Create figure
+
+    if ('output_image_file_string' in fig_data):
+        # Deduce the output file string
+        if (fig_data['relative_to'] == 'this_file'):
+            output_image_file_string = os.path.join(
+                base_folder, fig_data['output_image_file_string'])
+        else:
+            output_image_file_string = fig_data['output_image_file_string']
+
+    fig = plt.figure(constrained_layout=True)
+    fig.set_size_inches([6, 6])
+    spec = gridspec.GridSpec(nrows=3, ncols=1, figure=fig,
+                             wspace=1)
+    axs=[]
+    for r in range(0,3):
+        axs.append(fig.add_subplot(spec[r,0]))
+
+    for i in range(0, len(results_files)):
+
+        d = pd.read_csv(results_files[i], sep='\t')
+        x = d['time']
+
+        axs[0].plot(x, d['pCa'])
+        axs[0].set_ylim([9.5, 4])
+        axs[0].set_ylabel('pCa')
+
+        axs[1].plot(x, d['hs_length'])
+        #axs[1].set_ylim([0, max(d['hs_length')])
+        axs[1].set_ylabel('HS length')
+
+        d['force'] = d['force']/1000
+
+        if legend_list != []:        
+            axs[2].plot(x, d['force'], label = legend_list[i])
+
+        else:
+            axs[2].plot(x, d['force'])
+
+        #axs[2].set_ylim([0, max(d['force'])])
+        axs[2].set_ylabel('Force (kN m$\mathregular{^{-2}}$')
+    if legend_list != []:
+        axs[2].legend(loc='upper left', bbox_to_anchor=[1.05, 1])
+   
+    # Save figure
+    print('Saving superposing plot figure to %s' % output_image_file_string)
+    # Check folder exists and make it if not
+    dir_name = os.path.dirname(os.path.abspath(
+        output_image_file_string))
+    if (not os.path.isdir(dir_name)):
+            os.makedirs(dir_name)
+    fig.savefig(output_image_file_string)
+    plt.close()

@@ -130,6 +130,12 @@ def run_batch(json_batch_file_string=[],
                 analyses.create_ktr_figure(fig_data,
                                           json_batch_file_string)
 
+        if ('superpose_plots' in batch_figures):
+            print('Now generating superposing plots')
+            for fig_data in batch_figures['superpose_plots']:
+                analyses.superpose_plots(fig_data,
+                                          json_batch_file_string)
+
     # Now see if we have to do a kinetics check
     if ('batch_validation' in batch_structure):
         for validation_data in batch_structure['batch_validation']:
