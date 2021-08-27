@@ -42,7 +42,7 @@ def default_formatting():
     formatting['table_y_spacing'] = 0.1
     formatting['table_x_spacing'] = 0.5
     formatting['table_fontsize'] = 11
-    formatting['color_set'] = ["tab:orange", "tab:blue", "tab:black", "tab:green", "tab:red"]
+    formatting['color_set'] = ["tab:orange", "tab:blue", "tab:green", "tab:red", "tab:pink", "tab:purple", "tab:grey", "tab:olive", "tab:cyan", "black"]
 
     return formatting
 
@@ -533,7 +533,7 @@ def create_ktr_figure(fig_data, batch_file_string):
             rc = r[r['curve'] == c]
 
             # Plot the ktr curve
-            ax_ktr.plot(rc['hs_pCa'], rc['hs_ktr'], '--o')
+            ax_ktr.plot(rc['hs_pCa'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
 
         # Tidy up
         ax_ktr.set_xlabel('pCa',
@@ -621,32 +621,87 @@ def superpose_plots(fig_data, batch_file_string):
     for r in range(0,3):
         axs.append(fig.add_subplot(spec[r,0]))
 
+    # Plot data
+
     for i in range(0, len(results_files)):
 
         d = pd.read_csv(results_files[i], sep='\t')
         x = d['time']
 
-        axs[0].plot(x, d['pCa'])
-        axs[0].set_ylim([9.5, 4])
-        axs[0].set_ylabel('pCa')
+        axs[0].plot(x, d['pCa'], color = "black")
 
-        axs[1].plot(x, d['hs_length'])
-        #axs[1].set_ylim([0, max(d['hs_length')])
-        axs[1].set_ylabel('HS length')
+        axs[1].plot(x, d['hs_length'], color = "black")
+        axs[1].plot(x, d['hs_command_length'], color = "tab:orange", linestyle='--')
+
+        if i == len(results_files) -1:
+            axs[1].plot(x, d['hs_length'], color = "black", label = "Length")
+            axs[1].plot(x, d['hs_command_length'], color = "tab:red", linestyle='--', label = "Length command")
+            axs[1].legend(loc='upper left', bbox_to_anchor=[1.05, 1])        
 
         d['force'] = d['force']/1000
 
         if legend_list != []:        
-            axs[2].plot(x, d['force'], label = legend_list[i])
+            axs[2].plot(x, d['force'], label = legend_list[i], color = formatting['color_set'][i], zorder=len(results_files) - i)
 
         else:
-            axs[2].plot(x, d['force'])
+            axs[2].plot(x, d['force'], color = formatting['color_set'][i], zorder=i+1)
 
-        #axs[2].set_ylim([0, max(d['force'])])
-        axs[2].set_ylabel('Force (kN m$\mathregular{^{-2}}$')
     if legend_list != []:
         axs[2].legend(loc='upper left', bbox_to_anchor=[1.05, 1])
-   
+
+    # Clean axis
+
+    for i in range(3):
+        
+        axs[i].spines['top'].set_visible(False)
+        axs[i].spines['right'].set_visible(False)
+        axs[i].spines['bottom'].set_visible(False)
+        axs[i].set_xticks([])
+        axs[i].set_xlim([0, max(d["time"])]) 
+        
+        for axis in ['top','bottom','left','right']:
+            axs[i].spines[axis].set_linewidth(1.5)
+            
+        for tick in axs[i].yaxis.get_major_ticks():
+            tick.label.set_fontsize(14) 
+            
+        axs[i].tick_params(direction = "out", length = 6, width = 1.5)
+
+    axs[2].spines['bottom'].set_visible(True)
+
+    max_time = multiple_greater_than(max(d["time"]),
+               0.1*np.power(10, np.ceil(np.log10(max(d["time"])))))
+
+    axs[2].set_xlim([0, max_time]) 
+    axs[2].set_xticks([0, max_time])
+    
+    # Y lables and axis limits
+
+    axs[0].set_ylim([9, 4])
+    axs[0].set_yticks([9, 4])
+    axs[0].set_ylabel('pCa', fontsize = 14)
+
+    axs[1].set_ylabel('HS length ($\mathregular{\mu}$m)', fontsize = 14)
+
+    axs[2].set_ylabel('Force (kN m$\mathregular{^{-2}}$)', fontsize = 14, labelpad = 10)
+
+    max_length = multiple_greater_than(max(d["hs_command_length"]),
+               0.001*np.power(10, np.ceil(np.log10(max(d["hs_command_length"])))))
+
+    min_length = multiple_greater_than(min(d["hs_command_length"]),
+               0.001*np.power(10, np.ceil(np.log10(min(d["hs_command_length"])))))
+
+    axs[1].set_ylim([min_length-0.5, max_length+0.5])
+    axs[1].set_yticks([min_length, max_length])
+
+    max_force = multiple_greater_than(max(d["force"]),
+               0.1*np.power(10, np.ceil(np.log10(max(d["force"])))))
+
+    axs[2].set_ylim([0, max_force])
+    axs[2].set_yticks([0, max_force])
+
+
+
     # Save figure
     print('Saving superposing plot figure to %s' % output_image_file_string)
     # Check folder exists and make it if not
@@ -656,3 +711,112 @@ def superpose_plots(fig_data, batch_file_string):
             os.makedirs(dir_name)
     fig.savefig(output_image_file_string)
     plt.close()
+
+def dose_response(fig_data, batch_file_string):
+    """ Plot data as a function of myotrope dose """
+
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    if ('formatting' in fig_data):
+        for entry in fig_data['formatting']:
+            formatting[entry] = fig_data['formatting'][entry]
+
+    # Pull off the base folder
+    base_folder = os.path.dirname(batch_file_string)
+
+    if (fig_data['relative_to'] == 'this_file'):
+        top_data_folder = os.path.join(base_folder,
+                                       fig_data['results_folder'])
+    else:
+        top_data_folder = fig_data['results_folder']
+
+    # Get the myotrope dose list
+
+    dose = fig_data['"dose_list"']
+    curve_counter = 0
+    keep_going = True
+
+   # Create lists to hold data
+    curve = []
+    hs_field = []
+
+    # Keep track of max_y
+    max_y = -np.inf
+
+    while keep_going:
+        curve_folder = os.path.join(top_data_folder,
+                                    ('%i' % curve_counter))
+        if (os.path.isdir(curve_folder)):
+            # Find the results files
+            for file in os.listdir(curve_folder):
+                if file.endswith('.txt'):
+
+                    data_file_string = os.path.join(curve_folder, file)
+                    d = pd.read_csv(data_file_string, delimiter='\t')
+
+                    y = formatting['y_scaling_factor'] * \
+                            d[fig_data['data_field']].iloc[-1]
+                    y_values[curve_counter-1].append(y)
+
+                    if (np.amax(y) > max_y):
+                        max_y = np.amax(y)
+
+                    curve.append(curve_counter)
+                    hs_field.append(y)
+            curve_counter = curve_counter + 1
+
+        else:
+            keep_going = False
+
+    # Take lists and create a data frame
+    r = pd.DataFrame({'curve': curve,
+                    'dose': dose,
+                    fig_data['data_field']: y_values})
+
+    # Create a figure
+    if ('output_image_file_string' in fig_data):
+        # Deduce the output file string
+        if (fig_data['relative_to'] == 'this_file'):
+            output_image_file_string = os.path.join(
+                base_folder, fig_data['output_image_file_string'])
+        else:
+            output_image_file_string = fig_data['output_image_file_string']
+
+    # Make a figure
+
+    fig = plt.figure(constrained_layout=False)
+    gs = fig.add_gridspec(nrows=1, ncols=6,
+                          left=0.3, right=0.95, wspace=0.1,
+                          bottom = 0.2)
+    fig.set_size_inches([3.5, 3.5])
+    ax = fig.add_subplot(gs[0,0])
+
+    # Plot the dose response curve
+    ax.plot(dose, y_values, '--o', color = formatting['color_set'][0])
+
+    # Tidy up
+
+    # Save figure
+    print('Saving dose response figure to: %s', output_image_file_string)
+    dir_name = os.path.dirname(output_image_file_string)
+    if (not os.path.isdir(dir_name)):
+        os.makedirs(dir_name)
+    fig.savefig(output_image_file_string)
+    plt.close()
+
+    # Save the data as an excel file
+    if (fig_data['relative_to'] == 'this_file'):
+        output_file_string = os.path.join(base_folder,
+                                          fig_data['output_data_file_string'])
+    else:
+        output_file_string = fig_data['output_data_file_string']
+    print('Writing dose reponse data to %s' % output_file_string)
+    r.to_excel(output_file_string,
+               engine='openpyxl',
+               index=False)
+
+def multiple_greater_than(val, mult):
+    # Returns a multiple greater than
+
+    return (mult * np.ceil(val/mult))

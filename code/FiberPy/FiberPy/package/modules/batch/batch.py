@@ -136,6 +136,12 @@ def run_batch(json_batch_file_string=[],
                 analyses.superpose_plots(fig_data,
                                           json_batch_file_string)
 
+        if ('myotrope' in batch_figures):
+            print('Now generating the dose response curve')
+            for fig_data in batch_figures['myotrope']:
+                analyses.dose_response(fig_data,
+                                          json_batch_file_string)
+
     # Now see if we have to do a kinetics check
     if ('batch_validation' in batch_structure):
         for validation_data in batch_structure['batch_validation']:

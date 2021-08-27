@@ -1,0 +1,46 @@
+{
+  "FiberSim_batch": {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../bin/FiberCpp.exe"
+    },
+    "job": [
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options_1.json",
+        "protocol_file": "sim_input/pCa45_protocol.txt",
+        "results_file": "sim_output/results_1.txt"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options_2.json",
+        "protocol_file": "sim_input/pCa45_protocol.txt",
+        "results_file": "sim_output/results_2.txt"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options_3.json",
+        "protocol_file": "sim_input/pCa45_protocol.txt",
+        "results_file": "sim_output/results_3.txt"
+      }
+    ],
+    "batch_figures": {
+
+      "superpose_plots": [
+        {
+          "relative_to": "this_file",
+          "results_folder": "sim_output",
+          "output_image_file_string": "sim_output/superposed_summary.png",
+          "legend_labels": [ "1 nearest BS", "3 nearest BS", "5 nearest BS" ],
+          "formatting": {
+            "color_set": [ "#0033a0", "#df2935b3", "#a0001b" ]
+          }
+
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "FiberSim_batch": {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../bin/fibercpp.exe"
+    },
+    "job": [
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\0\\model_0.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\0\\results_0.txt",
+        "output_handler_file": "sim_input\\0\\output_handler_0.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\1\\model_1.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\1\\results_1.txt",
+        "output_handler_file": "sim_input\\1\\output_handler_1.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\2\\model_2.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\2\\results_2.txt",
+        "output_handler_file": "sim_input\\2\\output_handler_2.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\3\\model_3.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\3\\results_3.txt",
+        "output_handler_file": "sim_input\\3\\output_handler_3.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\4\\model_4.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\4\\results_4.txt",
+        "output_handler_file": "sim_input\\4\\output_handler_4.json"
+      }
+    ],
+
+    "batch_figures": {
+      "myotrope": [
+        {
+          "relative_to": "this_file",
+          "results_folder": "sim_output",
+          "data_field": "force",
+          "dose_list": [ 0.01, 0.1, 0.5, 0.8, 0.99 ],
+          "output_image_file_string": "sim_output/myotrope_dose_response.png",
+          "output_data_file_string": "sim_output/analysis.xlsx",
+          "formatting": {
+            "y_scaling_factor": 0.001,
+            "y_axis_label": "Force \n (kN m$^{\\mathregular{-2}}$)"
+          }
+        }
+      ]
+    }
+  }
+}
