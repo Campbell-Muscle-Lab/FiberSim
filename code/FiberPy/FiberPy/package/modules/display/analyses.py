@@ -34,6 +34,7 @@ def default_formatting():
     formatting['x_label_pad'] = 15
     formatting['tick_labels_fontsize'] = 12
     formatting['y_scaling_factor'] = 1
+    formatting['y_normalized_to_max'] = False
     formatting['y_axis_label'] = 'y_axis_label'
     formatting['y_label_pad'] = 15
     formatting['y_label_fontsize'] = 12
@@ -121,6 +122,10 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     hs_force.append(y)
                     hs_pCa.append(d['pCa'].iloc[-1])
 
+            # Normalized data_field if required
+            if formatting['y_normalized_to_max']:
+                hs_force = [x/max_y for x in hs_force]
+                y_values[curve_counter-1] = [x/max(y_values[curve_counter-1]) for x in y_values[curve_counter-1]]
             # Add in curve
             res=cv.fit_pCa_data(pCa_values[curve_counter-1],
                                 y_values[curve_counter-1])
@@ -185,6 +190,9 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                        fontfamily=formatting['fontname'],
                        fontsize=formatting['x_label_fontsize'])
     ax_right.set_xticks(formatting['low_pCa_ticks'])
+
+    if formatting['y_normalized_to_max']:
+        max_y = 1
 
     y_ticks = [0, ut.multiple_greater_than(max_y,
                                            0.05*np.power(10, np.ceil(np.log10(max_y))))]
