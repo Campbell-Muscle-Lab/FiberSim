@@ -8,7 +8,7 @@
         "m_filament_density": 0.407e15
     },
   "thick_structure": {
-    "m_n": 49,
+    "m_n": 100,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,

@@ -18,7 +18,7 @@ ROOT = os.path.dirname(__file__)
 
 def generate_models():
     
-    iso_prop = [0.01, 0.1, 0.5, 0.8, 0.99]
+    iso_prop = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
     
     model_template = os.path.join(ROOT, "model_template.json")
     

@@ -44,6 +44,54 @@
         "protocol_file": "sim_input\\pCa45_protocol.txt",
         "results_file": "sim_output\\4\\results_4.txt",
         "output_handler_file": "sim_input\\4\\output_handler_4.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\5\\model_5.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\5\\results_5.txt",
+        "output_handler_file": "sim_input\\5\\output_handler_5.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\6\\model_6.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\6\\results_6.txt",
+        "output_handler_file": "sim_input\\6\\output_handler_6.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\7\\model_7.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\7\\results_7.txt",
+        "output_handler_file": "sim_input\\7\\output_handler_7.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\8\\model_8.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\8\\results_8.txt",
+        "output_handler_file": "sim_input\\8\\output_handler_8.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\9\\model_9.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\9\\results_9.txt",
+        "output_handler_file": "sim_input\\9\\output_handler_9.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\10\\model_10.json",
+        "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\pCa45_protocol.txt",
+        "results_file": "sim_output\\10\\results_10.txt",
+        "output_handler_file": "sim_input\\10\\output_handler_10.json"
       }
     ],
 
@@ -53,12 +101,13 @@
           "relative_to": "this_file",
           "results_folder": "sim_output",
           "data_field": "force",
-          "dose_list": [ 0.01, 0.1, 0.5, 0.8, 0.99 ],
+          "dose_list": [ 0.01, 0.10, 0.21, 0.34, 0.50, 0.70, 0.97, 1.40, 2.20, 4.50, 45.04 ],
           "output_image_file_string": "sim_output/myotrope_dose_response.png",
           "output_data_file_string": "sim_output/analysis.xlsx",
           "formatting": {
             "y_scaling_factor": 0.001,
-            "y_axis_label": "Force \n (kN m$^{\\mathregular{-2}}$)"
+            "y_axis_label": "Force \n (kN m$^{\\mathregular{-2}}$)",
+            "x_axis_label": "[Mava] \n (µM)"
           }
         }
       ]

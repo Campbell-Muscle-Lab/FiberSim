@@ -669,7 +669,7 @@ def superpose_plots(fig_data, batch_file_string):
 
     axs[2].spines['bottom'].set_visible(True)
 
-    max_time = multiple_greater_than(max(d["time"]),
+    max_time = ut.multiple_greater_than(max(d["time"]),
                0.1*np.power(10, np.ceil(np.log10(max(d["time"])))))
 
     axs[2].set_xlim([0, max_time]) 
@@ -685,16 +685,16 @@ def superpose_plots(fig_data, batch_file_string):
 
     axs[2].set_ylabel('Force (kN m$\mathregular{^{-2}}$)', fontsize = 14, labelpad = 10)
 
-    max_length = multiple_greater_than(max(d["hs_command_length"]),
+    max_length =ut. multiple_greater_than(max(d["hs_command_length"]),
                0.001*np.power(10, np.ceil(np.log10(max(d["hs_command_length"])))))
 
-    min_length = multiple_greater_than(min(d["hs_command_length"]),
+    min_length = ut.multiple_greater_than(min(d["hs_command_length"]),
                0.001*np.power(10, np.ceil(np.log10(min(d["hs_command_length"])))))
 
     axs[1].set_ylim([min_length-0.5, max_length+0.5])
     axs[1].set_yticks([min_length, max_length])
 
-    max_force = multiple_greater_than(max(d["force"]),
+    max_force = ut.multiple_greater_than(max(d["force"]),
                0.1*np.power(10, np.ceil(np.log10(max(d["force"])))))
 
     axs[2].set_ylim([0, max_force])
@@ -733,13 +733,13 @@ def dose_response(fig_data, batch_file_string):
 
     # Get the myotrope dose list
 
-    dose = fig_data['"dose_list"']
+    dose = fig_data["dose_list"]
     curve_counter = 0
     keep_going = True
 
    # Create lists to hold data
     curve = []
-    hs_field = []
+    y_values = []
 
     # Keep track of max_y
     max_y = -np.inf
@@ -757,13 +757,12 @@ def dose_response(fig_data, batch_file_string):
 
                     y = formatting['y_scaling_factor'] * \
                             d[fig_data['data_field']].iloc[-1]
-                    y_values[curve_counter-1].append(y)
 
                     if (np.amax(y) > max_y):
                         max_y = np.amax(y)
 
                     curve.append(curve_counter)
-                    hs_field.append(y)
+                    y_values.append(y)
             curve_counter = curve_counter + 1
 
         else:
@@ -785,20 +784,51 @@ def dose_response(fig_data, batch_file_string):
 
     # Make a figure
 
-    fig = plt.figure(constrained_layout=False)
-    gs = fig.add_gridspec(nrows=1, ncols=6,
-                          left=0.3, right=0.95, wspace=0.1,
-                          bottom = 0.2)
-    fig.set_size_inches([3.5, 3.5])
+    fig = plt.figure(constrained_layout=True)
+    gs = fig.add_gridspec(nrows=1, ncols=1)
+    fig.set_size_inches([7, 3.5])
     ax = fig.add_subplot(gs[0,0])
 
     # Plot the dose response curve
     ax.plot(dose, y_values, '--o', color = formatting['color_set'][0])
 
-    # Tidy up
+    # Log scale
+    ax.set_xscale('log')
+
+    # Tidy up axis
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    # Ticks and labels
+
+    ax.set_ylabel(formatting['y_axis_label'],
+                       loc='center',
+                       verticalalignment='center',
+                       labelpad=formatting['y_label_pad'],
+                       fontfamily=formatting['fontname'],
+                       fontsize=formatting['y_label_fontsize'],
+                       rotation=formatting['y_label_rotation'])
+
+    ax.set_xlabel(formatting['x_axis_label'],
+                       loc='center',
+                       verticalalignment='center',
+                       labelpad=formatting['x_label_pad'],
+                       fontfamily=formatting['fontname'],
+                       fontsize=formatting['x_label_fontsize'])
+
+
+    y_ticks = [0, ut.multiple_greater_than(max_y,
+                                           0.05*np.power(10, np.ceil(np.log10(max_y))))]
+
+    ax.set_ylim(y_ticks)
+    ax.set_yticks(y_ticks)
+
+    ax.set_xlim(0,10)
+    ax.set_xticks([0.01,0.1,1,10,100])
 
     # Save figure
-    print('Saving dose response figure to: %s', output_image_file_string)
+    print('Saving dose response figure to: %s' % output_image_file_string)
     dir_name = os.path.dirname(output_image_file_string)
     if (not os.path.isdir(dir_name)):
         os.makedirs(dir_name)
@@ -815,8 +845,3 @@ def dose_response(fig_data, batch_file_string):
     r.to_excel(output_file_string,
                engine='openpyxl',
                index=False)
-
-def multiple_greater_than(val, mult):
-    # Returns a multiple greater than
-
-    return (mult * np.ceil(val/mult))
