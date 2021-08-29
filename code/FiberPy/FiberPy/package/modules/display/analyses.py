@@ -631,12 +631,12 @@ def superpose_plots(fig_data, batch_file_string):
         else:
             output_image_file_string = fig_data['output_image_file_string']
 
-    fig = plt.figure(constrained_layout=True)
-    fig.set_size_inches([6, 6])
-    spec = gridspec.GridSpec(nrows=3, ncols=1, figure=fig,
+    fig = plt.figure(constrained_layout=False)
+    fig.set_size_inches([3.5, 7])
+    spec = gridspec.GridSpec(nrows=5, ncols=1, figure=fig,
                              wspace=1)
     axs=[]
-    for r in range(0,3):
+    for r in range(0,5):
         axs.append(fig.add_subplot(spec[r,0]))
 
     # Plot data
@@ -646,15 +646,21 @@ def superpose_plots(fig_data, batch_file_string):
         d = pd.read_csv(results_files[i], sep='\t')
         x = d['time']
 
+        # pCa
+
         axs[0].plot(x, d['pCa'], color = "black")
+
+        # HSL length + commande
 
         axs[1].plot(x, d['hs_length'], color = "black")
         axs[1].plot(x, d['hs_command_length'], color = "tab:orange", linestyle='--')
 
         if i == len(results_files) -1:
             axs[1].plot(x, d['hs_length'], color = "black", label = "Length")
-            axs[1].plot(x, d['hs_command_length'], color = "tab:red", linestyle='--', label = "Length command")
-            axs[1].legend(loc='upper left', bbox_to_anchor=[1.05, 1])        
+            axs[1].plot(x, d['hs_command_length'], color = "tab:red", linestyle='--', label = "Length \ncommand")
+            axs[1].legend(loc='upper left', bbox_to_anchor=[0.5, 0.9], fontsize = 12)        
+
+        # Force
 
         d['force'] = d['force']/1000
 
@@ -664,12 +670,23 @@ def superpose_plots(fig_data, batch_file_string):
         else:
             axs[2].plot(x, d['force'], color = formatting['color_set'][i], zorder=i+1)
 
-    if formatting['labels'] != []:
-        axs[2].legend(loc='upper left', bbox_to_anchor=[1.05, 1])
+        if formatting['labels'] != []:
+            axs[2].legend(loc='upper left', bbox_to_anchor=[1.05, 1], fontsize = 12)
+
+        # Actin pop
+        axs[3].plot(x, d['a_pop_0'], '--' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+        axs[3].plot(x, d['a_pop_1'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+
+        # Myosin pop
+        axs[4].plot(x, d['m_pop_0'], '--' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+        axs[4].plot(x, d['m_pop_1'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+        axs[4].plot(x, d['m_pop_2'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+
+
 
     # Clean axis
 
-    for i in range(3):
+    for i in range(5):
         
         axs[i].spines['top'].set_visible(False)
         axs[i].spines['right'].set_visible(False)
@@ -685,24 +702,25 @@ def superpose_plots(fig_data, batch_file_string):
             
         axs[i].tick_params(direction = "out", length = 6, width = 1.5)
 
-    axs[2].spines['bottom'].set_visible(True)
+    axs[4].spines['bottom'].set_visible(True)
 
     max_time = ut.multiple_greater_than(max(d["time"]),
                0.1*np.power(10, np.ceil(np.log10(max(d["time"])))))
 
-    axs[2].set_xlim([0, max_time]) 
-    axs[2].set_xticks([0, max_time])
-    axs[2].set_xlabel('Time (s)')
+    axs[4].set_xlim([0, max_time]) 
+    axs[4].set_xticks([0, max_time])
+    axs[4].set_xlabel('Time (s)', labelpad = -5)
     
     # Y lables and axis limits
 
     axs[0].set_ylim([9, 4])
     axs[0].set_yticks([9, 4])
-    axs[0].set_ylabel('pCa', fontsize = 14)
+    #axs[0].set_ylabel('pCa', fontsize = 14, rotation = 0, labelpad = 10)
+    axs[0].text(-0.2, 6.5, "pCa" , fontsize = 14, transform = axs[0].transData, ha='center', va='center')
 
-    axs[1].set_ylabel('HS length ($\mathregular{\mu}$m)', fontsize = 14)
+    #axs[1].set_ylabel('HS length ($\mathregular{\mu}$m)', fontsize = 14, rotation = 0, labelpad = 15)
 
-    axs[2].set_ylabel('Force (kN m$\mathregular{^{-2}}$)', fontsize = 14, labelpad = 10)
+    #axs[2].set_ylabel('Force (kN m$\mathregular{^{-2}}$)', fontsize = 14, labelpad = 25, rotation = 0)
 
     max_length =ut. multiple_greater_than(max(d["hs_command_length"]),
                0.001*np.power(10, np.ceil(np.log10(max(d["hs_command_length"])))))
@@ -713,11 +731,27 @@ def superpose_plots(fig_data, batch_file_string):
     axs[1].set_ylim([min_length-0.5, max_length+0.5])
     axs[1].set_yticks([min_length, max_length])
 
+    axs[1].text(-0.2, (max_length + min_length)/2, "HS length \n($\mathregular{\mu}$m)" , fontsize = 14, transform = axs[1].transData, ha='center', va='center')
+
     max_force = ut.multiple_greater_than(max(d["force"]),
                0.1*np.power(10, np.ceil(np.log10(max(d["force"])))))
 
     axs[2].set_ylim([0, max_force])
     axs[2].set_yticks([0, max_force])
+
+    axs[2].text(-0.2, (0 + max_force)/2, 'Force \n(kN $\\mathregular{m}^{\mathregular{-2}}$)' , fontsize = 14, transform = axs[2].transData, ha='center', va='center')
+
+
+    #axs[3].set_ylabel('Thin \n filament', fontsize = 14, rotation = 0, labelpad = 20)
+    axs[3].text(-0.2, 0.5, 'Thin \n filament' , fontsize = 14, transform = axs[3].transData, ha='center', va='center')
+
+    axs[3].set_ylim([0, 1])
+    axs[3].set_yticks([0, 1])
+
+    #axs[4].set_ylabel('Thick \n filament', fontsize = 14, rotation = 0, labelpad = 20)
+    axs[4].text(-0.2, 0.5, 'Thick \n filament' , fontsize = 14, transform = axs[4].transData, ha='center', va='center')
+    axs[4].set_ylim([0, 1])
+    axs[4].set_yticks([0, 1])
 
 
 
@@ -728,7 +762,7 @@ def superpose_plots(fig_data, batch_file_string):
         output_image_file_string))
     if (not os.path.isdir(dir_name)):
             os.makedirs(dir_name)
-    fig.savefig(output_image_file_string)
+    fig.savefig(output_image_file_string, bbox_inches='tight')
     plt.close()
 
 def dose_response(fig_data, batch_file_string):
