@@ -39,7 +39,7 @@
           "output_image_file_string": "sim_output/superposed_summary.png",
           "formatting": {
             "color_set": [ "#0033a0", "#df2935b3", "#a0001b" ],
-            "labels": [ "1 nearest BS", "3 nearest BS", "5 nearest BS" ]
+            "labels": [ "1 BS", "3 BS", "5 BS" ]
           }
 
         }

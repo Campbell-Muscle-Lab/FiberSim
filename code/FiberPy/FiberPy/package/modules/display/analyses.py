@@ -671,7 +671,7 @@ def superpose_plots(fig_data, batch_file_string):
             axs[2].plot(x, d['force'], color = formatting['color_set'][i], zorder=i+1)
 
         if formatting['labels'] != []:
-            axs[2].legend(loc='upper left', bbox_to_anchor=[1.05, 1], fontsize = 12)
+            axs[2].legend(loc='upper left', bbox_to_anchor=[0.65, 0.65], fontsize = 11)
 
         # Actin pop
         axs[3].plot(x, d['a_pop_0'], '--' , color = formatting['color_set'][i], zorder=len(results_files) - i)
