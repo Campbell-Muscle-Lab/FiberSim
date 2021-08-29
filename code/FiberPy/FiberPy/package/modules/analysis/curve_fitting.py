@@ -42,6 +42,33 @@ def fit_pCa_data(x,y):
 
     return d
 
+def fit_dose_response(x,y):
+    """ Fits Hill-curve to x-y data """
+
+    def y_pCa(x_data, IC_50, n_H, y_min, y_amp):
+        y = np.zeros(len(x_data))
+        for i,x in enumerate(x_data):
+            y[i] = y_min + \
+                y_amp * (np.power(x, n_H) /
+                (np.power(x, n_H) + 
+                     np.power(IC_50, n_H)))
+        return y
+
+ 
+    popt, pcov = curve_fit(y_pCa, x, y,
+                            [0.5, 1.5, 5, 50], maxfev = 10000)
+
+
+    d = dict()
+    d['IC_50'] = popt[0]
+    d['n_H']    = popt[1]
+    d['y_min']  = popt[2]
+    d['y_max']  = popt[3]
+    d['x_fit']  = np.linspace(0.01, 100, 10000)
+    d['y_fit']  = y_pCa(d['x_fit'], *popt)
+
+    return d
+
 def fit_hyperbola(x, y):
     """ Fits hyperbola of form (x+a)(y+b) = b*(x_0+a) to y data """
     

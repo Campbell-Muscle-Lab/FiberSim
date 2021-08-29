@@ -119,7 +119,20 @@
                   "y_axis_label": "Force \n (kN m$^{\\mathregular{-2}}$)",
                   "color_set": [ "#00297ffd", "#a0001bff" ]
                 }
-              }
+              },
+              {
+                "relative_to": "this_file",
+                "results_folder": "sim_output",
+                "data_field": "force",
+                "output_image_file_string": "sim_output/force_pCa_curves_normalized.png",
+                "output_data_file_string": "sim_output/analysis.xlsx",
+                "formatting": {
+                  "y_normalized_to_max": "True",
+                  "y_axis_label": "Normalized \n force",
+                  "color_set": [ "#00297ffd", "#a0001bff" ],
+                  "y_label_pad": 20
+                }
+              }              
             ]
         }
     }

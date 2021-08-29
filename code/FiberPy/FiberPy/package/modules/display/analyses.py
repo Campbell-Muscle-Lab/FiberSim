@@ -44,6 +44,7 @@ def default_formatting():
     formatting['table_x_spacing'] = 0.5
     formatting['table_fontsize'] = 11
     formatting['color_set'] = ["tab:orange", "tab:blue", "tab:green", "tab:red", "tab:pink", "tab:purple", "tab:grey", "tab:olive", "tab:cyan", "black"]
+    formatting['labels'] = []
 
     return formatting
 
@@ -122,20 +123,20 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     hs_force.append(y)
                     hs_pCa.append(d['pCa'].iloc[-1])
 
-            # Normalized data_field if required
-            if formatting['y_normalized_to_max']:
-                hs_force = [x/max_y for x in hs_force]
-                y_values[curve_counter-1] = [x/max(y_values[curve_counter-1]) for x in y_values[curve_counter-1]]
             # Add in curve
             res=cv.fit_pCa_data(pCa_values[curve_counter-1],
                                 y_values[curve_counter-1])
             # Store data
             pCa_50.append(res['pCa_50'])
-            n_H.append(res['n_H'])
-            
-
+            n_H.append(res['n_H'])            
 
             # plot
+
+            # Normalized data_field if required
+            if formatting['y_normalized_to_max']:
+                res['y_fit'] = res['y_fit']/max(y_values[curve_counter-1])
+                y_values[curve_counter-1] = [x/max(y_values[curve_counter-1]) for x in y_values[curve_counter-1]]                
+
             for a in [ax_left, ax_right]:
                 a.plot(pCa_values[curve_counter-1],
                     y_values[curve_counter-1],
@@ -145,6 +146,11 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     markeredgewidth=0.0)
 #                if (a==ax_left):
 #                    marker_color.append(a.lines[-1].get_color())
+                if formatting['labels'] != []:
+                    a.plot(res['x_fit'], res['y_fit'],'-',
+                        color = formatting['color_set'][curve_counter - 1],
+                        label = formatting['labels'][curve_counter - 1])
+
                 a.plot(res['x_fit'], res['y_fit'],'-',
                     color = formatting['color_set'][curve_counter - 1])
 
@@ -153,6 +159,9 @@ def create_y_pCa_figure(fig_data, batch_file_string):
 
         else:
             keep_going = False
+
+    if formatting['labels'] != []:
+        ax_right.legend(loc='upper left', bbox_to_anchor=[1.05, 1], fontsize = formatting['y_label_fontsize']-2)
 
     # Take lists and create a data frame
     r = pd.DataFrame({'curve': curve,
@@ -191,8 +200,6 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                        fontsize=formatting['x_label_fontsize'])
     ax_right.set_xticks(formatting['low_pCa_ticks'])
 
-    if formatting['y_normalized_to_max']:
-        max_y = 1
 
     y_ticks = [0, ut.multiple_greater_than(max_y,
                                            0.05*np.power(10, np.ceil(np.log10(max_y))))]
@@ -206,6 +213,15 @@ def create_y_pCa_figure(fig_data, batch_file_string):
         a.set_yticklabels(a.get_yticks(),
                           fontsize=formatting['tick_labels_fontsize'],
                           fontfamily=formatting['fontname'])
+
+        if formatting['y_normalized_to_max']:
+            y_ticks = [0,1]
+            a.set_ylim([0,1.03])
+            a.spines['left'].set_bounds(y_ticks)
+            a.set_yticks(y_ticks)
+            a.set_yticklabels(a.get_yticks(),
+                fontsize=formatting['tick_labels_fontsize'],
+                fontfamily=formatting['fontname'])
 
     # Draw split
     # proportion of vertical to horizontal extent of the slanted line
@@ -273,7 +289,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     dir_name = os.path.dirname(output_image_file_string)
     if (not os.path.isdir(dir_name)):
         os.makedirs(dir_name)
-    fig.savefig(output_image_file_string, dpi=200)
+    fig.savefig(output_image_file_string, dpi=200, bbox_inches='tight')
     plt.close()
 
     # Save the data as an excel file if required in the batch file
@@ -592,12 +608,6 @@ def superpose_plots(fig_data, batch_file_string):
     else:
         top_data_folder = fig_data['results_folder']
 
-    # Create empty list for legend labels, overwrite it if labels are provided
-    legend_list = []
-        
-    if('legend_labels' in fig_data):
-        legend_list = fig_data['legend_labels']
-
     # Pull data
     # Loop through the txt files in top_data_folder
     # add to a list, then naturally sort the list
@@ -648,13 +658,13 @@ def superpose_plots(fig_data, batch_file_string):
 
         d['force'] = d['force']/1000
 
-        if legend_list != []:        
-            axs[2].plot(x, d['force'], label = legend_list[i], color = formatting['color_set'][i], zorder=len(results_files) - i)
+        if formatting['labels'] != []:        
+            axs[2].plot(x, d['force'], label = formatting['labels'][i], color = formatting['color_set'][i], zorder=len(results_files) - i)
 
         else:
             axs[2].plot(x, d['force'], color = formatting['color_set'][i], zorder=i+1)
 
-    if legend_list != []:
+    if formatting['labels'] != []:
         axs[2].legend(loc='upper left', bbox_to_anchor=[1.05, 1])
 
     # Clean axis
@@ -682,6 +692,7 @@ def superpose_plots(fig_data, batch_file_string):
 
     axs[2].set_xlim([0, max_time]) 
     axs[2].set_xticks([0, max_time])
+    axs[2].set_xlabel('Time (s)')
     
     # Y lables and axis limits
 
@@ -742,19 +753,28 @@ def dose_response(fig_data, batch_file_string):
     # Get the myotrope dose list
 
     dose = fig_data["dose_list"]
-    curve_counter = 0
+    dose_counter = 0
     keep_going = True
 
    # Create lists to hold data
     curve = []
     y_values = []
+    IC_50 = []
+    n_H = []
 
     # Keep track of max_y
     max_y = -np.inf
 
+     # Make a figure
+
+    fig = plt.figure(constrained_layout=True)
+    gs = fig.add_gridspec(nrows=1, ncols=1)
+    fig.set_size_inches([4, 3.5])
+    ax = fig.add_subplot(gs[0,0])
+
     while keep_going:
         curve_folder = os.path.join(top_data_folder,
-                                    ('%i' % curve_counter))
+                                    ('%i' % dose_counter))
         if (os.path.isdir(curve_folder)):
             # Find the results files
             for file in os.listdir(curve_folder):
@@ -769,44 +789,34 @@ def dose_response(fig_data, batch_file_string):
                     if (np.amax(y) > max_y):
                         max_y = np.amax(y)
 
-                    curve.append(curve_counter)
+                    curve.append(dose_counter)
                     y_values.append(y)
-            curve_counter = curve_counter + 1
+
+            dose_counter = dose_counter + 1
 
         else:
             keep_going = False
 
-    # Take lists and create a data frame
-    r = pd.DataFrame({'curve': curve,
-                    'dose': dose,
-                    fig_data['data_field']: y_values})
-
-    # Create a figure
-    if ('output_image_file_string' in fig_data):
-        # Deduce the output file string
-        if (fig_data['relative_to'] == 'this_file'):
-            output_image_file_string = os.path.join(
-                base_folder, fig_data['output_image_file_string'])
-        else:
-            output_image_file_string = fig_data['output_image_file_string']
-
-    # Make a figure
-
-    fig = plt.figure(constrained_layout=True)
-    gs = fig.add_gridspec(nrows=1, ncols=1)
-    fig.set_size_inches([7, 3.5])
-    ax = fig.add_subplot(gs[0,0])
-
     # Plot the dose response curve
-    ax.plot(dose, y_values, '--o', color = formatting['color_set'][0])
+    ax.plot(dose, y_values, formatting['marker_symbols'][0], markersize=formatting['marker_size'],
+        markerfacecolor = formatting['color_set'][0],
+        markeredgewidth=0.0)
+    # Add fit
+    res=cv.fit_dose_response(dose,y_values)
 
-    # Log scale
-    ax.set_xscale('log')
+    # Store data
+    IC_50.append(res['IC_50'])
+    n_H.append(res['n_H']) 
+
+    ax.plot(res['x_fit'], res['y_fit'], '-', color = formatting['color_set'][0])
 
     # Tidy up axis
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
+
+    # Log scale
+    ax.set_xscale('log')
 
     # Ticks and labels
 
@@ -827,15 +837,70 @@ def dose_response(fig_data, batch_file_string):
 
 
     y_ticks = [0, ut.multiple_greater_than(max_y,
-                                           0.05*np.power(10, np.ceil(np.log10(max_y))))]
+                            0.05*np.power(10, np.ceil(np.log10(max_y))))]
 
     ax.set_ylim(y_ticks)
     ax.set_yticks(y_ticks)
 
-    ax.set_xlim(0,10)
-    ax.set_xticks([0.01,0.1,1,10,100])
+    xticks = [0.01,0.1,1,10,100]
+    ax.set_xticks(xticks)
+
+    # Draw table
+    y_anchor = formatting['table_y_anchor'] * y_ticks[-1]
+    y_spacing = formatting['table_y_spacing'] * y_ticks[-1]
+    x_anchor = xticks[-2]
+
+    ax.text(x_anchor,
+                 y_anchor,
+                 'IC$\\mathregular{_{50}}$',
+                 fontfamily=formatting['fontname'],
+                 fontsize=formatting['table_fontsize'],
+                 horizontalalignment='center',
+                 verticalalignment='center',
+                 clip_on=False)
+    ax.text(x_anchor + 100 * formatting['table_x_spacing'],
+                 y_anchor,
+                 'n$\\mathregular{_{H}}$',
+                 fontfamily=formatting['fontname'],
+                 fontsize=formatting['table_fontsize'],
+                 horizontalalignment='center',
+                 verticalalignment='center',
+                 clip_on=False)
+    
+    # Add in data
+    for i in range(len(IC_50)):
+        y_anchor = y_anchor - y_spacing
+        ax.text(x_anchor,
+                    y_anchor,
+                    '%.2f' % IC_50[i],
+                    fontfamily=formatting['fontname'],
+                    fontsize=formatting['table_fontsize'],
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    clip_on=False)
+        ax.text(x_anchor + 100 * formatting['table_x_spacing'],
+                    y_anchor,
+                    '%.2f' % n_H[i],
+                    fontfamily=formatting['fontname'],
+                    fontsize=formatting['table_fontsize'],
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    clip_on=False)
+
+    # Take lists and create a data frame
+    r = pd.DataFrame({'curve': curve,
+                    'dose': dose,
+                    fig_data['data_field']: y_values})
 
     # Save figure
+    if ('output_image_file_string' in fig_data):
+        # Deduce the output file string
+        if (fig_data['relative_to'] == 'this_file'):
+            output_image_file_string = os.path.join(
+                base_folder, fig_data['output_image_file_string'])
+        else:
+            output_image_file_string = fig_data['output_image_file_string']
+
     print('Saving dose response figure to: %s' % output_image_file_string)
     dir_name = os.path.dirname(output_image_file_string)
     if (not os.path.isdir(dir_name)):

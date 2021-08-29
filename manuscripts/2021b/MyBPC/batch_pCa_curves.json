@@ -221,7 +221,9 @@
           "formatting": {
             "y_normalized_to_max": "True",
             "y_axis_label": "Normalized \n force",
-            "color_set": [ "#00297ffd", "#a0001bff", "#7ea8beff", "#df2935b3" ]
+            "y_label_pad": 20,
+            "color_set": [ "#00297ffd", "#a0001bff", "#7ea8beff", "#df2935b3" ],
+            "labels": [ "Control", "MyBP-C \nstabilized SRX", "MyBP-C \nbinding", "MyBP-C \nstabilized SRX \n+ binding" ]
           }
         }
       ]

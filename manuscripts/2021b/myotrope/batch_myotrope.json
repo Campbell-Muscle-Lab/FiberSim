@@ -107,7 +107,13 @@
           "formatting": {
             "y_scaling_factor": 0.001,
             "y_axis_label": "Force \n (kN m$^{\\mathregular{-2}}$)",
-            "x_axis_label": "[Mava] \n (µM)"
+            "x_axis_label": "[Mava] \n (µM)",
+            "table_fontsize": 14,
+            "y_label_fontsize": 14,
+            "x_label_fontsize": 14,
+            "tick_labels_fontsize": 14,
+            "table_y_spacing": 0.15
+
           }
         }
       ]

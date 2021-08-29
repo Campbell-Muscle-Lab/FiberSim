@@ -1,148 +1,106 @@
 {
-    "layout":
+  "layout": {
+    "fig_width": 7,
+    "top_margin": 0,
+    "left_margin": 0,
+    "right_margin": 0,
+    "panel_height": 2,
+    "grid_wspace": -0.5
+  },
+  "x_display": {
+    "global_x_field": "time",
+    "label": "Time (s)"
+  },
+  "formatting": {
+    "x_label_fontsize": 24,
+    "y_label_fontsize": 24,
+    "tick_fontsize": 24,
+    "legend_fontsize": 20,
+    "y_label_pad": 25,
+    "legend_bbox_to_anchor": [ 1.0, 1 ],
+    "patch_alpha": 0.3,
+    "data_linewidth": 2.0
+  },
+  "panels": [
     {
-        "fig_width": 7,
-        "top_margin": 0,
-        "left_margin": 0,
-        "right_margin": 0,
-        "panel_height": 2,
-        "grid_wspace": -0.5
+      "column": 1,
+      "y_info": {
+        "label": "pCa",
+        "scaling_type": "close_fit",
+        "ticks": [ 9, 4 ],
+        "series": [
+          {
+            "field": "pCa"
+          }
+        ]
+      }
     },
-    "x_display":{
-        "global_x_field": "time",
-        "label": "Time (s)"
-    },
-    "formatting":
     {
-        "x_label_fontsize": 9,
-        "y_label_fontsize": 9,
-        "tick_fontsize": 9,
-        "legend_fontsize": 7,
-        "y_label_pad": 25,
-        "legend_bbox_to_anchor": [1.0, 1],
-        "patch_alpha": 0.3
+      "column": 1,
+      "y_info": {
+        "label": "HS length\n(nm)",
+        "ticks": [ 1080, 1110 ],
+        "series": [
+          {
+            "field": "hs_length"
+          }
+        ]
+      }
     },
-    "panels":
-    [
-        {
-            "column": 1,
-            "y_info":
-            {
-                "label": "pCa",
-                "scaling_type": "close_fit",
-                "series":
-                [
-                    {
-                        "field": "pCa"
-                    }
-                ]
-            }
-        },
-        {
-            "column": 1,
-            "y_info":
-            {
-                "label": "HS length\n(nm)",
-                "scaling_type": "close_fit",
-                "series":
-                [
-                    {
-                        "field": "hs_length",
-                        "field_label": "hs_length"
-                  },
-                  {
-                      "field": "hs_command_length",
-                      "field_label": "command"
-                  },
-                  {
-                      "field": "hs_slack_length",
-                      "field_label": "slack_length"
-                  }
-                ]
-            }
-        },
-        {
-            "column": 1,
-            "y_info":
-            {
-                "label": "Stress\n(kN m^{-2})",
-                "series":
-                [
-                    {
-                        "field": "force",
-                        "field_label": "Total",
-                        "scaling_factor": 0.001
-                    },
-                    {
-                        "field": "titin_force",
-                        "field_label": "Titin",
-                        "scaling_factor": 0.001
-                    },
-                    {
-                        "field": "extracellular_force",
-                        "field_label": "Extracellular",
-                        "scaling_factor": 0.001
-                    }
-                ]
-            }
-        },
-        {
-            "column": 1,
-            "y_info":
-            {
-                "label": "Thin\nfilament",
-                "series":
-                [
-                    {
-                        "field": "a_pop_0",
-                        "field_label": "N off"
-                    },
-                    {
-                        "field": "a_pop_1",
-                        "field_label": "N on"
-                    }
-                ]
-            }
-        },
-        {
-            "column": 1,
-            "y_info":
-            {
-                "label": "Myosin",
-                "series":
-                [
-                    {
-                        "field": "m_pop_0",
-                        "field_label": "SRX"
-                    },
-                    {
-                        "field": "m_pop_1",
-                        "field_label": "DRX"
-                    },
-                    {
-                        "field": "m_pop_2",
-                        "field_label": "Pre-power-stroke"
-                    }
-                ]
-            }
-        },
-        {
-            "column": 1,
-            "y_info":
-            {
-                "label": "MyBP-C",
-                "series":
-                [
-                    {
-                        "field": "c_pop_0",
-                        "field_label": "Detached"
-                    },
-                    {
-                        "field": "c_pop_1",
-                        "field_label": "Attached"
-                    }
-                ]
-            }
-        }
-    ]
+    {
+      "column": 1,
+      "y_info": {
+        "label": "Force \n (kN m$^{\\mathregular{-2}}$)",
+        "ticks": [ 0, 60 ],
+        "series": [
+          {
+            "field": "force",
+            "field_label": "Total",
+            "scaling_factor": 0.001
+          },
+          {
+            "field": "titin_force",
+            "field_label": "Titin",
+            "scaling_factor": 0.001
+          }
+        ]
+      }
+    },
+    {
+      "column": 1,
+      "y_info": {
+        "label": "Thin\nfilament",
+        "series": [
+          {
+            "field": "a_pop_0",
+            "field_label": "Inactive"
+          },
+          {
+            "field": "a_pop_1",
+            "field_label": "Active"
+          }
+        ]
+      }
+    },
+    {
+      "column": 1,
+      "y_info": {
+        "label": "Thick\nfilament",
+        "series": [
+          {
+            "field": "m_pop_0",
+            "field_label": "SRX"
+          },
+          {
+            "field": "m_pop_1",
+            "field_label": "DRX"
+          },
+          {
+            "field": "m_pop_2",
+            "field_label": "FG"
+          }
+        ]
+      }
+    }
+  ]
 }
