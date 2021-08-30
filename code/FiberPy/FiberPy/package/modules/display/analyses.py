@@ -589,8 +589,8 @@ def create_ktr_figure(fig_data, batch_file_string):
                engine='openpyxl',
                index=False)
 
-def superpose_plots(fig_data, batch_file_string):
-    """ Superpose data from multiple result files """
+def superpose_ktr_plots(fig_data, batch_file_string):
+    """ Superpose k_tr data from multiple result files """
 
     # Pull default formatting, then overwrite any values from
     # input file
@@ -658,7 +658,7 @@ def superpose_plots(fig_data, batch_file_string):
         if i == len(results_files) -1:
             axs[1].plot(x, d['hs_length'], color = "black", label = "Length")
             axs[1].plot(x, d['hs_command_length'], color = "tab:red", linestyle='--', label = "Length \ncommand")
-            axs[1].legend(loc='upper left', bbox_to_anchor=[0.5, 0.9], fontsize = 12)        
+            axs[1].legend(loc='upper left', bbox_to_anchor=[0.55, 0.9], fontsize = 12, handlelength=1.0)        
 
         # Force
 
@@ -668,7 +668,7 @@ def superpose_plots(fig_data, batch_file_string):
             axs[2].plot(x, d['force'], label = formatting['labels'][i], color = formatting['color_set'][i], zorder=len(results_files) - i)
 
         else:
-            axs[2].plot(x, d['force'], color = formatting['color_set'][i], zorder=i+1)
+            axs[2].plot(x, d['force'], color = formatting['color_set'][i], zorder=len(results_files) - i)
 
         if formatting['labels'] != []:
             axs[2].legend(loc='upper left', bbox_to_anchor=[0.65, 0.65], fontsize = 11)
@@ -787,6 +787,7 @@ def dose_response(fig_data, batch_file_string):
     # Get the myotrope dose list
 
     dose = fig_data["dose_list"]
+    drug_effect = fig_data["drug_effect"] # define if it is an increasing/decreasing Hill curve
     dose_counter = 0
     keep_going = True
 
@@ -836,7 +837,7 @@ def dose_response(fig_data, batch_file_string):
         markerfacecolor = formatting['color_set'][0],
         markeredgewidth=0.0)
     # Add fit
-    res=cv.fit_dose_response(dose,y_values)
+    res=cv.fit_IC_50(dose,y_values, drug_effect)
 
     # Store data
     IC_50.append(res['IC_50'])
@@ -886,13 +887,13 @@ def dose_response(fig_data, batch_file_string):
 
     ax.text(x_anchor,
                  y_anchor,
-                 'IC$\\mathregular{_{50}}$',
+                 'IC$\\mathregular{_{50}}$ ($\\mathregular{\mu}$M)',
                  fontfamily=formatting['fontname'],
                  fontsize=formatting['table_fontsize'],
                  horizontalalignment='center',
                  verticalalignment='center',
                  clip_on=False)
-    ax.text(x_anchor + 100 * formatting['table_x_spacing'],
+    ax.text(x_anchor + 150 * formatting['table_x_spacing'],
                  y_anchor,
                  'n$\\mathregular{_{H}}$',
                  fontfamily=formatting['fontname'],
@@ -912,7 +913,7 @@ def dose_response(fig_data, batch_file_string):
                     horizontalalignment='center',
                     verticalalignment='center',
                     clip_on=False)
-        ax.text(x_anchor + 100 * formatting['table_x_spacing'],
+        ax.text(x_anchor + 150 * formatting['table_x_spacing'],
                     y_anchor,
                     '%.2f' % n_H[i],
                     fontfamily=formatting['fontname'],

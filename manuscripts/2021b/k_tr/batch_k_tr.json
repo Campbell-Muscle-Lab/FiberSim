@@ -20,26 +20,17 @@
         "protocol_file": "sim_input/pCa45_protocol.txt",
         "results_file": "sim_output/results_2.txt",
         "output_handler_file": "sim_input/output_handler_2.json"
-      },
-      {
-        "relative_to": "this_file",
-        "model_file": "sim_input/model.json",
-        "options_file": "sim_input/options_3.json",
-        "protocol_file": "sim_input/pCa45_protocol.txt",
-        "results_file": "sim_output/results_3.txt",
-        "output_handler_file": "sim_input/output_handler_3.json"
       }
     ],
     "batch_figures": {
 
-      "superpose_plots": [
+      "superpose_ktr_plots": [
         {
           "relative_to": "this_file",
           "results_folder": "sim_output",
           "output_image_file_string": "sim_output/superposed_summary.png",
           "formatting": {
-            "color_set": [ "#0033a0", "#df2935b3", "#a0001b" ],
-            "labels": [ "1 BS", "3 BS", "5 BS" ]
+            "color_set": [ "#0033a0", "#a0001b" ]
           }
 
         }

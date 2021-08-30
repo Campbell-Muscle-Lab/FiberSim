@@ -130,10 +130,10 @@ def run_batch(json_batch_file_string=[],
                 analyses.create_ktr_figure(fig_data,
                                           json_batch_file_string)
 
-        if ('superpose_plots' in batch_figures):
+        if ('superpose_ktr_plots' in batch_figures):
             print('Now generating superposing plots')
-            for fig_data in batch_figures['superpose_plots']:
-                analyses.superpose_plots(fig_data,
+            for fig_data in batch_figures['superpose_ktr_plots']:
+                analyses.superpose_ktr_plots(fig_data,
                                           json_batch_file_string)
 
         if ('myotrope' in batch_figures):

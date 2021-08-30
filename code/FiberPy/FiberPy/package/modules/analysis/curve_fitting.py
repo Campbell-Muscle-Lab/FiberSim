@@ -42,10 +42,10 @@ def fit_pCa_data(x,y):
 
     return d
 
-def fit_dose_response(x,y):
-    """ Fits Hill-curve to x-y data """
+def fit_IC_50(x,y, type_curve = "increasing"):
+    """ Fits increasing or decreasing Hill-curve to x-y data for drug-response"""
 
-    def y_pCa(x_data, IC_50, n_H, y_min, y_amp):
+    def y_drug_pos(x_data, IC_50, n_H, y_min, y_amp): # increasing Hill curve
         y = np.zeros(len(x_data))
         for i,x in enumerate(x_data):
             y[i] = y_min + \
@@ -54,10 +54,26 @@ def fit_dose_response(x,y):
                      np.power(IC_50, n_H)))
         return y
 
- 
-    popt, pcov = curve_fit(y_pCa, x, y,
-                            [0.5, 1.5, 5, 50], maxfev = 10000)
+    def y_drug_neg(x_data, IC_50, n_H, y_min, y_amp): # decreasing Hill curve
+        y = np.zeros(len(x_data))
+        for i,x in enumerate(x_data):
+            y[i] = (y_amp + y_min) - \
+                y_amp * (np.power(x, n_H) /
+                (np.power(x, n_H) + 
+                     np.power(IC_50, n_H)))
+        return y
 
+    try:
+        
+        if type_curve == "increasing":
+            popt, pcov = curve_fit(y_drug_pos, x, y,
+                    [0.5, 1.5, np.amax([0, np.amin(y)]), np.amax([0, np.amax(y)])])
+        elif type_curve == "decreasing":
+            popt, pcov = curve_fit(y_drug_neg, x, y,
+                    [0.5, 1.5, np.amax([0, np.amin(y)]), np.amax([0, np.amax(y)])])            
+    except:
+        print('fit_IC_50 failed')
+        popt = [0.5, 1.5, np.amax([0, np.amin(y)]), np.amax([0, np.amax(y)])]                               
 
     d = dict()
     d['IC_50'] = popt[0]
@@ -65,7 +81,10 @@ def fit_dose_response(x,y):
     d['y_min']  = popt[2]
     d['y_max']  = popt[3]
     d['x_fit']  = np.linspace(0.01, 100, 10000)
-    d['y_fit']  = y_pCa(d['x_fit'], *popt)
+    if type_curve == "increasing":
+        d['y_fit']  = y_drug_pos(d['x_fit'], *popt)
+    elif type_curve == "decreasing":
+        d['y_fit']  = y_drug_neg(d['x_fit'], *popt)
 
     return d
 
