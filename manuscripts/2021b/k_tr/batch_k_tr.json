@@ -30,7 +30,8 @@
           "results_folder": "sim_output",
           "output_image_file_string": "sim_output/superposed_summary.png",
           "formatting": {
-            "color_set": [ "#0033a0", "#a0001b" ]
+            "color_set": [ "#0033a0", "#a0001b" ],
+            "labels":  ["1 BS", "2 BS"]
           }
 
         }
