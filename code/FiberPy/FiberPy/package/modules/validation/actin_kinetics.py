@@ -83,30 +83,48 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder):
                 unit_state_1 = thin_fil_1["unit_status"][unit_ind] # Unit at time t + dt
                 
                 bs_idx_start = (unit_ind // a_strands_per_filament) * a_bs_per_unit * a_strands_per_filament + (unit_ind %2) 
-                
-                # Evaluate the neighbouring units status
-                
-                coop_left = 0
-                coop_right = 0
-                coop_idx = 0
-                
-                if unit_ind > 1:
-                    coop_left += thin_fil_0["unit_status"][unit_ind - 2] - 1                                       
-                    
-                if unit_ind < a_strands_per_filament * a_regulatory_units_per_strand - 2:
-                    coop_right += thin_fil_0["unit_status"][unit_ind + 2] - 1
-                                                        
-                coop_idx = coop_left + coop_right
+            
                 
                 # Evaluate unit status
                                       
-                if unit_state_0 == 1: # Unit is OFF                  
+                if unit_state_0 == 1: # Unit is OFF   
+                
+                    # Evaluate the neighbouring units status
+                
+                    coop_left = 0
+                    coop_right = 0
+                    coop_idx = 0
+                    
+                    if unit_ind > 1:
+                        coop_left += thin_fil_0["unit_status"][unit_ind - 2] - 1                                       
+                        
+                    if unit_ind < a_strands_per_filament * a_regulatory_units_per_strand - 2:
+                        coop_right += thin_fil_0["unit_status"][unit_ind + 2] - 1
+                                                            
+                    coop_idx = coop_left + coop_right
+                
                     pot_on[coop_idx] += 1 # Unit can always turn ON
                     
                     if unit_state_1 == 2: # Unit activates
                         trans_on[coop_idx] +=1 
                         
                 elif unit_state_0 == 2: # Unit is ON
+                
+                    # Evaluate the neighbouring units status
+                
+                    coop_left = 0
+                    coop_right = 0
+                    coop_idx = 0
+                    
+                    if unit_ind > 1:
+                        if thin_fil_0["unit_status"][unit_ind - 2] == 1:
+                            coop_left = 1                                      
+                        
+                    if unit_ind < a_strands_per_filament * a_regulatory_units_per_strand - 2:
+                        if thin_fil_0["unit_status"][unit_ind + 2] == 1:
+                            coop_right = 1
+                                                            
+                    coop_idx = coop_left + coop_right
 
                     # Unit may deactivate only if there is no CB bound within the unit
                     
@@ -182,7 +200,7 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder):
     coop = [1,2,3]
     
     k_on = [k_on, k_on * (1.0 + k_coop), k_on * ( 1.0 + 2 * k_coop)]
-    k_off = [k_off * (1.0 + 2 * k_coop), k_off * (1.0 + k_coop), k_off]
+    k_off = [k_off, k_off * (1.0 + k_coop), k_off * (1.0 + 2 * k_coop)]
     
     # Transition from OFF to ON
     
@@ -192,10 +210,10 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder):
              abs(rate_conf_inter_on_pos - rate_on)]
         
     plt.figure(constrained_layout=True)
-    # plt.errorbar(coop, rate_on, yerr = y_err, label = "calculated rate", 
-    #           ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
+    plt.errorbar(coop, rate_on, yerr = y_err, label = "calculated rate", 
+              ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
     plt.plot(coop, k_on, 'ro', label = "model rate", markersize = 6, zorder=2)
-    plt.plot(coop, rate_on, 'bs', label = "calculated rate", markersize = 6, zorder=2)
+    #plt.plot(coop, rate_on, 'bs', label = "calculated rate", markersize = 6, zorder=2)
     plt.ylabel("Rate (M$^{-1}$ s$^{-1}$)")
     plt.xlim([0,4])
     plt.xticks([1,2,3], labels = ["no coop", "coop", "double coop"])
@@ -213,13 +231,13 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder):
              abs(rate_conf_inter_off_pos - rate_off)]
         
     plt.figure(constrained_layout=True)
-    # plt.errorbar(coop, rate_off, yerr = y_err, label = "calculated rate", 
-    #               ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
+    plt.errorbar(coop, rate_off, yerr = y_err, label = "calculated rate", 
+                  ecolor = "tab:grey", fmt='s', markersize = 8, markerfacecolor='tab:grey', markeredgecolor = "tab:grey", zorder=1)
     plt.plot(coop, k_off, 'ro', label = "model rate", markersize = 6, zorder=2)
-    plt.plot(coop, rate_off, 'bs', label = "calculated rate", markersize = 6, zorder=2)
+    #plt.plot(coop, rate_off, 'bs', label = "calculated rate", markersize = 6, zorder=2)
     plt.ylabel("Rate (s$^{-1}$)")
     plt.xlim([0,4])
-    plt.xticks([1,2,3], labels = ["double coop", "coop", "no coop"])
+    plt.xticks([1,2,3], labels = ["no coop", "coop", "double coop"])
     plt.gca().spines['top'].set_visible(False)
     plt.gca().spines['right'].set_visible(False)
     plt.title("Active to inactive transition rates")

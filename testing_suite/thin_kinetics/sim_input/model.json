@@ -72,7 +72,7 @@
               "new_state": 2,
               "rate_type": "gaussian",
               "rate_parameters": [
-                50
+               50
               ]
             }
           ]
