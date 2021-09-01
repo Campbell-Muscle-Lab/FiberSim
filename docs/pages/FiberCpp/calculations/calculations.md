@@ -46,7 +46,7 @@ where $K$ is a matrix containing the springs stiffness, $x$ is a vector containi
 and numerical methods exist to solve +Kx=F+ for $x$.
 
 
-## Crossbridge links 
+## Cross-bridge links 
 
 Myosin heads located at the thick filament nodes can attach to neighboring binding sites at the thin filament nodes, thus affecting the filament lattice framework. 
 
@@ -54,11 +54,11 @@ Myosin heads located at the thick filament nodes can attach to neighboring bindi
   <img alt="cb_link" src="cb_link.png">
 </p>
 
-A crossbridge located at the $j^{th}$ thick filament node which attaches to the $i^{th}$ node of the thin filament generates a force $f_{cb}$ given by:
+A cross-bridge located at the $j^{th}$ thick filament node which attaches to the $i^{th}$ node of the thin filament generates a force $f_{cb}$ given by:
 
 ++f_{cb} = k_{cb} \, (m_j - a_i + x_{ps})++
 
-where  $k_{cb}$ is the crossbridge spring stiffness and $x_{ps}$ is the crossbridge extension when deploying the power stroke.
+where  $k_{cb}$ is the cross-bridge spring stiffness and $x_{ps}$ is the crossbridge extension when deploying the power stroke.
 
 This additional force on the filaments should be added to the force-balance equations :
 
@@ -74,7 +74,7 @@ The terms in red will add non-tridiagonal, opposite elements to the $K$ matrix:
 
 while the blue terms will contribute to the $F$ vector. 
 
-Crossbridge linking toughens the numerical solving of +K x = F+, which notably requires an iterative procedure to find a solution $x$ that satisfies a certain precision. 
+Cross-bridge linking toughens the numerical solving of +K x = F+, which notably requires an iterative procedure to find a solution $x$ that satisfies a certain precision. 
 
 ## Titin 
 
@@ -94,7 +94,7 @@ Myosin Binding Protein C (MyBP-C) is a striated muscle contracting protein. It i
   <img alt="MyBPC" src="c_zone.png">
 </p>
 
-This protein interacts both with myosin and actin and is a modulator of cardiac contractility. In the model, MyBPC can attach to an actin binding site and act as a "non-force-generating crossbridge link" (meaning it cannot undergo a power stroke). Such C-links contribute to the force-balance equations:
+This protein interacts both with myosin and actin and is a modulator of cardiac contractility. In the model, MyBPC can attach to an actin binding site and act as a "non-force-generating cross-bridge link" (meaning it cannot undergo a power stroke). Such C-links contribute to the force-balance equations:
 
  ++f_{pc} = k_{pc} \, (m_j - a_i)++
  
