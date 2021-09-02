@@ -24,6 +24,6 @@ The main components of the software are:
 
 ## Getting started
 
-Check the [demos](pages/demos/demos.html) to see how to:
+Quick tutorial videos are provided [here](pages/videos/howtos/howtos.html) to help you install FiberSim. Then you can check the [demos](pages/demos/demos.html) to see how to:
 + Run simulations
 + Create videos and snap-shots of the model
