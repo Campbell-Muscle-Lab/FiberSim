@@ -47,7 +47,7 @@ conda activate fibersim
 
 All of the results from the simulation are written to files in `<FiberSim_dir>/demo_files/k_tr/single_trial/sim_output`
 
-<img src='folder.PNG' width="100%">
+<img src='folder.png' width="100%">
 
 + The file `results.txt` contains the summary data for the simulation.
 
