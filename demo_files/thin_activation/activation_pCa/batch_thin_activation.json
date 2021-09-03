@@ -160,7 +160,7 @@
                 "relative_to": "this_file",
                 "results_folder": "sim_output",
                 "data_field": "a_pop_1",
-                "output_image_file_string": "sim_output/force_pCa_curve.png",
+                "output_image_file_string": "sim_output/activation_pCa_curve.png",
                 "output_data_file_string": "sim_output/analysis.xlsx",
                 "formatting": {
                   "y_axis_label": "Active binding \nsites proportion",
