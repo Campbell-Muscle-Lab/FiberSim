@@ -115,6 +115,14 @@
         "relative_to": "this_file",
         "model_file": "sim_input\\2\\model_2.json",
         "options_file": "sim_input/sim_options.json",
+        "protocol_file": "sim_input\\2\\pCa_550\\prot_pCa_550.txt",
+        "results_file": "sim_output\\2\\pCa_550_results.txt",
+        "output_handler_file": "sim_input\\2\\pCa_550\\output_handler_550.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input\\2\\model_2.json",
+        "options_file": "sim_input/sim_options.json",
         "protocol_file": "sim_input\\2\\pCa_540\\prot_pCa_540.txt",
         "results_file": "sim_output\\2\\pCa_540_results.txt",
         "output_handler_file": "sim_input\\2\\pCa_540\\output_handler_540.json"
