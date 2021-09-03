@@ -1,0 +1,8 @@
+{
+  "options": {
+    "max_rate": 1e4,
+    "x_pos_rel_tol": 1,
+    "lambda_jitter": 42.9,
+    "adjacent_bs": 2
+  }
+}
