@@ -281,9 +281,12 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         for (int i = 0; i < (int)ca.Size(); i++)
         {
             gsl_vector_set(a_k_coop, i, ca[i].GetDouble());
+
+            printf("a_k_coop = [%.2f] \n", gsl_vector_get(a_k_coop, i));
         }
     }
-    else 
+    else {
+
         JSON_functions::check_JSON_member_number(thin_parameters, "a_k_coop");
         double coop = thin_parameters["a_k_coop"].GetDouble();
 
@@ -292,7 +295,11 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
 
         gsl_vector_set(a_k_coop, 0, coop); // first element
         gsl_vector_set(a_k_coop, (size_t)(2.0 * a_strands_per_filament), coop); // last element
+    }
 
+    for (int i = 0; i < 5; i++) {
+        printf("a_k_coop = [%.2f] \n", gsl_vector_get(a_k_coop, i));
+    }
     // Load the thick_parameters
     JSON_functions::check_JSON_member_object(doc, "thick_parameters");
     const rapidjson::Value& thick_parameters = doc["thick_parameters"];

@@ -188,7 +188,15 @@ half_sarcomere::half_sarcomere(
     a_k_stiff = p_fs_model->a_k_stiff;
     a_k_on = p_fs_model->a_k_on;
     a_k_off = p_fs_model->a_k_off;
-    a_k_coop = p_fs_model->a_k_coop;
+    //a_k_coop = p_fs_model->a_k_coop;
+
+    a_k_coop = gsl_vector_alloc(5);
+
+    for (int i = 0; i < 5; i++) {
+        gsl_vector_set(a_k_coop, i, gsl_vector_get(p_fs_model->a_k_coop, i));
+
+        //printf("a_k_coop = [%.2f] \n", gsl_vector_get(p_fs_model->a_k_coop, i));
+    }
 
     m_no_of_cb_states = p_fs_model->p_m_scheme[0]->no_of_states;
     m_k_stiff = p_fs_model->m_k_stiff;
@@ -2513,6 +2521,9 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
                             if (neighbor_status == 2)
                                 coop_boost = coop_boost + gsl_vector_get(a_k_coop, idx);
+
+                        //printf("a_k_coop = [%.2f] \n", gsl_vector_get(a_k_coop, idx));
+
                     }
 
                     rate = a_k_on * Ca_conc * (1.0 + coop_boost);
@@ -2547,7 +2558,7 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
                             int neighbor_status = gsl_vector_short_get(nearest_unit_status, idx);
 
-                            if (neighbor_status == 2)
+                            if (neighbor_status == 1)
                                 coop_boost = coop_boost + gsl_vector_get(a_k_coop, idx);
                         }
 
