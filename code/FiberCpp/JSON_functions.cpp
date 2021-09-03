@@ -124,6 +124,15 @@ namespace JSON_functions {
             return 0;
     }
 
+    //! Checks if JSON member number is an array
+    int is_JSON_member_array(const rapidjson::Value& doc, const char mem_name[])
+    {
+        if (doc[mem_name].IsArray())
+            return 1;
+        else
+            return 0;
+    }
+
     //! Writes gsl_vector to JSON file
     void write_gsl_vector_as_JSON_array(gsl_vector* p_v, FILE* output_file,
         char label_string[], bool is_last_entry, int precision)

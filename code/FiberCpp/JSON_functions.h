@@ -63,6 +63,15 @@ namespace JSON_functions {
     int is_JSON_member(const rapidjson::Value& doc, const char mem_name[]);
 
     /**
+    * a function that checks whether mem_name is an array
+    * @param doc a pointer to a rapidjson::Document
+    * @param memname[] a character array
+    * @return int, 0 if not array, 1 if array
+    */
+
+    int is_JSON_member_array(const rapidjson::Value& doc, const char mem_name[]);
+
+    /**
     * a function that adds a gsl_vector to a file as a line in JSON format
     * @param p_v a pointer to a gsl_vector
     * @param output_file a pointer to the file stream (which must be open)
@@ -71,6 +80,8 @@ namespace JSON_functions {
     *        + if it is not, add a , to the end of the line
     * @param precision the precision that doubles are output with
     */
+
+
     void write_gsl_vector_as_JSON_array(gsl_vector* p_v, FILE* output_file,
         char label_string[], bool is_last_entry, int precision);
 

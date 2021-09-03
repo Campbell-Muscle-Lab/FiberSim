@@ -2434,8 +2434,12 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
     gsl_vector_short * bs_indices;
 
+    gsl_vector_short* nearest_unit_status;
+
     // Code
     bs_indices = gsl_vector_short_alloc(a_bs_per_unit);
+
+    nearest_unit_status = gsl_vector_short_alloc((int)(2 * a_strands_per_filament + 1));
 
     // Loop through thin filaments
     for (int a_counter = 0; a_counter < a_n; a_counter++)
@@ -2448,20 +2452,53 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
             {
                 int unit_counter = str_counter + (unit * a_strands_per_filament);
 
-                // Deduce the status of the neighbors
-                if (unit_counter >= a_strands_per_filament)
-                    down_neighbor_status =
-                        gsl_vector_short_get(p_af[a_counter]->unit_status,
-                                ((size_t)unit_counter - (size_t)a_strands_per_filament));
-                else
-                    down_neighbor_status = -1;
+                // Initialize nearest_unit_status vector
 
-                if (unit_counter <= (a_strands_per_filament * a_regulatory_units_per_strand - a_strands_per_filament - 1))
-                    up_neighbor_status =
-                        gsl_vector_short_get(p_af[a_counter]->unit_status,
-                            ((size_t)unit_counter + (size_t)a_strands_per_filament));
-                else
-                    up_neighbor_status = -1;
+                gsl_vector_short_set_all(nearest_unit_status, -1);
+
+                // Deduce the status of the neighbors
+                if (unit_counter >= a_strands_per_filament && unit_counter <= (a_strands_per_filament * a_regulatory_units_per_strand - a_strands_per_filament - 1)) 
+                {
+
+                    for (int idx = 0; idx < 2 * a_strands_per_filament + 1; idx++)
+                    {
+                        int neighbor_status = gsl_vector_short_get(p_af[a_counter]->unit_status,
+                            unit_counter + idx - a_strands_per_filament);
+
+                        gsl_vector_short_set(nearest_unit_status, idx, neighbor_status);
+                    }
+                }
+                  
+                else if(unit_counter < a_strands_per_filament) // Unit 0 & Unit 1
+                {
+                    for (int idx = a_strands_per_filament + 1; idx < 2 * a_strands_per_filament + 1; idx++)
+                    {
+                        int neighbor_status = gsl_vector_short_get(p_af[a_counter]->unit_status,
+                            unit_counter + idx - a_strands_per_filament);
+
+                        gsl_vector_short_set(nearest_unit_status, idx, neighbor_status);
+                    }
+
+                }
+
+                else if (unit_counter > (a_strands_per_filament * a_regulatory_units_per_strand 
+                                            - a_strands_per_filament - 1)) // Unit 52 & Unit 53
+                {
+                    for (int idx = 0; idx < a_strands_per_filament; idx++)
+                    {
+                    int neighbor_status = gsl_vector_short_get(p_af[a_counter]->unit_status,
+                        unit_counter + idx - a_strands_per_filament);
+
+                    gsl_vector_short_set(nearest_unit_status, idx, neighbor_status);
+                    }
+
+                }
+                  
+                // Set status of BS from the same node
+
+                int neighbor_status = gsl_vector_short_get(p_af[a_counter]->unit_status,
+                    unit_counter + (int)gsl_pow_int(-1, str_counter));
+                gsl_vector_short_set(nearest_unit_status, a_strands_per_filament, neighbor_status);
 
                 // Set the indices for the unit
                 p_af[a_counter]->set_regulatory_unit_indices(unit_counter, bs_indices);
@@ -2470,10 +2507,13 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                 {
                     // Site is off and can turn on
                     coop_boost = 0.0;
-                    if (down_neighbor_status == 2)
-                        coop_boost = coop_boost + a_k_coop;
-                    if (up_neighbor_status == 2)
-                        coop_boost = coop_boost + a_k_coop;
+                    for (int idx = 0; idx < 2 * a_strands_per_filament + 1; idx++) {
+
+                        int neighbor_status = gsl_vector_short_get(nearest_unit_status, idx);
+
+                            if (neighbor_status == 2)
+                                coop_boost = coop_boost + gsl_vector_get(a_k_coop, idx);
+                    }
 
                     rate = a_k_on * Ca_conc * (1.0 + coop_boost);
 
@@ -2503,10 +2543,13 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                     if (unit_occupied == 0)
                     {
                         coop_boost = 0.0;
-                        if (down_neighbor_status == 1)
-                            coop_boost = coop_boost + a_k_coop;
-                        if (up_neighbor_status == 1)
-                            coop_boost = coop_boost + a_k_coop;
+                        for (int idx = 0; idx < 2 * a_strands_per_filament + 1; idx++) {
+
+                            int neighbor_status = gsl_vector_short_get(nearest_unit_status, idx);
+
+                            if (neighbor_status == 2)
+                                coop_boost = coop_boost + gsl_vector_get(a_k_coop, idx);
+                        }
 
                         rate = a_k_off * (1.0 + coop_boost);
 

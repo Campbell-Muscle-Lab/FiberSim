@@ -127,7 +127,7 @@ public:
                                               for binding site de-activation in units
                                               of s^-1 */
 
-    double a_k_coop;                     /**< double defining cooperativity
+    gsl_vector* a_k_coop;                   /**< vector defining cooperativity
                                               dimensionless */
 
     // Titin structure

@@ -82,6 +82,7 @@ FiberSim_model::~FiberSim_model()
     // Delete gsl_vector
     gsl_vector_free(m_isotype_props);
     gsl_vector_free(c_isotype_props);
+    gsl_vector_free(a_k_coop);
 }
 
 // Functions
@@ -270,8 +271,27 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(thin_parameters, "a_k_off");
     a_k_off = thin_parameters["a_k_off"].GetDouble();
 
-    JSON_functions::check_JSON_member_number(thin_parameters, "a_k_coop");
-    a_k_coop = thin_parameters["a_k_coop"].GetDouble();
+    if (JSON_functions::is_JSON_member_array(thin_parameters, "a_k_coop"))
+    {
+        const rapidjson::Value& ca = thin_parameters["a_k_coop"];
+        int coop_array_size = ca.Size();
+        a_k_coop = gsl_vector_alloc(coop_array_size);
+        gsl_vector_set_zero(a_k_coop);
+
+        for (int i = 0; i < (int)ca.Size(); i++)
+        {
+            gsl_vector_set(a_k_coop, i, ca[i].GetDouble());
+        }
+    }
+    else 
+        JSON_functions::check_JSON_member_number(thin_parameters, "a_k_coop");
+        double coop = thin_parameters["a_k_coop"].GetDouble();
+
+        a_k_coop = gsl_vector_alloc((size_t)(2.0 * a_strands_per_filament + 1));
+        gsl_vector_set_zero(a_k_coop);
+
+        gsl_vector_set(a_k_coop, 0, coop); // first element
+        gsl_vector_set(a_k_coop, (size_t)(2.0 * a_strands_per_filament), coop); // last element
 
     // Load the thick_parameters
     JSON_functions::check_JSON_member_object(doc, "thick_parameters");
@@ -433,7 +453,7 @@ void FiberSim_model::write_FiberSim_model_to_file(void)
     fprintf_s(output_file, "\t\"a_k_stiff\": %g,\n", a_k_stiff);
     fprintf_s(output_file, "\t\"a_k_on\": %g,\n", a_k_on);
     fprintf_s(output_file, "\t\"a_k_off\": %g,\n", a_k_off);
-    fprintf_s(output_file, "\t\"a_k_coop\": %g},\n", a_k_coop);
+    fprintf_s(output_file, "\t\"a_k_coop\": %g},\n", gsl_vector_get(a_k_coop,0));
 
     fprintf_s(output_file, "\"titin_parameters\":{\n");
     fprintf_s(output_file, "\t\"t_k_stiff\": %g,\n", t_k_stiff);
