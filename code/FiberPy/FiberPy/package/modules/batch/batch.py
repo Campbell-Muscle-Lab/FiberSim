@@ -19,6 +19,8 @@ from ..display import analyses
 
 from ..validation import validation
 
+from ..analysis import atp_cons
+
 
 def run_batch(json_batch_file_string=[],
               batch_structure=[]):
@@ -88,7 +90,7 @@ def run_batch(json_batch_file_string=[],
         else:
             for thread in threads:
                 if not thread.is_alive():
-                    threads.remove(thread)
+                    threads.remove(thread)  
 
     # At this point we have run all the simulations
     # Run the output handlers
@@ -146,6 +148,12 @@ def run_batch(json_batch_file_string=[],
     if ('batch_validation' in batch_structure):
         for validation_data in batch_structure['batch_validation']:
                 validation.run_validation(validation_data,json_batch_file_string)
+
+    # Now see if we have to calculate ATP consumption rate
+    if ('ATP_consumption' in batch_structure):
+        print('Now calculating ATP consumption')
+        for data in batch_structure['ATP_consumption']:
+                atp_cons.get_ATP_cons(data,json_batch_file_string)
 
     print('FiberPy: run_batch() closing correctly')
 
