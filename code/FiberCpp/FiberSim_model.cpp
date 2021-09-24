@@ -319,11 +319,19 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_string(extracellular_parameters, "e_passive_mode");
     sprintf_s(e_passive_mode, _MAX_PATH, extracellular_parameters["e_passive_mode"].GetString());
 
-    JSON_functions::check_JSON_member_number(extracellular_parameters, "e_sigma");
-    e_sigma = extracellular_parameters["e_sigma"].GetDouble();
+    if (!strcmp(e_passive_mode, "exponential"))
+    {
+        JSON_functions::check_JSON_member_number(extracellular_parameters, "e_sigma");
+        e_sigma = extracellular_parameters["e_sigma"].GetDouble();
 
-    JSON_functions::check_JSON_member_number(extracellular_parameters, "e_L");
-    e_L = extracellular_parameters["e_L"].GetDouble();
+        JSON_functions::check_JSON_member_number(extracellular_parameters, "e_L");
+        e_L = extracellular_parameters["e_L"].GetDouble();
+    }
+    else
+    {
+        JSON_functions::check_JSON_member_number(extracellular_parameters, "e_k_stiff");
+        e_k_stiff = extracellular_parameters["e_k_stiff"].GetDouble();
+    }
 
     JSON_functions::check_JSON_member_number(extracellular_parameters, "e_slack_length");
     e_slack_length = extracellular_parameters["e_slack_length"].GetDouble();

@@ -155,6 +155,8 @@ public:
 
     double e_L;                         /**< double defining passive curvature */
 
+    double e_k_stiff;                   /**< double defining passive stiffness */
+
     double e_slack_length;              /**< double defining slack length of extracellular
                                              component */
 
