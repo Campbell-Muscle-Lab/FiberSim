@@ -202,8 +202,15 @@ half_sarcomere::half_sarcomere(
 
     // Extracellular parameters
     sprintf_s(e_passive_mode, _MAX_PATH, p_fs_model->e_passive_mode);
-    e_sigma = p_fs_model->e_sigma;
-    e_L = p_fs_model->e_L;
+    if (!strcmp(e_passive_mode, "exponential"))
+    {
+        e_sigma = p_fs_model->e_sigma;
+        e_L = p_fs_model->e_L;
+    }
+    else
+    {
+        e_k_stiff = p_fs_model->e_k_stiff;
+    }
     e_slack_length = p_fs_model->e_slack_length;
 
     m_k_cb = p_fs_model->m_k_cb;
@@ -1403,6 +1410,12 @@ double half_sarcomere::calculate_extracellular_force(void)
         else
             pas_force = p_fs_model->prop_fibrosis *
                 e_sigma * (exp(-(hs_length - e_slack_length) / e_L) - 1.0);
+    }
+    
+    if (!strcmp(e_passive_mode, "linear"))
+    {
+        pas_force = p_fs_model->prop_fibrosis *
+            e_k_stiff * (hs_length - e_slack_length);
     }
 
     return pas_force;

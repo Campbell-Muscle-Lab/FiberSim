@@ -151,6 +151,19 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 			(1e18 * 1.38e-23 * 310.0));
 	}
 
+	// Force-dependent gaussian
+	if (!strcmp(rate_type, "force_dependent_gaussian"))
+	{
+		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+		double k_cb = p_model->m_k_cb;
+
+		rate = gsl_vector_get(rate_parameters, 0) *
+			(1.0 + (gsl_max(node_force, 0.0) * gsl_vector_get(rate_parameters, 1))) *
+				exp(-(0.5 * k_cb * gsl_pow_int(x, 2)) /
+					(1e18 * 1.38e-23 * 310.0));
+	}
+
+
 	// Gaussian MyBP-C 
 
 	if (!strcmp(rate_type, "gaussian_pc"))
