@@ -18,6 +18,7 @@ Here is a simple example from the [isometric_activation_demo](../../demos/gettin
 ````
 {
     "FiberSim_batch": {
+        "max_threads": 20,
         "FiberCpp_exe":
         {
             "relative_to": "this_file",
@@ -94,11 +95,56 @@ In this case, the protocol filenames show that the two jobs define simulations f
 
 ### Parallel processing
 
-If the batch contains more than 1 job, FiberPy will attempt to run each job in parallel as a separate thread using all but one of the available processors on the machine.
+If the batch contains more than 1 job, FiberPy can run each job using a separate thread. This means that you can run simulations in parallel which saves wall time.
 
-Thus, if the PC has 4 processors, you can run 3 jobs in almost the same time as you can run one.
+By default, FiberPy will try to use all but one of the available threads on the machine. Thus, if you have 4 threads available on your PC, FiberPy will use up to three threads at a time (leaving one thread spare to keep your computer "responsive"). If the batch has more than 3 jobs, FiberPy will launch the first 3 together, and then launch subsequent jobs as the initial tasks finish and new threads become available.
 
-If the batch has more than 3 jobs, FiberPy will run the jobs in sequence based on the availability of processors, in this case starting the first 3 jobs simultaneously, and then launching the 4th job once the first simulation has finished.
+If you have a PC with many threads, you might want to keep some threads available for other tasks. You can do this by adding a single key to the batch structure.
 
-Note that your computer will other programs more slowly if it is using most of its processors to run FiberSim calculations.
+| Key | Comment |
+| ---- | ---- |
+| max_threads | the maximum number of threads FiberPy can use |
 
+Here is an example.
+
+````
+    "FiberSim_batch": {
+        "max_threads": 20,
+        "FiberCpp_exe":
+        {
+            "relative_to": 0,
+            "exe_file": "c:/ken/github/campbellmusclelab/models/fibersim/bin/fibercpp.exe"
+        },
+       "job":
+       [
+            {
+                "relative_to": "this_file",
+                "model_file": "temp\\1\\pCa_650\\model_worker.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_650\\prot_pCa_650.txt",
+                "output_handler_file": "sim_input\\1\\pCa_650\\output_handler_650.json",
+                "results_file": "temp\\1\\pCa_650\\results.txt"
+            },    
+            {
+                "relative_to": "this_file",
+                "model_file": "temp\\1\\pCa_600\\model_worker.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_600\\prot_pCa_600.txt",
+                "output_handler_file": "sim_input\\1\\pCa_600\\output_handler_600.json",
+                "results_file": "temp\\1\\pCa_600\\results.txt"
+            }
+<SNIP>
+Many jobs
+</SNIP>
+            {
+                "relative_to": "this_file",
+                "model_file": "temp\\1\\pCa_580\\model_worker.json",
+                "options_file": "sim_input/sim_options.json",
+                "protocol_file": "sim_input\\1\\pCa_580\\prot_pCa_580.txt",
+                "output_handler_file": "sim_input\\1\\pCa_580\\output_handler_580.json",
+                "results_file": "temp\\1\\pCa_580\\results.txt"
+            }
+       ]
+    }
+}
+````

@@ -75,9 +75,21 @@ def run_batch(json_batch_file_string=[],
             com_string = '%s "%s"' % (com_string, fs)
 
         command_strings.append(com_string)
+    
+    # Check the batch to see if max threads have been specified
+    if ('max_threads' in batch_structure):
+        requested_max_threads = batch_structure['max_threads']
+    else:
+        requested_max_threads = float("inf")
+        
+    # Get max threads available
+    available_threads = multiprocessing.cpu_count()-1
 
-    # Now run the batch using all but 1 cpi
-    num_processes = (multiprocessing.cpu_count() - 1)
+    # Set processes to mininmum of requested and available
+    num_processes = int(min([requested_max_threads, available_threads]))
+    print('Running batch using %i threads' % num_processes)
+
+    # Now run the batch
     my_list = command_strings
 
     threads = []
