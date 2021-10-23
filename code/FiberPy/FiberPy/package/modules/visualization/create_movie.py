@@ -74,7 +74,7 @@ def create_hs_movie(dump_folder, movie_folder):
         
     video_path = os.path.join(movie_folder, "snapshots_movie.mp4")
     
-    out = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'MP4V'), 10, size)
+    out = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'mp4v'), 10, size)
     
     for i in range(len(img_array)):
         out.write(img_array[i])

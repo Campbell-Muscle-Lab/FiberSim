@@ -101,7 +101,7 @@
           "relative_to": "this_file",
           "results_folder": "sim_output",
           "data_field": "force",
-          "dose_list": [ 0.01, 0.10, 0.21, 0.34, 0.50, 0.70, 0.97, 1.40, 2.20, 4.50, 45.04 ],
+          "dose_list": [ 0.01, 0.09, 0.19, 0.32, 0.48, 0.7, 1.01, 1.52, 2.50, 5.40, 57.17 ],
           "drug_effect": "decreasing",
           "output_image_file_string": "sim_output/mava_dose_response.png",
           "output_data_file_string": "sim_output/analysis.xlsx",

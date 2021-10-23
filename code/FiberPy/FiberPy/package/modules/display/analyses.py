@@ -872,7 +872,7 @@ def dose_response(fig_data, batch_file_string):
 
 
     y_ticks = [0, ut.multiple_greater_than(max_y,
-                            0.05*np.power(10, np.ceil(np.log10(max_y))))]
+                            0.1*np.power(10, np.ceil(np.log10(max_y))))]
 
     ax.set_ylim(y_ticks)
     ax.set_yticks(y_ticks)
