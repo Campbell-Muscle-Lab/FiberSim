@@ -393,25 +393,25 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         ax_pow = fig.add_subplot(gs[1, 0])
 
         # Cycle through curves
-        for c in r['curve']:
+        for c in range(1, curve_counter):
             rc = r[r['curve'] == c]
 
             # Plot the force velocity curve
-            ax_fv.plot(rc['hs_force'], rc['hs_velocity'], 'o')
+            ax_fv.plot(rc['hs_force'], rc['hs_velocity'], 'o', color = formatting['color_set'][c - 1])
             fv_curve = cv.fit_hyperbola(rc['hs_force'], rc['hs_velocity'])
             ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'], '-',
                        color=ax_fv.lines[-1].get_color())
 
-            ax_pow.plot(rc['hs_force'], rc['hs_power'], 'o')
+            ax_pow.plot(rc['hs_force'], rc['hs_power'], 'o', color = formatting['color_set'][c - 1])
             pow_curve = cv.fit_power_curve(rc['hs_force'], rc['hs_power'])
             ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'], '-',
                         color=ax_pow.lines[-1].get_color())
 
         # Tidy up
-        ax_fv.set_xlabel('Force (kN m$\\mathregular{^{-2}}$)',
+        ax_fv.set_xlabel('Force (N m$^{\\mathregular{-2}}$)',
                           fontfamily=formatting['fontname'],
                           loc='center')
-        ax_fv.set_ylabel('Shortening\nvelocity\n(m s$\\mathregular{^{-1}}$)',
+        ax_fv.set_ylabel('Shortening\nvelocity\n(m s$^{\\mathregular{-1}}$)',
                           fontfamily=formatting['fontname'],
                           loc='center',
                           rotation=formatting['y_label_rotation'])
@@ -428,10 +428,10 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                           fontsize=formatting['tick_labels_fontsize'],
                           fontfamily=formatting['fontname'])
 
-        ax_pow.set_xlabel('Force (kN m$\\mathregular{^{-2}}$)',
+        ax_pow.set_xlabel('Force (N m$^{\\mathregular{-2}}$)',
                           fontfamily=formatting['fontname'],
                           loc='center')
-        ax_pow.set_ylabel('Power',
+        ax_pow.set_ylabel('Power\n(W m$^{\\mathregular{-2}}$)',
                           fontfamily=formatting['fontname'],
                           loc='center',
                           rotation=formatting['y_label_rotation'])
@@ -553,7 +553,7 @@ def create_ktr_figure(fig_data, batch_file_string):
         ax_ktr = fig.add_subplot(gs[0,0])
 
         # Cycle through curves
-        for c in r['curve']:
+        for c in range(1, curve_counter):
             rc = r[r['curve'] == c]
 
             # Plot the ktr curve
@@ -648,9 +648,9 @@ def superpose_ktr_plots(fig_data, batch_file_string):
 
         # pCa
 
-        axs[0].plot(x, d['pCa'], color = "black")
+        axs[0].plot(x, d['pCa'], color = formatting['color_set'][i])
 
-        # HSL length + commande
+        # HSL length + command
 
         axs[1].plot(x, d['hs_length'], color = "black")
         axs[1].plot(x, d['hs_command_length'], color = "tab:orange", linestyle='--')

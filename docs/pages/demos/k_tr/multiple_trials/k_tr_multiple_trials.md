@@ -52,11 +52,11 @@ All of the results from the simulation are written to files in `<FiberSim_dir>/d
 
 Each `*.txt` files contains the summary data for a given simulation.
 
-The `*.png` files show a summary figure.
+Each `*.png` file shows a summary figure.
 
-If you opened the text files and plotted the results on a single group of axes, you would see a figure that looked like this.
+The `superposed_summary.png` file is a figure showing the results plotted on a single group of axes.
 
-<img src="superposed.png" width="50%">
+<img src="superposed_summary.png" width="50%">
 
 ## How this worked
 
@@ -66,54 +66,63 @@ The simulations are initiated using the [batch file](../../../structures/batch/b
 
 ````
 {
-    "FiberSim_batch": {
-        "FiberCpp_exe":
+  "FiberSim_batch": {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../bin/FiberCpp.exe"
+    },
+    "job": [
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options.json",
+        "protocol_file": "sim_input/protocol_0.txt",
+        "results_file": "sim_output/results_0.txt",
+        "output_handler_file": "sim_input/output_handler_0.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options.json",
+        "protocol_file": "sim_input/protocol_1.txt",
+        "results_file": "sim_output/results_1.txt",
+        "output_handler_file": "sim_input/output_handler_1.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options.json",
+        "protocol_file": "sim_input/protocol_2.txt",
+        "results_file": "sim_output/results_2.txt",
+        "output_handler_file": "sim_input/output_handler_2.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options.json",
+        "protocol_file": "sim_input/protocol_3.txt",
+        "results_file": "sim_output/results_3.txt",
+        "output_handler_file": "sim_input/output_handler_3.json"
+      },
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options.json",
+        "protocol_file": "sim_input/protocol_4.txt",
+        "results_file": "sim_output/results_4.txt",
+        "output_handler_file": "sim_input/output_handler_4.json"
+      }
+    ],
+    "batch_figures": {
+
+      "superpose_ktr_plots": [
         {
-            "relative_to": "this_file",
-            "exe_file": "../../../bin/FiberCpp.exe"
-        },
-        "job":[
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input/model.json",
-                "options_file": "sim_input/options.json",
-                "protocol_file": "sim_input/protocol_0.txt",
-                "results_file": "sim_output/results_0.txt",
-                "output_handler_file": "sim_input/output_handler_0.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input/model.json",
-                "options_file": "sim_input/options.json",
-                "protocol_file": "sim_input/protocol_1.txt",
-                "results_file": "sim_output/results_1.txt",
-                "output_handler_file": "sim_input/output_handler_1.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input/model.json",
-                "options_file": "sim_input/options.json",
-                "protocol_file": "sim_input/protocol_2.txt",
-                "results_file": "sim_output/results_2.txt",
-                "output_handler_file": "sim_input/output_handler_2.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input/model.json",
-                "options_file": "sim_input/options.json",
-                "protocol_file": "sim_input/protocol_3.txt",
-                "results_file": "sim_output/results_3.txt",
-                "output_handler_file": "sim_input/output_handler_3.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input/model.json",
-                "options_file": "sim_input/options.json",
-                "protocol_file": "sim_input/protocol_4.txt",
-                "results_file": "sim_output/results_4.txt",
-                "output_handler_file": "sim_input/output_handler_4.json"
-            }
-        ]
+          "relative_to": "this_file",
+          "results_folder": "sim_output",
+          "output_image_file_string": "sim_output/superposed_summary.png"
+        }
+      ]
     }
+  }
 }
 ````
