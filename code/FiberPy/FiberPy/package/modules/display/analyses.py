@@ -571,7 +571,7 @@ def create_ktr_figure(fig_data, batch_file_string):
         ax_ktr.invert_xaxis()
 
         # Save figure
-        print('Saving ktr figure to: %s', output_image_file_string)
+        print('Saving ktr figure to: %s'% output_image_file_string)
         dir_name = os.path.dirname(output_image_file_string)
         if (not os.path.isdir(dir_name)):
             os.makedirs(dir_name)
@@ -584,7 +584,7 @@ def create_ktr_figure(fig_data, batch_file_string):
                                           fig_data['output_data_file_string'])
     else:
         output_file_string = fig_data['output_data_file_string']
-    print('Writing force-velocity data to %s' % output_file_string)
+    print('Writing k_tr data to %s' % output_file_string)
     r.to_excel(output_file_string,
                engine='openpyxl',
                index=False)
