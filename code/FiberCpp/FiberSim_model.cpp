@@ -119,6 +119,14 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         fprintf_s(p_fs_options->log_file, "Now setting model data\n");
     }
 
+    // Load the FiberSim version number
+
+    JSON_functions::check_JSON_member_object(doc, "FiberSim");
+    const rapidjson::Value& fs = doc["FiberSim"];
+
+    JSON_functions::check_JSON_member_string(fs, "version");
+    sprintf_s(model_version, _MAX_PATH, fs["version"].GetString());
+
     // Load the muscle parameters
     JSON_functions::check_JSON_member_object(doc, "muscle");
     const rapidjson::Value& mus = doc["muscle"];

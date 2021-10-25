@@ -62,6 +62,8 @@ public:
 
     // Variables
 
+    //static inline std::string const version_number = "2.1.1";
+
     int muscle_id;                      /**< integer labeling the muscle */
 
     int dump_status_counter;            /**< Integer used to track which status files
