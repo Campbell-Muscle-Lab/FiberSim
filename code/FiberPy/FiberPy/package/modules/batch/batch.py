@@ -19,6 +19,8 @@ from ..display import analyses
 
 from ..validation import validation
 
+from ..analysis import thin_activation
+
 
 def run_batch(json_batch_file_string=[],
               batch_structure=[]):
@@ -146,6 +148,12 @@ def run_batch(json_batch_file_string=[],
     if ('batch_validation' in batch_structure):
         for validation_data in batch_structure['batch_validation']:
                 validation.run_validation(validation_data,json_batch_file_string)
+                
+    # Now see if we have to do a thin activation analysis
+    if ('batch_thin_activation' in batch_structure):
+        for thin_activation_data in batch_structure['batch_thin_activation']:
+                thin_activation.run_thin_analysis(thin_activation_data,json_batch_file_string)
+    
 
     print('FiberPy: run_batch() closing correctly')
 

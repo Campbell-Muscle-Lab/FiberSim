@@ -1,19 +1,25 @@
 {
-    "FiberSim_batch": {
-        "FiberCpp_exe":
-        {
-            "relative_to": "this_file",
-            "exe_file": "../../../bin/FiberCpp.exe"
-        },
-        "job":[
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input/model.json",
-                "options_file": "sim_input/options.json",
-                "protocol_file": "sim_input/pCa55_protocol.txt",
-                "results_file": "sim_output/results.txt",
-                "output_handler_file": "sim_input/output_handler.json"
-            }
-        ]
-    }
+  "FiberSim_batch": {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../bin/FiberCpp.exe"
+    },
+    "job": [
+      {
+        "relative_to": "this_file",
+        "model_file": "sim_input/model.json",
+        "options_file": "sim_input/options.json",
+        "protocol_file": "sim_input/pCa55_protocol.txt",
+        "results_file": "sim_output/results.txt",
+        "output_handler_file": "sim_input/output_handler.json"
+      }
+    ],
+    "batch_thin_activation": [
+      {
+        "relative_to": "this_file",
+        "results_folder": "sim_output/hs",
+        "output_data_file": "sim_output/thin_activation_analysis.xlsx"
+      }
+    ]
+  }
 }
