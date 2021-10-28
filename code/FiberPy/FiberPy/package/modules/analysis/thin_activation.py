@@ -28,9 +28,7 @@ def run_thin_analysis(thin_data, batch_file_string):
         data_folder = thin_data['results_folder']
         output_data_file_string = thin_data['output_data_file']
 
-    
-    columns_title = ["Thin Filament ID", "Strand ID (1 or 2)"]
-    
+    writer = pd.ExcelWriter(output_data_file_string, engine='openpyxl')     
 
     if os.path.isdir(data_folder): # check that the data_folder exists
     
@@ -44,6 +42,8 @@ def run_thin_analysis(thin_data, batch_file_string):
                 hs = half_sarcomere.half_sarcomere(data_file_string)
                 
                 row_counter = 0
+
+                columns_title = ["Thin Filament ID", "Strand ID (1 or 2)"]
                 
                 for i, thin_fil in enumerate(hs["thin"]): # Loop over all thin filaments
                 
@@ -57,7 +57,7 @@ def run_thin_analysis(thin_data, batch_file_string):
                         # Create empty dataframe
     
                         df = pd.DataFrame(columns=columns_title)
-                        
+                      
                             
                     unit_status = thin_fil["unit_status"][::-1]  # reverse list to start at M-line        
                 
@@ -74,8 +74,7 @@ def run_thin_analysis(thin_data, batch_file_string):
                     second_strand.insert(0, i+1) # thin filament number
                     second_strand.insert(1, 2) # strand number
                    
-                    # Now fill two rows of the dataframe
-                    
+                    # Now fill two rows of the dataframe                   
                     
                     df.loc[row_counter,:] = first_strand
                     
@@ -84,11 +83,12 @@ def run_thin_analysis(thin_data, batch_file_string):
                     df.loc[row_counter,:] = second_strand
                     
                     row_counter += 1
-                                    
 
-    # Save the data as an excel file 
+                # Save the data as an excel file 
 
-    print('Writing data to %s' % output_data_file_string)
-    df.to_excel(output_data_file_string,
-                engine='openpyxl',
-                index=False)
+                print('Writing data to %s' % output_data_file_string)
+                df.to_excel(writer,
+                            index=False,
+                            sheet_name=file)
+
+        writer.save()
