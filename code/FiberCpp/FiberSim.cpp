@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "muscle.h"
+#include "FiberSim_version.h"
 
 #include "gsl_math.h"
 #include <math.h>
@@ -16,7 +17,9 @@
 // Pointers
 muscle* p_muscle;       /**< pointer to a muscle */
 
-using namespace std::filesystem;
+using namespace std;
+
+void version_comp(string a, string b);
 
 int main(int argc, char* argv[])
 {
@@ -43,6 +46,9 @@ int main(int argc, char* argv[])
     // Make a muscle
     p_muscle = new muscle(model_file_string, options_file_string);
 
+	// Make sure the model version and the code version are compatible
+	version_comp(p_muscle->model_version, code_version);
+
     // Run the protocol
     p_muscle->implement_protocol(protocol_file_string, results_file_string);
 
@@ -51,4 +57,39 @@ int main(int argc, char* argv[])
 
     // Display
     printf("FiberSim: closing correctly\n");
+}
+
+void version_comp(string a, string b)
+
+{
+	// Vector of string to save tokens
+	vector <string> tokens;
+	vector <string> tokens2;
+
+	// stringstream class check1
+	stringstream check1(a);
+
+	// stringstream class check1
+	stringstream check2(b);
+
+	string intermediate;
+
+	// Tokenizing w.r.t. space ' '
+	while (getline(check1, intermediate, '.'))
+	{
+		tokens.push_back(intermediate);
+	}
+
+	// Tokenizing w.r.t. space ' '
+	while (getline(check2, intermediate, '.'))
+	{
+		tokens2.push_back(intermediate);
+	}
+
+	if (tokens[0] < tokens2[0])
+	{
+		printf("NOT COMPATIBLE VERSIONS\n");
+		exit(1);
+	}
+
 }

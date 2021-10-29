@@ -13,7 +13,6 @@
 #include "FiberSim_options.h"
 #include "FiberSim_protocol.h"
 #include "FiberSim_data.h"
-#include "FiberSim_version.h"
 
 #include "half_sarcomere.h"
 #include "kinetic_scheme.h"
@@ -39,11 +38,9 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 	// Load the model
 	p_fs_model = new FiberSim_model(model_file_string, p_fs_options);
 
-	// Check model version
+	// Get the model version
 
-	std::cout << "This is code version " << code_version << '\n';
-
-	std::cout << "This is model version " << p_fs_model->model_version << '\n';
+	sprintf_s(model_version, _MAX_PATH, p_fs_model->version);
 
 	// Now create the half_sarcomeres
 	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)

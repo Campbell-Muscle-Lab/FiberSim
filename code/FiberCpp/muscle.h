@@ -62,7 +62,7 @@ public:
 
     // Variables
 
-    //static inline std::string const version_number = "2.1.1";
+    char model_version[_MAX_PATH];      /**< FiberSim version from the model file */
 
     int muscle_id;                      /**< integer labeling the muscle */
 

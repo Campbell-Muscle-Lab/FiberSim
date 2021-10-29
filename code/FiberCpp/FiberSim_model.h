@@ -38,7 +38,7 @@ public:
 
     // Model version
 
-    char model_version[_MAX_PATH];      /**< FiberSim version from the model file */
+    char version[_MAX_PATH];            /**< version from the model file */
 
     // Muscle
     int no_of_half_sarcomeres;          /**< Number of half-sarcomeres in model */
