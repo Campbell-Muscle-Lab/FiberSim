@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <filesystem>
+#include <sstream>
 
 #include "muscle.h"
 #include "FiberSim_version.h"
@@ -62,33 +63,46 @@ int main(int argc, char* argv[])
 void version_comp(string a, string b)
 
 {
+	// Function variables
+
+	bool incompatible_version = false;
+
 	// Vector of string to save tokens
-	vector <string> tokens;
-	vector <string> tokens2;
+	vector <string> token_m;
+	vector <string> token_c;
 
-	// stringstream class check1
-	stringstream check1(a);
-
-	// stringstream class check1
-	stringstream check2(b);
-
+	// stringstream class
+	stringstream model_version(a);
+	stringstream code_version(b);
 	string intermediate;
 
-	// Tokenizing w.r.t. space ' '
-	while (getline(check1, intermediate, '.'))
+	// Tokenizing 
+	while (getline(model_version, intermediate, '.'))
 	{
-		tokens.push_back(intermediate);
+		token_m.push_back(intermediate);
 	}
 
-	// Tokenizing w.r.t. space ' '
-	while (getline(check2, intermediate, '.'))
+	while (getline(code_version, intermediate, '.'))
 	{
-		tokens2.push_back(intermediate);
+		token_c.push_back(intermediate);
 	}
 
-	if (tokens[0] < tokens2[0])
+	// Check compatibility 
+
+	if (token_c[0] > token_m[0])
 	{
-		printf("NOT COMPATIBLE VERSIONS\n");
+		incompatible_version = true;
+	}
+	else if(token_c[1] < token_m[1])
+	{
+		incompatible_version = true;
+	}
+
+	if (incompatible_version)
+	{
+		cout << "FiberSim version problem" << "\n";
+		cout << "Code version: " << b << "\n";
+		cout << "Model version: " << a << "\n";
 		exit(1);
 	}
 

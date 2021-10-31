@@ -17,7 +17,10 @@ The model file is written using [JSON](https://en.wikipedia.org/wiki/JSON) and d
 Inevitably, even a simple model file is quite long. Here is an example from [isometric_activation_demo](../../demos/getting_started/isometric_activation/isometric_activation.html)
 
 ````
-{
+{  
+	"FiberSim": {
+    "version":  "2.0.0"
+  },
     "muscle": {
         "no_of_half_sarcomeres": 1,
         "no_of_myofibrils": 1,
@@ -189,6 +192,13 @@ Inevitably, even a simple model file is quite long. Here is an example from [iso
 ````
 
 ## Details
+
+### FiberSim
+
+| Key | Comment |
+| ---- | ---- |
+| version | FiberSim release version |
+
 
 ### Muscle
 
