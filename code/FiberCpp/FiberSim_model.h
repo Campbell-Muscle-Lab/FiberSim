@@ -36,6 +36,10 @@ public:
     FiberSim_options* p_fs_options;     /**< Pointer to FiberSim_options object
                                              used for logging */
 
+    // Model version
+
+    char version[_MAX_PATH];            /**< version from the model file */
+
     // Muscle
     int no_of_half_sarcomeres;          /**< Number of half-sarcomeres in model */
     int no_of_myofibrils;               /**< Number of myofibrils in model */

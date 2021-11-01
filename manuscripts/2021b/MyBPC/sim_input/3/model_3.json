@@ -1,4 +1,7 @@
 {
+  "FiberSim": {
+    "version": "2.0.0"
+  },
   "muscle": {
     "no_of_half_sarcomeres": 1,
     "no_of_myofibrils": 1,
@@ -157,7 +160,9 @@
               "new_state": 1,
               "rate_type": "poly",
               "rate_parameters": [
-                40,1,2
+                40,
+                1,
+                2
               ]
             }
           ]

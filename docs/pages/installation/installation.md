@@ -11,7 +11,7 @@ This page discusses how to install FiberSim and the necessary support software.
 
 FiberSim is available for free download under the GPL3 license. The latest release in hosted on Zenodo and can be downloaded [here](https://doi.org/10.5281/zenodo.4929389). 
 
-1. Download the .zip file hosted on <https://doi.org/10.5281/zenodo.5363546>. Make sure you download version 1.2.0.
+1. Download the .zip file hosted on <https://doi.org/10.5281/zenodo.4929389>. Make sure you download version 2.0.0.
 2. Extract the data. We recommend to use a simple path to extract them, such as `C:\Users\<user-name>\Documents`.
 3. Rename the extracted folder to `FiberSim` (instead of `Campbell-Muscle-Lab-FiberSim-xxxxxx`).
 4. Make sure the `FiberSim` folder look like this:

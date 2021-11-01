@@ -38,6 +38,10 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 	// Load the model
 	p_fs_model = new FiberSim_model(model_file_string, p_fs_options);
 
+	// Get the model version
+
+	sprintf_s(model_version, _MAX_PATH, p_fs_model->version);
+
 	// Now create the half_sarcomeres
 	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
 	{

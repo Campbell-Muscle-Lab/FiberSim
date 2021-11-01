@@ -62,6 +62,8 @@ public:
 
     // Variables
 
+    char model_version[_MAX_PATH];      /**< FiberSim version from the model file */
+
     int muscle_id;                      /**< integer labeling the muscle */
 
     int dump_status_counter;            /**< Integer used to track which status files

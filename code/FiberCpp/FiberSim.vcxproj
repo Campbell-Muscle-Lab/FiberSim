@@ -183,6 +183,7 @@
     <ClInclude Include="FiberSim_model.h" />
     <ClInclude Include="FiberSim_options.h" />
     <ClInclude Include="FiberSim_protocol.h" />
+    <ClInclude Include="FiberSim_version.h" />
     <ClInclude Include="global_definitions.h" />
     <ClInclude Include="half_sarcomere.h" />
     <ClInclude Include="JSON_functions.h" />
