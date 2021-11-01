@@ -60,7 +60,7 @@ Inevitably, even a simple model file is quite long. Here is an example from [iso
     "a_k_stiff": 100,
     "a_k_on": 2e7,
     "a_k_off": 100,
-    "a_k_coop": 5
+    "a_gamma_coop": 5
   },
     "thick_parameters": {
         "m_k_stiff": 100
@@ -237,7 +237,7 @@ Inevitably, even a simple model file is quite long. Here is an example from [iso
 | a_k_stiff | the spring constant for inter-node links in N m<sup>-1</sup> |
 | a_k_on | the rate constant in M<sup>-1</sup> s</sup>-1</sup> for binding site activation |
 | a_k_off | the rate constant in s</sup>-1</sup> for binding site de-activation |
-| a_k_coop | the strength of inter-regulatory unit cooperativity (dimensionless) |
+| a_gamma_coop | the strength of inter-regulatory unit cooperativity (dimensionless) |
 
 ### Thick parameters
 

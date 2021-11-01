@@ -41,7 +41,7 @@
     "a_k_stiff": 100,
     "a_k_on": 15000000.0,
     "a_k_off": 100,
-    "a_k_coop": 5
+    "a_gamma_coop": 5
   },
   "thick_parameters": { "m_k_stiff": 100 },
   "titin_parameters": {

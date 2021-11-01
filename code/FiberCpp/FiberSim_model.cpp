@@ -229,7 +229,7 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     c_starting_angle = mybpc_structure["c_starting_angle"].GetDouble();
 
     // Check if c_inter_stripe_twist is specified - This part of the code ensures compatibility with FiberSim V1.1.2
-    int c_inter_stripe_flag = JSON_functions::is_JSON_member(mybpc_structure, "c_inter_stripe_twist");
+    c_inter_stripe_flag = JSON_functions::is_JSON_member(mybpc_structure, "c_inter_stripe_twist");
 
     if (c_inter_stripe_flag == 1) // User specified inter_stripe_twist
     {
@@ -278,8 +278,20 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(thin_parameters, "a_k_off");
     a_k_off = thin_parameters["a_k_off"].GetDouble();
 
-    JSON_functions::check_JSON_member_number(thin_parameters, "a_k_coop");
-    a_k_coop = thin_parameters["a_k_coop"].GetDouble();
+    // Check if k_coop or gamma_coop is specified - This part of the code ensures compatibility with versions < 2.0.0
+
+    coop_name = JSON_functions::is_JSON_member(thin_parameters, "a_k_coop");
+
+    if (coop_name == 1) // User specified a_k_coop
+    {
+        a_gamma_coop = thin_parameters["a_k_coop"].GetDouble();
+    }
+
+    else if (coop_name == 0) // User specified a_gamma_coop
+    {
+        JSON_functions::check_JSON_member_number(thin_parameters, "a_gamma_coop");
+        a_gamma_coop = thin_parameters["a_gamma_coop"].GetDouble();
+    }
 
     // Load the thick_parameters
     JSON_functions::check_JSON_member_object(doc, "thick_parameters");
@@ -449,7 +461,7 @@ void FiberSim_model::write_FiberSim_model_to_file(void)
     fprintf_s(output_file, "\t\"a_k_stiff\": %g,\n", a_k_stiff);
     fprintf_s(output_file, "\t\"a_k_on\": %g,\n", a_k_on);
     fprintf_s(output_file, "\t\"a_k_off\": %g,\n", a_k_off);
-    fprintf_s(output_file, "\t\"a_k_coop\": %g},\n", a_k_coop);
+    fprintf_s(output_file, "\t\"a_gamma_coop\": %g},\n", a_gamma_coop);
 
     fprintf_s(output_file, "\"titin_parameters\":{\n");
     fprintf_s(output_file, "\t\"t_k_stiff\": %g,\n", t_k_stiff);

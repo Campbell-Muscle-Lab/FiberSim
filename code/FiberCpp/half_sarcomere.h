@@ -226,7 +226,7 @@ public:
                                          spring in N m^-1 */
     double a_k_on;
     double a_k_off;
-    double a_k_coop;
+    double a_gamma_coop;
 
     // Myosin
     double m_k_stiff;               /**< double defining stiffness of thick filament

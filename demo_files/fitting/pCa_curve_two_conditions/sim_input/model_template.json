@@ -39,7 +39,7 @@
     "a_k_stiff": 100,
     "a_k_on": 10000000.0,
     "a_k_off": 60.0,
-    "a_k_coop": 19.0
+    "a_gamma_coop": 19.0
   },
   "thick_parameters": {
     "m_k_stiff": 100

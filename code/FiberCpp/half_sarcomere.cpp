@@ -188,7 +188,7 @@ half_sarcomere::half_sarcomere(
     a_k_stiff = p_fs_model->a_k_stiff;
     a_k_on = p_fs_model->a_k_on;
     a_k_off = p_fs_model->a_k_off;
-    a_k_coop = p_fs_model->a_k_coop;
+    a_gamma_coop = p_fs_model->a_gamma_coop;
 
     m_no_of_cb_states = p_fs_model->p_m_scheme[0]->no_of_states;
     m_k_stiff = p_fs_model->m_k_stiff;
@@ -2484,9 +2484,9 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                     // Site is off and can turn on
                     coop_boost = 0.0;
                     if (down_neighbor_status == 2)
-                        coop_boost = coop_boost + a_k_coop;
+                        coop_boost = coop_boost + a_gamma_coop;
                     if (up_neighbor_status == 2)
-                        coop_boost = coop_boost + a_k_coop;
+                        coop_boost = coop_boost + a_gamma_coop;
 
                     rate = a_k_on * Ca_conc * (1.0 + coop_boost);
 
@@ -2517,9 +2517,9 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                     {
                         coop_boost = 0.0;
                         if (down_neighbor_status == 1)
-                            coop_boost = coop_boost + a_k_coop;
+                            coop_boost = coop_boost + a_gamma_coop;
                         if (up_neighbor_status == 1)
-                            coop_boost = coop_boost + a_k_coop;
+                            coop_boost = coop_boost + a_gamma_coop;
 
                         rate = a_k_off * (1.0 + coop_boost);
 

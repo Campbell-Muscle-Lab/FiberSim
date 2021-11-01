@@ -131,8 +131,11 @@ public:
                                               for binding site de-activation in units
                                               of s^-1 */
 
-    double a_k_coop;                     /**< double defining cooperativity
+    double a_gamma_coop;                     /**< double defining cooperativity
                                               dimensionless */
+
+    int coop_name;                      /**< int defining cooperativity
+                                              notation */
 
     // Titin structure
     int t_attach_a_node;                /**< int defining the thin node at which titin
@@ -179,6 +182,8 @@ public:
 
     double c_inter_stripe_twist;        /**< double defining the inter-stripe twist between
                                              MyBPC stripes in degrees */
+
+    int c_inter_stripe_flag;            /**< int defining if optional c_inter_stripe_twist is defined */
 
     double c_k_stiff;                   /**< double defining the stiffness of a MyBPC link */
 
