@@ -101,7 +101,7 @@
             {
               "new_state": 2,
               "rate_type": "poly",
-              "rate_parameters": [ 80, 1, 2 ]
+              "rate_parameters": [ 80, 1, 2, 0 ]
             }
           ]
         }
@@ -148,7 +148,7 @@
             {
               "new_state": 2,
               "rate_type": "poly",
-              "rate_parameters": [ 80, 1, 2 ]
+              "rate_parameters": [ 80, 1, 2, 0 ]
             }
           ]
         }

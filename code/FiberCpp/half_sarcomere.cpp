@@ -2000,6 +2000,7 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     int max_transitions;
 
     double x;                           // distance between cn and relevant bs
+    double x_ext;                       // cb state extension
     double node_f;                      // node_force
 
     gsl_vector* transition_probs;
@@ -2105,8 +2106,11 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
                         cb_counter, bs_counter);
                     alignment_factor = -cos(angle * M_PI / 180.0);
 
+                    // Get cb extension
+                    x_ext = p_m_state->extension;
+
                     prob = (1.0 - exp(-time_step * alignment_factor *
-                        p_trans->calculate_rate(x, node_f, mybpc_state, mybpc_iso)));
+                        p_trans->calculate_rate(x, x_ext, node_f, mybpc_state, mybpc_iso)));
 
                     // Update the probability vector
                     prob_index = (t_counter * m_attachment_span) + bs_counter;
@@ -2138,8 +2142,11 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
                     x = 0.0;
                 }
 
+                // Get cb extension
+                x_ext = p_m_state->extension;
+
                 prob = (1.0 - exp(-time_step *
-                    p_trans->calculate_rate(x, node_f, mybpc_state, mybpc_iso)));
+                    p_trans->calculate_rate(x, x_ext, node_f, mybpc_state, mybpc_iso)));
 
                 // Update the probability vector
                 prob_index = (t_counter * m_attachment_span);
@@ -2194,6 +2201,8 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
     double pc_x;                    // position of mybpc
 
     double x;                       // distance between mybpc and actin bs
+
+    double x_ext;                   // state extension
 
     double angle;                   // angle between mybpc and actin bs
 
@@ -2278,10 +2287,15 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
 
                     angle = gsl_matrix_get(p_mf[m_counter]->pc_nearest_bs_angle_diff,
                         pc_counter, bs_counter);
+
                     alignment_factor = -cos(angle * M_PI / 180.0);
 
+                    // Get extension
+
+                    x_ext = p_c_state->extension;
+
                     prob = (1.0 - exp(-time_step * alignment_factor *
-                            p_trans->calculate_rate(x, node_force, c_state, c_isotype)));
+                            p_trans->calculate_rate(x, x_ext, node_force, c_state, c_isotype)));
 
                     if (gsl_isnan(prob))
                     {
@@ -2321,8 +2335,11 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
                     x = 0.0;
                 }
 
+                // Get cb extension
+                x_ext = p_c_state->extension;
+
                 prob = (1.0 - exp(-time_step *
-                    p_trans->calculate_rate(x, node_force, c_state, c_isotype)));
+                    p_trans->calculate_rate(x, x_ext, node_force, c_state, c_isotype)));
 
                 if (gsl_isnan(prob))
                 {

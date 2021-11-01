@@ -5,6 +5,7 @@
 */
 
 #include <cstdio>
+#include <math.h>
 
 #include "transition.h"
 #include "m_state.h"
@@ -54,7 +55,7 @@ transition::transition()
 	transition_type = 'x';
 	sprintf_s(rate_type, _MAX_PATH, "");
 	rate_parameters = gsl_vector_alloc(MAX_NO_OF_RATE_PARAMETERS);
-	gsl_vector_set_zero(rate_parameters);
+	gsl_vector_set_all(rate_parameters, GSL_NAN);
 }
 
 // Destructor
@@ -66,7 +67,7 @@ transition::~transition(void)
 
 // Functions
 
-double transition::calculate_rate(double x, double node_force, int mybpc_state, int mybpc_iso)
+double transition::calculate_rate(double x, double x_ext, double node_force, int mybpc_state, int mybpc_iso)
 {
 	//! Returns the rate for a transition with a given x
 	//! 
@@ -207,23 +208,35 @@ double transition::calculate_rate(double x, double node_force, int mybpc_state, 
 	// Poly
 	if (!strcmp(rate_type, "poly"))
 	{
+		double x_center = gsl_vector_get(rate_parameters, 3); // optional parameter defining the zero of the polynomial
+
+		if (isnan(x_center)) { // optional parameter is not specified, use the state extension instead
+			x_center = x_ext;
+		}	
+
 		rate = gsl_vector_get(rate_parameters, 0) +
-			(gsl_vector_get(rate_parameters, 1) *
-				gsl_pow_int(x, (int)gsl_vector_get(rate_parameters, 2)));
-		//printf("x: %f  rate: %f\n", x, rate);
+				(gsl_vector_get(rate_parameters, 1) *
+					gsl_pow_int(x - x_center, (int)gsl_vector_get(rate_parameters, 2)));
+
 	}
 
 	// Poly_asymmetric
 	if (!strcmp(rate_type, "poly_asym"))
 	{
-		if (x > 0)
+		double x_center = gsl_vector_get(rate_parameters, 3); // optional parameter defining the zero of the polynomial
+
+		if (isnan(x_center)) { // optional parameter is not specified, use the state extension instead
+			x_center = x_ext;
+		}
+
+		if (x > x_center)
 			rate = gsl_vector_get(rate_parameters, 0) +
 				(gsl_vector_get(rate_parameters, 1) *
-					gsl_pow_int(x, (int)gsl_vector_get(rate_parameters, 3)));
+					gsl_pow_int(x - x_center, (int)gsl_vector_get(rate_parameters, 3)));
 		else
 			rate = gsl_vector_get(rate_parameters, 0) +
 			(gsl_vector_get(rate_parameters, 2) *
-				gsl_pow_int(x, (int)gsl_vector_get(rate_parameters, 3)));
+				gsl_pow_int(x - x_center, (int)gsl_vector_get(rate_parameters, 3)));
 	}
 
 	// Curtail at max rate

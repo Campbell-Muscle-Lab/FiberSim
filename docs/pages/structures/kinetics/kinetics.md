@@ -128,5 +128,10 @@ Super-relaxed heads can only exist as dimers. Thus, if a head transitions from a
     + a, s<sup>-1</sup> 
     + b, depends on c
     + c, integer
-  + rate = a + b * x<sup>c
+	+ d, nm (optional)
+  + rate = a + b * (x - d)<sup>c
+  
+Note: if d is not specified, the code sets d = the state extension (5.0 in the myosin scheme example shown above)
+  
+
 
