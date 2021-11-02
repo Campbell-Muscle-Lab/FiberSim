@@ -119,7 +119,7 @@
             {
               "new_state": 2,
               "rate_type": "force_dependent",
-              "rate_parameters": [ 10, 10 ]
+              "rate_parameters": [ 3, 10 ]
             }
           ]
         },
