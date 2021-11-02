@@ -854,13 +854,6 @@ void half_sarcomere::initialise_filament_y_z_coordinates(int m_n)
         exit(1);
     }
 
-    // Check for valid m_n
-    if (m_n != 9)
-    {
-        printf("m_n is not == 3. Intialize filament_y_z_coordinates has not been checked\n");
-        //exit(1);
-    }
-
     // Variables
     int n_rows = (int)round(sqrt(m_n));         /**< no_of_rows of myosins, y_direction */
     int n_cols = n_rows;                        /**< no of cols of myosins, z direction */

@@ -18,8 +18,8 @@ Inevitably, even a simple model file is quite long. Here is an example from [iso
 
 ````
 {  
-	"FiberSim": {
-	"version":  "2.0.0"
+"FiberSim": {
+"version":  "2.0.0"
   },
     "muscle": {
         "no_of_half_sarcomeres": 1,
@@ -132,8 +132,7 @@ Inevitably, even a simple model file is quite long. Here is an example from [iso
               "rate_parameters": [
                 75,
                 1,
-                2,
-				0
+                2
               ]
             }
           ]

@@ -40,7 +40,7 @@ transition::transition(const rapidjson::Value& tr, m_state* set_p_parent_m_state
 	const rapidjson::Value& rp = tr["rate_parameters"];
 
 	rate_parameters = gsl_vector_alloc(MAX_NO_OF_RATE_PARAMETERS);
-	gsl_vector_set_zero(rate_parameters);
+	gsl_vector_set_all(rate_parameters, GSL_NAN);
 
 	for (int i = 0; i < (int)rp.Size(); i++)
 	{
@@ -210,7 +210,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 	{
 		double x_center = gsl_vector_get(rate_parameters, 3); // optional parameter defining the zero of the polynomial
 
-		if (isnan(x_center)) { // optional parameter is not specified, use the state extension instead
+		if (gsl_isnan(x_center)) { // optional parameter is not specified, use the state extension instead
 			x_center = x_ext;
 		}	
 
@@ -223,9 +223,9 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 	// Poly_asymmetric
 	if (!strcmp(rate_type, "poly_asym"))
 	{
-		double x_center = gsl_vector_get(rate_parameters, 3); // optional parameter defining the zero of the polynomial
+		double x_center = gsl_vector_get(rate_parameters, 5); // optional parameter defining the zero of the polynomial
 
-		if (isnan(x_center)) { // optional parameter is not specified, use the state extension instead
+		if (gsl_isnan(x_center)) { // optional parameter is not specified, use the state extension instead
 			x_center = x_ext;
 		}
 
@@ -236,7 +236,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 		else
 			rate = gsl_vector_get(rate_parameters, 0) +
 			(gsl_vector_get(rate_parameters, 2) *
-				gsl_pow_int(x - x_center, (int)gsl_vector_get(rate_parameters, 3)));
+				gsl_pow_int(x - x_center, (int)gsl_vector_get(rate_parameters, 4)));
 	}
 
 	// Curtail at max rate
