@@ -1,8 +1,9 @@
 # FiberSim
 
-Latest release (v1.2.0):
+Latest release (v2.0.0):
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5363546.svg)](https://doi.org/10.5281/zenodo.5363546)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5639222.svg)](https://doi.org/10.5281/zenodo.5639222)
+
 
 
 
