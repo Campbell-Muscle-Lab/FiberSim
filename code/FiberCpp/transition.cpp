@@ -216,7 +216,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 
 		rate = gsl_vector_get(rate_parameters, 0) +
 				(gsl_vector_get(rate_parameters, 1) *
-					gsl_pow_int(x - x_center, (int)gsl_vector_get(rate_parameters, 2)));
+					gsl_pow_int(x + x_center, (int)gsl_vector_get(rate_parameters, 2)));
 
 	}
 
@@ -232,11 +232,11 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 		if (x > x_center)
 			rate = gsl_vector_get(rate_parameters, 0) +
 				(gsl_vector_get(rate_parameters, 1) *
-					gsl_pow_int(x - x_center, (int)gsl_vector_get(rate_parameters, 3)));
+					gsl_pow_int(x + x_center, (int)gsl_vector_get(rate_parameters, 3)));
 		else
 			rate = gsl_vector_get(rate_parameters, 0) +
 			(gsl_vector_get(rate_parameters, 2) *
-				gsl_pow_int(x - x_center, (int)gsl_vector_get(rate_parameters, 4)));
+				gsl_pow_int(x + x_center, (int)gsl_vector_get(rate_parameters, 4)));
 	}
 
 	// Curtail at max rate
