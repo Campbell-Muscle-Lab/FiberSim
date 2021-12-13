@@ -14,10 +14,10 @@
     },
     "formatting":
     {
-        "x_label_fontsize": 9,
-        "y_label_fontsize": 9,
-        "tick_fontsize": 9,
-        "legend_fontsize": 7,
+        "x_label_fontsize": 12,
+        "y_label_fontsize": 12,
+        "tick_fontsize": 12,
+        "legend_fontsize": 12,
         "y_label_pad": 25,
         "legend_bbox_to_anchor": [1.0, 1],
         "patch_alpha": 0.3
@@ -29,7 +29,7 @@
             "y_info":
             {
                 "label": "pCa",
-                "scaling_type": "close_fit",
+                "ticks": [9, 4.5],
                 "series":
                 [
                     {
@@ -43,6 +43,7 @@
             "y_info":
             {
                 "label": "HS length\n(nm)",
+                "scaling_type": "close_fit",
                 "series":
                 [
                     {
@@ -55,7 +56,7 @@
             "column": 1,
             "y_info":
             {
-                "label": "Stress\n(kN m^{-2})",
+                "label": "Stress\n(kN m$^{-2}$)",
                 "series":
                 [
                     {
@@ -63,11 +64,11 @@
                         "field_label": "Total",
                         "scaling_factor": 0.001
                     },
-                  {
-                    "field": "titin_force",
-                    "field_label": "Titin",
-                    "scaling_factor": 0.001
-                  }
+                    {
+                        "field": "titin_force",
+                        "field_label": "Titin",
+                        "scaling_factor": 0.001
+                    }
                 ]
             }
         },
@@ -80,11 +81,11 @@
                 [
                     {
                         "field": "a_pop_0",
-                        "field_label": "N_{off}"
+                        "field_label": "Inactive"
                     },
                     {
                         "field": "a_pop_1",
-                        "field_label": "N_{on}"
+                        "field_label": "Active"
                     }
                 ]
             }
@@ -98,15 +99,15 @@
                 [
                     {
                         "field": "m_pop_0",
-                        "field_label": "M_0"
+                        "field_label": "SRX"
                     },
                     {
                         "field": "m_pop_1",
-                        "field_label": "M_{1}"
+                        "field_label": "DRX"
                     },
                     {
                         "field": "m_pop_2",
-                        "field_label": "M_{2}"
+                        "field_label": "FG"
                     }
                 ]
             }

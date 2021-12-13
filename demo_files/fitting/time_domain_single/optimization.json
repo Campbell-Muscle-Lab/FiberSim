@@ -24,24 +24,15 @@
         },
         "job":
         [
-            {
-                "relative_to": "this_file",
-                "model_file": "temp/model_worker.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/protocol_freeforms4.txt",
-                "results_file": "temp/sim_results_freeforms4.csv",
-                "output_handler_file": "sim_input/output_handler.json",
-                "target_file": "target_data/target_freeforms4.txt"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "temp/model_worker.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/protocol_freeforms149.txt",
-                "results_file": "temp/sim_results_freeforms149.csv",
-                "output_handler_file": "sim_input/output_handler.json",
-                "target_file": "target_data/target_freeforms149.txt"
-            }
+          {
+            "relative_to": "this_file",
+            "model_file": "temp/model_worker.json",
+            "options_file": "sim_input/sim_options.json",
+            "protocol_file": "sim_input/pCa90_ramp_stretch_protocol.txt",
+            "results_file": "temp/sim_results.txt",
+            "output_handler_file": "sim_input/output_handler.json",
+            "target_file": "target_data/pCa90_ramp_stretch_target.txt"
+          }
         ]
     },
     "parameter":
@@ -53,12 +44,24 @@
             "p_value": 0.525,
             "p_mode": "log"
         },
-        {
-            "name": "t_slack_length",
-            "min_value": 100,
-            "max_value": 500,
-            "p_value": 0.475,
-            "p_mode": "lin"
-        }
+      {
+        "name": "t_slack_length",
+        "min_value": 100,
+        "max_value": 500,
+        "p_value": 0.475,
+        "p_mode": "lin"
+      },
+      {
+        "name": "m_kinetics",
+        "isotype": 1,
+        "state": 1,
+        "old_state": 1,
+        "new_state": 2,
+        "parameter_index": 0,
+        "min_value": 5,
+        "max_value": 15,
+        "p_value": 0.5,
+        "p_mode": "lin"
+      }
     ]
 }
