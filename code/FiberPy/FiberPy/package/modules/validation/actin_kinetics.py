@@ -45,7 +45,13 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder):
            
     k_on = mod["thin_parameters"]["a_k_on"]
     k_off = mod["thin_parameters"]["a_k_off"]
-    k_coop = mod["thin_parameters"]["a_k_coop"]
+
+    # Check for coop paramaters (retro-compatibility with version 1.2.0)
+    if "a_k_coop" in mod["thin_parameters"].keys():
+        k_coop = mod["thin_parameters"]["a_k_coop"]
+    elif "a_gamma_coop" in mod["thin_parameters"].keys():
+        k_coop = mod["thin_parameters"]["a_gamma_coop"]
+
     #nb_of_bs_state = mod["thin_parameters"]["a_no_of_bs_states"]
     
     a_strands_per_filament = mod["thin_structure"]["a_strands_per_filament"]
