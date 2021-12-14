@@ -11,7 +11,9 @@ has_children: True
 
 FiberSim can take 'snap-shots' that describe the status of every molecule in the myofibrillar lattice at a given moment. FiberSim's visualization pipeline uses [Blender](https://www.blender.org/) to turn these snap-shots into a 3D scene that can be useful for trouble-shooting or simply watching how the model works.
 
-It's also possible to save a view of the 3D scene as a 2D image. This is called [rendering](https://en.wikipedia.org/wiki/3D_rendering). Rendering successive snap-shots, potentially moving the view-point each time, generates a sequence of images that can ultimately be stitched together to make a movie.
+It's also possible to save a view of the 3D scene as a 2D image. This is called [rendering](https://en.wikipedia.org/wiki/3D_rendering). Rendering successive snap-shots, potentially moving the view-point each time, generates a sequence of images that can ultimately be stitched together to make a movie, such as this one:
+
+[![](blender_movie.png)](https://drive.google.com/file/d/1mQ5o7JRwq5ecok4f1tOywn_MyZqOX0pU/view?usp=sharing)
 
 This section provides demos for both of these processes.
 
@@ -26,5 +28,3 @@ Creating a detailed video, like the example below, takes a long time. There are 
 As an example, if you have 4 threads available on your computer and you want to make a movie with 500 frames (20 seconds at 25 frames per second), this will take ~500 * 10 minutes / 4 = ~1 day to render.
 
 As a result, it's best to plan your videos carefully and run simple tests before launching the final version. It takes a long time to trouble-shoot issues when each attempt requires 1 day.
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/LMyyscEcL6I" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
