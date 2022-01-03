@@ -7,9 +7,9 @@ nav_order: 1
 
 # Force-balance
 
-FiberCpp solves a matrix equation of form +K x = F+, where +x+ is a vector containing the node positions, +K+ is the tridiagonal stiffness matrix, and +F+ is a vector containing the cross-bridges, titin, and myosin-binding protein C forces. The solving algorithm uses the conjugate gradient method, which is an iterative method to obtain the solution +x+. In the [option file](../../structures/options/options.html), the user can define `x_pos_tol`, which is the algorithm tolerance (the algorithm stops at iteration #+n+ when +\mid x_{n} - x_{n-1} \mid \lt x_{pos_{tol}}+). 
+FiberCpp solves a matrix equation of form $K x = F$, where $x$ is a vector containing the node positions, $K$ is the tridiagonal stiffness matrix, and $F$ is a vector containing the cross-bridges, titin, and myosin-binding protein C forces. The solving algorithm uses the conjugate gradient method, which is an iterative method to obtain the solution $x$. In the [option file](../../structures/options/options.html), the user can define `x_pos_tol`, which is the algorithm tolerance (the algorithm stops at iteration #$n$ when $\mid x_{n} - x_{n-1} \mid \lt x_{pos_{tol}}$). 
 
-The force-balance test is a Python code written to evaluate +\epsilon = K x - F+, which is a measurement of the solving algorithm precision. The testing code calculates the residual forces at each node, for both the thick and thin filaments. This residual force (or error force) is then divided by the filament springs stiffness to obtain a node position error in nm. This position error should get closer to zero as the position tolerance decreases. 
+The force-balance test is a Python code written to evaluate $\epsilon = K x - F$, which is a measurement of the solving algorithm precision. The testing code calculates the residual forces at each node, for both the thick and thin filaments. This residual force (or error force) is then divided by the filament springs stiffness to obtain a node position error in nm. This position error should get closer to zero as the position tolerance decreases. 
 
 ## What this test does
 

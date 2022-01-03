@@ -121,14 +121,14 @@ Super-relaxed heads can only exist as dimers. Thus, if a head transitions from a
   + rate_parameters:
     + a, s<sup>-1</sup> 
     + b, s<sup>-1</sup> N<sup>-1</sup> m<sup>2</sup>
-  + rate = a + b * node_force
+  + rate = a + b * node_force 
 
 + `poly`
   + rate_parameters
     + a, s<sup>-1</sup> 
     + b, depends on c
     + c, integer
-	+ d, nm (optional)
+	+ d, nm (optional)	
   + rate = a + b * (x + d)<sup>c</sup>
   
 Note: if d is not specified, the code sets d = the state extension (5.0 in the myosin scheme example shown above)

@@ -133,9 +133,9 @@ Here is an example.
                 "output_handler_file": "sim_input\\1\\pCa_600\\output_handler_600.json",
                 "results_file": "temp\\1\\pCa_600\\results.txt"
             }
-<SNIP>
+...
 Many jobs
-</SNIP>
+...
             {
                 "relative_to": "this_file",
                 "model_file": "temp\\1\\pCa_580\\model_worker.json",
