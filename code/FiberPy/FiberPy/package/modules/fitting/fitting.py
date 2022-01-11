@@ -282,6 +282,9 @@ class fitting():
         if (self.opt_data['fit_mode'] == 'fit_pCa_curve'):
             fit_data = self.evaluate_pCa_curve_fit()
 
+        if (self.opt_data['fit_mode'] == 'fit_fv_curve'):
+            fit_data = self.evaluate_fv_curve_fit()
+
         return fit_data
 
 
@@ -407,6 +410,106 @@ class fitting():
         # Return results
         return fit_data
 
+    def evaluate_fv_curve_fit(self):
+        """ Evaluates force-velocity curve fit """
+
+        # Get the target data
+
+        target_file_string = self.opt_data['files']['target_file']
+        target = pd.read_excel(target_file_string, engine='openpyxl')
+        
+        # Create a dictionary to hold data describing the fit
+        fit_data = dict()
+        fit_data['job'] = []
+        fit_data['fit_error'] = []
+
+        # Create dictionnaries for target and calculated data (force and velocity)
+
+        target_f_data = defaultdict(list)
+        target_v_data = defaultdict(list)
+
+        calculated_f_data = defaultdict(list)
+        calculated_v_data = defaultdict(list)
+
+        # Create dictionnaries for the errors calculation
+
+        max_f_target = defaultdict(list)
+        max_v_target = defaultdict(list)
+
+        f_dif = defaultdict(list)
+        v_dif = defaultdict(list)
+
+        # Loop through the f-v curves
+        for i, j in enumerate(target['curve']):
+
+            # Check that each cell contains a numerical value
+            if math.isnan(j): 
+                break
+            
+            # Get target force data
+            target_f_data[j-1].append(target['force'][i])
+
+            # Get target velocity data
+            target_v_data[j-1].append(target['velocity'][i])
+
+            # Get max element of each target data
+            max_f_target[j-1] = np.amax(np.abs(target_f_data[j-1]))
+            max_v_target[j-1] = np.amax(np.abs(target_v_data[j-1]))
+                        
+            # Get simulation data
+            job_name = self.batch_structure['job'][i]
+            sim_file_string = job_name['results_file']
+            d = pd.read_csv(sim_file_string, sep='\t')
+
+            # Get force
+            calculated_f_data[j-1].append(d['force'].iloc[-1])
+
+            # Get velocity
+
+            # Filter to fit time_interval
+            d_fit = d.loc[(d['time'] >= self.opt_data['fit_time_interval'][0]) &
+                            (d['time'] <= self.opt_data['fit_time_interval'][-1])]
+
+            vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
+                                            d_fit['hs_length'].to_numpy())
+
+            # Shortening velocity in ML s-1
+            ML = d["hs_length"].iloc[0] # muscle length at t = 0
+            hs_vel = -1e-9*vel_data['slope']/ML
+
+
+        no_of_curves = len(max_f_target)
+        n_data = len(calculated_f_data[0])
+        
+        fit_data['job_errors'] = np.zeros(no_of_curves)
+
+        # Calculate error for each f-v curve
+        for i, max_y in enumerate(max_f_target):       
+            
+            f_dif[i] = (np.array(calculated_f_data[i]) - 
+                        np.array(target_f_data[i]))/np.array(max_f_target[i]) 
+
+            v_dif[i] = (np.array(calculated_v_data[i]) - 
+                        np.array(target_v_data[i]))/np.array(max_v_target[i])
+
+            fit_data['job_errors'][i] = \
+                np.sqrt(np.sum(np.power(f_dif[i], 2)) + np.sum(np.power(v_dif[i], 2))) / np.size(f_dif[i])
+
+            df = pd.DataFrame()
+            df['calculated_f_data'] = calculated_f_data[i]
+            df['calculated_v_data'] = calculated_v_data[i]
+            df['target_f_data'] = target_f_data[i]
+            df['target_v_data'] = target_v_data[i]
+            # Keep curve, target and calculated data and add to
+            # fit_data
+            fit_data['job'].append(df)
+
+        # Global error
+        fit_data['fit_error'] = np.sum(fit_data['job_errors'])
+
+        # Return results
+        return fit_data
+
 
     def create_figure_fit_progress(self):
         """ Creates a figure showing the progress of the fit """
@@ -508,6 +611,57 @@ class fitting():
                 for c in cf3:
                     ax[0].text(6.9, y_anchor * ylim[1],
                        ('pCa50: %.2f n_H: %.2f' % (c['pCa_50'], c['n_H'])),
+                       color='red')
+                    y_anchor = y_anchor - y_spacing
+
+        if (self.opt_data['fit_mode'] == 'fit_fv_curve'):
+            # Fit trace against target force-velocity curve
+            ax.append(fig.add_subplot(spec[0,0]))
+
+            cf=[]
+            cf2=[]
+            for j in fit_data['job']:
+                ax[0].plot(j['target_f_data'], j['target_v_data'], 'ko')
+                # Add in curve_fitting
+                res = cv.fit_hyperbola(j['target_f_data'], j['target_v_data'])
+                ax[0].plot(res["x_fit"], res["y_fit"], 'k-')
+                cf.append(res)
+
+                ax[0].plot(j['calculated_f_data'], j['calculated_v_data'], 'bo')
+                # Add in curve_fitting
+                res = cv.fit_hyperbola(j['calculated_f_data'], j['calculated_v_data'])
+                ax[0].plot(res["x_fit"], res["y_fit"], 'b-')
+                cf2.append(res)
+
+            # Add in best_fit
+            if (self.best_fit_data):
+                cf3=[]
+                for j in self.best_fit_data['job']:
+                    ax[0].plot(j['calculated_f_data'], j['calculated_v_data'], 'ro')
+
+                    # Add in curve_fitting
+                    res = cv.fit_pCa_data(j['calculated_f_data'], j['calculated_v_data'])
+                    ax[0].plot(res["x_fit"], res["y_fit"], 'r-')
+                    cf3.append(res)
+
+            ylim = ax[0].get_ylim()
+            y_anchor = 0.9
+            y_spacing = 0.1
+            for c in cf:
+                ax[0].text(6.9, y_anchor * ylim[1],
+                       ('a: %.2f b: %.2f c: %.2f P_0' % (c['a'], c['b'], c['x_0'])),
+                       color='black')
+                y_anchor = y_anchor - y_spacing
+            for c in cf2:
+                ax[0].text(6.9, y_anchor * ylim[1],
+                       ('a: %.2f b: %.2f c: %.2f P_0' % (c['a'], c['b'], c['x_0'])),
+                       color='blue')
+                y_anchor = y_anchor - y_spacing
+
+            if (self.best_fit_data):
+                for c in cf3:
+                    ax[0].text(6.9, y_anchor * ylim[1],
+                       ('a: %.2f b: %.2f c: %.2f P_0' % (c['a'], c['b'], c['x_0'])),
                        color='red')
                     y_anchor = y_anchor - y_spacing
 
