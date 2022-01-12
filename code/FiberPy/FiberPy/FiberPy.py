@@ -12,6 +12,7 @@ from package.modules.visualization import render as viz
 from package.modules.visualization.create_movie import create_hs_movie as cm
 from package.modules.analysis import analysis as anal
 
+
 def parse_inputs():
 
     if (sys.argv[1] == "run_batch"):
