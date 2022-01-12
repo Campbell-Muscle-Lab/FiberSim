@@ -123,7 +123,7 @@ dt	pCa	dhsl	mode
 
 ### Code
 
-The `generate_isometric_protocos.py` code that created these files is as follows.
+The `generate_isometric_protocols.py` code that created these files is as follows.
 
 ````
 import os
