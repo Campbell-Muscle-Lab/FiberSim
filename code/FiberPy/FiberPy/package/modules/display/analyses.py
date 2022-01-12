@@ -341,9 +341,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             for file in os.listdir(curve_folder):
                 if file.endswith('.txt'):
                     data_file_string = os.path.join(curve_folder, file)
+                    print(data_file_string)
 
                     # Load up the results file
                     d = pd.read_csv(data_file_string, delimiter='\t')
+                    initial_hsl = d['hs_length'][0]
 
                     # Filter to fit time_interval
                     d_fit = d.loc[(d['time'] >= fig_data['fit_time_interval_s'][0]) &
@@ -351,17 +353,19 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
                     vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
                                                     d_fit['hs_length'].to_numpy())
-
-                    # Calculate some values, with a -ve for shortening velocity
-                    hs_vel = -1e-9*vel_data['slope']
-                    hs_for = d_fit['force'].mean()
-                    hs_pow = hs_vel * hs_for
-
-                    # Store data
-                    curve.append(curve_counter)
-                    hs_velocity.append(hs_vel)
-                    hs_force.append(hs_for)
-                    hs_power.append(hs_pow)
+                    
+                    # Constrain to shortening
+                    if (vel_data['slope'] < 0):
+                        # Calculate some values, with a -ve for shortening velocity
+                        hs_vel = -1e-9*vel_data['slope']
+                        hs_for = d_fit['force'].mean()
+                        hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
+    
+                        # Store data
+                        curve.append(curve_counter)
+                        hs_velocity.append(hs_vel)
+                        hs_force.append(hs_for)
+                        hs_power.append(hs_pow)
 
             curve_counter = curve_counter + 1
 
@@ -392,6 +396,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         ax_fv = fig.add_subplot(gs[0,0])
         ax_pow = fig.add_subplot(gs[1, 0])
 
+        # Hold ticks
+        f_ticks = np.asarray([])
+        v_ticks = np.asarray([])
+        p_ticks = np.asarray([])
+        
         # Cycle through curves
         for c in range(1, curve_counter):
             rc = r[r['curve'] == c]
@@ -407,6 +416,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'], '-',
                         color=ax_pow.lines[-1].get_color())
 
+            # Store ticks
+            f_ticks = np.concatenate((f_ticks, rc['hs_force']))
+            v_ticks = np.concatenate((v_ticks, rc['hs_velocity']))
+            p_ticks = np.concatenate((p_ticks, rc['hs_power']))
+
         # Tidy up
         ax_fv.set_xlabel('Force (N m$^{\\mathregular{-2}}$)',
                           fontfamily=formatting['fontname'],
@@ -415,13 +429,13 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                           fontfamily=formatting['fontname'],
                           loc='center',
                           rotation=formatting['y_label_rotation'])
-        xt = ut.tidy_limits(rc['hs_force'])
+        xt = ut.tidy_limits(f_ticks)
         ax_fv.set_xlim(xt)
         ax_fv.set_xticks(xt)
         ax_fv.set_xticklabels(ax_fv.get_xticks(),
                           fontsize=formatting['tick_labels_fontsize'],
                           fontfamily=formatting['fontname'])
-        yt = ut.tidy_limits(rc['hs_velocity'])
+        yt = ut.tidy_limits(v_ticks)
         ax_fv.set_ylim(yt)
         ax_fv.set_yticks(yt)
         ax_fv.set_yticklabels(ax_fv.get_yticks(),
@@ -431,7 +445,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         ax_pow.set_xlabel('Force (N m$^{\\mathregular{-2}}$)',
                           fontfamily=formatting['fontname'],
                           loc='center')
-        ax_pow.set_ylabel('Power\n(W m$^{\\mathregular{-2}}$)',
+        ax_pow.set_ylabel('Power\n(W m$^{\\mathregular{-3}}$)',
                           fontfamily=formatting['fontname'],
                           loc='center',
                           rotation=formatting['y_label_rotation'])
@@ -440,7 +454,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         ax_pow.set_xticklabels(ax_pow.get_xticks(),
                           fontsize=formatting['tick_labels_fontsize'],
                           fontfamily=formatting['fontname'])
-        yt = ut.tidy_limits(rc['hs_power'])
+        yt = ut.tidy_limits(p_ticks)
         ax_pow.set_ylim(yt)
         ax_pow.set_yticks(yt)
         ax_pow.set_yticklabels(ax_pow.get_yticks(),
