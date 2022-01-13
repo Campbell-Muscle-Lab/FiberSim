@@ -76,7 +76,7 @@
               "rate_type": "force_dependent",
               "rate_parameters": [
                 10,
-                100
+                50
               ]
             }
           ]

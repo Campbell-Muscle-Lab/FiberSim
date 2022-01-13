@@ -98,7 +98,7 @@ def fit_hyperbola(x, y):
         return y
     
     popt, pcov = curve_fit(y_hyperbola, x, y,
-                           [np.amax(x), 0.2*np.amax(x), 0.1])
+                           [np.amax(x), 0.2*np.amax(x), 0.3])
     
     d = dict()
     d['x_0'] = popt[0]

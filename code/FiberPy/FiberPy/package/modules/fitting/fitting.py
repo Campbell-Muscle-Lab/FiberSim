@@ -475,7 +475,9 @@ class fitting():
 
             # Shortening velocity in ML s-1
             ML = d["hs_length"].iloc[0] # muscle length at t = 0
-            hs_vel = -1e-9*vel_data['slope']/ML
+            hs_vel = -vel_data['slope']/ML
+
+            calculated_v_data[j-1].append(hs_vel)
 
 
         no_of_curves = len(max_f_target)
@@ -484,13 +486,13 @@ class fitting():
         fit_data['job_errors'] = np.zeros(no_of_curves)
 
         # Calculate error for each f-v curve
-        for i, max_y in enumerate(max_f_target):       
+        for i, max_y in enumerate(max_f_target): 
             
             f_dif[i] = (np.array(calculated_f_data[i]) - 
                         np.array(target_f_data[i]))/np.array(max_f_target[i]) 
 
             v_dif[i] = (np.array(calculated_v_data[i]) - 
-                        np.array(target_v_data[i]))/np.array(max_v_target[i])
+                        np.array(target_v_data[i]))/np.array(max_v_target[i]) 
 
             fit_data['job_errors'][i] = \
                 np.sqrt(np.sum(np.power(f_dif[i], 2)) + np.sum(np.power(v_dif[i], 2))) / np.size(f_dif[i])
@@ -640,7 +642,7 @@ class fitting():
                     ax[0].plot(j['calculated_f_data'], j['calculated_v_data'], 'ro')
 
                     # Add in curve_fitting
-                    res = cv.fit_pCa_data(j['calculated_f_data'], j['calculated_v_data'])
+                    res = cv.fit_hyperbola(j['calculated_f_data'], j['calculated_v_data'])
                     ax[0].plot(res["x_fit"], res["y_fit"], 'r-')
                     cf3.append(res)
 
@@ -649,19 +651,19 @@ class fitting():
             y_spacing = 0.1
             for c in cf:
                 ax[0].text(6.9, y_anchor * ylim[1],
-                       ('a: %.2f b: %.2f c: %.2f P_0' % (c['a'], c['b'], c['x_0'])),
+                       ('a: %.2f b: %.2f P_0: %.2f' % (c['a'], c['b'], c['x_0'])),
                        color='black')
                 y_anchor = y_anchor - y_spacing
             for c in cf2:
                 ax[0].text(6.9, y_anchor * ylim[1],
-                       ('a: %.2f b: %.2f c: %.2f P_0' % (c['a'], c['b'], c['x_0'])),
+                       ('a: %.2f b: %.2f P_0: %.2f' % (c['a'], c['b'], c['x_0'])),
                        color='blue')
                 y_anchor = y_anchor - y_spacing
 
             if (self.best_fit_data):
                 for c in cf3:
                     ax[0].text(6.9, y_anchor * ylim[1],
-                       ('a: %.2f b: %.2f c: %.2f P_0' % (c['a'], c['b'], c['x_0'])),
+                       ('a: %.2f b: %.2f P_0: %.2f' % (c['a'], c['b'], c['x_0'])),
                        color='red')
                     y_anchor = y_anchor - y_spacing
 
