@@ -26,38 +26,41 @@
                 "model_file": "temp/70/model_worker.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input/70/pCa_70.txt",
-                "results_file": "temp/70/results.txt",
+                "results_file": "temp/70/results_70.txt",
                 "output_handler_file": "sim_input/70/output_handler_70.json"
             },
             {
-                "relative_to": "this_file",
-                "model_file": "temp/62/model_worker.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/62/pCa_62.txt",
-                "results_file": "temp/62/results.txt"
+              "relative_to": "this_file",
+              "model_file": "temp/62/model_worker.json",
+              "options_file": "sim_input/sim_options.json",
+              "protocol_file": "sim_input/62/pCa_62.txt",
+              "results_file": "temp/62/results_62.txt",
+              "output_handler_file": "sim_input/62/output_handler_62.json"
             },
             {
-                "relative_to": "this_file",
-                "model_file": "temp/58/model_worker.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/58/pCa_58.txt",
-                "results_file": "temp/58/results.txt"
+              "relative_to": "this_file",
+              "model_file": "temp/58/model_worker.json",
+              "options_file": "sim_input/sim_options.json",
+              "protocol_file": "sim_input/58/pCa_58.txt",
+              "results_file": "temp/58/results_58.txt",
+              "output_handler_file": "sim_input/58/output_handler_58.json"
             },
             {
-                "relative_to": "this_file",
-                "model_file": "temp/54/model_worker.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/54/pCa_54.txt",
-                "results_file": "temp/54/results.txt"
+              "relative_to": "this_file",
+              "model_file": "temp/54/model_worker.json",
+              "options_file": "sim_input/sim_options.json",
+              "protocol_file": "sim_input/54/pCa_54.txt",
+              "results_file": "temp/54/results_54.txt",
+              "output_handler_file": "sim_input/54/output_handler_54.json"
             },
-            {
-                "relative_to": "this_file",
-                "model_file": "temp/45/model_worker.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/45/pCa_45.txt",
-                "results_file": "temp/45/results.txt",
-                "output_handler_file": "sim_input/45/output_handler_45.json"
-            }
+              {
+                  "relative_to": "this_file",
+                  "model_file": "temp/45/model_worker.json",
+                  "options_file": "sim_input/sim_options.json",
+                  "protocol_file": "sim_input/45/pCa_45.txt",
+                  "results_file": "temp/45/results_45.txt",
+                  "output_handler_file": "sim_input/45/output_handler_45.json"
+              }
         ]
     },
     "parameter": [
@@ -68,24 +71,24 @@
             "p_value": 0.5,
             "p_mode": "log"
         },
-      {
-        "name": "a_k_coop",
-        "min_value": 10,
-        "max_value": 25,
-        "p_value": 0.5,
-        "p_mode": "lin"
-      },
-      {
-        "name": "m_kinetics",
-        "isotype": 1,
-        "state": 1,
-        "old_state": 1,
-        "new_state": 2,
-        "parameter_index": 0,
-        "min_value": 5,
-        "max_value": 15,
-        "p_value": 0.5,
-        "p_mode": "lin"
+        {
+          "name": "a_k_coop",
+          "min_value": 10,
+          "max_value": 25,
+          "p_value": 0.5,
+          "p_mode": "lin"
+        },
+        {
+          "name": "m_kinetics",
+          "isotype": 1,
+          "state": 1,
+          "old_state": 1,
+          "new_state": 2,
+          "parameter_index": 0,
+          "min_value": 5,
+          "max_value": 15,
+          "p_value": 0.5,
+          "p_mode": "lin"
       }
     ]
 }

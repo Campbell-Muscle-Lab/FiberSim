@@ -1,10 +1,9 @@
 {
-    "templated_images":
-    [
+    "templated_images": [
         {
             "relative_to": "this_file",
             "template_file_string": "../../template/template_summary.json",
-            "output_file_string": "../../temp/45/summary_45.png"
+            "output_file_string": "../../temp\\rel_f_20\\summary_20.png"
         }
     ]
 }

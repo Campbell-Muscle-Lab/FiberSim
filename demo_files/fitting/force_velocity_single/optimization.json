@@ -23,51 +23,51 @@
       "job": [
         {
           "relative_to": "this_file",
-          "model_file": "sim_input\\model_1.json",
+          "model_file": "temp/model_worker.json",
           "options_file": "sim_input/sim_options.json",
-          "protocol_file": "sim_input\\1\\rel_f_0\\prot_rel_f_0.txt",
-          "results_file": "sim_output\\1\\results_0.txt",
-          "output_handler_file": "sim_input\\1\\rel_f_0\\output_handler_0.json"
+          "protocol_file": "sim_input\\rel_f_0\\prot_rel_f_0.txt",
+          "results_file": "temp\\rel_f_0\\results_0.txt",
+          "output_handler_file": "sim_input\\rel_f_0\\output_handler_0.json"
         },
         {
           "relative_to": "this_file",
-          "model_file": "sim_input\\model_1.json",
+          "model_file": "temp/model_worker.json",
           "options_file": "sim_input/sim_options.json",
-          "protocol_file": "sim_input\\1\\rel_f_10\\prot_rel_f_10.txt",
-          "results_file": "sim_output\\1\\results_10.txt",
-          "output_handler_file": "sim_input\\1\\rel_f_10\\output_handler_10.json"
+          "protocol_file": "sim_input\\rel_f_10\\prot_rel_f_10.txt",
+          "results_file": "temp\\rel_f_10\\results_10.txt",
+          "output_handler_file": "sim_input\\rel_f_10\\output_handler_10.json"
         },
         {
           "relative_to": "this_file",
-          "model_file": "sim_input\\model_1.json",
+          "model_file": "temp/model_worker.json",
           "options_file": "sim_input/sim_options.json",
-          "protocol_file": "sim_input\\1\\rel_f_20\\prot_rel_f_20.txt",
-          "results_file": "sim_output\\1\\results_20.txt",
-          "output_handler_file": "sim_input\\1\\rel_f_20\\output_handler_20.json"
+          "protocol_file": "sim_input\\rel_f_20\\prot_rel_f_20.txt",
+          "results_file": "temp\\rel_f_20\\results_20.txt",
+          "output_handler_file": "sim_input\\rel_f_20\\output_handler_20.json"
         },
         {
           "relative_to": "this_file",
-          "model_file": "sim_input\\model_1.json",
+          "model_file": "temp/model_worker.json",
           "options_file": "sim_input/sim_options.json",
-          "protocol_file": "sim_input\\1\\rel_f_40\\prot_rel_f_40.txt",
-          "results_file": "sim_output\\1\\results_40.txt",
-          "output_handler_file": "sim_input\\1\\rel_f_40\\output_handler_40.json"
+          "protocol_file": "sim_input\\rel_f_40\\prot_rel_f_40.txt",
+          "results_file": "temp\\rel_f_40\\results_40.txt",
+          "output_handler_file": "sim_input\\rel_f_40\\output_handler_40.json"
         },
         {
           "relative_to": "this_file",
-          "model_file": "sim_input\\model_1.json",
+          "model_file": "temp/model_worker.json",
           "options_file": "sim_input/sim_options.json",
-          "protocol_file": "sim_input\\1\\rel_f_80\\prot_rel_f_80.txt",
-          "results_file": "sim_output\\1\\results_80.txt",
-          "output_handler_file": "sim_input\\1\\rel_f_80\\output_handler_80.json"
+          "protocol_file": "sim_input\\rel_f_80\\prot_rel_f_80.txt",
+          "results_file": "temp\\rel_f_80\\results_80.txt",
+          "output_handler_file": "sim_input\\rel_f_80\\output_handler_80.json"
         },
         {
           "relative_to": "this_file",
-          "model_file": "sim_input\\model_1.json",
+          "model_file": "temp/model_worker.json",
           "options_file": "sim_input/sim_options.json",
-          "protocol_file": "sim_input\\1\\rel_f_100\\prot_rel_f_100.txt",
-          "results_file": "sim_output\\1\\results_100.txt",
-          "output_handler_file": "sim_input\\1\\rel_f_100\\output_handler_100.json"
+          "protocol_file": "sim_input\\rel_f_100\\prot_rel_f_100.txt",
+          "results_file": "temp\\rel_f_100\\results_100.txt",
+          "output_handler_file": "sim_input\\rel_f_100\\output_handler_100.json"
         }
       ]
     },
