@@ -63,32 +63,20 @@
               }
         ]
     },
-    "parameter": [
-        {
-            "name": "a_k_off",
-            "min_value": 1,
-            "max_value": 2,
-            "p_value": 0.5,
-            "p_mode": "log"
-        },
-        {
-          "name": "a_k_coop",
-          "min_value": 10,
-          "max_value": 25,
-          "p_value": 0.5,
-          "p_mode": "lin"
-        },
-        {
-          "name": "m_kinetics",
-          "isotype": 1,
-          "state": 1,
-          "old_state": 1,
-          "new_state": 2,
-          "parameter_index": 0,
-          "min_value": 5,
-          "max_value": 20,
-          "p_value": 0.5,
-          "p_mode": "lin"
-      }
-    ]
+  "parameter": [
+    {
+      "name": "a_k_off",
+      "min_value": 1.5,
+      "max_value": 2.5,
+      "p_value": 0.5,
+      "p_mode": "log"
+    },
+    {
+      "name": "a_k_coop",
+      "min_value": 1,
+      "max_value": 10,
+      "p_value": 0.5,
+      "p_mode": "lin"
+    }
+  ]
 }
