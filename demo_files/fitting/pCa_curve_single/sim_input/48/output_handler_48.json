@@ -4,7 +4,7 @@
         {
             "relative_to": "this_file",
             "template_file_string": "../../template/template_summary.json",
-            "output_file_string": "../../temp/45/summary_45.png"
+            "output_file_string": "../../temp/48/summary_48.png"
         }
     ]
 }
