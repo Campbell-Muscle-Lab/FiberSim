@@ -406,6 +406,7 @@ class fitting():
 
         # Global error
         fit_data['fit_error'] = np.sum(fit_data['job_errors'])
+ 
 
         # Return results
         return fit_data
@@ -527,9 +528,13 @@ class fitting():
             marker = 'bo'
         else:
             marker = 'b-'
-        ax[0].plot(x, np.log(self.global_fit_values), marker)
-        ax[0].set_xlabel('Fit values')
+        ax[0].plot(x, np.log10(self.global_fit_values), marker)
+        ax[0].set_xlabel('Iteration')
         ax[0].set_ylabel('log$_{10}$\nfit\nerror')
+
+        #ax[0].set_xlim(0,x+1)
+        ax[0].set_xticks(x)
+
 
         # Save figure
         print('Saving fit progress to %s' %
@@ -594,7 +599,7 @@ class fitting():
                     cf3.append(res)
 
             ax[0].invert_xaxis()
-            ax[0].set_xlim((7,4))
+            ax[0].set_xlim((8.5,4))
             ylim = ax[0].get_ylim()
             y_anchor = 0.9
             y_spacing = 0.1
@@ -670,8 +675,11 @@ class fitting():
         ax.append(fig.add_subplot(spec[1,0]))
         for i, j in enumerate(fit_data['job_errors']):
             ax[1].plot(i+1, np.log10(j), 'ko')
-        ax[1].set_xlabel('Job number')
-        ax[1].set_ylabel('log$_{10}$\nJob\nerror')
+        ax[1].set_xlabel('Trial number')
+        ax[1].set_ylabel('log$_{10}$\nTrial\nerror')
+
+        ax[1].set_xlim(0,len(fit_data['job_errors'])+1)
+        ax[1].set_xticks(np.arange(0,len(fit_data['job_errors'])+2,1))
 
         # Plot the p vector
         ax.append(fig.add_subplot(spec[2,0]))
