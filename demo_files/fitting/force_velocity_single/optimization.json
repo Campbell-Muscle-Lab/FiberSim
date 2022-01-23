@@ -1,7 +1,7 @@
 {
   "FiberSim_optimization": {
     "fit_mode": "fit_fv_curve",
-    "fit_time_interval": [ 2.05, 2.3 ],
+    "fit_time_interval": [ 1.05, 1.3 ],
     "optimizer": "Nelder-Mead",
     "single_run": 0,
     "files": {
@@ -74,15 +74,15 @@
     "parameter": [
         {
             "name": "a_k_off",
-            "min_value": 1,
-            "max_value": 2,
+            "min_value": 1.5,
+            "max_value": 2.5,
             "p_value": 0.5,
             "p_mode": "log"
         },
       {
-        "name": "a_k_coop",
-        "min_value": 5,
-        "max_value": 15,
+        "name": "a_gamma_coop",
+        "min_value": 0,
+        "max_value": 10,
         "p_value": 0.5,
         "p_mode": "lin"
       }

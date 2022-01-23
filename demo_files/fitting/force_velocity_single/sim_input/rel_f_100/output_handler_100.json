@@ -1,9 +1,9 @@
 {
-  "templated_images": [
-    {
-      "relative_to": "this_file",
-      "template_file_string": "../../template/template_summary.json",
-      "output_file_string": "../../temp\\rel_f_100\\summary_100.png"
-    }
-  ]
+    "templated_images": [
+      {
+        "relative_to": "this_file",
+        "template_file_string": "../../template/template_summary.json",
+        "output_file_string": "../../temp\\rel_f_100\\summary_100.png"
+      }
+    ]
 }
