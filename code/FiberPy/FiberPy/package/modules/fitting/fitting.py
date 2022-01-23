@@ -529,12 +529,17 @@ class fitting():
         else:
             marker = 'b-'
         ax[0].plot(x, np.log10(self.global_fit_values), marker)
-        ax[0].set_xlabel('Iteration')
+        ax[0].set_xlabel('# Iteration')
         ax[0].set_ylabel('log$_{10}$\nfit\nerror')
 
-        #ax[0].set_xlim(0,x+1)
-        ax[0].set_xticks(x)
-
+        # Set int numbers for x ticks
+        if (np.size(x)<10):
+            x_ticks = x
+        elif(np.size(x)<100):
+            x_ticks = np.arange(0, np.size(self.global_fit_values), 10)
+        else:
+            x_ticks = np.arange(0, np.size(self.global_fit_values), 100)
+        ax[0].set_xticks(x_ticks)
 
         # Save figure
         print('Saving fit progress to %s' %
