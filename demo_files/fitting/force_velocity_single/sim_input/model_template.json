@@ -5,13 +5,13 @@
   "muscle": {
     "no_of_half_sarcomeres": 1,
     "no_of_myofibrils": 1,
-    "initial_hs_length": 1000,
+    "initial_hs_length": 1100,
     "prop_fibrosis": 0.0,
     "prop_myofilaments": 1.0,
     "m_filament_density": 0.407e15
   },
   "thick_structure": {
-    "m_n": 49,
+    "m_n": 100,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,
@@ -39,9 +39,9 @@
   "thin_parameters": {
     "a_no_of_bs_states": 2,
     "a_k_stiff": 100,
-    "a_k_on": 2e7,
-    "a_k_off": 75,
-    "a_gamma_coop": 7
+    "a_k_on": 3e7,
+    "a_k_off": 100,
+    "a_gamma_coop": 5
   },
   "thick_parameters": {
     "m_k_stiff": 100
@@ -73,10 +73,14 @@
           "transition": [
             {
               "new_state": 2,
-              "rate_type": "force_dependent",
+              "rate_type": "force_and_MyBPC_dependent",
               "rate_parameters": [
-                15,
-                300
+                10,
+                100,
+                1,
+                1,
+                1,
+                1
               ]
             }
           ]
@@ -90,14 +94,14 @@
               "new_state": 1,
               "rate_type": "constant",
               "rate_parameters": [
-                300
+                200
               ]
             },
             {
               "new_state": 3,
               "rate_type": "gaussian",
               "rate_parameters": [
-                125
+                82.5
               ]
             }
           ]
@@ -111,7 +115,7 @@
               "new_state": 2,
               "rate_type": "poly",
               "rate_parameters": [
-                110,
+                75,
                 1,
                 2,
                 0

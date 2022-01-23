@@ -2,7 +2,7 @@
   "FiberSim_optimization": {
     "fit_mode": "fit_pCa_curve",
     "fit_variable": "force",
-    "optimizer": "Nelder-Mead",
+    "optimizer": "particle_swarm",
     "single_run": 0,
     "files": {
       "relative_to": "this_file",
@@ -23,69 +23,60 @@
         "job":[
             {
                 "relative_to": "this_file",
-                "model_file": "temp/70/model_worker.json",
+                "model_file": "temp/model_worker.json",
                 "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/70/pCa_70.txt",
-                "results_file": "temp/70/results.txt",
-                "output_handler_file": "sim_input/70/output_handler_70.json"
+                "protocol_file": "sim_input/80/pCa_80.txt",
+                "results_file": "temp/80/results_80.txt",
+                "output_handler_file": "sim_input/80/output_handler_80.json"
+            },
+            {
+              "relative_to": "this_file",
+              "model_file": "temp/model_worker.json",
+              "options_file": "sim_input/sim_options.json",
+              "protocol_file": "sim_input/60/pCa_60.txt",
+              "results_file": "temp/60/results_60.txt",
+              "output_handler_file": "sim_input/60/output_handler_60.json"
+            },
+            {
+              "relative_to": "this_file",
+              "model_file": "temp/model_worker.json",
+              "options_file": "sim_input/sim_options.json",
+              "protocol_file": "sim_input/57/pCa_57.txt",
+              "results_file": "temp/57/results_57.txt",
+              "output_handler_file": "sim_input/57/output_handler_57.json"
+            },
+            {
+              "relative_to": "this_file",
+              "model_file": "temp/model_worker.json",
+              "options_file": "sim_input/sim_options.json",
+              "protocol_file": "sim_input/54/pCa_54.txt",
+              "results_file": "temp/54/results_54.txt",
+              "output_handler_file": "sim_input/54/output_handler_54.json"
             },
             {
                 "relative_to": "this_file",
-                "model_file": "temp/62/model_worker.json",
+                "model_file": "temp/model_worker.json",
                 "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/62/pCa_62.txt",
-                "results_file": "temp/62/results.txt"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "temp/58/model_worker.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/58/pCa_58.txt",
-                "results_file": "temp/58/results.txt"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "temp/54/model_worker.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/54/pCa_54.txt",
-                "results_file": "temp/54/results.txt"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "temp/45/model_worker.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input/45/pCa_45.txt",
-                "results_file": "temp/45/results.txt",
-                "output_handler_file": "sim_input/45/output_handler_45.json"
+                "protocol_file": "sim_input/48/pCa_48.txt",
+                "results_file": "temp/48/results_48.txt",
+                "output_handler_file": "sim_input/48/output_handler_48.json"
             }
         ]
     },
-    "parameter": [
-        {
-            "name": "a_k_off",
-            "min_value": 1,
-            "max_value": 2,
-            "p_value": 0.5,
-            "p_mode": "log"
-        },
-      {
-        "name": "a_k_coop",
-        "min_value": 10,
-        "max_value": 25,
-        "p_value": 0.5,
-        "p_mode": "lin"
-      },
-      {
-        "name": "m_kinetics",
-        "isotype": 1,
-        "state": 1,
-        "old_state": 1,
-        "new_state": 2,
-        "parameter_index": 0,
-        "min_value": 5,
-        "max_value": 15,
-        "p_value": 0.5,
-        "p_mode": "lin"
-      }
-    ]
+  "parameter": [
+    {
+      "name": "a_k_off",
+      "min_value": 1.0,
+      "max_value": 2.5,
+      "p_value": 0.5,
+      "p_mode": "log"
+    },
+    {
+      "name": "a_k_coop",
+      "min_value": 0,
+      "max_value": 10,
+      "p_value": 0.5,
+      "p_mode": "lin"
+    }
+  ]
 }

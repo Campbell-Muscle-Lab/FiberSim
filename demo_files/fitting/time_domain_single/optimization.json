@@ -41,27 +41,15 @@
             "name": "t_k_stiff",
             "min_value": -5,
             "max_value": -3,
-            "p_value": 0.525,
+            "p_value": 0.5,
             "p_mode": "log"
         },
-      {
-        "name": "t_slack_length",
-        "min_value": 100,
-        "max_value": 500,
-        "p_value": 0.475,
-        "p_mode": "lin"
-      },
-      {
-        "name": "m_kinetics",
-        "isotype": 1,
-        "state": 1,
-        "old_state": 1,
-        "new_state": 2,
-        "parameter_index": 0,
-        "min_value": 5,
-        "max_value": 15,
-        "p_value": 0.5,
-        "p_mode": "lin"
-      }
+        {
+          "name": "t_slack_length",
+          "min_value": 100,
+          "max_value": 500,
+          "p_value": 0.5,
+          "p_mode": "lin"
+        }
     ]
 }
