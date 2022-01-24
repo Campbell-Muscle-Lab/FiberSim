@@ -808,6 +808,8 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
     rate_data["node_force"] = node_force
 
     for j, state in enumerate(m_kinetics[isotype - 1]):
+
+        x_ext = state["extension"]
         
         for new_state in state["transition"]:
             
@@ -830,6 +832,15 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
             elif trans_type == "force_dependent":
                 
                 rate_trans = [trans_param[0] * (1 + trans_param[1] * max(nf,0)) for nf in node_force]
+
+            elif trans_type == "exp":
+
+                if len(trans_param) == 2:
+                
+                    rate_trans = [trans_param[0] * np.exp(-trans_param[1] * (x + x_ext)) for x in stretch]
+
+                else:
+                    rate_trans = [trans_param[0] * np.exp(-trans_param[1] * (x + trans_param[2])) for x in stretch]
                 
             else:
                 raise RuntimeError(f"Transition of type {trans_type} is unknown")
