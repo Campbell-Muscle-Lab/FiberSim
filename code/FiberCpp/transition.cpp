@@ -242,13 +242,13 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 	// Exp
 	if (!strcmp(rate_type, "exp"))
 	{
-		double x_center = gsl_vector_get(rate_parameters, 2); // optional parameter 
+		double x_center = gsl_vector_get(rate_parameters, 3); // optional parameter 
 
 		if (gsl_isnan(x_center)) { // optional parameter is not specified, use the state extension instead
 			x_center = x_ext;
 		}
 
-		rate = gsl_vector_get(rate_parameters, 0) * exp(-gsl_vector_get(rate_parameters, 1) * (x + x_center));
+		rate = gsl_vector_get(rate_parameters, 0) + gsl_vector_get(rate_parameters, 1) * exp(-gsl_vector_get(rate_parameters, 2) * (x + x_center));
 
 	}
 
