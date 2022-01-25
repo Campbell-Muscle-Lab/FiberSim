@@ -759,6 +759,7 @@ def get_m_kinetics(model_json_file):
                         
             state_data["state_number"] = state["number"]
             state_data["state_type"] = state["type"]
+            state_data["extension"] = state["extension"]
             state_data["transition"] = []  # array for the different transitions
                        
             for k, trans in enumerate(state["transition"]): # Get transition data for each new state
@@ -826,8 +827,14 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
                 rate_trans = [trans_param[0]*np.exp(-0.5 * k_cb * np.power(x, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
                                 
             elif trans_type == "poly":
+
+                if len(trans_param) == 4:          
                 
-                rate_trans = [trans_param[0] + trans_param[1] * np.power(x, trans_param[2]) for x in stretch]
+                    rate_trans = [trans_param[0] + trans_param[1] * np.power(x + trans_param[3], trans_param[2]) for x in stretch]
+
+                else:
+
+                    rate_trans = [trans_param[0] + trans_param[1] * np.power(x + x_ext, trans_param[2]) for x in stretch]
                 
             elif trans_type == "force_dependent":
                 
