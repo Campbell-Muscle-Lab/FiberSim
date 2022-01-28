@@ -239,6 +239,8 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 				gsl_pow_int(x + x_center, (int)gsl_vector_get(rate_parameters, 4)));
 	}
 
+	FiberSim_options* p_options = p_parent_m_state->p_parent_scheme->p_fs_options;
+
 	// Exp
 	if (!strcmp(rate_type, "exp"))
 	{
@@ -250,10 +252,15 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 
 		rate = gsl_vector_get(rate_parameters, 0) + gsl_vector_get(rate_parameters, 1) * exp(-gsl_vector_get(rate_parameters, 2) * (x + x_center));
 
+		double x_lim = gsl_vector_get(rate_parameters, 4); // optional parameter 
+
+		if (x > x_lim) {
+			rate = p_options->max_rate;
+		}
 	}
 
 	// Curtail at max rate
-	FiberSim_options* p_options = p_parent_m_state->p_parent_scheme->p_fs_options;
+
 	if (rate > (p_options->max_rate))
 		rate = p_options->max_rate;
 
