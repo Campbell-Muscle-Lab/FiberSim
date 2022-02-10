@@ -341,7 +341,6 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             for file in os.listdir(curve_folder):
                 if file.endswith('.txt'):
                     data_file_string = os.path.join(curve_folder, file)
-                    print(data_file_string)
 
                     # Load up the results file
                     d = pd.read_csv(data_file_string, delimiter='\t')
