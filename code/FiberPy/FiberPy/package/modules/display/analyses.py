@@ -33,8 +33,12 @@ def default_formatting():
     formatting['x_label_fontsize'] = 12
     formatting['x_label_pad'] = 15
     formatting['tick_labels_fontsize'] = 12
+    formatting['x_scaling_factor'] = 1
     formatting['y_scaling_factor'] = 1
+    formatting['x_normalized_to_max'] = False
     formatting['y_normalized_to_max'] = False
+    formatting['x_field'] = 'pCa'
+    formatting['x_axis_label'] = 'x_axis_label'
     formatting['y_axis_label'] = 'y_axis_label'
     formatting['y_label_pad'] = 15
     formatting['y_label_fontsize'] = 12
@@ -509,6 +513,7 @@ def create_ktr_figure(fig_data, batch_file_string):
     curve = []
     hs_ktr = []
     hs_pCa = []
+    hs_force = []
 
     while keep_going:
         curve_folder = os.path.join(top_data_folder,
@@ -537,6 +542,7 @@ def create_ktr_figure(fig_data, batch_file_string):
                     curve.append(curve_counter)
                     hs_ktr.append(ktr_data['k'])
                     hs_pCa.append(d_fit['pCa'].iloc[-1])
+                    hs_force.append(formatting['x_scaling_factor'] * d_fit['force'].iloc[-1])
 
             curve_counter = curve_counter + 1
 
@@ -546,6 +552,7 @@ def create_ktr_figure(fig_data, batch_file_string):
     # Take lists and create a data frame
     r = pd.DataFrame({'curve': curve,
                     'hs_pCa': hs_pCa,
+                    'hs_force': hs_force,
                     'hs_ktr': hs_ktr})
 
     # Create a figure
@@ -569,19 +576,39 @@ def create_ktr_figure(fig_data, batch_file_string):
         for c in range(1, curve_counter):
             rc = r[r['curve'] == c]
 
-            # Plot the ktr curve
-            ax_ktr.plot(rc['hs_pCa'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
+            if formatting['x_field']== "force": # plot ktr-force curve
 
-        # Tidy up
-        ax_ktr.set_xlabel('pCa',
-                          fontfamily=formatting['fontname'],
-                          loc='center')
-        ax_ktr.set_ylabel('ktr\n(s$\\mathregular{^{-1}}$)',
+                # Normalized data_field if required
+                if formatting['x_normalized_to_max']:
+                    rc['hs_force'] = rc['hs_force']/max(rc['hs_force'])
+
+                # Plot the ktr curve
+                ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
+
+                ax_ktr.set_xlabel(formatting['x_axis_label'],
+                        fontfamily=formatting['fontname'],
+                        loc='center')
+
+                ax_ktr.set_ylabel('k$_{\\mathregular{tr}}$\n(s$^{\\mathregular{-1}}$)',
                           fontfamily=formatting['fontname'],
                           loc='center',
                           rotation=formatting['y_label_rotation'])
 
-        ax_ktr.invert_xaxis()
+
+            if formatting['x_field'] == "pCa": # plot ktr-pCa curve 
+
+                # Plot the ktr curve
+                ax_ktr.plot(rc['hs_pCa'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
+                
+                ax_ktr.set_xlabel('pCa',
+                                    fontfamily=formatting['fontname'],
+                                    loc='center')
+                ax_ktr.set_ylabel('k$_{\\mathregular{tr}}$\n(s$^{\\mathregular{-1}}$)',
+                                    fontfamily=formatting['fontname'],
+                                    loc='center',
+                                    rotation=formatting['y_label_rotation'])
+
+                ax_ktr.invert_xaxis()
 
         # Save figure
         print('Saving ktr figure to: %s'% output_image_file_string)
@@ -659,6 +686,11 @@ def superpose_ktr_plots(fig_data, batch_file_string):
         d = pd.read_csv(results_files[i], sep='\t')
         x = d['time']
 
+        # Set max time on x axis
+
+        max_time = ut.multiple_greater_than(max(d["time"]),
+            0.05*np.power(10, np.ceil(np.log10(max(d["time"])))))
+
         # pCa
 
         axs[0].plot(x, d['pCa'], color = formatting['color_set'][i])
@@ -695,8 +727,6 @@ def superpose_ktr_plots(fig_data, batch_file_string):
         axs[4].plot(x, d['m_pop_1'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
         axs[4].plot(x, d['m_pop_2'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
 
-
-
     # Clean axis
 
     for i in range(5):
@@ -705,7 +735,7 @@ def superpose_ktr_plots(fig_data, batch_file_string):
         axs[i].spines['right'].set_visible(False)
         axs[i].spines['bottom'].set_visible(False)
         axs[i].set_xticks([])
-        axs[i].set_xlim([0, max(d["time"])]) 
+        axs[i].set_xlim([0, max_time]) 
         
         for axis in ['top','bottom','left','right']:
             axs[i].spines[axis].set_linewidth(1.5)
@@ -717,9 +747,6 @@ def superpose_ktr_plots(fig_data, batch_file_string):
 
     axs[4].spines['bottom'].set_visible(True)
 
-    max_time = ut.multiple_greater_than(max(d["time"]),
-               0.1*np.power(10, np.ceil(np.log10(max(d["time"])))))
-
     axs[4].set_xlim([0, max_time]) 
     axs[4].set_xticks([0, max_time])
     axs[4].set_xlabel('Time (s)', labelpad = -5)
@@ -728,12 +755,7 @@ def superpose_ktr_plots(fig_data, batch_file_string):
 
     axs[0].set_ylim([9, 4])
     axs[0].set_yticks([9, 4])
-    #axs[0].set_ylabel('pCa', fontsize = 14, rotation = 0, labelpad = 10)
     axs[0].text(-0.2, 6.5, "pCa" , fontsize = 14, transform = axs[0].transData, ha='center', va='center')
-
-    #axs[1].set_ylabel('HS length ($\mathregular{\mu}$m)', fontsize = 14, rotation = 0, labelpad = 15)
-
-    #axs[2].set_ylabel('Force (kN m$\mathregular{^{-2}}$)', fontsize = 14, labelpad = 25, rotation = 0)
 
     max_length =ut. multiple_greater_than(max(d["hs_command_length"]),
                0.001*np.power(10, np.ceil(np.log10(max(d["hs_command_length"])))))
@@ -754,19 +776,14 @@ def superpose_ktr_plots(fig_data, batch_file_string):
 
     axs[2].text(-0.2, (0 + max_force)/2, 'Force \n(kN $\\mathregular{m}^{\mathregular{-2}}$)' , fontsize = 14, transform = axs[2].transData, ha='center', va='center')
 
-
-    #axs[3].set_ylabel('Thin \n filament', fontsize = 14, rotation = 0, labelpad = 20)
     axs[3].text(-0.2, 0.5, 'Thin \n filament' , fontsize = 14, transform = axs[3].transData, ha='center', va='center')
 
     axs[3].set_ylim([0, 1])
     axs[3].set_yticks([0, 1])
 
-    #axs[4].set_ylabel('Thick \n filament', fontsize = 14, rotation = 0, labelpad = 20)
     axs[4].text(-0.2, 0.5, 'Thick \n filament' , fontsize = 14, transform = axs[4].transData, ha='center', va='center')
     axs[4].set_ylim([0, 1])
     axs[4].set_yticks([0, 1])
-
-
 
     # Save figure
     print('Saving superposing plot figure to %s' % output_image_file_string)
