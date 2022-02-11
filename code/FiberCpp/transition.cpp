@@ -152,19 +152,6 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 			(1e18 * 1.38e-23 * 310.0));
 	}
 
-	// Force-dependent gaussian
-	if (!strcmp(rate_type, "force_dependent_gaussian"))
-	{
-		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
-		double k_cb = p_model->m_k_cb;
-
-		rate = gsl_vector_get(rate_parameters, 0) *
-			(1.0 + (gsl_max(node_force, 0.0) * gsl_vector_get(rate_parameters, 1))) *
-				exp(-(0.5 * k_cb * gsl_pow_int(x, 2)) /
-					(1e18 * 1.38e-23 * 310.0));
-	}
-
-
 	// Gaussian MyBP-C 
 
 	if (!strcmp(rate_type, "gaussian_pc"))
@@ -239,8 +226,29 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 				gsl_pow_int(x + x_center, (int)gsl_vector_get(rate_parameters, 4)));
 	}
 
-	// Curtail at max rate
 	FiberSim_options* p_options = p_parent_m_state->p_parent_scheme->p_fs_options;
+
+	// Decreasing load-dependent exponential
+
+	if (!strcmp(rate_type, "exp"))
+	{
+		double x_center = gsl_vector_get(rate_parameters, 3); // optional parameter  
+
+		if (gsl_isnan(x_center)) { // optional parameter is not specified, use the state extension instead
+			x_center = x_ext;
+		}
+
+		rate = gsl_vector_get(rate_parameters, 0) + gsl_vector_get(rate_parameters, 1) * exp(-gsl_vector_get(rate_parameters, 2) * (x + x_center));
+
+		double x_lim = gsl_vector_get(rate_parameters, 4); // optional parameter - wall ensuring that attached heads with x > x_lim detach 
+
+		if (gsl_finite(x_lim) && (x > x_lim)) {	// if optional parameter is specified, set rate to max_rate when x > x_lim
+			rate = p_options->max_rate;
+		}
+	}
+
+	// Curtail at max rate
+
 	if (rate > (p_options->max_rate))
 		rate = p_options->max_rate;
 
