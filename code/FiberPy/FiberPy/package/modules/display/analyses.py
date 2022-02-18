@@ -311,6 +311,10 @@ def create_y_pCa_figure(fig_data, batch_file_string):
 
 def create_fv_and_power_figure(fig_data, batch_file_string):
     """ Creates an fv and power figure """
+    
+    print("fig_data")
+    print(fig_data)
+    print(batch_file_string)
 
     # Pull default formatting, then overwrite any values from
     # input file
@@ -327,6 +331,8 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                                        fig_data['results_folder'])
     else:
         top_data_folder = fig_data['results_folder']
+        
+    print('kens data folder: %s' % top_data_folder)
 
     curve_counter = 1
     keep_going = True
@@ -340,11 +346,13 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     while keep_going:
         curve_folder = os.path.join(top_data_folder,
                                     ('%i' % curve_counter))
+        print('cf %s' % curve_folder)
         if (os.path.isdir(curve_folder)):
             # Find the results files
             for file in os.listdir(curve_folder):
                 if file.endswith('.txt'):
                     data_file_string = os.path.join(curve_folder, file)
+                    print('dfs %s' % data_file_string)
 
                     # Load up the results file
                     d = pd.read_csv(data_file_string, delimiter='\t')
@@ -356,19 +364,17 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
                     vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
                                                     d_fit['hs_length'].to_numpy())
-                    
-                    # Constrain to shortening
-                    if (vel_data['slope'] < 0):
-                        # Calculate some values, with a -ve for shortening velocity
-                        hs_vel = -1e-9*vel_data['slope']
-                        hs_for = d_fit['force'].mean()
-                        hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
-    
-                        # Store data
-                        curve.append(curve_counter)
-                        hs_velocity.append(hs_vel)
-                        hs_force.append(hs_for)
-                        hs_power.append(hs_pow)
+              
+                    # Calculate some values, with a -ve for shortening velocity
+                    hs_vel = -1e-9*vel_data['slope']
+                    hs_for = d_fit['force'].mean()
+                    hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
+
+                    # Store data
+                    curve.append(curve_counter)
+                    hs_velocity.append(hs_vel)
+                    hs_force.append(hs_for)
+                    hs_power.append(hs_pow)
 
             curve_counter = curve_counter + 1
 

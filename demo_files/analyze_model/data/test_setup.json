@@ -1,0 +1,38 @@
+{
+    "FiberSim_analysis":
+    {
+        "FiberCpp_exe":
+        {
+            "relative_to": "this_file",
+            "exe_file": "../../../bin/FiberCpp.exe"
+        },
+        "model":
+        {
+            "relative_to": "this_file",
+            "model_files": ["models/model_exp_0pt05.json",
+                            "models/model_exp_0pt25.json",
+                            "models/model_exp_0pt45.json"],
+            "options_file": "sim_options.json"
+        },
+        "analysis":
+        [
+            {
+                "type": "force_velocity",
+                "pCa": 4.5,
+                "time_step_s": 0.0001,
+                "sim_duration_s": 0.5,
+                "sim_release_s": 0.4,
+                "rel_isotonic_forces": [0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 0.9, 0.95, 1],
+                "relative_to": "this_file",
+                "sim_folder": "../simulations/fv_1",
+                "fit_time_s": [0.41, 0.49]
+            },
+            {
+                "type": "force_pCa",
+                "pCa_values": [9.0, 6.5, 6.3, 6.2, 6.1, 6.0, 5.9, 4.8, 4.5],
+                "relative_to": "this_file",
+                "sim_folder": "../simulations/fv_1"
+            }
+        ]
+    }
+}

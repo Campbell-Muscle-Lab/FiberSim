@@ -29,6 +29,7 @@ def write_protocol_to_file(prot, prot_file_string):
 def create_length_control_protocol(time_step=0.0001, n_points=1000,
                               initial_pCa=9.0, step_pCa=4.5,
                               step_pCa_s=0.05,
+                              mode_vector = [],
                               delta_hsl=[]):
     """ Creates a length control protocol as a Pandas dataframe """
     
@@ -44,7 +45,12 @@ def create_length_control_protocol(time_step=0.0001, n_points=1000,
     else:
         dhsl = delta_hsl
     
-    mode = -2 * np.ones(n_points)
+    # Set mode_vector as -2 if undefined (thus length control)
+    if (mode_vector == []):
+        mode = -2 * np.ones(n_points)
+    else:
+        mode = mode_vector
+           
     
     # Assemble
     d = {'dt': dt, 'pCa': pCa, 'dhsl': dhsl, 'mode': mode}
