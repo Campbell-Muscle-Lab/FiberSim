@@ -66,4 +66,11 @@ public:
 	*/
 	void write_kinetic_scheme_to_file(char output_file_string[]);
 
+	/**
+	* void write_myosin_rate_functions_to_file(char output_file_string)
+	* as a tab-delimited file
+	* @return void
+	*/
+	void write_rate_functions_to_file(char output_file_string[]);
+
 };

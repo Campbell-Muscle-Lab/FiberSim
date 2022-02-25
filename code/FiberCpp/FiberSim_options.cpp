@@ -41,6 +41,19 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
 
     // Do some processing on the options
+
+    if (strlen(rate_file_string) > 0)
+    {
+        if (!strcmp(rate_relative_to, "this_file"))
+        {
+            fs::path options_file = JSON_options_file_string;
+            fs::path options_path = options_file.parent_path();
+            fs::path rate_path = options_path / rate_file_string;
+
+            sprintf_s(rate_file_string, _MAX_PATH, "%s", rate_path.string().c_str());
+        }
+    }
+
     if (strlen(status_folder) > 0)
     {
         if (!strcmp(status_relative_to, "this_file"))
@@ -76,7 +89,6 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
                 }
                 
             }
-
             // Set the status folder
             sprintf_s(status_folder, _MAX_PATH, "%s", status_path.string().c_str());
         }

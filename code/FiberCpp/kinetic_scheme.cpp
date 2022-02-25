@@ -135,6 +135,86 @@ void kinetic_scheme::set_transition_types(void)
 	}
 }
 
+void kinetic_scheme::write_rate_functions_to_file(char output_file_string[])
+{
+	//! Writes rate functions to output file
+
+	// Variables
+	int counter = 0;
+
+	double x_limit = 10;
+	double x_bin = 0.5;
+
+	m_state* p_m_state;			// pointer to an m_state
+	transition* p_trans;		// pointer to a transition
+
+	int new_state;				// integer for new state
+
+	FILE* output_file;
+
+	// Code
+	// Check file can be opened, abort if not
+	errno_t err = fopen_s(&output_file, output_file_string, "w");
+	if (err != 0)
+	{
+		printf("write_rate_functions_to_file(): %s\ncould not be opened\n",
+			output_file_string);
+		exit(1);
+	}
+
+	// Cycle through transitions and rates writing the header
+	for (int state_counter = 0; state_counter < no_of_states; state_counter++)
+	{
+		p_m_state = p_m_states[state_counter];
+
+		for (int t_counter = 0; t_counter < max_no_of_transitions; t_counter++)
+		{
+			p_trans = p_m_state->p_transitions[t_counter];
+			new_state = p_trans->new_state;
+
+			if (new_state > 0)
+			{
+				// It's a transition
+				counter = counter + 1;
+				if (counter == 1)
+					fprintf_s(output_file, "x\tr_%i", counter);
+				else
+					fprintf_s(output_file, "\tr_%i", counter);
+			}
+		}
+	}
+	fprintf_s(output_file, "\n");
+
+	// Cycle through x values and bins
+	for (double x = -x_limit; x <= x_limit; x = x + x_bin)
+	{
+		fprintf_s(output_file, "%8g", x);
+
+		for (int state_counter = 0; state_counter < no_of_states; state_counter++)
+		{
+			p_m_state = p_m_states[state_counter];
+
+			for (int t_counter = 0; t_counter < max_no_of_transitions; t_counter++)
+			{
+				p_trans = p_m_state->p_transitions[t_counter];
+				new_state = p_trans->new_state;
+
+				if (new_state > 0)
+				{
+					// It's a transition
+					double x_ext = p_m_state->extension;
+					double rate = p_trans->calculate_rate(x, x_ext, 0, 0, 0);
+
+					fprintf_s(output_file, "\t%8g", rate);
+				}
+			}
+		}
+		fprintf_s(output_file, "\n");
+	}
+
+	fclose(output_file);
+}
+
 void kinetic_scheme::write_kinetic_scheme_to_file(char output_file_string[])
 {
 	//! Writes kinetics scheme to output file

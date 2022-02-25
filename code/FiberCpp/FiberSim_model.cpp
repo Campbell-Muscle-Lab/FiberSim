@@ -149,6 +149,9 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(mus, "m_filament_density");
     m_filament_density = mus["m_filament_density"].GetDouble();
 
+    JSON_functions::check_JSON_member_number(mus, "temperature");
+    temperature = mus["temperature"].GetDouble();
+
     // Load the thick_structure variables
     JSON_functions::check_JSON_member_object(doc, "thick_structure");
     const rapidjson::Value& thick_structure = doc["thick_structure"];
@@ -373,6 +376,8 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     {
         p_c_scheme[i] = create_kinetic_scheme(c_ks[i]);
     }
+
+
 
     if (p_fs_options->log_mode > 0)
     {

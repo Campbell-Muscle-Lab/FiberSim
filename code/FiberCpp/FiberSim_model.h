@@ -193,6 +193,8 @@ public:
 
     kinetic_scheme* p_c_scheme[MAX_NO_OF_ISOTYPES];        /**< pointer to a kinetic scheme array for MyBPC */
 
+    double temperature;                 /**< double defining temperature in K */
+
     // Functions
 
     /**

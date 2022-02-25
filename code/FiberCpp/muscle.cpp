@@ -48,6 +48,10 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 		p_hs[hs_counter] = new half_sarcomere(p_fs_model, p_fs_options, p_fs_protocol, this, hs_counter);
 	}
 
+	// Dump rate_functions to file
+	if (strlen(p_fs_options->rate_file_string) > 0)
+		p_hs[0]->p_m_scheme[0]->write_rate_functions_to_file(p_fs_options->rate_file_string);
+
 	// Initialise_status_counter
 	dump_status_counter = 1;
 

@@ -69,6 +69,10 @@ public:
     char status_folder[_MAX_PATH];      /**< Folder to hold status files
                                              "none" means do not write files */
 
+    char rate_relative_to[_MAX_PATH];  /**< char array used to direct paths */
+
+    char rate_file_string[_MAX_PATH];   /**< file_string for rate functions./
+
     char time_steps_string[_MAX_PATH];  /**< String definning which time_steps to dump */
 
     int start_status_time_step;         /**< Integer of first time-step to dump status file */

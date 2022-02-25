@@ -397,7 +397,7 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force)
     const gsl_root_fsolver_type* T;
     gsl_root_fsolver* s;
     double r = 0.0;
-    double x_lo = -100, x_hi = 100.0;
+    double x_lo = -1000, x_hi = 1000.0;
     struct force_control_params params = { target_force, this };
 
     gsl_function F;
@@ -1368,7 +1368,13 @@ double half_sarcomere::calculate_titin_force(void)
 
             if (!strcmp(t_passive_mode, "linear"))
             {
-                holder = holder + t_k_stiff * (x_m - x_a - t_slack_length);
+                if (fabs(x_m - x_a) > t_slack_length)
+                {
+                    if (x_m >= x_a)
+                        holder = holder + t_k_stiff * (x_m - x_a - t_slack_length);
+                    else
+                        holder = holder + t_k_stiff * (x_m - x_a + t_slack_length);
+                }
             }
         }
     }

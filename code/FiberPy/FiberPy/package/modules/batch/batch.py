@@ -23,7 +23,8 @@ from ..analysis import atp_cons
 
 
 def run_batch(json_batch_file_string=[],
-              batch_structure=[]):
+              batch_structure=[],
+              figures_only = False):
     """Runs >=1 simulation using multithreading"""
 
     print('FiberPy: run_batch() starting')
@@ -89,20 +90,21 @@ def run_batch(json_batch_file_string=[],
     num_processes = int(min([requested_max_threads, available_threads]))
     print('Running batch using %i threads' % num_processes)
 
-    # Now run the batch
-    my_list = command_strings
-
-    threads = []
-    while threads or my_list:
-        if (len(threads) < num_processes) and my_list:
-            t = threading.Thread(target=worker, args=[my_list.pop()])
-            t.setDaemon(True)
-            t.start()
-            threads.append(t)
-        else:
-            for thread in threads:
-                if not thread.is_alive():
-                    threads.remove(thread)  
+    if (not figures_only):
+        # Now run the batch
+        my_list = command_strings
+    
+        threads = []
+        while threads or my_list:
+            if (len(threads) < num_processes) and my_list:
+                t = threading.Thread(target=worker, args=[my_list.pop()])
+                t.setDaemon(True)
+                t.start()
+                threads.append(t)
+            else:
+                for thread in threads:
+                    if not thread.is_alive():
+                        threads.remove(thread)  
 
     # At this point we have run all the simulations
     # Run the output handlers
