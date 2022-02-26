@@ -101,19 +101,22 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
             shutil.copyfile(orig_options_file, iso_options_file)
        
         # Loop through the pCa values
-        for j,pCa in enumerate(pCa_struct['pCa_values']):
+        for pCa_counter,pCa in enumerate(pCa_struct['pCa_values']):
             
-            if (j==0):
+            if (pCa_counter==0):
                 # Update the options file to dump rates
                 with open(iso_options_file, 'r') as f:
                     json_data = json.load(f)
                     json_data['options']['rate_files'] = dict()
                     json_data['options']['rate_files']['relative_to'] = 'this_file'
-                    json_data['options']['rate_files']['file'] = 'rates.txt'
+                    json_data['options']['rate_files']['file'] = \
+                        os.path.join('../../sim_output',
+                                     ('%i' % (i+1)),
+                                     'rates.txt')
                 iso_options_file_rates = os.path.join(
                     Path(iso_options_file).parent.absolute(),
                     'sim_options_rates.json')
-                print(iso_options_file_rates)
+
                 with open(iso_options_file_rates, 'w') as f:
                     json.dump(json_data, f, indent=4)
             
@@ -169,7 +172,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                                              ('%i' % (i+1)),
                                              'sim_pCa_%.0f.txt' % (10*pCa))
             j['model_file'] = iso_model_file
-            if (j==0):
+            if (pCa_counter == 0):
                 j['options_file'] = iso_options_file_rates
             else:
                 j['options_file'] = iso_options_file
@@ -205,7 +208,8 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     
     # Now create the analysis section
     batch_figs = dict()
-    
+
+    # pCa curves
     batch_figs['pCa_curves'] = []
     fig = dict()
     fig['relative_to'] = "False"
@@ -224,8 +228,22 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     fig['output_image_formats'] = pCa_struct['output_image_formats']
     fig['formatting'] = dict()
     fig['formatting']['y_axis_label'] = 'Force (N m$^{\\mathregular{-2}}$)'
-    
     batch_figs['pCa_curves'].append(fig)
+
+    # Rates
+    batch_figs['rates'] = []
+    fig = dict()
+    fig['relative_to'] = "False"
+    fig['results_folder'] = os.path.join(base_dir,
+                                         pCa_struct['sim_folder'],
+                                         'sim_output')
+    fig['output_image_file'] = os.path.join(base_dir,
+                                            pCa_struct['sim_folder'],
+                                            'sim_output',
+                                            'rates')
+    fig['output_image_formats'] = pCa_struct['output_image_formats']
+    batch_figs['rates'].append(fig)
+    
     pCa_lc_b['batch_figures'] = batch_figs
     
     # Now insert isometric_b into a full batch structure

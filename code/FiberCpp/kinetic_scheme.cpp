@@ -5,6 +5,9 @@
 */
 
 #include <cstdio>
+#include <stdio.h>
+#include <iostream>
+#include <filesystem>
 
 #include "FiberSim_model.h"
 #include "FiberSim_options.h"
@@ -14,6 +17,8 @@
 
 #include "JSON_functions.h"
 #include "rapidjson\document.h"
+
+using namespace std::filesystem;
 
 // Constructor
 kinetic_scheme::kinetic_scheme(const rapidjson::Value& m_ks,
@@ -153,6 +158,24 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[])
 	FILE* output_file;
 
 	// Code
+
+	// Make sure directory exists
+	path output_file_path(output_file_string);
+
+	if (!(is_directory(output_file_path.parent_path())))
+	{
+		if (create_directories(output_file_path.parent_path()))
+		{
+			std::cout << "\nCreating folder: " << output_file_path.string() << "\n";
+		}
+		else
+		{
+			std::cout << "\nError: Results folder could not be created: " <<
+				output_file_path.parent_path().string() << "\n";
+			exit(1);
+		}
+	}
+
 	// Check file can be opened, abort if not
 	errno_t err = fopen_s(&output_file, output_file_string, "w");
 	if (err != 0)
@@ -161,6 +184,8 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[])
 			output_file_string);
 		exit(1);
 	}
+
+	printf("write rate functions to file\n");
 
 	// Cycle through transitions and rates writing the header
 	for (int state_counter = 0; state_counter < no_of_states; state_counter++)
@@ -223,6 +248,23 @@ void kinetic_scheme::write_kinetic_scheme_to_file(char output_file_string[])
 	FILE* output_file;
 
 	// Code
+
+	// Make sure irectory exists
+	path output_file_path(output_file_string);
+
+	if (!(is_directory(output_file_path.parent_path())))
+	{
+		if (create_directories(output_file_path.parent_path()))
+		{
+			std::cout << "\nCreating folder: " << output_file_path.string() << "\n";
+		}
+		else
+		{
+			std::cout << "\nError: Results folder could not be created: " <<
+				output_file_path.parent_path().string() << "\n";
+			exit(1);
+		}
+	}
 
 	// Check file can be opened, abort if not
 	errno_t err = fopen_s(&output_file, output_file_string, "w");

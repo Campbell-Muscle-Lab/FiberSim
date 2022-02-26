@@ -128,6 +128,12 @@ def run_batch(json_batch_file_string=[],
         batch_figures = batch_structure['batch_figures']
 
         # Dive into the structure
+        if ('rates' in batch_figures):
+            print('Now generating the rates figure')
+            for fig_data in batch_figures['rates']:
+                analyses.create_rates_figure(fig_data,
+                                          json_batch_file_string)
+        
         if ('pCa_curves' in batch_figures):
             print('Now generating the tension-pCa curves')
             for fig_data in batch_figures['pCa_curves']:

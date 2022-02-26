@@ -108,7 +108,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
         if os.path.isdir(curve_folder):
             # Find the results files
             for file in os.listdir(curve_folder):
-                if file.endswith('.txt'):
+                if (file.endswith('.txt') and not file.startswith('rates')):
                     data_file_string = \
                         os.path.join(curve_folder, file)
                     d = pd.read_csv(data_file_string, delimiter='\t')
@@ -369,7 +369,6 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             for file in os.listdir(curve_folder):
                 if file.endswith('.txt'):
                     data_file_string = os.path.join(curve_folder, file)
-                    print('dfs %s' % data_file_string)
 
                     # Load up the results file
                     d = pd.read_csv(data_file_string, delimiter='\t')
@@ -1122,3 +1121,86 @@ def dose_response(fig_data, batch_file_string):
     r.to_excel(output_file_string,
                engine='openpyxl',
                index=False)
+    
+def create_rates_figure(fig_data, batch_file_string):
+    """ Create a rates figure """
+
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    if ('formatting' in fig_data):
+        for entry in fig_data['formatting']:
+            formatting[entry] = fig_data['formatting'][entry]
+
+    # Pull off the base folder
+    base_folder = os.path.dirname(batch_file_string)
+
+    if (fig_data['relative_to'] == 'this_file'):
+        top_data_folder = os.path.join(base_folder,
+                                       fig_data['results_folder'])
+    else:
+        top_data_folder = fig_data['results_folder']
+
+    # Store the data from the rate files
+    rates_data = dict()
+    rates_data['condition'] = []
+    
+    model_counter = 1
+    keep_going = True
+
+    # Loop through data folders
+    while (keep_going):
+        condition_folder = os.path.join(top_data_folder,
+                                        ('%i' % model_counter))
+
+        if os.path.isdir(condition_folder):
+            for file in os.listdir(condition_folder):
+                if (file == 'rates.txt'):
+                    fs = os.path.join(condition_folder, file)
+                    d = pd.read_csv(fs, sep='\t')
+                    rates_data['condition'].append(d)
+                    no_of_rates = len(d.columns) - 1
+                    model_counter = model_counter + 1
+        else:
+            keep_going = False
+
+    # Hold the no_of_conditions
+    no_of_conditions = model_counter-1
+
+    # Set-up the figure
+    fig = plt.figure(constrained_layout = False)
+    spec = gridspec.GridSpec(nrows=no_of_rates, ncols=1)
+    fig.set_size_inches([3.5, 2 * no_of_rates])
+
+    ax = []
+    for i, d in enumerate(rates_data['condition']):
+        for j in range(no_of_rates):
+            if (i==0):
+                ax.append(fig.add_subplot(spec[j,0]))
+                
+            r_string = 'r_%i' % (j+1)
+            ax[j].plot(d['x'], np.log10(d[r_string]), '-',
+                       color = formatting['color_set'][i])
+
+            if (i == (no_of_conditions-1)):
+                # Tidy up
+                ax[j].set_ylabel('log10 %s' % r_string)
+                ax[j].set_ylim([-1, 4])
+                ax[j].set_yticks(np.arange(-1,5,1))
+
+    if (fig_data['output_image_file']):
+        if (fig_data['relative_to'] == 'this_file'):
+            fig_data['output_image_file'] = \
+                os.path.join(base_folder,
+                             fig_data['output_image_file'])
+        # Check dir exists
+        dir_name = os.path.dirname(fig_data['output_image_file'])
+        if (not os.path.isdir(dir_name)):
+            os.makedirs(dir_name)
+        
+        for f in fig_data['output_image_formats']:
+            ofs = '%s.%s' % (fig_data['output_image_file'], f)
+            print('Saving rates to %s' % ofs)
+            fig.savefig(ofs, dpi=200, bbox_inches='tight')
+
+    plt.close()
