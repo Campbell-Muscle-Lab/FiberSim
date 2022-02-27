@@ -49,9 +49,26 @@ def default_formatting():
     formatting['table_fontsize'] = 11
     formatting['color_set'] = ["tab:orange", "tab:blue", "tab:green", "tab:red", "tab:pink", "tab:purple", "tab:grey", "tab:olive", "tab:cyan", "black"]
     formatting['labels'] = []
+    formatting['legend_location'] = 'upper left'
+    formatting['legend_bbox_to_anchor'] = [1.05, 1]
+    formatting['legend_fontsize'] = 9
+    formatting['legend_handlelength'] = 1
+
 
     return formatting
 
+def default_layout():
+    layout = dict()
+    layout['fig_width'] = 3.5
+    layout['panel_height'] = 1
+    layout['top_margin'] = 0.1
+    layout['bottom_margin'] = 0.1
+    layout['left_margin'] = 0.1
+    layout['right_margin'] = 0.1
+    layout['grid_wspace'] = 0.75
+    layout['grid_hspace'] = 0.5
+
+    return layout
 
 def create_y_pCa_figure(fig_data, batch_file_string):
     """ Creates a y pCa figure based on dict fig_data """
@@ -330,10 +347,6 @@ def create_y_pCa_figure(fig_data, batch_file_string):
 
 def create_fv_and_power_figure(fig_data, batch_file_string):
     """ Creates an fv and power figure """
-    
-    print("fig_data")
-    print(fig_data)
-    print(batch_file_string)
 
     # Pull default formatting, then overwrite any values from
     # input file
@@ -367,7 +380,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         if (os.path.isdir(curve_folder)):
             # Find the results files
             for file in os.listdir(curve_folder):
-                if file.endswith('.txt'):
+                if (file.endswith('.txt') and not file.startswith('rates')):
                     data_file_string = os.path.join(curve_folder, file)
 
                     # Load up the results file
@@ -1201,6 +1214,453 @@ def create_rates_figure(fig_data, batch_file_string):
         for f in fig_data['output_image_formats']:
             ofs = '%s.%s' % (fig_data['output_image_file'], f)
             print('Saving rates to %s' % ofs)
+            fig.savefig(ofs, dpi=200, bbox_inches='tight')
+
+    plt.close()
+
+def create_superposed_traces_figure(fig_data, batch_file_string):
+    """ Collates simulations and plots superpositions of each condition
+        in a column """
+
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    if ('formatting' in fig_data):
+        for entry in fig_data['formatting']:
+            formatting[entry] = fig_data['formatting'][entry]
+
+    layout = default_layout()
+    if ('layout' in fig_data):
+        for entry in fig_data['layout']:
+            layout[entry] = fig_data['layout'][entry]
+
+    # Pull off the base folder
+    base_folder = os.path.dirname(batch_file_string)
+
+    if (fig_data['relative_to'] == 'this_file'):
+        top_data_folder = os.path.join(base_folder,
+                                       fig_data['results_folder'])
+    else:
+        top_data_folder = fig_data['results_folder']
+
+    # Loop through data folders
+    model_counter = 1
+    keep_going = True
+
+    while (keep_going):
+        condition_folder = os.path.join(top_data_folder,
+                                        ('%i' % model_counter))
+
+        if os.path.isdir(condition_folder):
+            model_counter = model_counter + 1
+        else:
+            keep_going = False
+
+    # Hold the no_of_conditions
+    no_of_conditions = model_counter-1
+    no_of_rows = 6
+
+    # Set-up the figure
+    fig = plt.figure(constrained_layout = False)
+    spec = gridspec.GridSpec(nrows=no_of_rows,
+                             ncols=no_of_conditions,
+                             figure=fig,
+                             wspace = layout['grid_wspace'],
+                             hspace = layout['grid_hspace'])
+    fig.set_size_inches([3 * no_of_conditions, 2 * no_of_rows])
+
+    ax=[]
+
+    # Keep track of max and mins
+    min_hsl = []
+    max_hsl = []
+    min_force = []
+    max_force = []
+
+    # Create the figure
+    for i in range(no_of_conditions):
+        # Pull off the data files
+        condition_folder = os.path.join(top_data_folder,
+                                        ('%i' % (i+1)))
+        file_counter = 1
+        for file in os.listdir(condition_folder):
+            if ((file.endswith('.txt')) and not file.endswith('rates.txt')):
+                fs = os.path.join(condition_folder, file)
+                d = pd.read_csv(fs, sep='\t')
+
+                # Keep track of max and mins
+                if ((i==0) and (file_counter==1)):
+                    min_hsl = d['hs_length'].min()
+                    max_hsl = d['hs_length'].max()
+                    min_force = d['force'].min()
+                    max_force = d['force'].max()
+                # Other files
+                min_hsl = np.amin([min_hsl, np.amin(d['hs_length'])])
+                max_hsl = np.amin([max_hsl, np.amax(d['hs_length'])])
+                min_force = np.amin([min_force, np.amin(d['force'])])
+                max_force = np.amax([max_force, np.amax(d['force'])])
+
+                if (file_counter==1):
+                    # Make the plots
+                    for j in range(no_of_rows):
+                        ax.append(fig.add_subplot(spec[j,i]))
+
+                # Now plot
+                plot_index = (i*no_of_rows)
+                ax[plot_index].plot(d['time'], d['pCa'], '-',
+                                    color = formatting['color_set'][i])
+                plot_index = plot_index + 1
+                ax[plot_index].plot(d['time'], d['hs_length'], '-',
+                                    color = formatting['color_set'][i])
+
+                plot_index = plot_index + 1
+                ax[plot_index].plot(d['time'], d['force'], '-',
+                                    color = formatting['color_set'][i],
+                                    label='Total')
+                ax[plot_index].plot(d['time'], d['titin_force'], ':',
+                                    color = formatting['color_set'][i],
+                                    label='Titin')
+
+                plot_index = plot_index + 1
+                if (file_counter==1):
+                    label = 'Inactive'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['a_pop_0'], '-',
+                                    color = 'r',
+                                    label=label)
+                if (file_counter==1):
+                    label = 'Active'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['a_pop_1'], '-',
+                                    color = 'g',
+                                    label=label)
+
+                plot_index = plot_index + 1
+                if (file_counter==1):
+                    label = 'SRX'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['m_pop_0'], '-',
+                                    color = 'r',
+                                    label=label)
+                if (file_counter==1):
+                    label = 'DRX'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['m_pop_1'], '-',
+                                    color = 'g',
+                                    label=label)
+                if (file_counter==1):
+                    label = 'FG'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['m_pop_2'], '-',
+                                    color = 'b',
+                                    label=label)
+
+                plot_index = plot_index + 1
+                if (file_counter==1):
+                    label = 'Unbound'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['c_pop_0'], '-',
+                                    color = 'r',
+                                    label=label)
+                if (file_counter==1):
+                    label = 'Bound'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['c_pop_1'], '-',
+                                    color = 'g',
+                                    label=label)
+
+                # Update counter
+                file_counter = file_counter + 1
+
+        # Handle formatting
+        if (i==0):
+            plot_index = (i*no_of_rows)
+            ax[plot_index].set_ylabel('pCa')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('HS length\n(nm)')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('Force\n(kN m$^{-2}$)')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('Thin\nfilament')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('Thick\nfilament')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('MyBP-C')
+
+
+    # Set limits
+    for i in range(no_of_conditions):
+        plot_index = (i*no_of_rows)
+        y_ticks = [4, 9]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].invert_yaxis()
+        ax[plot_index].set_yticks(y_ticks)
+
+        plot_index = plot_index + 1
+        y_ticks = [min_hsl, max_hsl]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+
+        plot_index = plot_index + 1
+        y_ticks = [0, max_force]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+
+        plot_index = plot_index + 1
+        y_ticks = [0, 1]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+        ax[plot_index].legend(loc=formatting['legend_location'],
+                      handlelength=formatting['legend_handlelength'],
+                      bbox_to_anchor=(
+                          formatting['legend_bbox_to_anchor'][0],
+                          formatting['legend_bbox_to_anchor'][1]),
+                      prop={'family': formatting['fontname'],
+                       'size': formatting['legend_fontsize']})
+
+
+        plot_index = plot_index + 1
+        y_ticks = [0, 1]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+        ax[plot_index].legend(loc=formatting['legend_location'],
+                      handlelength=formatting['legend_handlelength'],
+                      bbox_to_anchor=(
+                          formatting['legend_bbox_to_anchor'][0],
+                          formatting['legend_bbox_to_anchor'][1]),
+                      prop={'family': formatting['fontname'],
+                       'size': formatting['legend_fontsize']})
+
+        plot_index = plot_index + 1
+        y_ticks = [0, 1]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+        ax[plot_index].legend(loc=formatting['legend_location'],
+                              handlelength=formatting['legend_handlelength'],
+                              bbox_to_anchor=(
+                                  formatting['legend_bbox_to_anchor'][0],
+                                  formatting['legend_bbox_to_anchor'][1]),
+                              prop={'family': formatting['fontname'],
+                               'size': formatting['legend_fontsize']})
+
+    if (fig_data['output_image_file']):
+        if (fig_data['relative_to'] == 'this_file'):
+            fig_data['output_image_file'] = \
+                os.path.join(base_folder,
+                             fig_data['output_image_file'])
+        # Check dir exists
+        dir_name = os.path.dirname(fig_data['output_image_file'])
+        if (not os.path.isdir(dir_name)):
+            os.makedirs(dir_name)
+        
+        for f in fig_data['output_image_formats']:
+            ofs = '%s.%s' % (fig_data['output_image_file'], f)
+            print('Saving superposed traces to %s' % ofs)
+            fig.savefig(ofs, dpi=200, bbox_inches='tight')
+
+    plt.close()
+
+def create_k_tr_analysis_figure(fig_data, batch_file_string):
+    """ Creates a k_tr analysis figure """
+
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    if ('formatting' in fig_data):
+        for entry in fig_data['formatting']:
+            formatting[entry] = fig_data['formatting'][entry]
+
+    # Find the data folders
+    base_folder = os.path.dirname(batch_file_string)
+
+    if (fig_data['relative_to'] == 'this_file'):
+        top_data_folder = os.path.join(base_folder,
+                                       fig_data['results_folder'])
+    else:
+        top_data_folder = fig_data['results_folder']
+
+    curve_counter = 1
+    keep_going = True
+
+    # Create lists to hold data
+    curve = []
+    force = []
+    k_tr = []
+    k_tr_amp = []
+    pCa = []
+
+    # And dicts to hold traces
+    sims = dict()
+    sims['raw'] = []
+    sims['fit'] = []
+
+    while keep_going:
+        curve_folder = os.path.join(top_data_folder,
+                                    ('%i' % curve_counter))
+        if (os.path.isdir(curve_folder)):
+            # Find the results files
+            for file in os.listdir(curve_folder):
+                if (file.endswith('.txt') and not file.startswith('rates')):
+                    data_file_string = os.path.join(curve_folder, file)
+
+                    # Load up the results file
+                    d = pd.read_csv(data_file_string, delimiter='\t')
+
+                    # Filter to fit time_interval
+                    d_fit = d.loc[(d['time'] >= fig_data['k_tr_fit_time_s'][0]) &
+                                  (d['time'] <= fig_data['k_tr_fit_time_s'][-1])].copy()
+
+                    # Pull off time offset
+                    x = d_fit['time'].to_numpy()
+                    x = x - x[0]
+                    y = d_fit['force'].to_numpy()
+                    try:
+                        k_tr_data = cv.fit_exponential_recovery(x,y)
+                    except:
+                        k_tr_data = dict()
+                        k_tr_data['k'] = np.nan
+                        k_tr_data['amp'] = np.nan
+                        k_tr_data['x_fit'] = x
+                        k_tr_data['y_fit'] = y
+
+                    # Store some values
+                    curve.append(curve_counter)
+                    force.append(d['force'].iloc[-1])
+                    k_tr.append(k_tr_data['k'])
+                    k_tr_amp.append(k_tr_data['amp'])
+                    pCa.append(d['pCa'].iloc[-1])
+
+                    d_fit['x_fit'] = k_tr_data['x_fit'] + d_fit['time'].iloc[0]
+                    d_fit['y_fit'] = k_tr_data['y_fit']
+
+                    sims['raw'].append(d)
+                    sims['fit'].append(d_fit)
+
+            curve_counter = curve_counter + 1
+
+        else:
+            keep_going = False
+
+    # Make a dataframe from the lists
+    r = pd.DataFrame({'curve': curve,
+                      'pCa': pCa,
+                      'force': force,
+                      'k_tr': k_tr,
+                      'k_tr_amp': k_tr_amp})
+
+    # Save the data as an excel file if required in the batch file
+    if(fig_data['output_data_file_string']):
+        if (fig_data['relative_to'] == 'this_file'):
+            output_file_string = os.path.join(base_folder,
+                                              fig_data['output_data_file_string'])
+        else:
+            output_file_string = fig_data['output_data_file_string']
+
+        print('Writing k_tr_analysis data to %s' % output_file_string)
+        with pd.ExcelWriter(output_file_string, engine='openpyxl') as writer:
+            r.to_excel(writer, sheet_name = 'simulation_data', index=False)
+            # for (i,c) in enumerate(curve_data['curve']):
+            #     c.to_excel(writer,
+            #                index=False,
+            #                sheet_name = 'curve_%i' % (i+1))
+
+    # Create a figure
+    if ('output_image_file' in fig_data):
+
+        # Make a figure
+        fig = plt.figure(constrained_layout=True)
+        gs = fig.add_gridspec(nrows=2, ncols=2,
+                              wspace = 0.5,
+                              hspace=0.5)
+        fig.set_size_inches([7, 5])
+        ax_force = fig.add_subplot(gs[0,0])
+        ax_hsl = fig.add_subplot(gs[1, 0])
+        ax_k_tr_force = fig.add_subplot(gs[0,1])
+        ax_k_tr_pCa = fig.add_subplot(gs[1,1])
+
+        # Cycle through curves
+        for (i,c) in enumerate(range(1, curve_counter)):
+            vi = np.flatnonzero(r['curve'].to_numpy() == c)
+            # Draw traces
+            for v in vi:
+                d_fit = sims['fit'][v]
+                d_raw = sims['raw'][v]
+                # Deduce drawing range
+                t_draw_start_s = d_fit['time'].iloc[0] - \
+                    (0.2 * (d_fit['time'].iloc[-1] - d_fit['time'].iloc[0]))
+                d_raw = d_raw[d_raw['time'] > t_draw_start_s]
+
+                ax_force.plot(d_raw['time'], d_raw['force'],
+                              color = formatting['color_set'][i])
+                ax_force.plot(d_fit['time'], d_fit['y_fit'], color='k')
+
+                # Now the lengths
+                ax_hsl.plot(d_raw['time'], d_raw['hs_command_length'],
+                              color = 'k')
+                ax_hsl.plot(d_raw['time'], d_raw['hs_length'],
+                              color = formatting['color_set'][i])
+
+            # Now draw the plots
+            r2 = r[r['curve'] == c]
+            ax_k_tr_force.plot(r2['force'], r2['k_tr'],
+                               formatting['marker_symbols'][i],
+                               markerfacecolor = formatting['color_set'][i],
+                               markeredgewidth=0)
+            ax_k_tr_force.plot(r2['force'], r2['k_tr'], '-',
+                               color = formatting['color_set'][i])
+
+            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
+                               formatting['marker_symbols'][i],
+                               markerfacecolor = formatting['color_set'][i],
+                               markeredgewidth=0)
+            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'], '-',
+                               color = formatting['color_set'][i])
+        
+        # Draw some labels
+        ax_force.set_ylabel('Force (N m$^{-2}$)')
+        ax_force.set_xlabel('Time (s)')
+
+        ax_hsl.set_ylabel('Half-sarcomere length (nm)')
+        ax_hsl.set_xlabel('Time (s)')
+
+        ax_k_tr_force.set_xlabel('Force (N m$^{-2}$)')
+        ax_k_tr_force.set_ylabel('k_tr (s$^{-1}$)')
+        if ('k_tr_ticks' in fig_data):
+            ax_k_tr_force.set_ylim(fig_data['k_tr_ticks'])
+
+        ax_k_tr_pCa.set_xlabel('pCa')
+        ax_k_tr_pCa.invert_xaxis()
+        ax_k_tr_pCa.set_ylabel('k_tr (s$^{-1}$)')
+        if ('k_tr_ticks' in fig_data):
+            ax_k_tr_pCa.set_ylim(fig_data['k_tr_ticks'])
+
+
+        # Save it
+        if (fig_data['relative_to'] == 'this_file'):
+                fig_data['output_image_file'] = \
+                    os.path.join(base_folder,
+                                 fig_data['output_image_file'])
+
+        # Check dir exists
+        dir_name = os.path.dirname(fig_data['output_image_file'])
+        if (not os.path.isdir(dir_name)):
+            os.makedirs(dir_name)
+            
+        for f in fig_data['output_image_formats']:
+            ofs = '%s.%s' % (fig_data['output_image_file'], f)
+            print('Saving k_tr_figure to: %s' % ofs)
             fig.savefig(ofs, dpi=200, bbox_inches='tight')
 
     plt.close()

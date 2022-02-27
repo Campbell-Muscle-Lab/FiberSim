@@ -49,7 +49,12 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     if ('figures_only' in pCa_struct):
         if (pCa_struct['figures_only'] == "True"):
             figures_only = True
-    
+
+    trace_figures_on = True
+    if ('trace_figures_on' in pCa_struct):
+        if (pCa_struct['trace_figures_on'] == 'False'):
+            trace_figures_on = False
+
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
@@ -119,7 +124,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
 
                 with open(iso_options_file_rates, 'w') as f:
                     json.dump(json_data, f, indent=4)
-            
+
             # Set the delta_hsl vector
             n_points = int(pCa_struct['sim_duration_s'] /
                            pCa_struct['time_step_s'])
@@ -177,33 +182,37 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
             else:
                 j['options_file'] = iso_options_file
             
-            # Create the structure for the output handler
-            oh = dict()
-            oh['templated_images'] = []
-            tf = dict()
-            tf['relative_to'] = 'this_file'
-            tf['template_file_string'] = os.path.join(
-                                            '..',
-                                            base_dir,
-                                            'template',
-                                            'template_summary.json')
-            tf['output_file_string'] = os.path.join(
-                                            base_dir,
-                                            pCa_struct['sim_folder'],
-                                            'sim_output',
-                                            ('%i' % (i+1)),
-                                            'sim_pCa_%.0f.png' % (10*pCa))
-            oh['templated_images'].append(tf)
-            
-            # Now add it to the job, and write it to file
-            j['output_handler_file'] = os.path.join(
-                                        sim_input_dir,
-                                        'output_handler_pCa_%.0f.json' %
-                                            (10*pCa))
-            
-            with open(j['output_handler_file'], 'w') as f:
-                json.dump(oh, f, indent=4)        
-        
+            # If required, create an output_handler and add it to
+            # the job
+            if (trace_figures_on == True):
+                # Create the structure for the output handler
+                oh = dict()
+                oh['templated_images'] = []
+                tf = dict()
+                tf['relative_to'] = 'this_file'
+                tf['template_file_string'] = os.path.join(
+                                                '..',
+                                                base_dir,
+                                                'template',
+                                                'template_summary.json')
+                tf['output_file_string'] = os.path.join(
+                                                base_dir,
+                                                pCa_struct['sim_folder'],
+                                                'sim_output',
+                                                ('%i' % (i+1)),
+                                                'sim_pCa_%.0f' % (10*pCa))
+                tf['output_image_formats'] = pCa_struct['output_image_formats']
+                oh['templated_images'].append(tf)
+                
+                # Now add it to the job, and write it to file
+                j['output_handler_file'] = os.path.join(
+                                            sim_input_dir,
+                                            'output_handler_pCa_%.0f.json' %
+                                                (10*pCa))
+                
+                with open(j['output_handler_file'], 'w') as f:
+                    json.dump(oh, f, indent=4)        
+
             pCa_lc_b['job'].append(j)
     
     # Now create the analysis section
@@ -243,9 +252,46 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                                             'rates')
     fig['output_image_formats'] = pCa_struct['output_image_formats']
     batch_figs['rates'].append(fig)
+
+    # Superposed traces
+    batch_figs['superposed_traces'] = []
+    fig = dict()
+    fig['relative_to'] = "False"
+    fig['results_folder'] = os.path.join(base_dir,
+                                         pCa_struct['sim_folder'],
+                                         'sim_output')
+    fig['output_image_file'] = os.path.join(base_dir,
+                                            pCa_struct['sim_folder'],
+                                            'sim_output',
+                                            'superposed_traces')
+    fig['output_image_formats'] = pCa_struct['output_image_formats']
+    batch_figs['superposed_traces'].append(fig)
     
     pCa_lc_b['batch_figures'] = batch_figs
-    
+
+    # k_tr
+    if ('k_tr_start_s' in pCa_struct):
+        batch_figs['k_tr_analysis'] = []
+        fig = dict()
+        fig['relative_to'] = "False"
+        fig['results_folder'] = os.path.join(base_dir,
+                                         pCa_struct['sim_folder'],
+                                         'sim_output')
+        fig['output_data_file_string'] = os.path.join(
+                                             base_dir,
+                                             pCa_struct['sim_folder'],
+                                             'sim_output',
+                                             'k_tr_analysis.xlsx')
+        fig['output_image_file'] = os.path.join(base_dir,
+                                            pCa_struct['sim_folder'],
+                                            'sim_output',
+                                            'k_tr_analysis')
+        fig['k_tr_fit_time_s'] = pCa_struct['k_tr_fit_time_s']
+        fig['output_image_formats'] = pCa_struct['output_image_formats']
+        if ('k_tr_ticks' in pCa_struct):
+            fig['k_tr_ticks'] = pCa_struct['k_tr_ticks']
+        batch_figs['k_tr_analysis'].append(fig)
+
     # Now insert isometric_b into a full batch structure
     pCa_lc_batch = dict()
     pCa_lc_batch['FiberSim_batch'] = pCa_lc_b
@@ -272,7 +318,13 @@ def deduce_fv_properties(json_analysis_file_string,
     if ('figures_only' in fv_struct):
         if (fv_struct['figures_only'] == "True"):
             figures_only = True
-            
+
+    trace_figures_on = True
+    if ('trace_figures_on' in fv_struct):
+        if (fv_struct['trace_figures_on'] == 'False'):
+            trace_figures_on = False
+
+
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
@@ -345,35 +397,39 @@ def deduce_fv_properties(json_analysis_file_string,
                                          'sim_pCa_%.0f.txt' % (10 * fv_struct['pCa']))
         j['model_file'] = iso_model_file
         j['options_file'] = iso_options_file
-        
-        # Create the structure for the output handler
-        oh = dict()
-        oh['templated_images'] = []
-        tf = dict()
-        tf['relative_to'] = 'this_file'
-        tf['template_file_string'] = os.path.join(
-                                        '..',
-                                        base_dir,
-                                        'template',
-                                        'template_summary.json')
-        tf['output_file_string'] = os.path.join(
-                                        base_dir, fv_struct['sim_folder'],
-                                        'isometric', 'sim_output',
-                                        ('%i' % (i+1)),
-                                        'sim_pCa_%.0f.png' % (10 * fv_struct['pCa']))
-        oh['templated_images'].append(tf)
-        
-        # Now add it to the job, and write it to file
-        j['output_handler_file'] = os.path.join(
-                                    sim_input_dir,
-                                    'output_handler_iso_pCa_%.0f.json' %
-                                        (10 * fv_struct['pCa']))
-        
-        with open(j['output_handler_file'], 'w') as f:
-            json.dump(oh, f, indent=4)        
-    
+
+        # If required, create an output_handler and add it to
+        # the job
+        if (trace_figures_on == True):
+            # Create the structure for the output handler
+            oh = dict()
+            oh['templated_images'] = []
+            tf = dict()
+            tf['relative_to'] = 'this_file'
+            tf['template_file_string'] = os.path.join(
+                                            '..',
+                                            base_dir,
+                                            'template',
+                                            'template_summary.json')
+            tf['output_file_string'] = os.path.join(
+                                            base_dir, fv_struct['sim_folder'],
+                                            'isometric', 'sim_output',
+                                            ('%i' % (i+1)),
+                                            'sim_pCa_%.0f' % (10 * fv_struct['pCa']))
+            tf['output_image_formats'] = fv_struct['output_image_formats']
+            oh['templated_images'].append(tf)
+            
+            # Now add it to the job, and write it to file
+            j['output_handler_file'] = os.path.join(
+                                        sim_input_dir,
+                                        'output_handler_iso_pCa_%.0f.json' %
+                                            (10 * fv_struct['pCa']))
+            
+            with open(j['output_handler_file'], 'w') as f:
+                json.dump(oh, f, indent=4)
+
         isometric_b['job'].append(j)
-    
+
     # Now insert iso_b into a full batch structure
     isometric_batch = dict()
     isometric_batch['FiberSim_batch'] = isometric_b    
@@ -425,10 +481,31 @@ def deduce_fv_properties(json_analysis_file_string,
         # Cycle through the isotonic forces
 
         for (k, rel_f) in enumerate(fv_struct['rel_isotonic_forces']):
+
+            if (k==0):
+                # Update the options file to dump rates
+                with open(isotonic_options_file, 'r') as f:
+                    json_data = json.load(f)
+                    json_data['options']['rate_files'] = dict()
+                    json_data['options']['rate_files']['relative_to'] = 'this_file'
+                    json_data['options']['rate_files']['file'] = \
+                        os.path.join('../../sim_output',
+                                     ('%i' % (i+1)),
+                                     'rates.txt')
+                isotonic_options_file_rates = os.path.join(
+                    Path(isotonic_options_file).parent.absolute(),
+                    'sim_options_rates.json')
+
+                with open(isotonic_options_file_rates, 'w') as f:
+                    json.dump(json_data, f, indent=4)
+            
             j = dict()
             j['relative_to'] = 'False'
             j['model_file'] = isotonic_model_file
-            j['options_file'] = isotonic_options_file
+            if (k==0):
+                j['options_file'] = isotonic_options_file_rates
+            else:
+                j['options_file'] = isotonic_options_file
             prot_file_string = os.path.join(sim_input_dir,
                                       ('prot_%i.txt' % (k+1)))
             df = prot.create_force_control_protocol(
@@ -444,36 +521,40 @@ def deduce_fv_properties(json_analysis_file_string,
                                               'isotonic', 'sim_output',
                                               ('%i' % (i+1)),
                                               ('sim_%i.txt' % (k+1)))
+
+            # If required, create an output_handler and add it to
+            # the job
+            if (trace_figures_on == True):
+                 # Create the structure for the output handler
+                oh = dict()
+                oh['templated_images'] = []
+                tf = dict()
+                tf['relative_to'] = 'this_file'
+                tf['template_file_string'] = os.path.join(
+                                                '..',
+                                                base_dir,
+                                                'template',
+                                                'template_summary.json')
+                tf['output_file_string'] = os.path.join(
+                                                base_dir, fv_struct['sim_folder'],
+                                                'isotonic', 'sim_output',
+                                                ('%i' % (i+1)),
+                                                ('sim_%i' % (k+1)))
+                tf['output_image_formats'] = fv_struct['output_image_formats']
+                oh['templated_images'].append(tf)
             
-             # Create the structure for the output handler
-            oh = dict()
-            oh['templated_images'] = []
-            tf = dict()
-            tf['relative_to'] = 'this_file'
-            tf['template_file_string'] = os.path.join(
-                                            '..',
-                                            base_dir,
-                                            'template',
-                                            'template_summary.json')
-            tf['output_file_string'] = os.path.join(
+                # Now add it to the job, and write it to file
+                j['output_handler_file'] = os.path.join(
                                             base_dir, fv_struct['sim_folder'],
-                                            'isotonic', 'sim_output',
+                                            'isotonic', 'sim_input',
                                             ('%i' % (i+1)),
-                                            ('sim_%i.png' % (k+1)))
-            oh['templated_images'].append(tf)
-        
-            # Now add it to the job, and write it to file
-            j['output_handler_file'] = os.path.join(
-                                        base_dir, fv_struct['sim_folder'],
-                                        'isotonic', 'sim_input',
-                                        ('%i' % (i+1)),
-                                        ('output_handler_sim_%i.json' % (k+1)))
-        
-            with open(j['output_handler_file'], 'w') as f:
-                json.dump(oh, f, indent=4)      
+                                            ('output_handler_sim_%i.json' % (k+1)))
             
+                with open(j['output_handler_file'], 'w') as f:
+                    json.dump(oh, f, indent=4)      
+
             isotonic_b['job'].append(j)
-        
+
     # Now create the batch analysis section
     batch_figs = dict()
     batch_figs['force_velocity'] = []
@@ -497,6 +578,39 @@ def deduce_fv_properties(json_analysis_file_string,
     fig['output_image_formats'] = fv_struct['output_image_formats']
     
     batch_figs['force_velocity'].append(fig)
+
+    # Rates
+    batch_figs['rates'] = []
+    fig = dict()
+    fig['relative_to'] = "False"
+    fig['results_folder'] = os.path.join(base_dir,
+                                         fv_struct['sim_folder'],
+                                         'isotonic',
+                                         'sim_output')
+    fig['output_image_file'] = os.path.join(base_dir,
+                                            fv_struct['sim_folder'],
+                                            'isotonic',
+                                            'sim_output',
+                                            'rates')
+    fig['output_image_formats'] = fv_struct['output_image_formats']
+    batch_figs['rates'].append(fig)
+
+    # Superposed traces
+    batch_figs['superposed_traces'] = []
+    fig = dict()
+    fig['relative_to'] = "False"
+    fig['results_folder'] = os.path.join(base_dir,
+                                         fv_struct['sim_folder'],
+                                         'isotonic',
+                                         'sim_output')
+    fig['output_image_file'] = os.path.join(base_dir,
+                                            fv_struct['sim_folder'],
+                                            'isotonic',
+                                            'sim_output',
+                                            'superposed_traces')
+    fig['output_image_formats'] = fv_struct['output_image_formats']
+    batch_figs['superposed_traces'].append(fig)
+ 
     isotonic_b['batch_figures'] = batch_figs
     
     # Now insert isotonic_b into a full batch structure

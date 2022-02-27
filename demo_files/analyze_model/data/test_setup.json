@@ -10,13 +10,14 @@
         {
             "relative_to": "this_file",
             "model_files": ["models/model_a.json",
-                            "models/model_b.json"],
+                            "models/model_b.json",
+                            "models/model_c.json"],
             "options_file": "sim_options.json"
         },
         "analysis":
         [
             {
-                "type": "force_velocity",
+                "type": "xforce_velocity",
                 "pCa": 4.5,
                 "time_step_s": 0.001,
                 "sim_duration_s": 1,
@@ -26,12 +27,13 @@
                 "relative_to": "this_file",
                 "sim_folder": "../simulations/fv_pCa45",
                 "output_image_formats": ["png", "svg", "eps"],
-                "figures_only": "False"
+                "figures_only": "True",
+                "trace_figures_on": "True"
             },
             {
                 "type": "xforce_velocity",
                 "pCa": 5.8,
-                "time_step_s": 0.0001,
+                "time_step_s": 0.001,
                 "sim_duration_s": 2,
                 "sim_release_s": 1.9,
                 "rel_isotonic_forces": [0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 0.9, 0.95, 1],
@@ -39,21 +41,24 @@
                 "relative_to": "this_file",
                 "sim_folder": "../simulations/fv_pCa58",
                 "output_image_formats": ["png", "svg", "eps"],
-                "figures_only": "False"
+                "figures_only": "True",
+                "trace_figures_on": "False"
             },
             {
                 "type": "pCa_length_control",
                 "pCa_values": [8.0, 6.1, 5.9, 5.7, 5.4, 4.5],
-                "time_step_s": 0.001,
+                "time_step_s": 0.0001,
                 "sim_duration_s": 1,
                 "k_tr_start_s": 0.5,
                 "k_tr_duration_s": 0.02,
                 "k_tr_ramp_s": 0.001,
                 "k_tr_magnitude_nm": 100,
+                "k_tr_fit_time_s": [0.55, 0.95],
                 "relative_to": "this_file",
                 "sim_folder": "../simulations/pCa",
-                "output_image_formats": ["png", "svg", "eps"],
-                "figures_only": "False"
+                "output_image_formats": ["png"],
+                "figures_only": "False",
+                "trace_figures_on": "False"
             }            
         ]
     }

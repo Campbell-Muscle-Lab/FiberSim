@@ -75,12 +75,14 @@ class output_handler():
                     self.create_image_from_template(
                         sim_data,
                         template_fs,
-                        output_fs)
+                        output_fs,
+                        ud['output_image_formats'])
 
     def create_image_from_template(self,
                                    sim_data,
                                    template_file_string,
-                                   output_image_file_string):
+                                   output_image_file_string,
+                                   image_formats):
 
         if not os.path.isabs(template_file_string):
             template_file_string = os.path.join(os.getcwd(),
@@ -91,7 +93,12 @@ class output_handler():
         fig, ax = multi_panel_from_flat_data(
                         pandas_data=sim_data,
                         template_file_string=template_file_string,
-                        output_image_file_string=output_image_file_string)
+                        output_image_file_string=[])
+        
+        for f in image_formats:
+            ofs = ('%s.%s' % (output_image_file_string, f))
+            print('Writing image to: %s' % ofs)
+            fig.savefig(ofs, dpi=200, bbox_inches='tight')
 
         plt.close(fig)
 
