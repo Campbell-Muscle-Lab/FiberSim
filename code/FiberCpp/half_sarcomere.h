@@ -227,6 +227,7 @@ public:
     double a_k_on;
     double a_k_off;
     double a_gamma_coop;
+    double a_k_force;               /**< force-depenent activation factor */
 
     // Myosin
     double m_k_stiff;               /**< double defining stiffness of thick filament

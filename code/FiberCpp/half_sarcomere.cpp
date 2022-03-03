@@ -189,6 +189,7 @@ half_sarcomere::half_sarcomere(
     a_k_on = p_fs_model->a_k_on;
     a_k_off = p_fs_model->a_k_off;
     a_gamma_coop = p_fs_model->a_gamma_coop;
+    a_k_force = p_fs_model->a_k_force;
 
     m_no_of_cb_states = p_fs_model->p_m_scheme[0]->no_of_states;
     m_k_stiff = p_fs_model->m_k_stiff;
@@ -2461,10 +2462,18 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
     double coop_boost;
 
+    double force_boost;
+
     gsl_vector_short * bs_indices;
 
     // Code
     bs_indices = gsl_vector_short_alloc(a_bs_per_unit);
+
+    // Update node forces
+    for (int a_counter = 0; a_counter < a_n; a_counter++)
+    {
+        p_af[a_counter]->calculate_node_forces();
+    }
 
     // Loop through thin filaments
     for (int a_counter = 0; a_counter < a_n; a_counter++)
@@ -2504,7 +2513,11 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                     if (up_neighbor_status == 2)
                         coop_boost = coop_boost + a_gamma_coop;
 
-                    rate = a_k_on * Ca_conc * (1.0 + coop_boost);
+                    // Calculate force boost
+                    force_boost = a_k_force *
+                        gsl_vector_get(p_af[a_counter]->node_forces, gsl_vector_short_get(bs_indices, 0));
+
+                    rate = a_k_on * Ca_conc * (1.0 + coop_boost + force_boost);
 
                     // Test event with a random number
                     rand_double = gsl_rng_uniform(rand_generator);

@@ -131,8 +131,11 @@ public:
                                               for binding site de-activation in units
                                               of s^-1 */
 
-    double a_gamma_coop;                     /**< double defining cooperativity
+    double a_gamma_coop;                 /**< double defining cooperativity
                                               dimensionless */
+
+    double a_k_force;                   /**< double defining force-dependent rate
+                                             boost */
 
     int coop_name;                      /**< int defining cooperativity
                                               notation */

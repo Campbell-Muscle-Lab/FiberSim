@@ -296,6 +296,9 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         a_gamma_coop = thin_parameters["a_gamma_coop"].GetDouble();
     }
 
+    if (JSON_functions::check_JSON_member_number(thin_parameters, "a_k_force"))
+        a_k_force = thin_parameters["a_k_force"].GetDouble();
+
     // Load the thick_parameters
     JSON_functions::check_JSON_member_object(doc, "thick_parameters");
     const rapidjson::Value& thick_parameters = doc["thick_parameters"];
