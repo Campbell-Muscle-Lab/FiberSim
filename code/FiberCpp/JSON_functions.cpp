@@ -11,6 +11,20 @@
 
 namespace JSON_functions {
 
+    //! Returns true if JSON value exists
+    bool check_JSON_member_exists(const rapidjson::Value& doc,
+        const char mem_name[])
+    {
+        if (doc.HasMember(mem_name))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     //! Verifies that JSON Value has member and it is an object.
     void check_JSON_member_object(const rapidjson::Value& doc,
         const char mem_name[])

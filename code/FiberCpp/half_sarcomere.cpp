@@ -2460,9 +2460,8 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
     double rate;
     double rand_double;
 
-    double coop_boost;
-
-    double force_boost;
+    double coop_boost = 0.0;
+    double force_boost = 0.0;
 
     gsl_vector_short * bs_indices;
 
@@ -2514,10 +2513,13 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                         coop_boost = coop_boost + a_gamma_coop;
 
                     // Calculate force boost
-                    force_boost = a_k_force *
-                        gsl_vector_get(p_af[a_counter]->node_forces, gsl_vector_short_get(bs_indices, 0));
+                    double node_force = gsl_vector_get(p_af[a_counter]->node_forces,
+                        gsl_vector_short_get(bs_indices, 0) / a_bs_per_node);
+                    force_boost = a_k_force * node_force;
 
-                    rate = a_k_on * Ca_conc * (1.0 + coop_boost + force_boost);
+                    //printf("a_k_force: %g\tnode_force: %g\tforce_boost: %gcoop_boost: %g\n", a_k_force, node_force, force_boost, coop_boost);
+
+                    rate = a_k_on * Ca_conc * gsl_max(0, (1.0 + coop_boost + force_boost));
 
                     // Test event with a random number
                     rand_double = gsl_rng_uniform(rand_generator);

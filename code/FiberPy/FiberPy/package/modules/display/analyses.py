@@ -25,7 +25,10 @@ def default_formatting():
     formatting['data_linewidth'] = 1
     formatting['fontname'] = 'Arial'
     formatting['marker_size'] = 8
-    formatting['marker_symbols'] = ['o','s','^','v']
+    formatting['marker_symbols'] = ['o','s','^','v','<','>']
+    formatting['fill_styles'] = ['full', 'full', 'full', 'full', 'full', 'full']
+    formatting['line_styles'] = ['-','-','-','-','-','-']
+    formatting['marker_edge_width'] = 1
     formatting['high_pCa_tick'] = 8.0
     formatting['high_pCa_span'] = 0.2
     formatting['low_pCa_ticks'] = [6.5, 5.5, 4.5]
@@ -168,16 +171,15 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                 a.plot(pCa_values[curve_counter-1],
                     y_values[curve_counter-1],
                     formatting['marker_symbols'][curve_counter-1],
+                    fillstyle=formatting['fill_styles'][curve_counter-1],
                     markersize=formatting['marker_size'],
                     markerfacecolor = formatting['color_set'][curve_counter - 1],
-                    markeredgewidth=0.0)
-                if formatting['labels'] != []:
-                    a.plot(res['x_fit'], res['y_fit'],'-',
-                        color = formatting['color_set'][curve_counter - 1],
-                        label = formatting['labels'][curve_counter - 1])
+                    markeredgewidth=formatting['marker_edge_width'],
+                    markeredgecolor=formatting['color_set'][curve_counter - 1])
 
-                a.plot(res['x_fit'], res['y_fit'],'-',
-                    color = formatting['color_set'][curve_counter - 1])
+                a.plot(res['x_fit'], res['y_fit'],
+                    color = formatting['color_set'][curve_counter - 1],
+                    linestyle=formatting['line_styles'][curve_counter - 1])
 
             # Loop on to the next folder
             curve_counter = curve_counter + 1
@@ -289,6 +291,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     formatting['marker_symbols'][i],
                     mfc = formatting['color_set'][i],
                     mec = formatting['color_set'][i],
+                    fillstyle = formatting['fill_styles'][i],
                     markersize=formatting['marker_size'],
                     clip_on=False)
 
@@ -455,29 +458,45 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             rc['hs_rel_power'] = rc['hs_rel_force'] * rc['hs_rel_velocity']
 
             # Plot the force velocity curve
-            ax_fv.plot(rc['hs_force'], rc['hs_velocity'], 'o',
+            ax_fv.plot(rc['hs_force'], rc['hs_velocity'],
+                       formatting['marker_symbols'][c-1],
+                       formatting['marker_size'],
+                       fillstyle=formatting['fill_styles'][c-1],
                        color = formatting['color_set'][c - 1])
             fv_curve = cv.fit_hyperbola(rc['hs_force'], rc['hs_velocity'])
-            ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'], '-',
-                       color=ax_fv.lines[-1].get_color())
+            ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'],
+                       color=ax_fv.lines[-1].get_color(),
+                       linestyle = formatting['line_styles'][c-1])
 
-            ax_pow.plot(rc['hs_force'], rc['hs_power'], 'o',
+            ax_pow.plot(rc['hs_force'], rc['hs_power'],
+                       formatting['marker_symbols'][c-1],
+                       formatting['marker_size'],
+                       fillstyle=formatting['fill_styles'][c-1],
                         color = formatting['color_set'][c - 1])
             pow_curve = cv.fit_power_curve(rc['hs_force'], rc['hs_power'])
             ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'], '-',
-                        color=ax_pow.lines[-1].get_color())
+                        color=ax_pow.lines[-1].get_color(),
+                        linestyle = formatting['line_styles'][c-1])
 
-            ax_rel_fv.plot(rc['hs_rel_force'], rc['hs_rel_velocity'], 'o',
+            ax_rel_fv.plot(rc['hs_rel_force'], rc['hs_rel_velocity'],
+                           formatting['marker_symbols'][c-1],
+                           formatting['marker_size'],
+                           fillstyle=formatting['fill_styles'][c-1],
                            color = formatting['color_set'][c-1])
             rel_fv_curve = cv.fit_hyperbola(rc['hs_rel_force'], rc['hs_rel_velocity'])
             ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'], '-',
-                           color=ax_rel_fv.lines[-1].get_color())
+                           color=ax_rel_fv.lines[-1].get_color(),
+                           linestyle = formatting['line_styles'][c-1])
 
-            ax_rel_pow.plot(rc['hs_rel_force'], rc['hs_rel_power'], 'o',
-                        color = formatting['color_set'][c - 1])
+            ax_rel_pow.plot(rc['hs_rel_force'], rc['hs_rel_power'],
+                            formatting['marker_symbols'][c-1],
+                            formatting['marker_size'],
+                            fillstyle=formatting['fill_styles'][c-1],
+                            color = formatting['color_set'][c - 1])
             rel_pow_curve = cv.fit_power_curve(rc['hs_rel_force'], rc['hs_rel_power'])
             ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'], '-',
-                        color=ax_pow.lines[-1].get_color())
+                        color=ax_pow.lines[-1].get_color(),
+                        linestyle = formatting['line_styles'][c-1])
 
             # Store data to work out ticks later on
             f_ticks = np.concatenate((f_ticks, rc['hs_force']))
@@ -1177,6 +1196,9 @@ def create_rates_figure(fig_data, batch_file_string):
         else:
             keep_going = False
 
+    print(d)
+    print(d.columns.to_list())
+
     # Hold the no_of_conditions
     no_of_conditions = model_counter-1
 
@@ -1192,8 +1214,9 @@ def create_rates_figure(fig_data, batch_file_string):
                 ax.append(fig.add_subplot(spec[j,0]))
                 
             r_string = 'r_%i' % (j+1)
-            ax[j].plot(d['x'], np.log10(d[r_string]), '-',
-                       color = formatting['color_set'][i])
+            if (r_string in d.columns):
+                ax[j].plot(d['x'], np.log10(d[r_string]), '-',
+                           color = formatting['color_set'][i])
 
             if (i == (no_of_conditions-1)):
                 # Tidy up
@@ -1407,16 +1430,26 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].invert_yaxis()
         ax[plot_index].set_yticks(y_ticks)
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
         plot_index = plot_index + 1
         y_ticks = [min_hsl, max_hsl]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].set_yticks(y_ticks)
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+
 
         plot_index = plot_index + 1
         y_ticks = [0, max_force]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].set_yticks(y_ticks)
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
         plot_index = plot_index + 1
         y_ticks = [0, 1]
@@ -1429,6 +1462,9 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                           formatting['legend_bbox_to_anchor'][1]),
                       prop={'family': formatting['fontname'],
                        'size': formatting['legend_fontsize']})
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
 
         plot_index = plot_index + 1
@@ -1442,6 +1478,9 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                           formatting['legend_bbox_to_anchor'][1]),
                       prop={'family': formatting['fontname'],
                        'size': formatting['legend_fontsize']})
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
         plot_index = plot_index + 1
         y_ticks = [0, 1]
@@ -1454,6 +1493,9 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                                   formatting['legend_bbox_to_anchor'][1]),
                               prop={'family': formatting['fontname'],
                                'size': formatting['legend_fontsize']})
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
     if (fig_data['output_image_file']):
         if (fig_data['relative_to'] == 'this_file'):
@@ -1573,8 +1615,8 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
             r.to_excel(writer, sheet_name = 'simulation_data', index=False)
             # for (i,c) in enumerate(curve_data['curve']):
             #     c.to_excel(writer,
-            #                index=False,
-            #                sheet_name = 'curve_%i' % (i+1))
+            #                 index=False,
+            #                 sheet_name = 'curve_%i' % (i+1))
 
     # Create a figure
     if ('output_image_file' in fig_data):
@@ -1617,16 +1659,20 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
             ax_k_tr_force.plot(r2['force'], r2['k_tr'],
                                formatting['marker_symbols'][i],
                                markerfacecolor = formatting['color_set'][i],
-                               markeredgewidth=0)
-            ax_k_tr_force.plot(r2['force'], r2['k_tr'], '-',
+                               fillstyle = formatting['fill_styles'][i],
+                               markeredgewidth=formatting['marker_edge_width'])
+            ax_k_tr_force.plot(r2['force'], r2['k_tr'],
+                               linestyle = formatting['line_styles'][i],
                                color = formatting['color_set'][i])
 
             ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
                                formatting['marker_symbols'][i],
                                markerfacecolor = formatting['color_set'][i],
-                               markeredgewidth=0)
-            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'], '-',
-                               color = formatting['color_set'][i])
+                               fillstyle = formatting['fill_styles'][i],
+                               markeredgewidth=formatting['marker_edge_width'])
+            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
+                             linestyle = formatting['line_styles'][i],
+                             color = formatting['color_set'][i])
         
         # Draw some labels
         ax_force.set_ylabel('Force (N m$^{-2}$)')

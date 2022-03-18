@@ -155,6 +155,13 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                 vi = np.arange(k_tr_start_ind,
                                k_tr_stop_ind + k_tr_ramp_points, 1)
                 mode_vector[vi] = -1
+            
+            # Add in user-defined delta_hsl
+            if ('user_defined_dhsl' in pCa_struct):
+                dhsl_file = os.path.join(base_dir,
+                                         pCa_struct['user_defined_dhsl'])
+                dhsl = pd.read_csv(dhsl_file)
+                delta_hsl = dhsl['dhsl'].to_numpy()
                 
             # Create a length control protocol and write to file
             df = prot.create_length_control_protocol(
@@ -235,7 +242,10 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                                                    'sim_output',
                                                    'force_pCa')
     fig['output_image_formats'] = pCa_struct['output_image_formats']
-    fig['formatting'] = dict()
+    if ('formatting' in pCa_struct):
+        fig['formatting'] = pCa_struct['formatting']
+    else:
+        fig['formatting'] = dict()
     fig['formatting']['y_axis_label'] = 'Force (N m$^{\\mathregular{-2}}$)'
     batch_figs['pCa_curves'].append(fig)
 
@@ -251,6 +261,10 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                                             'sim_output',
                                             'rates')
     fig['output_image_formats'] = pCa_struct['output_image_formats']
+    
+    if ('formatting' in pCa_struct):
+        fig['formatting'] = pCa_struct['formatting']
+    
     batch_figs['rates'].append(fig)
 
     # Superposed traces
@@ -265,6 +279,10 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                                             'sim_output',
                                             'superposed_traces')
     fig['output_image_formats'] = pCa_struct['output_image_formats']
+    if ('superposed_x_ticks' in pCa_struct):
+        fig['superposed_x_ticks'] = pCa_struct['superposed_x_ticks']
+    if ('formatting' in pCa_struct):
+        fig['formatting'] = pCa_struct['formatting']        
     batch_figs['superposed_traces'].append(fig)
     
     pCa_lc_b['batch_figures'] = batch_figs
@@ -290,6 +308,8 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
         fig['output_image_formats'] = pCa_struct['output_image_formats']
         if ('k_tr_ticks' in pCa_struct):
             fig['k_tr_ticks'] = pCa_struct['k_tr_ticks']
+        if ('formatting' in pCa_struct):
+            fig['formatting'] = pCa_struct['formatting']
         batch_figs['k_tr_analysis'].append(fig)
 
     # Now insert isometric_b into a full batch structure
@@ -577,6 +597,9 @@ def deduce_fv_properties(json_analysis_file_string,
                                             'fv_and_power')
     fig['output_image_formats'] = fv_struct['output_image_formats']
     
+    if ('formatting' in fv_struct):
+        fig['formatting'] = fv_struct['formatting']
+    
     batch_figs['force_velocity'].append(fig)
 
     # Rates
@@ -593,6 +616,10 @@ def deduce_fv_properties(json_analysis_file_string,
                                             'sim_output',
                                             'rates')
     fig['output_image_formats'] = fv_struct['output_image_formats']
+
+    if ('formatting' in fv_struct):
+        fig['formatting'] = fv_struct['formatting']
+
     batch_figs['rates'].append(fig)
 
     # Superposed traces
@@ -609,6 +636,10 @@ def deduce_fv_properties(json_analysis_file_string,
                                             'sim_output',
                                             'superposed_traces')
     fig['output_image_formats'] = fv_struct['output_image_formats']
+    
+    if ('formatting' in fv_struct):
+        fig['formatting'] = fv_struct['formatting']
+        
     batch_figs['superposed_traces'].append(fig)
  
     isotonic_b['batch_figures'] = batch_figs

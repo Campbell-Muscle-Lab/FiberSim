@@ -41,8 +41,8 @@ thin_filament::thin_filament(
     // Set values from the p_fs_model
     a_regulatory_units_per_strand = p_fs_model->a_regulatory_units_per_strand;
     a_bs_per_unit = p_fs_model->a_bs_per_unit;
-    a_bs_per_node = p_parent_hs->a_bs_per_node;
     a_strands_per_filament = p_fs_model->a_strands_per_filament;
+    a_bs_per_node = p_fs_model->a_strands_per_filament;
 
     a_inter_bs_rest_length = p_fs_model->a_inter_bs_rest_length;
     a_inter_bs_twist = p_fs_model->a_inter_bs_twist;
@@ -81,6 +81,7 @@ thin_filament::thin_filament(
 
     // Allocate space for node forces
     node_forces = gsl_vector_alloc(a_regulatory_units_per_strand * a_bs_per_unit);
+    gsl_vector_set_zero(node_forces);
 
     // Log
     if (p_fs_options->log_mode > 0)
@@ -235,13 +236,24 @@ void thin_filament::calculate_node_forces(void)
 
         if (node_counter == 0)
         {
-            node_force = p_fs_model->a_k_stiff * gsl_vector_get(bs_x, 0);
+            node_force = p_fs_model->a_k_stiff *
+                (gsl_vector_get(bs_x, bs_index) - a_inter_bs_rest_length);
         }
         else
         {
+            int a, b;
+            a = bs_index;
+            b = bs_index - a_bs_per_node;
             node_force = p_fs_model->a_k_stiff *
                 (gsl_vector_get(bs_x, bs_index) -
-                    gsl_vector_get(bs_x, bs_index - a_bs_per_node));
+                    gsl_vector_get(bs_x, bs_index - a_bs_per_node) -
+                    a_inter_bs_rest_length);
+            if (fabs(node_force) > 10)
+            {
+                printf("node_force: %f  a: %i  b: %i  bs_x(a): %g bs_x(b): %g a_bs_per_node: %i a_inter_bs_rest_length: %g\n",
+                    node_force, a, b, gsl_vector_get(bs_x, a), gsl_vector_get(bs_x, b), a_bs_per_node, a_inter_bs_rest_length);
+                exit(1);
+            }
         }
 
         // Set

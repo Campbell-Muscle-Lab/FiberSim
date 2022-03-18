@@ -106,7 +106,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 	if (!strcmp(rate_type, "force_and_MyBPC_dependent"))
 	{
 		// rate = k_base * modifier_base * (1 + node_force * k_force * modifier_force)
-		// where the modifier depends on the isotype
+		// where the modifier depends on the isotype of MyBP-C
 		// rate_parameters is a vector
 		// [k_base, k_force,
 		//		modifier_base[isotype=1,isostate=1], modifier_force[isotype=1, isostate=1]

@@ -18,6 +18,14 @@ namespace JSON_functions {
     * a function that checks whether an object exists in a JSON doc
     * @param doc pointer to a rapidjson::Document
     * @param mem_name pointer to a member_name char array
+    * @return bool
+    */
+    bool check_JSON_member_exists(const rapidjson::Value& doc, const char mem_name[]);
+
+    /**
+    * a function that checks whether an object exists in a JSON doc
+    * @param doc pointer to a rapidjson::Document
+    * @param mem_name pointer to a member_name char array
     * @return void
     */
     void check_JSON_member_object(const rapidjson::Value& doc, const char mem_name[]);
