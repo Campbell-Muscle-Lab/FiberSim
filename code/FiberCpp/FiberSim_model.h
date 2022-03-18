@@ -131,8 +131,11 @@ public:
                                               for binding site de-activation in units
                                               of s^-1 */
 
-    double a_gamma_coop;                     /**< double defining cooperativity
+    double a_gamma_coop;                 /**< double defining cooperativity
                                               dimensionless */
+
+    double a_k_force;                   /**< double defining force-dependent rate
+                                             boost */
 
     int coop_name;                      /**< int defining cooperativity
                                               notation */
@@ -192,6 +195,8 @@ public:
     gsl_vector* c_isotype_props;	    /**< gsl_vector holding the C-protein isotypes proportions */
 
     kinetic_scheme* p_c_scheme[MAX_NO_OF_ISOTYPES];        /**< pointer to a kinetic scheme array for MyBPC */
+
+    double temperature;                 /**< double defining temperature in K */
 
     // Functions
 

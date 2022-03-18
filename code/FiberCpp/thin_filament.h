@@ -91,6 +91,9 @@ public:
                                          integers indicating which m_n the bs
                                          is bound to */
 
+    gsl_vector* node_forces;        /**< pointer to a gsl_vector holding force
+                                         at each node */
+
     /**
     * Constructor
     * + initialized with:
@@ -131,5 +134,12 @@ public:
     * @return void
     */
     void set_regulatory_unit_indices(int unit_ind, gsl_vector_short*  bs_indices);
+
+    /**
+    * void calculate node forces(void)
+    * calculates the forces at each node
+    * @return(void)
+    */
+    void calculate_node_forces(void);
 
 };

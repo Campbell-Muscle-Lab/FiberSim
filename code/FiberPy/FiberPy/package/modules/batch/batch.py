@@ -23,7 +23,8 @@ from ..analysis import atp_cons
 
 
 def run_batch(json_batch_file_string=[],
-              batch_structure=[]):
+              batch_structure=[],
+              figures_only = False):
     """Runs >=1 simulation using multithreading"""
 
     print('FiberPy: run_batch() starting')
@@ -89,20 +90,21 @@ def run_batch(json_batch_file_string=[],
     num_processes = int(min([requested_max_threads, available_threads]))
     print('Running batch using %i threads' % num_processes)
 
-    # Now run the batch
-    my_list = command_strings
-
-    threads = []
-    while threads or my_list:
-        if (len(threads) < num_processes) and my_list:
-            t = threading.Thread(target=worker, args=[my_list.pop()])
-            t.setDaemon(True)
-            t.start()
-            threads.append(t)
-        else:
-            for thread in threads:
-                if not thread.is_alive():
-                    threads.remove(thread)  
+    if (not figures_only):
+        # Now run the batch
+        my_list = command_strings
+    
+        threads = []
+        while threads or my_list:
+            if (len(threads) < num_processes) and my_list:
+                t = threading.Thread(target=worker, args=[my_list.pop()])
+                t.setDaemon(True)
+                t.start()
+                threads.append(t)
+            else:
+                for thread in threads:
+                    if not thread.is_alive():
+                        threads.remove(thread)  
 
     # At this point we have run all the simulations
     # Run the output handlers
@@ -126,6 +128,19 @@ def run_batch(json_batch_file_string=[],
         batch_figures = batch_structure['batch_figures']
 
         # Dive into the structure
+        if ('rates' in batch_figures):
+            print('Now generating the rates figure')
+            for fig_data in batch_figures['rates']:
+                analyses.create_rates_figure(fig_data,
+                                          json_batch_file_string)
+
+        if ('superposed_traces' in batch_figures):
+            print('Now generating the superposed_traces figure')
+            for fig_data in batch_figures['superposed_traces']:
+                analyses.create_superposed_traces_figure(
+                    fig_data,
+                    json_batch_file_string)
+
         if ('pCa_curves' in batch_figures):
             print('Now generating the tension-pCa curves')
             for fig_data in batch_figures['pCa_curves']:
@@ -136,6 +151,12 @@ def run_batch(json_batch_file_string=[],
             print('Now generating the force-velocity curves')
             for fig_data in batch_figures['force_velocity']:
                 analyses.create_fv_and_power_figure(fig_data,
+                                          json_batch_file_string)
+
+        if ('k_tr_analysis' in batch_figures):
+            print('Now generating the k_tr_analysis figure')
+            for fig_data in batch_figures['k_tr_analysis']:
+                analyses.create_k_tr_analysis_figure(fig_data,
                                           json_batch_file_string)
 
         if ('ktr' in batch_figures):

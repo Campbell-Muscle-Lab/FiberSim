@@ -139,15 +139,20 @@ def fit_exponential_recovery(x, y, n=1):
             for i,x in enumerate(x_data):
                 y[i] = offset + amp*(1 - np.exp(-k*x))
             return y
-        
+
+        min_bounds = [-np.inf, 0, 0.0]
+        max_bounds = [np.inf, np.inf, np.inf]
+
         popt, pcov = curve_fit(y_single_exp, x, y,
-                               [y[0], y[-1]-y[0], (1/(0.2*np.amax(x)))])
+                               [y[0], y[-1]-y[0], (1/(0.2*np.amax(x)))],
+                               bounds=(min_bounds, max_bounds),
+                               maxfev=5000)
         
         d = dict()
         d['offset'] = popt[0]
         d['amp'] = popt[1]
         d['k'] = popt[2]
-        d['x_fit'] = np.linspace(x[0], x[-1], 1000)
+        d['x_fit'] = x
         d['y_fit'] = y_single_exp(d['x_fit'], *popt)
         
         return d

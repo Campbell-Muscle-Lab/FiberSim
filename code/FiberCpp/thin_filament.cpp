@@ -41,8 +41,8 @@ thin_filament::thin_filament(
     // Set values from the p_fs_model
     a_regulatory_units_per_strand = p_fs_model->a_regulatory_units_per_strand;
     a_bs_per_unit = p_fs_model->a_bs_per_unit;
-    a_bs_per_node = p_parent_hs->a_bs_per_node;
     a_strands_per_filament = p_fs_model->a_strands_per_filament;
+    a_bs_per_node = p_fs_model->a_strands_per_filament;
 
     a_inter_bs_rest_length = p_fs_model->a_inter_bs_rest_length;
     a_inter_bs_twist = p_fs_model->a_inter_bs_twist;
@@ -79,6 +79,10 @@ thin_filament::thin_filament(
     gsl_vector_short_set_all(bound_to_m_n, -1);
     gsl_vector_short_set_all(unit_status, 1);
 
+    // Allocate space for node forces
+    node_forces = gsl_vector_alloc(a_regulatory_units_per_strand * a_bs_per_unit);
+    gsl_vector_set_zero(node_forces);
+
     // Log
     if (p_fs_options->log_mode > 0)
     {
@@ -111,6 +115,8 @@ thin_filament::~thin_filament()
     gsl_vector_short_free(bound_to_m_type);
     gsl_vector_short_free(bound_to_m_f);
     gsl_vector_short_free(bound_to_m_n);
+
+    gsl_vector_free(node_forces);
 }
 
 // Functions
@@ -209,5 +215,48 @@ void thin_filament::set_regulatory_unit_indices(int unit_ind, gsl_vector_short* 
     for (int i = 0; i < a_bs_per_unit; i++)
     {
         gsl_vector_short_set(bs_indices, i, offset + (i * a_strands_per_filament));
+    }
+}
+
+void thin_filament::calculate_node_forces(void)
+{
+    //! Sets the node force
+
+    // Variable
+
+    int nodes_per_filament = a_regulatory_units_per_strand * a_bs_per_unit;
+
+    double node_force;
+
+    // Code
+
+    for (int node_counter = 0; node_counter < nodes_per_filament; node_counter++)
+    {
+        int bs_index = node_counter * a_bs_per_node;
+
+        if (node_counter == 0)
+        {
+            node_force = p_fs_model->a_k_stiff *
+                (gsl_vector_get(bs_x, bs_index) - a_inter_bs_rest_length);
+        }
+        else
+        {
+            int a, b;
+            a = bs_index;
+            b = bs_index - a_bs_per_node;
+            node_force = p_fs_model->a_k_stiff *
+                (gsl_vector_get(bs_x, bs_index) -
+                    gsl_vector_get(bs_x, bs_index - a_bs_per_node) -
+                    a_inter_bs_rest_length);
+            if (fabs(node_force) > 10)
+            {
+                printf("node_force: %f  a: %i  b: %i  bs_x(a): %g bs_x(b): %g a_bs_per_node: %i a_inter_bs_rest_length: %g\n",
+                    node_force, a, b, gsl_vector_get(bs_x, a), gsl_vector_get(bs_x, b), a_bs_per_node, a_inter_bs_rest_length);
+                exit(1);
+            }
+        }
+
+        // Set
+        gsl_vector_set(node_forces, node_counter, node_force);
     }
 }

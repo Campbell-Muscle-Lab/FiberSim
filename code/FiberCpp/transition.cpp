@@ -18,6 +18,7 @@
 
 #include "gsl_vector.h"
 #include "gsl_math.h"
+#include "gsl_const_mksa.h"
 
 
 // Constructor
@@ -105,7 +106,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 	if (!strcmp(rate_type, "force_and_MyBPC_dependent"))
 	{
 		// rate = k_base * modifier_base * (1 + node_force * k_force * modifier_force)
-		// where the modifier depends on the isotype
+		// where the modifier depends on the isotype of MyBP-C
 		// rate_parameters is a vector
 		// [k_base, k_force,
 		//		modifier_base[isotype=1,isostate=1], modifier_force[isotype=1, isostate=1]
@@ -149,7 +150,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 
 		rate = gsl_vector_get(rate_parameters, 0) *
 			exp(-(0.5 * k_cb * gsl_pow_int(x, 2)) /
-			(1e18 * 1.38e-23 * 310.0));
+				(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
 	}
 
 	// Gaussian MyBP-C 
@@ -161,7 +162,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 
 		rate = gsl_vector_get(rate_parameters, 0) *
 			exp(-(0.5 * k_pc * gsl_pow_int(x, 2)) /
-				(1e18 * 1.38e-23 * 310.0));
+					(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
 	}
 
 	// Force-dependent Gaussian
@@ -174,7 +175,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 
 		rate = gsl_vector_get(rate_parameters, 0) *
 			exp(-(0.5 * k_cb * gsl_pow_int(x, 2)) /
-				(1e18 * 1.38e-23 * 310.0)) *
+					(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature)) *
 			(1.0 + gsl_max(node_force, 0.0) * gsl_vector_get(rate_parameters, 1));
 	}
 
@@ -188,7 +189,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 
 		rate = gsl_vector_get(rate_parameters, 0) *
 			exp(-(0.5 * k_pc * gsl_pow_int(x, 2)) /
-				(1e18 * 1.38e-23 * 310.0)) *
+					(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature)) *
 			(1.0 + gsl_max(node_force, 0.0) * gsl_vector_get(rate_parameters, 1));
 	}
 
@@ -245,6 +246,25 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 		if (gsl_finite(x_lim) && (x > x_lim)) {	// if optional parameter is specified, set rate to max_rate when x > x_lim
 			rate = p_options->max_rate;
 		}
+	}
+
+	if (!strcmp(rate_type, "exp_wall"))
+	{
+		// Variables
+
+		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+		double k0 = gsl_vector_get(rate_parameters, 0);
+		double F = p_model->m_k_cb * (x + x_ext);
+		double d = gsl_vector_get(rate_parameters, 1);
+		double x_wall = gsl_vector_get(rate_parameters, 2);
+		double x_smooth = gsl_vector_get(rate_parameters, 3);
+
+		// Code
+		rate = k0 * exp(-(F * d) /
+				(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
+
+		rate = rate + p_options->max_rate * (1 /
+			(1 + exp(-x_smooth * (x - x_wall))));
 	}
 
 	// Curtail at max rate

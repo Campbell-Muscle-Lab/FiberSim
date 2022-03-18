@@ -36,11 +36,27 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 
     dump_precision = 6;                     /**< default value for dump precision */
 
+    sprintf_s(rate_file_string, _MAX_PATH, "");
+                                            /**< default value for rate file string */
+
 
     // Update values from log file
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
 
     // Do some processing on the options
+
+    if (strlen(rate_file_string) > 0)
+    {
+        if (!strcmp(rate_relative_to, "this_file"))
+        {
+            fs::path options_file = JSON_options_file_string;
+            fs::path options_path = options_file.parent_path();
+            fs::path rate_path = options_path / rate_file_string;
+
+            sprintf_s(rate_file_string, _MAX_PATH, "%s", rate_path.string().c_str());
+        }
+    }
+
     if (strlen(status_folder) > 0)
     {
         if (!strcmp(status_relative_to, "this_file"))
@@ -76,7 +92,6 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
                 }
                 
             }
-
             // Set the status folder
             sprintf_s(status_folder, _MAX_PATH, "%s", status_path.string().c_str());
         }
@@ -232,6 +247,18 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
 
         JSON_functions::check_JSON_member_string(logging, "log_folder");
         sprintf_s(log_folder, _MAX_PATH, "%s", logging["log_folder"].GetString());
+    }
+
+    // Check for rate logging
+    if (JSON_functions::is_JSON_member(options, "rate_files"))
+    {
+        const rapidjson::Value& rate_files = options["rate_files"];
+
+        JSON_functions::check_JSON_member_string(rate_files, "relative_to");
+        sprintf_s(rate_relative_to, _MAX_PATH, "%s", rate_files["relative_to"].GetString());
+
+        JSON_functions::check_JSON_member_string(rate_files, "file");
+        sprintf_s(rate_file_string, _MAX_PATH, "%s", rate_files["file"].GetString());
     }
 
     // Now check for status files

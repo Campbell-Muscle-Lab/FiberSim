@@ -10,7 +10,7 @@ from package.modules.output_handler import output_handler as oh
 from package.modules.fitting import fitting as fit
 from package.modules.visualization import render as viz
 from package.modules.visualization.create_movie import create_hs_movie as cm
-from package.modules.analysis import analysis as anal
+from package.modules.characterize import characterize_model as characterize
 
 
 def parse_inputs():
@@ -31,13 +31,16 @@ def parse_inputs():
     if (sys.argv[1] == "movie_with_data"):
         viz.generate_movie_with_data(sys.argv[2])
     
-    if (sys.argv[1] == "animate_cb_distributions"):
-        an = anal.analysis()
-        an.animate_cb_distributions(
-            sys.argv[2], sys.argv[3])
+    # if (sys.argv[1] == "animate_cb_distributions"):
+    #     an = anal.analysis()
+    #     an.animate_cb_distributions(
+    #         sys.argv[2], sys.argv[3])
 
     if (sys.argv[1] == "spatial_visualization"):
         cm(sys.argv[2], sys.argv[3])
+    
+    if (sys.argv[1] == "characterize_model"):
+        characterize.characterize_model(sys.argv[2])
 
 
 if __name__ == "__main__":

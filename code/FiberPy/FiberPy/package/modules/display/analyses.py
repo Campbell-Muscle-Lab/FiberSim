@@ -25,7 +25,10 @@ def default_formatting():
     formatting['data_linewidth'] = 1
     formatting['fontname'] = 'Arial'
     formatting['marker_size'] = 8
-    formatting['marker_symbols'] = ['o','s','^','v']
+    formatting['marker_symbols'] = ['o','s','^','v','<','>']
+    formatting['fill_styles'] = ['full', 'full', 'full', 'full', 'full', 'full']
+    formatting['line_styles'] = ['-','-','-','-','-','-']
+    formatting['marker_edge_width'] = 1
     formatting['high_pCa_tick'] = 8.0
     formatting['high_pCa_span'] = 0.2
     formatting['low_pCa_ticks'] = [6.5, 5.5, 4.5]
@@ -49,9 +52,26 @@ def default_formatting():
     formatting['table_fontsize'] = 11
     formatting['color_set'] = ["tab:orange", "tab:blue", "tab:green", "tab:red", "tab:pink", "tab:purple", "tab:grey", "tab:olive", "tab:cyan", "black"]
     formatting['labels'] = []
+    formatting['legend_location'] = 'upper left'
+    formatting['legend_bbox_to_anchor'] = [1.05, 1]
+    formatting['legend_fontsize'] = 9
+    formatting['legend_handlelength'] = 1
+
 
     return formatting
 
+def default_layout():
+    layout = dict()
+    layout['fig_width'] = 3.5
+    layout['panel_height'] = 1
+    layout['top_margin'] = 0.1
+    layout['bottom_margin'] = 0.1
+    layout['left_margin'] = 0.1
+    layout['right_margin'] = 0.1
+    layout['grid_wspace'] = 0.75
+    layout['grid_hspace'] = 0.5
+
+    return layout
 
 def create_y_pCa_figure(fig_data, batch_file_string):
     """ Creates a y pCa figure based on dict fig_data """
@@ -73,18 +93,15 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     gs = fig.add_gridspec(nrows=1, ncols=6,
                           left=0.3, right=0.95, wspace=0.1,
                           bottom = 0.2)
-    fig.set_size_inches([3.5, 3.5])
+    fig.set_size_inches([3.5, 2.5])
     ax_left = fig.add_subplot(gs[0,0])
     ax_right = fig.add_subplot(gs[0, 1:5])
 
     if (fig_data['relative_to'] == 'this_file'):
         top_data_folder = os.path.join(base_folder,
                                        fig_data['results_folder'])
-        output_image_file_string = \
-            os.path.join(base_folder, fig_data['output_image_file_string'])
     else:
         top_data_folder = fig_data['results_folder']
-        output_image_file_string = fig_data['output_image_file_string']
 
     # Store curve data in lists
     pCa_values = defaultdict(list)
@@ -94,17 +111,16 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     keep_going = True
 
     # Create lists to hold data
-    curve = []
+    curve_index = []
     hs_force = []
     hs_pCa = []
-
-    pCa_50 = []
-    n_H = []
-
-#    marker_color = []
         
     # Keep track of max_y
     max_y = -np.inf
+    
+    # Set up a dictionary to store the curve data
+    curve_data = dict()
+    curve_data['curve'] = []
 
     while (keep_going):
         curve_folder = os.path.join(top_data_folder,
@@ -112,7 +128,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
         if os.path.isdir(curve_folder):
             # Find the results files
             for file in os.listdir(curve_folder):
-                if file.endswith('.txt'):
+                if (file.endswith('.txt') and not file.startswith('rates')):
                     data_file_string = \
                         os.path.join(curve_folder, file)
                     d = pd.read_csv(data_file_string, delimiter='\t')
@@ -122,18 +138,28 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     y_values[curve_counter-1].append(y)
                     if (np.amax(y) > max_y):
                         max_y = np.amax(y)
-
-                    curve.append(curve_counter)
+                    
+                    # Store data for subsequent output
+                    curve_index.append(curve_counter)
                     hs_force.append(y)
                     hs_pCa.append(d['pCa'].iloc[-1])
 
             # Add in curve
             res=cv.fit_pCa_data(pCa_values[curve_counter-1],
                                 y_values[curve_counter-1])
+            
             # Store data
-            pCa_50.append(res['pCa_50'])
-            n_H.append(res['n_H'])            
-
+            d_parameters = pd.DataFrame({'pCa_50': res['pCa_50'],
+                                        'n_H': res['n_H'],
+                                        'y_min': res['y_min'],
+                                        'y_max': res['y_max']},
+                                        index=[0])
+            d_fits = pd.DataFrame({'x_fit': res['x_fit'],
+                                    'y_fit': res['y_fit']});
+            
+            d_curve = pd.concat([d_parameters, d_fits])
+            curve_data['curve'].append(d_curve)
+            
             # plot
 
             # Normalized data_field if required
@@ -145,18 +171,15 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                 a.plot(pCa_values[curve_counter-1],
                     y_values[curve_counter-1],
                     formatting['marker_symbols'][curve_counter-1],
+                    fillstyle=formatting['fill_styles'][curve_counter-1],
                     markersize=formatting['marker_size'],
                     markerfacecolor = formatting['color_set'][curve_counter - 1],
-                    markeredgewidth=0.0)
-#                if (a==ax_left):
-#                    marker_color.append(a.lines[-1].get_color())
-                if formatting['labels'] != []:
-                    a.plot(res['x_fit'], res['y_fit'],'-',
-                        color = formatting['color_set'][curve_counter - 1],
-                        label = formatting['labels'][curve_counter - 1])
+                    markeredgewidth=formatting['marker_edge_width'],
+                    markeredgecolor=formatting['color_set'][curve_counter - 1])
 
-                a.plot(res['x_fit'], res['y_fit'],'-',
-                    color = formatting['color_set'][curve_counter - 1])
+                a.plot(res['x_fit'], res['y_fit'],
+                    color = formatting['color_set'][curve_counter - 1],
+                    linestyle=formatting['line_styles'][curve_counter - 1])
 
             # Loop on to the next folder
             curve_counter = curve_counter + 1
@@ -168,7 +191,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
         ax_right.legend(loc='upper left', bbox_to_anchor=[1.05, 1], fontsize = formatting['y_label_fontsize']-2)
 
     # Take lists and create a data frame
-    r = pd.DataFrame({'curve': curve,
+    r = pd.DataFrame({'curve': curve_index,
                       'hs_pCa': hs_pCa,
                       'hs_force': hs_force})
 
@@ -261,19 +284,20 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                  clip_on=False)
     
     # Add in data
-    for i in range(len(pCa_50)):
+    for i,c in enumerate(curve_data['curve']):
         y_anchor = y_anchor - y_spacing
         ax_right.plot(x_anchor + formatting['table_x_spacing'],
                     y_anchor,
                     formatting['marker_symbols'][i],
                     mfc = formatting['color_set'][i],
                     mec = formatting['color_set'][i],
+                    fillstyle = formatting['fill_styles'][i],
                     markersize=formatting['marker_size'],
                     clip_on=False)
 
         ax_right.text(x_anchor,
                     y_anchor,
-                    '%.2f' % pCa_50[i],
+                    '%.2f' % c['pCa_50'].iloc[0],
                     fontfamily=formatting['fontname'],
                     fontsize=formatting['table_fontsize'],
                     horizontalalignment='center',
@@ -281,7 +305,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     clip_on=False)
         ax_right.text(x_anchor - formatting['table_x_spacing'],
                     y_anchor,
-                    '%.2f' % n_H[i],
+                    '%.2f' % c['n_H'].iloc[0],
                     fontfamily=formatting['fontname'],
                     fontsize=formatting['table_fontsize'],
                     horizontalalignment='center',
@@ -289,11 +313,22 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     clip_on=False)
 
     # Save the figure
-    print('Saving pCa_figure to: %s' % output_image_file_string)
-    dir_name = os.path.dirname(output_image_file_string)
-    if (not os.path.isdir(dir_name)):
-        os.makedirs(dir_name)
-    fig.savefig(output_image_file_string, dpi=200, bbox_inches='tight')
+    if ('output_image_file' in fig_data):
+        if (fig_data['relative_to'] == 'this_file'):
+                fig_data['output_image_file'] = \
+                    os.path.join(base_folder,
+                                 fig_data['output_image_file'])
+
+        # Check dir exists
+        dir_name = os.path.dirname(fig_data['output_image_file'])
+        if (not os.path.isdir(dir_name)):
+            os.makedirs(dir_name)
+            
+        for f in fig_data['output_image_formats']:
+            ofs = '%s.%s' % (fig_data['output_image_file'], f)
+            print('Saving pCa_figure to: %s' % ofs)
+            fig.savefig(ofs, dpi=200, bbox_inches='tight')
+            
     plt.close()
 
     # Save the data as an excel file if required in the batch file
@@ -303,10 +338,14 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                                               fig_data['output_data_file_string'])
         else:
             output_file_string = fig_data['output_data_file_string']
+
         print('Writing tension-pCa data to %s' % output_file_string)
-        r.to_excel(output_file_string,
-                   engine='openpyxl',
-                   index=False)
+        with pd.ExcelWriter(output_file_string, engine='openpyxl') as writer:
+            r.to_excel(writer, sheet_name = 'simulation_data', index=False)
+            for (i,c) in enumerate(curve_data['curve']):
+                c.to_excel(writer,
+                           index=False,
+                           sheet_name = 'curve_%i' % (i+1))
 
 
 def create_fv_and_power_figure(fig_data, batch_file_string):
@@ -335,6 +374,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     curve = []
     hs_force = []
     hs_velocity = []
+    hs_rel_velocity = []
     hs_power = []
 
     while keep_going:
@@ -343,12 +383,12 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         if (os.path.isdir(curve_folder)):
             # Find the results files
             for file in os.listdir(curve_folder):
-                if file.endswith('.txt'):
+                if (file.endswith('.txt') and not file.startswith('rates')):
                     data_file_string = os.path.join(curve_folder, file)
 
                     # Load up the results file
                     d = pd.read_csv(data_file_string, delimiter='\t')
-                    initial_hsl = d['hs_length'][0]
+                    initial_hsl = d['hs_length'].iloc[0]
 
                     # Filter to fit time_interval
                     d_fit = d.loc[(d['time'] >= fig_data['fit_time_interval_s'][0]) &
@@ -356,19 +396,19 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
                     vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
                                                     d_fit['hs_length'].to_numpy())
-                    
-                    # Constrain to shortening
-                    if (vel_data['slope'] < 0):
-                        # Calculate some values, with a -ve for shortening velocity
-                        hs_vel = -1e-9*vel_data['slope']
-                        hs_for = d_fit['force'].mean()
-                        hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
-    
-                        # Store data
-                        curve.append(curve_counter)
-                        hs_velocity.append(hs_vel)
-                        hs_force.append(hs_for)
-                        hs_power.append(hs_pow)
+              
+                    # Calculate some values, with a -ve for shortening velocity
+                    hs_vel = -1e-9*vel_data['slope']
+                    hs_rel_vel = 1e9 * hs_vel / initial_hsl
+                    hs_for = d_fit['force'].mean()
+                    hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
+
+                    # Store data
+                    curve.append(curve_counter)
+                    hs_velocity.append(hs_vel)
+                    hs_rel_velocity.append(hs_rel_vel)
+                    hs_force.append(hs_for)
+                    hs_power.append(hs_pow)
 
             curve_counter = curve_counter + 1
 
@@ -378,60 +418,122 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     # Take lists and create a data frame
     r = pd.DataFrame({'curve': curve,
                       'hs_velocity': hs_velocity,
+                      'hs_rel_velocity': hs_rel_velocity,
                       'hs_force': hs_force,
                       'hs_power': hs_power})
 
     # Create a figure
-    if ('output_image_file_string' in fig_data):
-        # Deduce the output file string
-        if (fig_data['relative_to'] == 'this_file'):
-            output_image_file_string = os.path.join(
-                base_folder, fig_data['output_image_file_string'])
-        else:
-            output_image_file_string = fig_data['output_image_file_string']
+    if ('output_image_file' in fig_data):
 
         # Make a figure
         fig = plt.figure(constrained_layout=True)
-        gs = fig.add_gridspec(nrows=2, ncols=1,
+        gs = fig.add_gridspec(nrows=2, ncols=2,
                               wspace = 0.5,
                               hspace=0.1)
-        fig.set_size_inches([3.5, 7])
+        fig.set_size_inches([7, 5])
         ax_fv = fig.add_subplot(gs[0,0])
         ax_pow = fig.add_subplot(gs[1, 0])
+        ax_rel_fv = fig.add_subplot(gs[0,1])
+        ax_rel_pow = fig.add_subplot(gs[1,1])
 
         # Hold ticks
         f_ticks = np.asarray([])
+        rel_f_ticks = np.asarray([])
         v_ticks = np.asarray([])
+        rel_v_ticks = np.asarray([])
         p_ticks = np.asarray([])
+        rel_p_ticks = np.asarray([])
+        
+        # Set up dict to store the curve data
+        curve_data = dict()
+        curve_data['curve'] = []
         
         # Cycle through curves
         for c in range(1, curve_counter):
-            rc = r[r['curve'] == c]
+            # Pull off the curve data
+            rc = r[r['curve'] == c].copy()
+            
+            # Normalize force
+            rc['hs_rel_force'] = rc['hs_force'] / rc['hs_force'].max()
+            rc['hs_rel_power'] = rc['hs_rel_force'] * rc['hs_rel_velocity']
 
             # Plot the force velocity curve
-            ax_fv.plot(rc['hs_force'], rc['hs_velocity'], 'o', color = formatting['color_set'][c - 1])
+            ax_fv.plot(rc['hs_force'], rc['hs_velocity'],
+                       formatting['marker_symbols'][c-1],
+                       formatting['marker_size'],
+                       fillstyle=formatting['fill_styles'][c-1],
+                       color = formatting['color_set'][c - 1])
             fv_curve = cv.fit_hyperbola(rc['hs_force'], rc['hs_velocity'])
-            ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'], '-',
-                       color=ax_fv.lines[-1].get_color())
+            ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'],
+                       color=ax_fv.lines[-1].get_color(),
+                       linestyle = formatting['line_styles'][c-1])
 
-            ax_pow.plot(rc['hs_force'], rc['hs_power'], 'o', color = formatting['color_set'][c - 1])
+            ax_pow.plot(rc['hs_force'], rc['hs_power'],
+                       formatting['marker_symbols'][c-1],
+                       formatting['marker_size'],
+                       fillstyle=formatting['fill_styles'][c-1],
+                        color = formatting['color_set'][c - 1])
             pow_curve = cv.fit_power_curve(rc['hs_force'], rc['hs_power'])
             ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'], '-',
-                        color=ax_pow.lines[-1].get_color())
+                        color=ax_pow.lines[-1].get_color(),
+                        linestyle = formatting['line_styles'][c-1])
 
-            # Store ticks
+            ax_rel_fv.plot(rc['hs_rel_force'], rc['hs_rel_velocity'],
+                           formatting['marker_symbols'][c-1],
+                           formatting['marker_size'],
+                           fillstyle=formatting['fill_styles'][c-1],
+                           color = formatting['color_set'][c-1])
+            rel_fv_curve = cv.fit_hyperbola(rc['hs_rel_force'], rc['hs_rel_velocity'])
+            ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'], '-',
+                           color=ax_rel_fv.lines[-1].get_color(),
+                           linestyle = formatting['line_styles'][c-1])
+
+            ax_rel_pow.plot(rc['hs_rel_force'], rc['hs_rel_power'],
+                            formatting['marker_symbols'][c-1],
+                            formatting['marker_size'],
+                            fillstyle=formatting['fill_styles'][c-1],
+                            color = formatting['color_set'][c - 1])
+            rel_pow_curve = cv.fit_power_curve(rc['hs_rel_force'], rc['hs_rel_power'])
+            ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'], '-',
+                        color=ax_pow.lines[-1].get_color(),
+                        linestyle = formatting['line_styles'][c-1])
+
+            # Store data to work out ticks later on
             f_ticks = np.concatenate((f_ticks, rc['hs_force']))
+            rel_f_ticks = np.concatenate((rel_f_ticks, rc['hs_rel_force']))
             v_ticks = np.concatenate((v_ticks, rc['hs_velocity']))
+            rel_v_ticks = np.concatenate((rel_v_ticks, rc['hs_rel_velocity']))
             p_ticks = np.concatenate((p_ticks, rc['hs_power']))
+            rel_p_ticks = np.concatenate((rel_p_ticks, rc['hs_rel_power']))
+            
+            # Store the curve data
+            d_parameters = pd.DataFrame({'fv_x_0': fv_curve['x_0'],
+                                         'fv_a': fv_curve['a'],
+                                         'fv_b': fv_curve['b'],
+                                         'pow_x_0': pow_curve['x_0'],
+                                         'pow_a': pow_curve['a'],
+                                         'pow_b': pow_curve['b'],
+                                         'rel_fv_x_0': rel_fv_curve['x_0'],
+                                         'rel_fv_a': rel_fv_curve['a'],
+                                         'rel_fv_b': rel_fv_curve['b'],
+                                         'rel_pow_x_0': rel_pow_curve['x_0'],
+                                         'rel_pow_a': rel_pow_curve['a'],
+                                         'rel_pow_b': rel_pow_curve['b']},
+                                        index=[0])
+            d_fits = pd.DataFrame({'fv_x_fit': fv_curve['x_fit'],
+                                   'fv_y_fit': fv_curve['y_fit'],
+                                   'pow_x_fit': pow_curve['x_fit'],
+                                   'pow_y_fit': pow_curve['y_fit'],
+                                   'rel_fv_x_fit': rel_fv_curve['x_fit'],
+                                   'rel_fv_y_fit': rel_fv_curve['y_fit'],
+                                   'rel_pow_x_fit': rel_pow_curve['x_fit'],
+                                   'rel_pow_y_fit': rel_pow_curve['y_fit']})
+            d_curve = pd.concat([d_parameters, d_fits])
+            curve_data['curve'].append(d_curve)
 
         # Tidy up
-        ax_fv.set_xlabel('Force (N m$^{\\mathregular{-2}}$)',
-                          fontfamily=formatting['fontname'],
-                          loc='center')
-        ax_fv.set_ylabel('Shortening\nvelocity\n(m s$^{\\mathregular{-1}}$)',
-                          fontfamily=formatting['fontname'],
-                          loc='center',
-                          rotation=formatting['y_label_rotation'])
+            
+        # Shortening velocity against stress
         xt = ut.tidy_limits(f_ticks)
         ax_fv.set_xlim(xt)
         ax_fv.set_xticks(xt)
@@ -444,14 +546,16 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         ax_fv.set_yticklabels(ax_fv.get_yticks(),
                           fontsize=formatting['tick_labels_fontsize'],
                           fontfamily=formatting['fontname'])
-
-        ax_pow.set_xlabel('Force (N m$^{\\mathregular{-2}}$)',
+        ax_fv.set_xlabel('Force (N m$^{\\mathregular{-2}}$)',
                           fontfamily=formatting['fontname'],
                           loc='center')
-        ax_pow.set_ylabel('Power\n(W m$^{\\mathregular{-3}}$)',
+        ax_fv.set_ylabel('Shortening\nvelocity\n(m s$^{\\mathregular{-1}}$)',
                           fontfamily=formatting['fontname'],
                           loc='center',
+                          verticalalignment='center',
                           rotation=formatting['y_label_rotation'])
+
+        # Power in W m^-3 against Stress
         ax_pow.set_xlim(xt)
         ax_pow.set_xticks(xt)
         ax_pow.set_xticklabels(ax_pow.get_xticks(),
@@ -463,30 +567,96 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         ax_pow.set_yticklabels(ax_pow.get_yticks(),
                           fontsize=formatting['tick_labels_fontsize'],
                           fontfamily=formatting['fontname'])
+        ax_pow.set_xlabel('Force (N m$^{\\mathregular{-2}}$)',
+                          fontfamily=formatting['fontname'],
+                          loc='center')
+        ax_pow.set_ylabel('Power\n(W m$^{\\mathregular{-3}}$)',
+                          fontfamily=formatting['fontname'],
+                          loc='center',
+                          verticalalignment='center',
+                          rotation=formatting['y_label_rotation'])
+        
+        # Rel velocity against rel force
+        xt = ut.tidy_limits(rel_f_ticks)
+        ax_rel_fv.set_xlim(xt)
+        ax_rel_fv.set_xticks(xt)
+        ax_rel_fv.set_xticklabels(ax_rel_fv.get_xticks(),
+                          fontsize=formatting['tick_labels_fontsize'],
+                          fontfamily=formatting['fontname'])
+        yt = ut.tidy_limits(rel_v_ticks)
+        ax_rel_fv.set_ylim(yt)
+        ax_rel_fv.set_yticks(yt)
+        ax_rel_fv.set_yticklabels(ax_rel_fv.get_yticks(),
+                          fontsize=formatting['tick_labels_fontsize'],
+                          fontfamily=formatting['fontname'])
+        ax_rel_fv.set_xlabel('Relative force',
+                          fontfamily=formatting['fontname'],
+                          loc='center')
+        ax_rel_fv.set_ylabel('Relative\nshortening\nvelocity\n(l$_{\\mathregular{0}}$ s$^{\\mathregular{-1}}$)',
+                          fontfamily=formatting['fontname'],
+                          loc='center',
+                          verticalalignment='center',
+                          rotation=formatting['y_label_rotation'])
 
+        # Rel power against rel force
+        xt = ut.tidy_limits(rel_f_ticks)
+        ax_rel_pow.set_xlim(xt)
+        ax_rel_pow.set_xticks(xt)
+        ax_rel_pow.set_xticklabels(ax_rel_fv.get_xticks(),
+                          fontsize=formatting['tick_labels_fontsize'],
+                          fontfamily=formatting['fontname'])
+        yt = ut.tidy_limits(rel_p_ticks)
+        ax_rel_pow.set_ylim(yt)
+        ax_rel_pow.set_yticks(yt)
+        ax_rel_pow.set_yticklabels(ax_rel_fv.get_yticks(),
+                          fontsize=formatting['tick_labels_fontsize'],
+                          fontfamily=formatting['fontname'])
+        ax_rel_pow.set_xlabel('Relative force',
+                          fontfamily=formatting['fontname'],
+                          loc='center')
+        ax_rel_pow.set_ylabel('Relative\npower',
+                          fontfamily=formatting['fontname'],
+                          loc='center',
+                          verticalalignment='center',
+                          rotation=formatting['y_label_rotation'])
 
-        # Save figure
-        print('Saving fv figure to: %s', output_image_file_string)
-        dir_name = os.path.dirname(output_image_file_string)
+    # Save the figure
+    if ('output_image_file' in fig_data):
+        if (fig_data['relative_to'] == 'this_file'):
+                fig_data['output_image_file'] = \
+                    os.path.join(base_folder,
+                                 fig_data['output_image_file'])
+
+        # Check dir exists
+        dir_name = os.path.dirname(fig_data['output_image_file'])
         if (not os.path.isdir(dir_name)):
             os.makedirs(dir_name)
-        fig.savefig(output_image_file_string)
-        plt.close()
-
+            
+        for f in fig_data['output_image_formats']:
+            ofs = '%s.%s' % (fig_data['output_image_file'], f)
+            print('Saving pCa_figure to: %s' % ofs)
+            fig.savefig(ofs, dpi=200, bbox_inches='tight')
+            
+    plt.close()
+        
     # Save the data as an excel file
-    if (fig_data['relative_to'] == 'this_file'):
-        output_file_string = os.path.join(base_folder,
-                                          fig_data['output_data_file_string'])
-    else:
-        output_file_string = fig_data['output_data_file_string']
-    print('Writing force-velocity data to %s' % output_file_string)
-    r.to_excel(output_file_string,
-               engine='openpyxl',
-               index=False)
+    if ('output_data_file_string' in fig_data):
+        if (fig_data['relative_to'] == 'this_file'):
+            output_file_string = os.path.join(base_folder,
+                                              fig_data['output_data_file_string'])
+        else:
+            output_file_string = fig_data['output_data_file_string']
+    
+        with pd.ExcelWriter(output_file_string, engine='openpyxl') as writer:
+            r.to_excel(writer, sheet_name = 'simulation_data', index=False)
+            for (i,c) in enumerate(curve_data['curve']):
+                c.to_excel(writer,
+                       index=False,
+                       sheet_name = ('curve_%i' % (i+1)))
 
 
 def create_ktr_figure(fig_data, batch_file_string):
-    """ Creates ktr figure """
+    """ Creates ktr figure based on dict fig_data """
 
     # Pull default formatting, then overwrite any values from
     # input file
@@ -983,3 +1153,560 @@ def dose_response(fig_data, batch_file_string):
     r.to_excel(output_file_string,
                engine='openpyxl',
                index=False)
+    
+def create_rates_figure(fig_data, batch_file_string):
+    """ Create a rates figure """
+
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    if ('formatting' in fig_data):
+        for entry in fig_data['formatting']:
+            formatting[entry] = fig_data['formatting'][entry]
+
+    # Pull off the base folder
+    base_folder = os.path.dirname(batch_file_string)
+
+    if (fig_data['relative_to'] == 'this_file'):
+        top_data_folder = os.path.join(base_folder,
+                                       fig_data['results_folder'])
+    else:
+        top_data_folder = fig_data['results_folder']
+
+    # Store the data from the rate files
+    rates_data = dict()
+    rates_data['condition'] = []
+    
+    model_counter = 1
+    keep_going = True
+
+    # Loop through data folders
+    while (keep_going):
+        condition_folder = os.path.join(top_data_folder,
+                                        ('%i' % model_counter))
+
+        if os.path.isdir(condition_folder):
+            for file in os.listdir(condition_folder):
+                if (file == 'rates.txt'):
+                    fs = os.path.join(condition_folder, file)
+                    d = pd.read_csv(fs, sep='\t')
+                    rates_data['condition'].append(d)
+                    no_of_rates = len(d.columns) - 1
+                    model_counter = model_counter + 1
+        else:
+            keep_going = False
+
+    print(d)
+    print(d.columns.to_list())
+
+    # Hold the no_of_conditions
+    no_of_conditions = model_counter-1
+
+    # Set-up the figure
+    fig = plt.figure(constrained_layout = False)
+    spec = gridspec.GridSpec(nrows=no_of_rates, ncols=1)
+    fig.set_size_inches([3.5, 2 * no_of_rates])
+
+    ax = []
+    for i, d in enumerate(rates_data['condition']):
+        for j in range(no_of_rates):
+            if (i==0):
+                ax.append(fig.add_subplot(spec[j,0]))
+                
+            r_string = 'r_%i' % (j+1)
+            if (r_string in d.columns):
+                ax[j].plot(d['x'], np.log10(d[r_string]), '-',
+                           color = formatting['color_set'][i])
+
+            if (i == (no_of_conditions-1)):
+                # Tidy up
+                ax[j].set_ylabel('log10 %s' % r_string)
+                ax[j].set_ylim([-1, 4])
+                ax[j].set_yticks(np.arange(-1,5,1))
+
+    if (fig_data['output_image_file']):
+        if (fig_data['relative_to'] == 'this_file'):
+            fig_data['output_image_file'] = \
+                os.path.join(base_folder,
+                             fig_data['output_image_file'])
+        # Check dir exists
+        dir_name = os.path.dirname(fig_data['output_image_file'])
+        if (not os.path.isdir(dir_name)):
+            os.makedirs(dir_name)
+        
+        for f in fig_data['output_image_formats']:
+            ofs = '%s.%s' % (fig_data['output_image_file'], f)
+            print('Saving rates to %s' % ofs)
+            fig.savefig(ofs, dpi=200, bbox_inches='tight')
+
+    plt.close()
+
+def create_superposed_traces_figure(fig_data, batch_file_string):
+    """ Collates simulations and plots superpositions of each condition
+        in a column """
+
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    if ('formatting' in fig_data):
+        for entry in fig_data['formatting']:
+            formatting[entry] = fig_data['formatting'][entry]
+
+    layout = default_layout()
+    if ('layout' in fig_data):
+        for entry in fig_data['layout']:
+            layout[entry] = fig_data['layout'][entry]
+
+    # Pull off the base folder
+    base_folder = os.path.dirname(batch_file_string)
+
+    if (fig_data['relative_to'] == 'this_file'):
+        top_data_folder = os.path.join(base_folder,
+                                       fig_data['results_folder'])
+    else:
+        top_data_folder = fig_data['results_folder']
+
+    # Loop through data folders
+    model_counter = 1
+    keep_going = True
+
+    while (keep_going):
+        condition_folder = os.path.join(top_data_folder,
+                                        ('%i' % model_counter))
+
+        if os.path.isdir(condition_folder):
+            model_counter = model_counter + 1
+        else:
+            keep_going = False
+
+    # Hold the no_of_conditions
+    no_of_conditions = model_counter-1
+    no_of_rows = 6
+
+    # Set-up the figure
+    fig = plt.figure(constrained_layout = False)
+    spec = gridspec.GridSpec(nrows=no_of_rows,
+                             ncols=no_of_conditions,
+                             figure=fig,
+                             wspace = layout['grid_wspace'],
+                             hspace = layout['grid_hspace'])
+    fig.set_size_inches([3 * no_of_conditions, 2 * no_of_rows])
+
+    ax=[]
+
+    # Keep track of max and mins
+    min_hsl = []
+    max_hsl = []
+    min_force = []
+    max_force = []
+
+    # Create the figure
+    for i in range(no_of_conditions):
+        # Pull off the data files
+        condition_folder = os.path.join(top_data_folder,
+                                        ('%i' % (i+1)))
+        file_counter = 1
+        for file in os.listdir(condition_folder):
+            if ((file.endswith('.txt')) and not file.endswith('rates.txt')):
+                fs = os.path.join(condition_folder, file)
+                d = pd.read_csv(fs, sep='\t')
+
+                # Keep track of max and mins
+                if ((i==0) and (file_counter==1)):
+                    min_hsl = d['hs_length'].min()
+                    max_hsl = d['hs_length'].max()
+                    min_force = d['force'].min()
+                    max_force = d['force'].max()
+                # Other files
+                min_hsl = np.amin([min_hsl, np.amin(d['hs_length'])])
+                max_hsl = np.amin([max_hsl, np.amax(d['hs_length'])])
+                min_force = np.amin([min_force, np.amin(d['force'])])
+                max_force = np.amax([max_force, np.amax(d['force'])])
+
+                if (file_counter==1):
+                    # Make the plots
+                    for j in range(no_of_rows):
+                        ax.append(fig.add_subplot(spec[j,i]))
+
+                # Now plot
+                plot_index = (i*no_of_rows)
+                ax[plot_index].plot(d['time'], d['pCa'], '-',
+                                    color = formatting['color_set'][i])
+                plot_index = plot_index + 1
+                ax[plot_index].plot(d['time'], d['hs_length'], '-',
+                                    color = formatting['color_set'][i])
+
+                plot_index = plot_index + 1
+                ax[plot_index].plot(d['time'], d['force'], '-',
+                                    color = formatting['color_set'][i],
+                                    label='Total')
+                ax[plot_index].plot(d['time'], d['titin_force'], ':',
+                                    color = formatting['color_set'][i],
+                                    label='Titin')
+
+                plot_index = plot_index + 1
+                if (file_counter==1):
+                    label = 'Inactive'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['a_pop_0'], '-',
+                                    color = 'r',
+                                    label=label)
+                if (file_counter==1):
+                    label = 'Active'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['a_pop_1'], '-',
+                                    color = 'g',
+                                    label=label)
+
+                plot_index = plot_index + 1
+                if (file_counter==1):
+                    label = 'SRX'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['m_pop_0'], '-',
+                                    color = 'r',
+                                    label=label)
+                if (file_counter==1):
+                    label = 'DRX'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['m_pop_1'], '-',
+                                    color = 'g',
+                                    label=label)
+                if (file_counter==1):
+                    label = 'FG'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['m_pop_2'], '-',
+                                    color = 'b',
+                                    label=label)
+
+                plot_index = plot_index + 1
+                if (file_counter==1):
+                    label = 'Unbound'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['c_pop_0'], '-',
+                                    color = 'r',
+                                    label=label)
+                if (file_counter==1):
+                    label = 'Bound'
+                else:
+                    label = None
+                ax[plot_index].plot(d['time'], d['c_pop_1'], '-',
+                                    color = 'g',
+                                    label=label)
+
+                # Update counter
+                file_counter = file_counter + 1
+
+        # Handle formatting
+        if (i==0):
+            plot_index = (i*no_of_rows)
+            ax[plot_index].set_ylabel('pCa')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('HS length\n(nm)')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('Force\n(kN m$^{-2}$)')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('Thin\nfilament')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('Thick\nfilament')
+
+            plot_index = plot_index + 1
+            ax[plot_index].set_ylabel('MyBP-C')
+
+
+    # Set limits
+    for i in range(no_of_conditions):
+        plot_index = (i*no_of_rows)
+        y_ticks = [4, 9]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].invert_yaxis()
+        ax[plot_index].set_yticks(y_ticks)
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+
+        plot_index = plot_index + 1
+        y_ticks = [min_hsl, max_hsl]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+
+
+        plot_index = plot_index + 1
+        y_ticks = [0, max_force]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+
+        plot_index = plot_index + 1
+        y_ticks = [0, 1]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+        ax[plot_index].legend(loc=formatting['legend_location'],
+                      handlelength=formatting['legend_handlelength'],
+                      bbox_to_anchor=(
+                          formatting['legend_bbox_to_anchor'][0],
+                          formatting['legend_bbox_to_anchor'][1]),
+                      prop={'family': formatting['fontname'],
+                       'size': formatting['legend_fontsize']})
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+
+
+        plot_index = plot_index + 1
+        y_ticks = [0, 1]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+        ax[plot_index].legend(loc=formatting['legend_location'],
+                      handlelength=formatting['legend_handlelength'],
+                      bbox_to_anchor=(
+                          formatting['legend_bbox_to_anchor'][0],
+                          formatting['legend_bbox_to_anchor'][1]),
+                      prop={'family': formatting['fontname'],
+                       'size': formatting['legend_fontsize']})
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+
+        plot_index = plot_index + 1
+        y_ticks = [0, 1]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+        ax[plot_index].legend(loc=formatting['legend_location'],
+                              handlelength=formatting['legend_handlelength'],
+                              bbox_to_anchor=(
+                                  formatting['legend_bbox_to_anchor'][0],
+                                  formatting['legend_bbox_to_anchor'][1]),
+                              prop={'family': formatting['fontname'],
+                               'size': formatting['legend_fontsize']})
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+
+    if (fig_data['output_image_file']):
+        if (fig_data['relative_to'] == 'this_file'):
+            fig_data['output_image_file'] = \
+                os.path.join(base_folder,
+                             fig_data['output_image_file'])
+        # Check dir exists
+        dir_name = os.path.dirname(fig_data['output_image_file'])
+        if (not os.path.isdir(dir_name)):
+            os.makedirs(dir_name)
+        
+        for f in fig_data['output_image_formats']:
+            ofs = '%s.%s' % (fig_data['output_image_file'], f)
+            print('Saving superposed traces to %s' % ofs)
+            fig.savefig(ofs, dpi=200, bbox_inches='tight')
+
+    plt.close()
+
+def create_k_tr_analysis_figure(fig_data, batch_file_string):
+    """ Creates a k_tr analysis figure """
+
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    if ('formatting' in fig_data):
+        for entry in fig_data['formatting']:
+            formatting[entry] = fig_data['formatting'][entry]
+
+    # Find the data folders
+    base_folder = os.path.dirname(batch_file_string)
+
+    if (fig_data['relative_to'] == 'this_file'):
+        top_data_folder = os.path.join(base_folder,
+                                       fig_data['results_folder'])
+    else:
+        top_data_folder = fig_data['results_folder']
+
+    curve_counter = 1
+    keep_going = True
+
+    # Create lists to hold data
+    curve = []
+    force = []
+    k_tr = []
+    k_tr_amp = []
+    pCa = []
+
+    # And dicts to hold traces
+    sims = dict()
+    sims['raw'] = []
+    sims['fit'] = []
+
+    while keep_going:
+        curve_folder = os.path.join(top_data_folder,
+                                    ('%i' % curve_counter))
+        if (os.path.isdir(curve_folder)):
+            # Find the results files
+            for file in os.listdir(curve_folder):
+                if (file.endswith('.txt') and not file.startswith('rates')):
+                    data_file_string = os.path.join(curve_folder, file)
+
+                    # Load up the results file
+                    d = pd.read_csv(data_file_string, delimiter='\t')
+
+                    # Filter to fit time_interval
+                    d_fit = d.loc[(d['time'] >= fig_data['k_tr_fit_time_s'][0]) &
+                                  (d['time'] <= fig_data['k_tr_fit_time_s'][-1])].copy()
+
+                    # Pull off time offset
+                    x = d_fit['time'].to_numpy()
+                    x = x - x[0]
+                    y = d_fit['force'].to_numpy()
+                    try:
+                        k_tr_data = cv.fit_exponential_recovery(x,y)
+                    except:
+                        k_tr_data = dict()
+                        k_tr_data['k'] = np.nan
+                        k_tr_data['amp'] = np.nan
+                        k_tr_data['x_fit'] = x
+                        k_tr_data['y_fit'] = y
+
+                    # Store some values
+                    curve.append(curve_counter)
+                    force.append(d['force'].iloc[-1])
+                    k_tr.append(k_tr_data['k'])
+                    k_tr_amp.append(k_tr_data['amp'])
+                    pCa.append(d['pCa'].iloc[-1])
+
+                    d_fit['x_fit'] = k_tr_data['x_fit'] + d_fit['time'].iloc[0]
+                    d_fit['y_fit'] = k_tr_data['y_fit']
+
+                    sims['raw'].append(d)
+                    sims['fit'].append(d_fit)
+
+            curve_counter = curve_counter + 1
+
+        else:
+            keep_going = False
+
+    # Make a dataframe from the lists
+    r = pd.DataFrame({'curve': curve,
+                      'pCa': pCa,
+                      'force': force,
+                      'k_tr': k_tr,
+                      'k_tr_amp': k_tr_amp})
+
+    # Save the data as an excel file if required in the batch file
+    if(fig_data['output_data_file_string']):
+        if (fig_data['relative_to'] == 'this_file'):
+            output_file_string = os.path.join(base_folder,
+                                              fig_data['output_data_file_string'])
+        else:
+            output_file_string = fig_data['output_data_file_string']
+
+        print('Writing k_tr_analysis data to %s' % output_file_string)
+        with pd.ExcelWriter(output_file_string, engine='openpyxl') as writer:
+            r.to_excel(writer, sheet_name = 'simulation_data', index=False)
+            # for (i,c) in enumerate(curve_data['curve']):
+            #     c.to_excel(writer,
+            #                 index=False,
+            #                 sheet_name = 'curve_%i' % (i+1))
+
+    # Create a figure
+    if ('output_image_file' in fig_data):
+
+        # Make a figure
+        fig = plt.figure(constrained_layout=True)
+        gs = fig.add_gridspec(nrows=2, ncols=2,
+                              wspace = 0.5,
+                              hspace=0.5)
+        fig.set_size_inches([7, 5])
+        ax_force = fig.add_subplot(gs[0,0])
+        ax_hsl = fig.add_subplot(gs[1, 0])
+        ax_k_tr_force = fig.add_subplot(gs[0,1])
+        ax_k_tr_pCa = fig.add_subplot(gs[1,1])
+
+        # Cycle through curves
+        for (i,c) in enumerate(range(1, curve_counter)):
+            vi = np.flatnonzero(r['curve'].to_numpy() == c)
+            # Draw traces
+            for v in vi:
+                d_fit = sims['fit'][v]
+                d_raw = sims['raw'][v]
+                # Deduce drawing range
+                t_draw_start_s = d_fit['time'].iloc[0] - \
+                    (0.2 * (d_fit['time'].iloc[-1] - d_fit['time'].iloc[0]))
+                d_raw = d_raw[d_raw['time'] > t_draw_start_s]
+
+                ax_force.plot(d_raw['time'], d_raw['force'],
+                              color = formatting['color_set'][i])
+                ax_force.plot(d_fit['time'], d_fit['y_fit'], color='k')
+
+                # Now the lengths
+                ax_hsl.plot(d_raw['time'], d_raw['hs_command_length'],
+                              color = 'k')
+                ax_hsl.plot(d_raw['time'], d_raw['hs_length'],
+                              color = formatting['color_set'][i])
+
+            # Now draw the plots
+            r2 = r[r['curve'] == c]
+            ax_k_tr_force.plot(r2['force'], r2['k_tr'],
+                               formatting['marker_symbols'][i],
+                               markerfacecolor = formatting['color_set'][i],
+                               fillstyle = formatting['fill_styles'][i],
+                               markeredgewidth=formatting['marker_edge_width'])
+            ax_k_tr_force.plot(r2['force'], r2['k_tr'],
+                               linestyle = formatting['line_styles'][i],
+                               color = formatting['color_set'][i])
+
+            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
+                               formatting['marker_symbols'][i],
+                               markerfacecolor = formatting['color_set'][i],
+                               fillstyle = formatting['fill_styles'][i],
+                               markeredgewidth=formatting['marker_edge_width'])
+            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
+                             linestyle = formatting['line_styles'][i],
+                             color = formatting['color_set'][i])
+        
+        # Draw some labels
+        ax_force.set_ylabel('Force (N m$^{-2}$)')
+        ax_force.set_xlabel('Time (s)')
+
+        ax_hsl.set_ylabel('Half-sarcomere length (nm)')
+        ax_hsl.set_xlabel('Time (s)')
+
+        ax_k_tr_force.set_xlabel('Force (N m$^{-2}$)')
+        ax_k_tr_force.set_ylabel('k_tr (s$^{-1}$)')
+        if ('k_tr_ticks' in fig_data):
+            ax_k_tr_force.set_ylim(fig_data['k_tr_ticks'])
+
+        ax_k_tr_pCa.set_xlabel('pCa')
+        ax_k_tr_pCa.invert_xaxis()
+        ax_k_tr_pCa.set_ylabel('k_tr (s$^{-1}$)')
+        if ('k_tr_ticks' in fig_data):
+            ax_k_tr_pCa.set_ylim(fig_data['k_tr_ticks'])
+
+
+        # Save it
+        if (fig_data['relative_to'] == 'this_file'):
+                fig_data['output_image_file'] = \
+                    os.path.join(base_folder,
+                                 fig_data['output_image_file'])
+
+        # Check dir exists
+        dir_name = os.path.dirname(fig_data['output_image_file'])
+        if (not os.path.isdir(dir_name)):
+            os.makedirs(dir_name)
+            
+        for f in fig_data['output_image_formats']:
+            ofs = '%s.%s' % (fig_data['output_image_file'], f)
+            print('Saving k_tr_figure to: %s' % ofs)
+            fig.savefig(ofs, dpi=200, bbox_inches='tight')
+
+    plt.close()

@@ -507,3 +507,6 @@ static
 # GitHub Pages
 _site/
 Gemfile.lock
+
+# Demo files
+**/demo_files/analyze_model/simulations/**

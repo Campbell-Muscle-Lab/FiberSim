@@ -189,6 +189,7 @@ half_sarcomere::half_sarcomere(
     a_k_on = p_fs_model->a_k_on;
     a_k_off = p_fs_model->a_k_off;
     a_gamma_coop = p_fs_model->a_gamma_coop;
+    a_k_force = p_fs_model->a_k_force;
 
     m_no_of_cb_states = p_fs_model->p_m_scheme[0]->no_of_states;
     m_k_stiff = p_fs_model->m_k_stiff;
@@ -397,7 +398,7 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force)
     const gsl_root_fsolver_type* T;
     gsl_root_fsolver* s;
     double r = 0.0;
-    double x_lo = -100, x_hi = 100.0;
+    double x_lo = -1000, x_hi = 1000.0;
     struct force_control_params params = { target_force, this };
 
     gsl_function F;
@@ -1368,7 +1369,13 @@ double half_sarcomere::calculate_titin_force(void)
 
             if (!strcmp(t_passive_mode, "linear"))
             {
-                holder = holder + t_k_stiff * (x_m - x_a - t_slack_length);
+                if (fabs(x_m - x_a) > t_slack_length)
+                {
+                    if (x_m >= x_a)
+                        holder = holder + t_k_stiff * (x_m - x_a - t_slack_length);
+                    else
+                        holder = holder + t_k_stiff * (x_m - x_a + t_slack_length);
+                }
             }
         }
     }
@@ -2453,12 +2460,19 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
     double rate;
     double rand_double;
 
-    double coop_boost;
+    double coop_boost = 0.0;
+    double force_boost = 0.0;
 
     gsl_vector_short * bs_indices;
 
     // Code
     bs_indices = gsl_vector_short_alloc(a_bs_per_unit);
+
+    // Update node forces
+    for (int a_counter = 0; a_counter < a_n; a_counter++)
+    {
+        p_af[a_counter]->calculate_node_forces();
+    }
 
     // Loop through thin filaments
     for (int a_counter = 0; a_counter < a_n; a_counter++)
@@ -2498,7 +2512,14 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                     if (up_neighbor_status == 2)
                         coop_boost = coop_boost + a_gamma_coop;
 
-                    rate = a_k_on * Ca_conc * (1.0 + coop_boost);
+                    // Calculate force boost
+                    double node_force = gsl_vector_get(p_af[a_counter]->node_forces,
+                        gsl_vector_short_get(bs_indices, 0) / a_bs_per_node);
+                    force_boost = a_k_force * node_force;
+
+                    //printf("a_k_force: %g\tnode_force: %g\tforce_boost: %gcoop_boost: %g\n", a_k_force, node_force, force_boost, coop_boost);
+
+                    rate = a_k_on * Ca_conc * gsl_max(0, (1.0 + coop_boost + force_boost));
 
                     // Test event with a random number
                     rand_double = gsl_rng_uniform(rand_generator);
