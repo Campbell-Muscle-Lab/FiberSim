@@ -72,11 +72,14 @@ class output_handler():
                         output_fs = os.path.join(base_directory,
                                                  ud['output_file_string'])
     
-                    self.create_image_from_template(
-                        sim_data,
-                        template_fs,
-                        output_fs,
-                        ud['output_image_formats'])
+            if (not 'output_image_formats' in ud):
+                ud['output_image_formats'] = ['png']
+
+            self.create_image_from_template(
+            sim_data,
+            template_fs,
+            output_fs,
+            ud['output_image_formats'])
 
     def create_image_from_template(self,
                                    sim_data,

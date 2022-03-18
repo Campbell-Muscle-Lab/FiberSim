@@ -8,7 +8,8 @@
     "initial_hs_length": 1100,
     "prop_fibrosis": 0.0,
     "prop_myofilaments": 1.0,
-    "m_filament_density": 0.407e15
+    "m_filament_density": 0.407e15,
+    "temperature": 310
   },
   "thick_structure": {
     "m_n": 16,

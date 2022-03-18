@@ -562,7 +562,7 @@ def compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs =
                 
         calculated_rates_dict.append(iso_data)
         
-    print("Rates has been calculated from hs dump files")
+    print("Rates have been calculated from hs dump files")
     print("Now starting the plot")
     
     plot_rate(calculated_rates_dict, m_kinetics, model_file, output_folder)
@@ -796,10 +796,15 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
        
     stretch = np.arange(X_MIN,X_MAX, X_STEP)    
     node_force = np.arange(F_MIN,F_MAX, F_STEP)
+
+    k_boltzmann = 1.38e-23
+    max_rate = 5e3
     
     with open(model_json_file, 'r') as f:
         mod = json.load(f)
 
+    temperature = mod["muscle"]["temperature"]
+        
     k_cb = mod["m_parameters"]["m_k_cb"]
         
     rate_data = pandas.DataFrame()
@@ -842,12 +847,26 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
 
             elif trans_type == "exp":
 
-                if len(trans_param) == 2:
+                if len(trans_param) == 3:  # no x_ext/wall specified
                 
-                    rate_trans = [trans_param[0] * np.exp(-trans_param[1] * (x + x_ext)) for x in stretch]
+                    rate_trans = [trans_param[0] + trans_param[1] * np.exp(-trans_param[2] * (x + x_ext)) for x in stretch]
 
                 else:
-                    rate_trans = [trans_param[0] * np.exp(-trans_param[1] * (x + trans_param[2])) for x in stretch]
+
+                    rate_trans = [trans_param[0] + trans_param[1] * np.exp(-trans_param[2] * (x + trans_param[3])) for x in stretch]
+
+                    if len(trans_param) == 5: # wall specified
+
+                        rate_temp = [x * (x < trans_param[4]) + 5e3 * (x > trans_param[4]) for x in rate_trans]
+                        
+                        rate_trans = rate_temp
+                        
+            elif trans_type == "exp_wall":
+
+                rate_trans = [trans_param[0] * np.exp(-trans_param[1] * k_cb * (x + x_ext) / (k_boltzmann * 1e18 * temperature)) 
+                              
+                              + max_rate * (1 / (1 + np.exp(-trans_param[3] * (x - trans_param[2]))))  for x in stretch]
+
                 
             else:
                 raise RuntimeError(f"Transition of type {trans_type} is unknown")
