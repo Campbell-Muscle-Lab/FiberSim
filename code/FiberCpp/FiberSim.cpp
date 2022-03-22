@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
     sprintf_s(results_file_string, _MAX_PATH, "%s", argv[4]);
 
     // Display
-    printf("FiberSim: starting\n");
+    printf("FiberSim: starting (version %s)\n", code_version.c_str());
 
     // Make a muscle
     p_muscle = new muscle(model_file_string, options_file_string);

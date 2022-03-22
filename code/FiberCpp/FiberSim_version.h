@@ -9,4 +9,4 @@
 using namespace std::filesystem;
 
 // Variables
-static inline std::string const code_version = "2.0.1";
+static inline std::string const code_version = "2.1.0";
