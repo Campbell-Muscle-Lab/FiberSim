@@ -32,6 +32,7 @@
 struct force_control_params
 {
     double target_force;
+    double time_step;
     half_sarcomere* p_hs;
 };
 
@@ -342,7 +343,7 @@ size_t half_sarcomere::implement_time_step(double time_step,
     {
         // Replace the delta_hsl with the delta_hsl found by
         // an iterative search
-        delta_hsl = calculate_delta_hsl_for_force(sim_mode);
+        delta_hsl = calculate_delta_hsl_for_force(sim_mode, time_step);
     }
 
     // Apply length change
@@ -358,7 +359,7 @@ size_t half_sarcomere::implement_time_step(double time_step,
     unpack_x_vector();
     hs_titin_force = calculate_titin_force();
     hs_extracellular_force = calculate_extracellular_force();
-    hs_force = calculate_force();
+    hs_force = calculate_force(delta_hsl, time_step);
 
 
     // Calculate mean filament lengths
@@ -373,7 +374,7 @@ size_t half_sarcomere::implement_time_step(double time_step,
     return x_solve_iterations;
 }
 
-double half_sarcomere::return_hs_length_for_force(double target_force)
+double half_sarcomere::return_hs_length_for_force(double target_force, double time_step)
 {
     //! Returns the half-sarcomere length required for a given force
     // Builds on half_sarcomere::calculate_delta_hsl_for_force
@@ -382,13 +383,13 @@ double half_sarcomere::return_hs_length_for_force(double target_force)
     double delta_hsl;
 
     // Code
-    delta_hsl = calculate_delta_hsl_for_force(target_force);
+    delta_hsl = calculate_delta_hsl_for_force(target_force, time_step);
 
     // Return
     return (hs_length + delta_hsl);
 }
 
-double half_sarcomere::calculate_delta_hsl_for_force(double target_force)
+double half_sarcomere::calculate_delta_hsl_for_force(double target_force, double time_step)
 {
     //! Returns the delta_hsl required for the half-sarcomere to generate the target force
 
@@ -399,7 +400,7 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force)
     gsl_root_fsolver* s;
     double r = 0.0;
     double x_lo = -1000, x_hi = 1000.0;
-    struct force_control_params params = { target_force, this };
+    struct force_control_params params = { target_force, time_step, this };
 
     gsl_function F;
     F.function = &test_force_wrapper;
@@ -446,6 +447,7 @@ double half_sarcomere::test_force_for_delta_hsl(double delta_hsl, void *params)
     struct force_control_params* p =
         (struct force_control_params*) params;
     double target_force = p->target_force;
+    double time_step = p->time_step;
     double test_force;
 
     // Current state - need to return to this at the end
@@ -463,7 +465,7 @@ double half_sarcomere::test_force_for_delta_hsl(double delta_hsl, void *params)
 
     // Solve the x positions and calculate force
     calculate_x_positions();
-    test_force = calculate_force();
+    test_force = calculate_force(delta_hsl, time_step);
 
     // Restore the half_sarcomere
     hs_length = original_hs_length;
@@ -1314,7 +1316,7 @@ void half_sarcomere::calculate_c_pops(void)
     gsl_vector_scale(c_pops, 1.0 / ((double)m_n * (double)(p_mf[0]->c_no_of_pcs)));
 }
 
-double half_sarcomere::calculate_force(void)
+double half_sarcomere::calculate_force(double delta_hsl, double time_step)
 {
     //! Calculate the force from the average strain in the last myosin node
 
@@ -1324,7 +1326,8 @@ double half_sarcomere::calculate_force(void)
     {
         holder = holder + (m_k_stiff *
             (hs_length - p_mf[m_counter]->m_lambda - m_inter_crown_rest_length -
-                gsl_vector_get(x_vector, node_index('m', m_counter, 0))));
+                gsl_vector_get(x_vector, node_index('m', m_counter, 0))))
+            + p_fs_model->viscosity * delta_hsl / time_step;
     }
 
     // Adjust for nm scale of filaments, proportion of non-fibrosis muscle,

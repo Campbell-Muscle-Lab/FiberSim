@@ -399,10 +399,10 @@ public:
     size_t implement_time_step(double time_step, double delta_hsl, double sim_mode, double pCa);
 
     /**
-    * double calculate_force(void)
+    * double calculate_force(double delta_hsl, double time_step)
     * @return double holding the average force in a thick filament
     */
-    double calculate_force(void);
+    double calculate_force(double delta_hsl, double time_step);
 
     /**
     * calculate the titin contribution to total force
@@ -420,17 +420,19 @@ public:
     * uses Brent's root-finding method to get a delta_hsl that produces
     * the target force
     * @param target_force a double with the target force
+    * @param time_step a double with the time-step
     * @return a double with the delta_hsl required to get target_force
     */
-    double calculate_delta_hsl_for_force(double target_force);
+    double calculate_delta_hsl_for_force(double target_force, double time_step);
 
     /**
     * wrapper aronud calculate_delta_hsl_for_force(double target_force)
     * that returns the hs_length for a given target force
     * @param target_force a double with the required target force
+    * @param time_step a double with the time-step
     * return a double with the hs_length at the target force
     */
-    double return_hs_length_for_force(double target_force);
+    double return_hs_length_for_force(double target_force, double time_step);
 
     static double test_force_wrapper(double delta_hsl, void* params);
 

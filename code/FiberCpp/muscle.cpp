@@ -160,7 +160,7 @@ void muscle::implement_time_step(int protocol_index)
 		{
 			// Check slack length mode for ktr
 			p_hs[hs_counter]->hs_slack_length =
-				p_hs[hs_counter]->return_hs_length_for_force(0.0);
+				p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
 
 			// The hs_length cannot be shorter than its slack length
 			new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
