@@ -634,7 +634,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             
         for f in fig_data['output_image_formats']:
             ofs = '%s.%s' % (fig_data['output_image_file'], f)
-            print('Saving pCa_figure to: %s' % ofs)
+            print('Saving force_velocity_figure to: %s' % ofs)
             fig.savefig(ofs, dpi=200, bbox_inches='tight')
             
     plt.close()
@@ -649,10 +649,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     
         with pd.ExcelWriter(output_file_string, engine='openpyxl') as writer:
             r.to_excel(writer, sheet_name = 'simulation_data', index=False)
-            for (i,c) in enumerate(curve_data['curve']):
-                c.to_excel(writer,
-                       index=False,
-                       sheet_name = ('curve_%i' % (i+1)))
+            if ('output_image_file' in fig_data):
+                for (i,c) in enumerate(curve_data['curve']):
+                    c.to_excel(writer,
+                           index=False,
+                           sheet_name = ('curve_%i' % (i+1)))
 
 
 def create_ktr_figure(fig_data, batch_file_string):
