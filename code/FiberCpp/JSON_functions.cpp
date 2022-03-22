@@ -129,7 +129,7 @@ namespace JSON_functions {
         }
     }
         
-    //! Checks for existance of JSON member number
+    //! Checks for existence of JSON member number
     int is_JSON_member(const rapidjson::Value& doc, const char mem_name[])
     {
         if (doc.HasMember(mem_name))

@@ -796,16 +796,19 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
        
     stretch = np.arange(X_MIN,X_MAX, X_STEP)    
     node_force = np.arange(F_MIN,F_MAX, F_STEP)
-
-    k_boltzmann = 1.38e-23
-    max_rate = 5e3
-    
+   
     with open(model_json_file, 'r') as f:
         mod = json.load(f)
-
-    temperature = mod["muscle"]["temperature"]
+    
+    if ('temperature' in mod["muscle"]):
+        temperature = mod["muscle"]["temperature"]
+    else:
+        temperature = 310
         
     k_cb = mod["m_parameters"]["m_k_cb"]
+
+    k_boltzmann = 1.3806504e-23
+    max_rate = 5e3
         
     rate_data = pandas.DataFrame()
     
@@ -829,7 +832,7 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
                                
             elif trans_type == "gaussian":
                 
-                rate_trans = [trans_param[0]*np.exp(-0.5 * k_cb * np.power(x, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
+                rate_trans = [trans_param[0]*np.exp(-0.5 * k_cb * np.power(x, 2)/(1e18 * k_boltzmann * temperature)) for x in stretch]
                                 
             elif trans_type == "poly":
 
@@ -847,19 +850,9 @@ def calculate_rate_from_m_kinetics(m_kinetics, model_json_file, isotype = 1):
 
             elif trans_type == "exp":
 
-                if len(trans_param) == 3:  # no x_ext/wall specified
-                
-                    rate_trans = [trans_param[0] + trans_param[1] * np.exp(-trans_param[2] * (x + x_ext)) for x in stretch]
+                   rate_trans = [( trans_param[0] + trans_param[1] * np.exp(-trans_param[2] * (x + trans_param[3])) ) * (x < trans_param[4])
 
-                else:
-
-                    rate_trans = [trans_param[0] + trans_param[1] * np.exp(-trans_param[2] * (x + trans_param[3])) for x in stretch]
-
-                    if len(trans_param) == 5: # wall specified
-
-                        rate_temp = [x * (x < trans_param[4]) + 5e3 * (x > trans_param[4]) for x in rate_trans]
-                        
-                        rate_trans = rate_temp
+                                + max_rate * (x >= trans_param[4]) for x in stretch]
                         
             elif trans_type == "exp_wall":
 

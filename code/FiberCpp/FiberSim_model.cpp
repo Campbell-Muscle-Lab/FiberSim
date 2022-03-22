@@ -149,8 +149,27 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(mus, "m_filament_density");
     m_filament_density = mus["m_filament_density"].GetDouble();
 
-    JSON_functions::check_JSON_member_number(mus, "temperature");
-    temperature = mus["temperature"].GetDouble();
+    // Check if temperature is specified - This part of the code ensures compatibility with FiberSim V2.0.2
+
+    if (JSON_functions::check_JSON_member_exists(mus, "temperature"))
+        temperature = mus["temperature"].GetDouble();
+    else
+        temperature = 310;
+
+    // Load the lattice_parameters
+
+    // Check if lattice_parameters is specified - This part of the code ensures compatibility with FiberSim V2.0.2
+
+    if (JSON_functions::check_JSON_member_exists(doc, "lattice_parameters"))
+    { 
+        const rapidjson::Value& lp = doc["lattice_parameters"];
+        JSON_functions::check_JSON_member_number(lp, "viscosity");
+        viscosity = lp["viscosity"].GetDouble();
+    }
+    else
+    {
+        viscosity = 0.0;
+    }
 
     // Load the thick_structure variables
     JSON_functions::check_JSON_member_object(doc, "thick_structure");
@@ -232,18 +251,11 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     c_starting_angle = mybpc_structure["c_starting_angle"].GetDouble();
 
     // Check if c_inter_stripe_twist is specified - This part of the code ensures compatibility with FiberSim V1.1.2
-    c_inter_stripe_flag = JSON_functions::is_JSON_member(mybpc_structure, "c_inter_stripe_twist");
 
-    if (c_inter_stripe_flag == 1) // User specified inter_stripe_twist
-    {
-        JSON_functions::check_JSON_member_number(mybpc_structure, "c_inter_stripe_twist");
+    if (JSON_functions::check_JSON_member_exists(mybpc_structure, "c_inter_stripe_twist"))
         c_inter_stripe_twist = mybpc_structure["c_inter_stripe_twist"].GetDouble();
-    }
-
-    else if (c_inter_stripe_flag == 0) // User did not specified inter_stripe_twist, use default value
-    {    
-        c_inter_stripe_twist = 0.0;
-    }
+    else
+        c_inter_stripe_twist = 10.0;
 
     // Load the MyBPC parameters variables
     JSON_functions::check_JSON_member_object(doc, "mybpc_parameters");

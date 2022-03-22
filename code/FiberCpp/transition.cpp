@@ -233,19 +233,16 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 
 	if (!strcmp(rate_type, "exp"))
 	{
-		double x_center = gsl_vector_get(rate_parameters, 3); // optional parameter  
+		double A = gsl_vector_get(rate_parameters, 0);
+		double B = gsl_vector_get(rate_parameters, 1);
+		double C = gsl_vector_get(rate_parameters, 2);
+		double x_center = gsl_vector_get(rate_parameters, 3);
+		double x_wall = gsl_vector_get(rate_parameters, 4);
 
-		if (gsl_isnan(x_center)) { // optional parameter is not specified, use the state extension instead
-			x_center = x_ext;
-		}
-
-		rate = gsl_vector_get(rate_parameters, 0) + gsl_vector_get(rate_parameters, 1) * exp(-gsl_vector_get(rate_parameters, 2) * (x + x_center));
-
-		double x_lim = gsl_vector_get(rate_parameters, 4); // optional parameter - wall ensuring that attached heads with x > x_lim detach 
-
-		if (gsl_finite(x_lim) && (x > x_lim)) {	// if optional parameter is specified, set rate to max_rate when x > x_lim
+		if (x < x_wall)
+			rate = A + B * exp(-C * (x + x_center));
+		else
 			rate = p_options->max_rate;
-		}
 	}
 
 	if (!strcmp(rate_type, "exp_wall"))

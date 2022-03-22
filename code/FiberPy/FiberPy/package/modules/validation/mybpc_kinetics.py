@@ -644,6 +644,14 @@ def calculate_rate_from_c_kinetics(c_kinetics, model_json_file, isotype = 1):
         mod = json.load(f)
 
     k_pc = mod["mybpc_parameters"]["c_k_stiff"]
+
+    if ('temperature' in mod["muscle"]):
+        temperature = mod["muscle"]["temperature"]
+    else:
+        temperature = 310
+
+    k_boltzmann = 1.3806504e-23
+    max_rate = 5e3
     
     rate_data = pandas.DataFrame()
     
@@ -665,7 +673,7 @@ def calculate_rate_from_c_kinetics(c_kinetics, model_json_file, isotype = 1):
                                
             elif trans_type == "gaussian_pc":
                 
-                rate_trans = [trans_param[0]*np.exp(-0.5 * k_pc * np.power(x + X_STEP/2, 2)/(1e18 * 1.38e-23*310)) for x in stretch]
+                rate_trans = [trans_param[0]*np.exp(-0.5 * k_pc * np.power(x + X_STEP/2, 2)/(1e18 * k_boltzmann * temperature)) for x in stretch]
                                 
             elif trans_type == "poly":
                 

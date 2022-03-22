@@ -57,8 +57,16 @@ public:
 
     double m_filament_density;          /**< double defining the number of thick filaments
                                              per square meter of cross-section */
+
+
+    double temperature;                 /**< double defining temperature in K */
         
     // Filaments
+
+    // Lattice parameters
+
+    double viscosity;                   /**< double defining viscosity for drag forces 
+                                             in N s m^-1 */
 
     // Thick structure
     int m_n;                            /**< Number of thick filaments per half-sarcomere */
@@ -186,8 +194,6 @@ public:
     double c_inter_stripe_twist;        /**< double defining the inter-stripe twist between
                                              MyBPC stripes in degrees */
 
-    int c_inter_stripe_flag;            /**< int defining if optional c_inter_stripe_twist is defined */
-
     double c_k_stiff;                   /**< double defining the stiffness of a MyBPC link */
 
     int c_no_of_isotypes;               /**< Number of C-protein isotypes */
@@ -196,7 +202,6 @@ public:
 
     kinetic_scheme* p_c_scheme[MAX_NO_OF_ISOTYPES];        /**< pointer to a kinetic scheme array for MyBPC */
 
-    double temperature;                 /**< double defining temperature in K */
 
     // Functions
 
