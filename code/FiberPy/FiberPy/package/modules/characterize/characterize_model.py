@@ -477,7 +477,7 @@ def deduce_fv_properties(json_analysis_file_string,
 
         # Pull off the isometric force
         sim_data = pd.read_csv(r['results_file'], sep='\t')
-        isometric_force = sim_data['force'].iloc[-1]
+        isometric_force = sim_data['force'].iloc[-50:-1].mean() # take the mean force over last 50 points
 
         # Deduce the sim input dir
         base_dir = Path(json_analysis_file_string).parent.absolute()

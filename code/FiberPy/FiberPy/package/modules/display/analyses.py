@@ -134,7 +134,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     d = pd.read_csv(data_file_string, delimiter='\t')
                     pCa_values[curve_counter-1].append(d['pCa'].iloc[-1])
                     y = formatting['y_scaling_factor'] * \
-                            d[fig_data['data_field']].iloc[-1]
+                            d[fig_data['data_field']].iloc[-50:-1].mean() # take the mean force over last 50 points
                     y_values[curve_counter-1].append(y)
                     if (np.amax(y) > max_y):
                         max_y = np.amax(y)
