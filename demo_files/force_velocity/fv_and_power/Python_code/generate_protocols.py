@@ -22,8 +22,8 @@ def generate_protocols():
     rel_f = np.linspace(0.05, 1, 10)
 
     prot = dict()
-    prot['dt'] = 0.001
-    prot['n_points'] = 250
+    prot['dt'] = 0.0001
+    prot['n_points'] = 2500
     prot['initial_pCa'] = 9.0
     prot['n_step_pCa'] = 200
     prot['step_pCa'] = 4.5
