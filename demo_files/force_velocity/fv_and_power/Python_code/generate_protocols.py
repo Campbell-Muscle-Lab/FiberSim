@@ -116,7 +116,7 @@ def write_output_handler(prot):
     ti_j['template_file_string'] = '../../../template/template_summary.json'
     ti_j['output_file_string'] = os.path.join('../../../sim_output',
                                               ('%i' % prot['curve']),
-                                              ('summary_%.0f.png') % (100 * prot['rel_f']))
+                                              ('summary_%.0f') % (100 * prot['rel_f']))
     ti.append(ti_j)
 
     t = dict()

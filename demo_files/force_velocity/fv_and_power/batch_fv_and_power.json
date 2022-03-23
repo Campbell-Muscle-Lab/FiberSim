@@ -97,7 +97,8 @@
                     "results_folder": "sim_output",
                     "fit_time_interval_s": [0.21, 0.24],
                     "output_data_file_string": "sim_output/analysis.xlsx",
-                    "output_image_file_string": "sim_output/fv_and_power.png"
+                    "output_image_file": "sim_output/fv_and_power",
+                    "output_image_formats" :  ["png"]
                 }
             ]
         }
