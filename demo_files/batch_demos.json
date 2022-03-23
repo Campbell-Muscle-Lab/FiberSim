@@ -1,0 +1,16 @@
+{
+  "FiberSim_multiple_batch": {
+
+    "batch_list": [
+      "../../../demo_files/getting_started/isometric_activation/batch_isometric_activation.json",
+      "../../../demo_files/getting_started/ramp_shortening/batch_ramp_shortening.json",
+      "../../../demo_files/getting_started/isotonic_shortening/batch_isotonic_shortening.json",
+      "../../../demo_files/getting_started/isometric_twitch/batch_isometric_twitch.json",
+      "../../../demo_files/pCa_curves/single_curve/batch_single_curve.json",
+      "../../../demo_files/pCa_curves/two_lengths/batch_two_lengths.json",
+      "../../../demo_files/force_velocity/fv_and_power/batch_fv_and_power.json",
+      "../../../demo_files/k_tr/single_trial/batch_ktr_single_trial.json",
+      "../../../demo_files/k_tr/multiple_trials/batch_k_tr_multiple_trials.json"
+    ]
+  }
+}

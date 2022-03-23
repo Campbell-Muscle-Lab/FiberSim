@@ -192,3 +192,18 @@ def run_batch(json_batch_file_string=[],
 
 def worker(cmd):
     subprocess.call(cmd)
+
+def run_multiple_batch(json_multiple_batch_file_string):
+    """Runs multiple batch_files """
+
+    # Load the multiple batches structure
+
+    print('Loading multiple batches from: %s' % json_multiple_batch_file_string)
+    with open(json_multiple_batch_file_string, 'r') as f:
+        json_data = json.load(f)
+        batch_list = json_data['FiberSim_multiple_batch']['batch_list']
+
+    # Run every batch from the batch list
+
+    for batch_file in batch_list:
+        run_batch(batch_file)

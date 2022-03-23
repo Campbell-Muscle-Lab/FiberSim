@@ -6,6 +6,7 @@ Entry point for FiberSim_utilities
 import sys
 
 from package.modules.batch.batch import run_batch
+from package.modules.batch.batch import run_multiple_batch
 from package.modules.output_handler import output_handler as oh
 from package.modules.fitting import fitting as fit
 from package.modules.visualization import render as viz
@@ -41,6 +42,9 @@ def parse_inputs():
     
     if (sys.argv[1] == "characterize_model"):
         characterize.characterize_model(sys.argv[2])
+
+    if (sys.argv[1] == "run_all_demos"):
+        run_multiple_batch(sys.argv[2])
 
 
 if __name__ == "__main__":
