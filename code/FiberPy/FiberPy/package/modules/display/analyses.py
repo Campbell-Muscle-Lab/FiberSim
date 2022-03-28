@@ -332,7 +332,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     plt.close()
 
     # Save the data as an excel file if required in the batch file
-    if(fig_data['output_data_file_string']):
+    if('output_data_file_string' in fig_data):
         if (fig_data['relative_to'] == 'this_file'):
             output_file_string = os.path.join(base_folder,
                                               fig_data['output_data_file_string'])
