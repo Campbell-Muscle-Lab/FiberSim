@@ -38,9 +38,7 @@ Inevitably, even a simple model file is quite long. Here is an example from [iso
     "m_lambda": 80.0,
     "m_starting_angle": 0.0,
     "m_inter_crown_twist": 40.0,
-    "m_within_hub_twist": 20.0,
-    "m_cb_angular_separation": 20.0,
-    "m_cb_radial_projection": 10.0
+    "m_within_hub_twist": 20.0
   },
     "thin_structure": {
         "a_strands_per_filament": 2,
@@ -48,7 +46,6 @@ Inevitably, even a simple model file is quite long. Here is an example from [iso
         "a_bs_per_unit": 7,
         "a_inter_bs_rest_length": 5.375,
         "a_inter_bs_twist": 25.7143,
-        "a_bs_node_spacing": 5.375,
         "a_bs_per_node": 2
     },
     "titin_structure": {
@@ -215,12 +212,27 @@ Inevitably, even a simple model file is quite long. Here is an example from [iso
 | Key | Comment |
 | ---- | ---- |
 | m_n | the number of thick filaments per half-sarcomeres to simulate |
+| m_crowns_per_filament | the number of myosin crowns per thick filament|
+| m_hubs_per_crown | the number of myosin hubs per crown |
+| m_myosins_per_hub | the number of myosins per hub |
+| m_inter_crown_rest_length |  the resting length of inter-crown (or inter-node) links in nm |
+| m_lambda | the length of the rigid link connecting the thick filament to the M-line in nm |
+| m_starting_angle | starting angle for the myosin head from the first crown in degree |
+| m_inter_crown_twist | angle twist for two consecutive crowns |
+| m_within_hub_twist | angle twist for myosins in the same hub |
+
 
 ### Thin filament structure
 
 | Key | Comment |
 | ---- | ---- |
-| a_strands_per_thin_filament | the number of regulatory strands per filament |
+| a_strands_per_filament | the number of regulatory strands per filament |
+| a_regulatory_units_per_strand | the number of regulatory unit per strand |
+| a_bs_per_unit | the number of binding sites per regulatory unit |
+| a_inter_bs_rest_length | the resting length of inter-node links in nm |
+| a_inter_bs_twist | angle twist for two consecutive binding sites |
+| a_bs_per_node | the number of binding sites per node |
+
 
 ### Titin structure
 
@@ -250,7 +262,38 @@ Inevitably, even a simple model file is quite long. Here is an example from [iso
 | Key | Comment |
 | ---- | ---- |
 | t_passive_mode | `linear` or `expontential` |
+| t_k_stiff | stiffness |
+| t_slack_length | resting length in nm |
+
+### M parameters
+
+| Key | Comment |
+| ---- | ---- |
+| m_k_cb | stiffness of acto-myosin links |
+| m_isotype_proportions | array containing the relative proportion (ranging between 0 and 1) of every myosin isotype |
 
 ### m_kinetics ###
 
 This section describes the kinetic scheme for myosin and is described in more detail at [kinetics](../kinetics/kinetics.html). The nested structure can describe a wide range of different potential schemes.
+
+### MyBP-C structure
+
+| Key | Comment |
+| ---- | ---- |
+| c_thick_proximal_node | # node where C-zone starts |
+| c_thick_stripes | number of MyBP-C stripes |
+| c_thick_node_spacing | number of nodes between two consecutive MyBP-C "crowns" |
+| c_mols_per_node | number of MyBP-C per thick node |
+| c_starting_angle | angle of the first MyBP-C molecule in degree|
+
+### MyBP-C parameters
+
+| Key | Comment |
+| ---- | ---- |
+| c_k_stiff | stiffness of acto-mybpc links |
+| c_isotype_proportions | array containing the relative proportion (ranging between 0 and 1) of every MyBP-C isotype |
+
+
+### c_kinetics ###
+
+This section describes the kinetic scheme for MyBP-C and it is structured similarly to the myosin kinetic scheme described in more detail at [kinetics](../kinetics/kinetics.html). 

@@ -20,9 +20,7 @@
     "m_lambda": 80.0,
     "m_starting_angle": 0.0,
     "m_inter_crown_twist": 40.0,
-    "m_within_hub_twist": 20.0,
-    "m_cb_angular_separation": 20.0,
-    "m_cb_radial_projection": 10.0
+    "m_within_hub_twist": 20.0
   },
   "thin_structure": {
     "a_strands_per_filament": 2,
@@ -30,7 +28,6 @@
     "a_bs_per_unit": 7,
     "a_inter_bs_rest_length": 5.375,
     "a_inter_bs_twist": 25.7143,
-    "a_bs_node_spacing": 5.375,
     "a_bs_per_node": 2
   },
   "titin_structure": {
@@ -42,7 +39,7 @@
     "a_k_stiff": 100,
     "a_k_on": 2e7,
     "a_k_off": 100,
-    "a_k_coop": 5
+    "a_gamma_coop": 5
   },
   "thick_parameters": {
     "m_k_stiff": 100
