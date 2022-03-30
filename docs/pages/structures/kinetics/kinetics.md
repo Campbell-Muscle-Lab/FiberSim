@@ -145,6 +145,28 @@ Note: if d is not specified, the code sets d = the state extension (5.0 in the m
   + rate = a + c * (x + f)<sup>e</sup> if x < f
   
 Note: if f is not specified, the code sets f = the state extension (5.0 in the myosin scheme example shown above)
+
++ `exp`
+  + rate_parameters
+    + a, s<sup>-1</sup> 
+    + b, s<sup>-1</sup>
+    + c, nm<sup>-1</sup> 
+	+ d, nm
+	+ e, nm
+  + rate = a + b * exp(-c * (x + d)) if x < e
+  + rate = max_rate if x > e
+  
++ `exp_wall`
+  + rate_parameters
+    + a, s<sup>-1</sup> 
+    + b, nm
+    + c, nm
+	+ d, nm<sup>-1</sup> 
+
+  + rate = a * exp(-m_k_cb * (x + x_ext) * b/(1e18 * k_boltz * temp)) + max_rate * 1/(1 + exp (- d * (x - c) ) 
+  
+m_k_cb is the crossbridge stiffness (in N m<sup>-1</sup>), k_boltz is the Boltzmann constant, and temp is the temperature (in K). 
+
   
 
 
