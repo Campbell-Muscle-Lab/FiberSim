@@ -45,7 +45,7 @@ conda activate fibersim
 
 + You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take a few minutes), you should see something similar to the image below.
 
-![command prompt](command_prompt.png)
+<img src='command_prompt.png' width="100%">
 
 ### Viewing the results
 
@@ -109,7 +109,7 @@ The last entry in the job is optional and defines an output-handler. In this exa
         {
             "relative_to": "this_file",
             "template_file_string": "../template/template_summary.json",
-            "output_file_string": "../sim_output/summary.png"
+            "output_file_string": "../sim_output/summary"
         }
     ]
 }
