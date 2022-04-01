@@ -20,7 +20,7 @@ Here is an example.
         {
             "relative_to": "this_file",
             "template_file_string": "../template/template_summary.json",
-            "output_file_string": "../sim_output/summary.png"
+            "output_file_string": "../sim_output/summary"
         }
     ]
 }
@@ -111,10 +111,3 @@ The templates have many options. For more details, see the [demos](../../demos/d
     }
 }
 ````
-
-
-| Key | Comment |
-| ---- | ---- |
-| relative_to | the root for relative paths |
-| status_folder | the folder to store status files |
-| time_steps | in the form a:b:c, store status files for time-steps from a to c in increments of b. Thus 1:100:8000 stores snapshots for time-steps 1, 101, 201, 301 to 7901 | 
