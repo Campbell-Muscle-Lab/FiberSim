@@ -95,11 +95,11 @@
                 [
                     {
                         "field": "a_pop_0",
-                        "field_label": "N off"
+                        "field_label": "Inactive"
                     },
                     {
                         "field": "a_pop_1",
-                        "field_label": "N on"
+                        "field_label": "Active"
                     }
                 ]
             }
@@ -121,25 +121,7 @@
                     },
                     {
                         "field": "m_pop_2",
-                        "field_label": "Pre-power-stroke"
-                    }
-                ]
-            }
-        },
-        {
-            "column": 1,
-            "y_info":
-            {
-                "label": "MyBP-C",
-                "series":
-                [
-                    {
-                        "field": "c_pop_0",
-                        "field_label": "Detached"
-                    },
-                    {
-                        "field": "c_pop_1",
-                        "field_label": "Attached"
+                        "field_label": "FG"
                     }
                 ]
             }
