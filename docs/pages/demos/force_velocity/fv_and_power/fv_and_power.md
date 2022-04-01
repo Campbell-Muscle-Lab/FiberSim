@@ -55,7 +55,7 @@ All of the results from the simulation are written to files in `<repo>/demo_file
 
 The file `fv_and_power.png` in the main `sim_output` folder shows the force-velocity and force-power curves.
 
-<img src='fv_and_power.png' width="50%">
+<img src='fv_and_power.png' width="100%">
 
 The underlying data are stored in `analysis.xlsx`
 
@@ -194,13 +194,14 @@ The code underlying this part of the process assumes that all of the `*.txt` fil
         {
             "force_velocity":
             [
-                {
-                    "relative_to": "this_file",
-                    "results_folder": "sim_output",
-                    "fit_time_interval_s": [0.21, 0.24],
-                    "output_data_file_string": "sim_output/analysis.xlsx",
-                    "output_image_file_string": "sim_output/fv_and_power.png"
-                }
+              {
+                "relative_to": "this_file",
+                "results_folder": "sim_output",
+                "fit_time_interval_s": [0.21, 0.24],
+                "output_data_file_string": "sim_output/analysis.xlsx",
+                "output_image_file": "sim_output/fv_and_power",
+                "output_image_formats" :  ["png"]
+              }
             ]
         }
     }

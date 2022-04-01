@@ -1,6 +1,6 @@
 {
   "FiberSim": {
-    "version": "2.0.2"
+    "version": "2.1.0"
   },
   "muscle": {
     "no_of_half_sarcomeres": 1,
@@ -11,8 +11,11 @@
     "m_filament_density": 0.407e15,
     "temperature": 310
   },
+  "lattice_parameters": {
+    "viscosity": 0.0
+  },
   "thick_structure": {
-    "m_n": 81,
+    "m_n": 36,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,
@@ -27,7 +30,7 @@
     "a_regulatory_units_per_strand": 27,
     "a_bs_per_unit": 7,
     "a_inter_bs_rest_length": 5.375,
-    "a_inter_bs_twist": 25.7143
+    "a_inter_bs_twist": 25.7143,
     "a_bs_per_node": 2
   },
   "titin_structure": {

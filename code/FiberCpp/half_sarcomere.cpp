@@ -2723,6 +2723,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     fprintf_s(output_file, "\t\"prop_fibrosis\": %.*g,\n", p_fs_options->dump_precision, p_fs_model->prop_fibrosis);
     fprintf_s(output_file, "\t\"prop_myofilaments\": %.*g,\n", p_fs_options->dump_precision, p_fs_model->prop_myofilaments);
     fprintf_s(output_file, "\t\"m_filament_density\": %.*g,\n", p_fs_options->dump_precision, p_fs_model->m_filament_density);
+    fprintf_s(output_file, "\t\"temperature\": %.*g,\n", p_fs_options->dump_precision, p_fs_model->temperature);
     fprintf_s(output_file, "\t\"pCa\": %.*g,\n", p_fs_options->dump_precision, pCa);
     fprintf_s(output_file, "\t\"m_nodes_per_thick_filament\": %i,\n",
         m_nodes_per_thick_filament);

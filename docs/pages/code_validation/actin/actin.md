@@ -101,7 +101,7 @@ python Fiberpy.py run_batch "../../../testing_suite/thin_kinetics/batch_a_kineti
 
 + You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this can take ~15 minutes), you should see something similar to the image below.
 
-![command prompt](command_prompt_a.png)
+![command prompt](command_prompt_a.PNG)
 
 ### Viewing the results
 

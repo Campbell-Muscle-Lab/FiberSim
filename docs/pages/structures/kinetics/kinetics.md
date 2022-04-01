@@ -115,7 +115,16 @@ Super-relaxed heads can only exist as dimers. Thus, if a head transitions from a
 + `gaussian`
   + rate_parameters:
     + a, s<sup>-1</sup> 
-  + rate = a e<sup>-k x<sup>2</sup></sup>
+  + rate = a e<sup>(-0.5 * m_k_cb * x<sup>2</sup>/(1e18 * k<sub>B</sub> * T))</sup>
+  
+  where m_k_cb is the crossbridge stiffness and T is the temperature (both defined in the [model file](../model/model.html)). k<sub>B</sub> is the Boltzmann constant. 
+  
+  + `gaussian_pc`
+  + rate_parameters:
+    + a, s<sup>-1</sup> 
+    + rate = a e<sup>(-0.5 * c_k_stiff * x<sup>2</sup>/(1e18 * k<sub>B</sub> * T))</sup>
+  
+  where c_k_stiff is the MyBP-C stiffness and T is the temperature (both defined in the [model file](../model.html)). k<sub>B</sub> is the Boltzmann constant. 
 
 + `force_dependent`
   + rate_parameters:
@@ -145,6 +154,29 @@ Note: if d is not specified, the code sets d = the state extension (5.0 in the m
   + rate = a + c * (x + f)<sup>e</sup> if x < f
   
 Note: if f is not specified, the code sets f = the state extension (5.0 in the myosin scheme example shown above)
+
++ `exp`
+  + rate_parameters
+    + a, s<sup>-1</sup> 
+    + b, s<sup>-1</sup>
+    + c, nm<sup>-1</sup> 
+	+ d, nm
+	+ e, nm
+  + rate = a + b * exp<sup>(-c * (x + d))</sup> if x < e
+  + rate = max_rate if x > e
+  
+  max_rate is defined in the [options file](../options/options.html).
+  
++ `exp_wall`
+  + rate_parameters
+    + a, s<sup>-1</sup> 
+    + b, nm
+    + c, nm
+	+ d, nm<sup>-1</sup> 
+
+  + rate = a * exp<sup>(- b * m_k_cb * (x + x_ext)/(1e18 * k<sub>B</sub> * T))</sup> + max_rate * 1/(1 + exp<sup>(- d * (x - c)</sup>) 
+  
+  where m_k_cb is the crossbridge stiffness and T is the temperature (both defined in the [model file](../model/model.html)). k<sub>B</sub> is the Boltzmann constant.   max_rate is defined in the [options file](../options/options.html).
   
 
 
