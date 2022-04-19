@@ -9,24 +9,23 @@
         "model":
         {
             "relative_to": "this_file",
-            "model_files": ["models/model_a.json",
-                            "models/model_b.json",
-                            "models/model_c.json"],
+            "model_files": ["models/model_a.json"],
             "options_file": "sim_options.json"
         },
         "analysis":
         [
             {
-                "type": "xforce_velocity",
+                "type": "force_velocity",
                 "pCa": 4.5,
                 "time_step_s": 0.001,
-                "sim_duration_s": 1,
+                "sim_duration_s": 1.2,
                 "sim_release_s": 0.9,
-                "rel_isotonic_forces": [0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 0.9, 0.95, 1],
-                "fit_time_s": [0.91, 0.99],
+                "rel_isotonic_forces": [ 0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 0.8, 1],
+                "fit_time_s": [ 0.95, 1.2 ],
+                "length_fit_mode": "linear",
                 "relative_to": "this_file",
                 "sim_folder": "../simulations/fv_pCa45",
-                "output_image_formats": ["png", "svg", "eps"],
+                "output_image_formats": ["png"],
                 "figures_only": "True",
                 "trace_figures_on": "True"
             },
@@ -40,12 +39,12 @@
                 "fit_time_s": [1.91, 1.99],
                 "relative_to": "this_file",
                 "sim_folder": "../simulations/fv_pCa58",
-                "output_image_formats": ["png", "svg", "eps"],
+                "output_image_formats": ["png"],
                 "figures_only": "True",
                 "trace_figures_on": "False"
             },
             {
-                "type": "pCa_length_control",
+                "type": "xpCa_length_control",
                 "pCa_values": [8.0, 6.1, 5.9, 5.7, 5.4, 4.5],
                 "time_step_s": 0.0001,
                 "sim_duration_s": 1,

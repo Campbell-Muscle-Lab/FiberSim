@@ -157,6 +157,33 @@ def fit_exponential_recovery(x, y, n=1):
         
         return d
 
+def fit_exponential_decay(x, y):
+    """ Fits exponential decay with a single exponential of form y = offset + amp*exp(-k*x) to y data """    
+
+    def y_single_exp(x_data, offset, amp, k):
+        y = np.zeros(len(x_data))
+        for i,x in enumerate(x_data):
+            y[i] = offset + amp*np.exp(-k*x)
+        return y
+        
+    try:
+            
+        popt, pcov = curve_fit(y_single_exp, x, y, [y[0], y[-1]-y[0], (1/(0.2*np.amax(x)))])
+            
+    except:
+            
+        print('fit exponential decay failed - setting decay rate to 0')
+        popt = [y[-1], y[0]-y[-1], 0.0]
+        
+    d = dict()
+    d['offset'] = popt[0]
+    d['amp'] = popt[1]
+    d['k'] = popt[2]
+    d['x_fit'] = np.linspace(x[0], x[-1], 1000)
+    d['y_fit'] = y_single_exp(d['x_fit'], *popt)
+        
+    return d
+
 def fit_straight_line(x, y):
     """ Fits a straight line to data """
 

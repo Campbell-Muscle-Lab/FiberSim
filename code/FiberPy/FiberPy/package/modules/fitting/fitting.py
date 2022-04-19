@@ -440,6 +440,13 @@ class fitting():
         f_dif = defaultdict(list)
         v_dif = defaultdict(list)
 
+        # Check if linear or exponential fit is required for length traces
+
+        if (not 'length_fit_mode' in self.opt_data): # fit mode not specified, exponential is default
+            length_fit_mode = 'exponential'
+        else:
+            length_fit_mode = self.opt_data['length_fit_mode']
+
         # Loop through the f-v curves
         for i, j in enumerate(target['curve']):
 
@@ -471,12 +478,24 @@ class fitting():
             d_fit = d.loc[(d['time'] >= self.opt_data['fit_time_interval'][0]) &
                             (d['time'] <= self.opt_data['fit_time_interval'][-1])]
 
-            vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
-                                            d_fit['hs_length'].to_numpy())
+            if length_fit_mode == 'exponential':
 
-            # Shortening velocity in ML s-1
-            ML = d["hs_length"].iloc[0] # muscle length at t = 0
-            hs_vel = -vel_data['slope']/ML
+                vel_data = cv.fit_exponential_decay(d_fit['time'].to_numpy(),
+                                        d_fit['hs_length'].to_numpy())
+
+                # Shortening velocity in ML s-1
+                ML = d["hs_length"].iloc[0] # muscle length at t = 0
+                hs_vel = vel_data['amp'] * vel_data['k']/ML # slope at time of clamp
+
+            
+            elif length_fit_mode == 'linear':
+
+                vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
+                                        d_fit['hs_length'].to_numpy())
+
+                # Shortening velocity in ML s-1
+                ML = d["hs_length"].iloc[0] # muscle length at t = 0
+                hs_vel = -vel_data['slope']/ML
 
             calculated_v_data[j-1].append(hs_vel)
 
