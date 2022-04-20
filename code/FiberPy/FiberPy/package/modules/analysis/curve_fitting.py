@@ -9,6 +9,8 @@ import numpy as np
     
 from scipy.optimize import curve_fit
 
+import matplotlib.pyplot as plt
+
 
 def fit_pCa_data(x,y):
     """ Fits Hill-curve to x-y data """
@@ -166,14 +168,21 @@ def fit_exponential_decay(x, y):
             y[i] = offset + amp*np.exp(-k*x)
         return y
         
-    try:
-            
-        popt, pcov = curve_fit(y_single_exp, x, y, [y[0], y[-1]-y[0], (1/(0.2*np.amax(x)))])
-            
-    except:
-            
-        print('fit exponential decay failed - setting decay rate to 0')
+    if y[0]-y[-1] < 5.0:
+
+        print('Isometric mode - setting shortening velocity to 0')
         popt = [y[-1], y[0]-y[-1], 0.0]
+
+    else:
+      
+        try:
+            
+            popt, pcov = curve_fit(y_single_exp, x, y, [y[-1], y[0]-y[-1], 1.0])
+            
+        except:
+            
+            print('fit exponential decay failed - setting decay rate to 0')
+            popt = [y[-1], y[0]-y[-1], 0.0]
         
     d = dict()
     d['offset'] = popt[0]

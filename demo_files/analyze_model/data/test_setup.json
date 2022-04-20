@@ -9,7 +9,7 @@
         "model":
         {
             "relative_to": "this_file",
-            "model_files": ["models/model_a.json"],
+            "model_files": ["models/model_1.json"],
             "options_file": "sim_options.json"
         },
         "analysis":
@@ -20,13 +20,13 @@
                 "time_step_s": 0.001,
                 "sim_duration_s": 1.2,
                 "sim_release_s": 0.9,
-                "rel_isotonic_forces": [ 0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 0.8, 1],
+                "rel_isotonic_forces": [ 0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1],
                 "fit_time_s": [ 0.95, 1.2 ],
-                "length_fit_mode": "linear",
+                "xlength_fit_mode": "linear",
                 "relative_to": "this_file",
                 "sim_folder": "../simulations/fv_pCa45",
                 "output_image_formats": ["png"],
-                "figures_only": "True",
+                "figures_only": "False",
                 "trace_figures_on": "True"
             },
             {
