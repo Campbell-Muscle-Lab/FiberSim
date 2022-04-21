@@ -480,7 +480,10 @@ class fitting():
 
             if length_fit_mode == 'exponential':
 
-                vel_data = cv.fit_exponential_decay(d_fit['time'].to_numpy(),
+                # Set the time origin to 0
+                time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]
+
+                vel_data = cv.fit_exponential_decay(time_offset.to_numpy(),
                                         d_fit['hs_length'].to_numpy())
 
                 # Shortening velocity in ML s-1

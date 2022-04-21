@@ -166,23 +166,16 @@ def fit_exponential_decay(x, y):
         y = np.zeros(len(x_data))
         for i,x in enumerate(x_data):
             y[i] = offset + amp*np.exp(-k*x)
-        return y
-        
-    if y[0]-y[-1] < 5.0:
+        return y        
 
-        print('Isometric mode - setting shortening velocity to 0')
+    try:
+            
+        popt, pcov = curve_fit(y_single_exp, x, y, [y[-1], y[0]-y[-1], 1.0])
+            
+    except:
+            
+        print('fit exponential decay failed - setting decay rate to 0')
         popt = [y[-1], y[0]-y[-1], 0.0]
-
-    else:
-      
-        try:
-            
-            popt, pcov = curve_fit(y_single_exp, x, y, [y[-1], y[0]-y[-1], 1.0])
-            
-        except:
-            
-            print('fit exponential decay failed - setting decay rate to 0')
-            popt = [y[-1], y[0]-y[-1], 0.0]
         
     d = dict()
     d['offset'] = popt[0]
