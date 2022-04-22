@@ -404,14 +404,23 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
                     if length_fit_mode == 'exponential':
 
-                        # Set the time origin to 0
-                        time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]
+                        # Set the time of clamp as t = 0 
+
+                        if  'time_release_s' in  fig_data:
+
+                            time_offset = d_fit['time'] - fig_data['time_release_s']
+
+                        # if time of clamp not specified, set start fitting time as t = 0
+
+                        else: 
+                            time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]                            
 
                         vel_data = cv.fit_exponential_decay(time_offset.to_numpy(),
                                                 d_fit['hs_length'].to_numpy())
 
-                        # Shortening velocity in ML s-1
-                        hs_vel = 1e-9* vel_data['amp'] * vel_data['k'] # velocity in m s^-1
+                        # Shortening velocity in ML s-1:
+
+                        hs_vel = 1e-9* vel_data['amp'] * vel_data['k']  # velocity in m s^-1
                         hs_rel_vel = vel_data['amp'] * vel_data['k']/initial_hsl # velocity in ML s^-1
 
                         

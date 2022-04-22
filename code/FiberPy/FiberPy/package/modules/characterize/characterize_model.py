@@ -607,6 +607,7 @@ def deduce_fv_properties(json_analysis_file_string,
                                           fv_struct['sim_folder'],
                                           'isotonic',
                                           'sim_output')
+    fig['time_release_s'] = fv_struct['sim_release_s']
     fig['fit_time_interval_s'] = fv_struct['fit_time_s']
 
     if (not 'length_fit_mode' in fv_struct): # fit mode for length traces is not specified, exponential is default

@@ -480,15 +480,21 @@ class fitting():
 
             if length_fit_mode == 'exponential':
 
-                # Set the time origin to 0
-                time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]
+                # Set the time of clamp as t = 0
+
+                if  'time_release_s' in self.opt_data:
+                    time_offset = d_fit['time'] - self.opt_data['time_release_s']
+
+                # if time of clamp not specified, set start fitting time as t = 0
+                else: 
+                    time_offset = d_fit['time'] - self.opt_data['fit_time_interval_s'][0]   
 
                 vel_data = cv.fit_exponential_decay(time_offset.to_numpy(),
                                         d_fit['hs_length'].to_numpy())
 
                 # Shortening velocity in ML s-1
                 ML = d["hs_length"].iloc[0] # muscle length at t = 0
-                hs_vel = vel_data['amp'] * vel_data['k']/ML # slope at time of clamp
+                hs_rel_vel = vel_data['amp'] * vel_data['k']/ML # slope at time of clamp
 
             
             elif length_fit_mode == 'linear':
@@ -498,9 +504,9 @@ class fitting():
 
                 # Shortening velocity in ML s-1
                 ML = d["hs_length"].iloc[0] # muscle length at t = 0
-                hs_vel = -vel_data['slope']/ML
+                hs_rel_vel = -vel_data['slope']/ML
 
-            calculated_v_data[j-1].append(hs_vel)
+            calculated_v_data[j-1].append(hs_rel_vel)
 
 
         no_of_curves = len(max_f_target)
