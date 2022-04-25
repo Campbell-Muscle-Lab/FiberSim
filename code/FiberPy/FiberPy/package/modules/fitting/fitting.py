@@ -475,8 +475,8 @@ class fitting():
             # Get velocity
 
             # Filter to fit time_interval
-            d_fit = d.loc[(d['time'] >= self.opt_data['fit_time_interval'][0]) &
-                            (d['time'] <= self.opt_data['fit_time_interval'][-1])]
+            d_fit = d.loc[(d['time'] >= self.opt_data['fit_time_interval_s'][0]) &
+                            (d['time'] <= self.opt_data['fit_time_interval_s'][-1])]
 
             if length_fit_mode == 'exponential':
 

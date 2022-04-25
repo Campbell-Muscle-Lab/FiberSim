@@ -99,8 +99,14 @@ def fit_hyperbola(x, y):
             y[i] = ((x_0+a)*b)/(x+a) - b
         return y
     
-    popt, pcov = curve_fit(y_hyperbola, x, y,
+    try:
+        popt, pcov = curve_fit(y_hyperbola, x, y,
                            [np.amax(x), 0.2*np.amax(x), 0.3])
+
+    except:
+
+        print('fit hyperbola failed')
+        popt = [np.amax(x), 0.2*np.amax(x), 0.3]  
     
     d = dict()
     d['x_0'] = popt[0]
