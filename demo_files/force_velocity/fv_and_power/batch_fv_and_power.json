@@ -79,14 +79,14 @@
                 "results_file": "sim_output\\1\\results_89.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_89\\output_handler_89.json"
             },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input\\1\\model_1.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input\\1\\rel_f_100\\prot_rel_f_100.txt",
-                "results_file": "sim_output\\1\\results_100.txt",
-                "output_handler_file": "sim_input\\1\\rel_f_100\\output_handler_100.json"
-            }
+          {
+            "relative_to": "this_file",
+            "model_file": "sim_input\\1\\model_1.json",
+            "options_file": "sim_input/sim_options.json",
+            "protocol_file": "sim_input\\1\\rel_f_100\\prot_rel_f_100.txt",
+            "results_file": "sim_output\\1\\results_100.txt",
+            "output_handler_file": "sim_input\\1\\rel_f_100\\output_handler_100.json"
+          }
         ],
         "batch_figures":
         {
@@ -96,6 +96,7 @@
                 "relative_to": "this_file",
                 "results_folder": "sim_output",
                 "fit_time_interval_s": [ 0.21, 0.24 ],
+                "time_release_s": 0.2,
                 "length_fit_mode": "linear",
                 "output_data_file_string": "sim_output/analysis.xlsx",
                 "output_image_file": "sim_output/fv_and_power",
