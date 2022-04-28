@@ -175,7 +175,7 @@ def fit_exponential_decay(x, y):
         return y   
 
     min_bounds = [0.0, - np.inf, 0.0]
-    max_bounds = [np.inf, np.inf, 5.0]
+    max_bounds = [np.inf, np.inf, 10.0]
          
     try:
         
