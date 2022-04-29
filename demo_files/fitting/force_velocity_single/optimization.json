@@ -1,7 +1,9 @@
 {
   "FiberSim_optimization": {
     "fit_mode": "fit_fv_curve",
-    "fit_time_interval": [ 1.05, 1.3 ],
+    "fit_time_interval_s": [ 1.05, 1.3 ],
+    "time_release_s": 1.0,
+    "length_fit_mode": "exponential",
     "optimizer": "Nelder-Mead",
     "single_run": 0,
     "files": {
