@@ -367,6 +367,13 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     else:
         top_data_folder = fig_data['results_folder']
 
+
+    # Find the length fit model 
+    if (not 'length_fit_mode' in fig_data): # fit mode not specified, default is exponential
+        length_fit_mode = 'exponential'
+    else:
+        length_fit_mode = fig_data['length_fit_mode']
+
     curve_counter = 1
     keep_going = True
 
@@ -388,18 +395,47 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
                     # Load up the results file
                     d = pd.read_csv(data_file_string, delimiter='\t')
-                    initial_hsl = d['hs_length'].iloc[0]
+                    initial_hsl = d['hs_length'].iloc[0] # muscle length at t = 0
 
                     # Filter to fit time_interval
                     d_fit = d.loc[(d['time'] >= fig_data['fit_time_interval_s'][0]) &
                                   (d['time'] <= fig_data['fit_time_interval_s'][-1])]
 
-                    vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
-                                                    d_fit['hs_length'].to_numpy())
+
+                    if length_fit_mode == 'exponential':
+
+                        # Set the time of clamp as t = 0 
+
+                        if  'time_release_s' in  fig_data:
+
+                            time_offset = d_fit['time'] - fig_data['time_release_s']
+
+                        # if time of clamp not specified, set start fitting time as t = 0
+
+                        else: 
+                            time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]                            
+
+                        vel_data = cv.fit_exponential_decay(time_offset.to_numpy(),
+                                                d_fit['hs_length'].to_numpy())
+
+                        # Shortening velocity in ML s-1:
+
+                        hs_vel = 1e-9* vel_data['amp'] * vel_data['k']  # velocity in m s^-1
+                        hs_rel_vel = vel_data['amp'] * vel_data['k']/initial_hsl # velocity in ML s^-1
+
+                        
+                    elif length_fit_mode == 'linear':
+
+                        vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
+                                                d_fit['hs_length'].to_numpy())
+
+                        # Calculate velocity
+                        hs_vel = -1e-9*vel_data['slope'] # velocity in m s^-1
+                        hs_rel_vel = 1e9 * hs_vel / initial_hsl # velocity in ML s^-1
+
               
-                    # Calculate some values, with a -ve for shortening velocity
-                    hs_vel = -1e-9*vel_data['slope']
-                    hs_rel_vel = 1e9 * hs_vel / initial_hsl
+                    # Get force and power
+
                     hs_for = d_fit['force'].mean()
                     hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
 

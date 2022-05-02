@@ -9,6 +9,8 @@ import numpy as np
     
 from scipy.optimize import curve_fit
 
+import matplotlib.pyplot as plt
+
 
 def fit_pCa_data(x,y):
     """ Fits Hill-curve to x-y data """
@@ -97,8 +99,14 @@ def fit_hyperbola(x, y):
             y[i] = ((x_0+a)*b)/(x+a) - b
         return y
     
-    popt, pcov = curve_fit(y_hyperbola, x, y,
+    try:
+        popt, pcov = curve_fit(y_hyperbola, x, y,
                            [np.amax(x), 0.2*np.amax(x), 0.3])
+
+    except:
+
+        print('fit hyperbola failed')
+        popt = [np.amax(x), 0.2*np.amax(x), 0.3]  
     
     d = dict()
     d['x_0'] = popt[0]
@@ -156,6 +164,38 @@ def fit_exponential_recovery(x, y, n=1):
         d['y_fit'] = y_single_exp(d['x_fit'], *popt)
         
         return d
+
+def fit_exponential_decay(x, y):
+    """ Fits exponential decay with a single exponential of form y = offset + amp*exp(-k*x) to y data """    
+
+    def y_single_exp(x_data, offset, amp, k):
+        y = np.zeros(len(x_data))
+        for i,x in enumerate(x_data):
+            y[i] = offset + amp*np.exp(-k*(x))
+        return y   
+
+    min_bounds = [0.0, - np.inf, 0.0]
+    max_bounds = [np.inf, np.inf, 10.0]
+         
+    try:
+        
+        popt, pcov = curve_fit(y_single_exp, x, y, [y[-1], y[0]-y[-1], -np.log(0.5)/0.5*(np.amax(x)+np.amin(x))],
+                               maxfev=10000,
+                               bounds=(min_bounds, max_bounds))
+        
+    except:
+    
+        print('fit exponential decay failed - setting decay rate to NaN')
+        popt = [y[-1], y[0]-y[-1], np.nan]
+
+    d = dict()
+    d['offset'] = popt[0]
+    d['amp'] = popt[1]
+    d['k'] = popt[2]
+    d['x_fit'] = np.linspace(x[0], x[-1], 1000)
+    d['y_fit'] = y_single_exp(d['x_fit'], *popt)
+        
+    return d
 
 def fit_straight_line(x, y):
     """ Fits a straight line to data """
