@@ -191,6 +191,10 @@ public:
     double c_starting_angle;            /**< double defining the angle of the first MyBPC
                                              on each crown */
 
+    double c_sd_angle_deviation;        /**< double defining the standard deviation of the
+                                             c angle, defaults to 0, values > 0 allow c to
+                                             bind to alternate filaments */
+
     double c_inter_stripe_twist;        /**< double defining the inter-stripe twist between
                                              MyBPC stripes in degrees */
 

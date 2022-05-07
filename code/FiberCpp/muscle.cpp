@@ -245,8 +245,8 @@ void muscle::implement_time_step(int protocol_index)
 			protocol_index, i, gsl_vector_get(p_hs[0]->c_pops, i));
 	}
 
-	// Dump the hs_status files if required
-	if (protocol_index >= (p_fs_options->start_status_time_step - 1))
+		// Dump the hs_status files if required
+		if (protocol_index >= (p_fs_options->start_status_time_step - 1))
 	{
 		if (protocol_index <= (p_fs_options->stop_status_time_step - 1))
 		{

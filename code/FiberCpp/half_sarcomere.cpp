@@ -26,6 +26,7 @@
 #include "gsl_splinalg.h"
 #include "gsl_linalg.h"
 #include "gsl_rng.h"
+#include "gsl_randist.h"
 #include "gsl_roots.h"
 
 // Structure used for root finding for force control mode
@@ -1645,13 +1646,17 @@ void half_sarcomere::set_pc_nearest_a_f(void)
     {
         for (int pc_counter = 0; pc_counter < p_mf[m_counter]->c_no_of_pcs; pc_counter++)
         {
+            double c_jitter = gsl_ran_gaussian(rand_generator, p_fs_model->c_sd_angle_deviation);
+
             for (int i = 0; i < 6; i++)
             {
                 // Calculate the angular difference, where difference between angles a and b is calculated as
                 // norm_deg = mod(a-b,360)
                 // diff_deg = min(norm_deg, 360-norm_deg)
-                temp_diff = fabs(fmod(gsl_vector_get(p_mf[m_counter]->pc_angle, pc_counter) -
-                    gsl_vector_get(thin_angles, i), 360.0));
+                // Add a random jitter to the pc_angle
+                double pc_angle = gsl_vector_get(p_mf[m_counter]->pc_angle, pc_counter) +
+                    c_jitter;
+                temp_diff = fabs(fmod(pc_angle - gsl_vector_get(thin_angles, i), 360.0));
                 temp_diff = GSL_MIN(temp_diff, 360.0 - temp_diff);
                 gsl_vector_set(angle_differences, i, temp_diff);
             }

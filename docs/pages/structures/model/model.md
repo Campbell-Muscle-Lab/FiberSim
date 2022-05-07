@@ -295,7 +295,9 @@ This section describes the kinetic scheme for myosin and is described in more de
 | c_thick_stripes | number of MyBP-C stripes |
 | c_thick_node_spacing | number of nodes between two consecutive MyBP-C "crowns" |
 | c_mols_per_node | number of MyBP-C per thick node |
-| c_starting_angle | angle of the first MyBP-C molecule in degree|
+| c_starting_angle | angle of the first MyBP-C molecule in degrees|
+| c_inter_stripe_twist | angle between MyBP-C molecules in two two consecutive MyBP-C "crowns" |
+| c_sd_angular_deviation | the standard deviation in degrees of the angle of MyBP-C molecules. This parameter only affects which thin filament the molecule can interact with, and is set once when the lattice is initiated |
 
 ### MyBP-C parameters
 

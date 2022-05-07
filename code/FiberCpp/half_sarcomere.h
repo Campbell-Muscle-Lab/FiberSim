@@ -556,7 +556,7 @@ public:
     */
     void handle_lattice_event(lattice_event* p_event);
 
-    /*
+    /**
     * int return_event_index(gsl_vector* p_prob)
     * returns a 0-based index corresponding to an event
     * @param p_prob holds probabilities of individual events
