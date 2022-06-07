@@ -125,15 +125,16 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                 # Adjust hsl by loading model, adjusting hsl and re-writing
                 with open(orig_model_file, 'r') as f:
                     m = json.load(f)
-                    m['muscle']['initial_hs_length'] = hsl
+                    m['muscle']['initial_hs_length'] = float(hsl)
                 fn = orig_model_file.split('/')[-1]
                 iso_model_file = os.path.join(sim_input_dir, fn)
+
                 with open(iso_model_file, 'w') as f:
                     json.dump(m, f, indent=4)
                 
                 # Now copy the options file
                 orig_options_file = os.path.join(base_dir, model_struct['options_file'])
-                fn = orig_options_file.split('/')[-1]
+                fn = orig_options_file.split(os.sep)[-1]
                 iso_options_file = os.path.join(sim_input_dir, fn)
                 shutil.copyfile(orig_options_file, iso_options_file)
            
