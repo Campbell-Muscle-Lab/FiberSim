@@ -122,7 +122,6 @@ def run_batch(json_batch_file_string=[],
             oh.output_handler(fs,
                               sim_results_file_string=results_file_strings[i])
 
-
     # Now see if we have to make any figures
     if ('batch_figures' in batch_structure):
         batch_figures = batch_structure['batch_figures']

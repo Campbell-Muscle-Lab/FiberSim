@@ -805,6 +805,11 @@ def deduce_freeform_properties(json_analysis_file_string,
                 with open(orig_model_file, 'r') as f:
                     m = json.load(f)
                     m['muscle']['initial_hs_length'] = hsl
+                    
+                    # Over-ride m_n if appropriate
+                    if ('m_n' in freeform_struct):
+                        m['thick_structure']['m_n'] = freeform_struct['m_n']
+                    
                 fn = orig_model_file.split('/')[-1]
                 freeform_model_file = os.path.join(sim_input_dir, fn)
                 with open(freeform_model_file, 'w') as f:

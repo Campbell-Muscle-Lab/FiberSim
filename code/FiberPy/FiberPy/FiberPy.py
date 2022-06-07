@@ -17,7 +17,10 @@ from package.modules.characterize import characterize_model as characterize
 def parse_inputs():
 
     if (sys.argv[1] == "run_batch"):
-        run_batch(sys.argv[2])
+        if (len(sys.argv)==3):
+            run_batch(sys.argv[2])
+        else:
+            run_batch(sys.argv[2], figures_only=True)
 
     if (sys.argv[1] == "make_figures"):
         oh.output_handler(sys.argv[2],

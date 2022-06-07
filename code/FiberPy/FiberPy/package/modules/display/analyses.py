@@ -12,6 +12,7 @@ import pandas as pd
 
 from collections import defaultdict
 
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
@@ -125,12 +126,14 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     while (keep_going):
         curve_folder = os.path.join(top_data_folder,
                                     ('%i' % curve_counter))
+        print(curve_folder)
         if os.path.isdir(curve_folder):
             # Find the results files
             for file in os.listdir(curve_folder):
                 if (file.endswith('.txt') and not file.startswith('rates')):
                     data_file_string = \
                         os.path.join(curve_folder, file)
+                    print(data_file_string)
                     d = pd.read_csv(data_file_string, delimiter='\t')
                     pCa_values[curve_counter-1].append(d['pCa'].iloc[-1])
                     y = formatting['y_scaling_factor'] * \
@@ -1243,7 +1246,14 @@ def create_rates_figure(fig_data, batch_file_string):
     fig = plt.figure(constrained_layout = False)
     spec = gridspec.GridSpec(nrows=no_of_rates, ncols=1)
     fig.set_size_inches([3.5, 2 * no_of_rates])
-
+    
+    # Create the color_map
+    color_map = formatting['color_set']
+    if (len(rates_data['condition']) > len(color_map)):
+        color_map = []
+        for i,c in enumerate(np.linspace(0, 1, len(rates_data['condition']))):
+            color_map.append(cm.rainbow(c))
+       
     ax = []
     for i, d in enumerate(rates_data['condition']):
         for j in range(no_of_rates):
@@ -1253,7 +1263,7 @@ def create_rates_figure(fig_data, batch_file_string):
             r_string = 'r_%i' % (j+1)
             if (r_string in d.columns):
                 ax[j].plot(d['x'], np.log10(d[r_string]), '-',
-                           color = formatting['color_set'][i])
+                           color = color_map[i])
 
             if (i == (no_of_conditions-1)):
                 # Tidy up
@@ -1336,6 +1346,13 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
     max_hsl = []
     min_force = []
     max_force = []
+    
+    # Create the color_map
+    color_map = formatting['color_set']
+    if (no_of_conditions > len(color_map)):
+        color_map = []
+        for i,c in enumerate(np.linspace(0, 1, no_of_conditions)):
+            color_map.append(cm.rainbow(c))
 
     # Create the figure
     for i in range(no_of_conditions):
@@ -1368,20 +1385,23 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                 # Now plot
                 plot_index = (i*no_of_rows)
                 ax[plot_index].plot(d['time'], d['pCa'], '-',
-                                    color = formatting['color_set'][i],
+                                    color = color_map[i],
                                     linewidth = formatting['data_linewidth'])
+                if ('column_titles' in formatting):
+                    ax[plot_index].title.set_text(formatting['column_titles'][i])
+                    
                 plot_index = plot_index + 1
                 ax[plot_index].plot(d['time'], d['hs_length'], '-',
-                                    color = formatting['color_set'][i],
+                                    color = color_map[i],
                                     linewidth = formatting['data_linewidth'])
 
                 plot_index = plot_index + 1
                 ax[plot_index].plot(d['time'], d['force'], '-',
-                                    color = formatting['color_set'][i],
+                                    color = color_map[i],
                                     linewidth = formatting['data_linewidth'],
                                     label='Total')
                 ax[plot_index].plot(d['time'], d['titin_force'], ':',
-                                    color = formatting['color_set'][i],
+                                    color = color_map[i],
                                     linewidth = formatting['data_linewidth'],
                                     label='Titin')
 
@@ -1404,30 +1424,22 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                                     label=label)
 
                 plot_index = plot_index + 1
-                if (file_counter==1):
-                    label = 'SRX'
-                else:
-                    label = None
-                ax[plot_index].plot(d['time'], d['m_pop_0'], '-',
-                                    linewidth = formatting['data_linewidth'],
-                                    color = 'r',
-                                    label=label)
-                if (file_counter==1):
-                    label = 'DRX'
-                else:
-                    label = None
-                ax[plot_index].plot(d['time'], d['m_pop_1'], '-',
-                                    linewidth = formatting['data_linewidth'],
-                                    color = 'g',
-                                    label=label)
-                if (file_counter==1):
-                    label = 'FG'
-                else:
-                    label = None
-                ax[plot_index].plot(d['time'], d['m_pop_2'], '-',
-                                    linewidth = formatting['data_linewidth'],
-                                    color = 'b',
-                                    label=label)
+                keep_going = True
+                m_state_counter = 0
+                while (keep_going):
+                    m_pop_string = ('m_pop_%i' % m_state_counter)
+                    if (m_pop_string in d):
+                        if (file_counter == 1):
+                            label = m_pop_string
+                        else:
+                            label = None
+                        ax[plot_index].plot(d['time'], d[m_pop_string],
+                                            '-',
+                                            linewidth = formatting['data_linewidth'],
+                                            label=label)
+                        m_state_counter = m_state_counter + 1
+                    else:
+                        keep_going = False
 
                 plot_index = plot_index + 1
                 if (file_counter==1):
