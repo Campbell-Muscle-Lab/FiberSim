@@ -180,9 +180,14 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     markeredgewidth=formatting['marker_edge_width'],
                     markeredgecolor=formatting['color_set'][curve_counter - 1])
 
-                a.plot(res['x_fit'], res['y_fit'],
-                    color = formatting['color_set'][curve_counter - 1],
-                    linestyle=formatting['line_styles'][curve_counter - 1])
+                if formatting['labels'] != []:
+                    a.plot(res['x_fit'], res['y_fit'],'-',
+                        color = formatting['color_set'][curve_counter - 1],
+                        label = formatting['labels'][curve_counter - 1])               
+                else:                   
+                    a.plot(res['x_fit'], res['y_fit'],
+                        color = formatting['color_set'][curve_counter - 1],
+                        linestyle=formatting['line_styles'][curve_counter - 1])
 
             # Loop on to the next folder
             curve_counter = curve_counter + 1
@@ -190,8 +195,10 @@ def create_y_pCa_figure(fig_data, batch_file_string):
         else:
             keep_going = False
 
+    # Add legend if required
+
     if formatting['labels'] != []:
-        ax_right.legend(loc='upper left', bbox_to_anchor=[1.05, 1], fontsize = formatting['y_label_fontsize']-2)
+        ax_right.legend(loc=formatting['legend_location'], fontsize = formatting['y_label_fontsize']-2)
 
     # Take lists and create a data frame
     r = pd.DataFrame({'curve': curve_index,
@@ -503,9 +510,17 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                        fillstyle=formatting['fill_styles'][c-1],
                        color = formatting['color_set'][c - 1])
             fv_curve = cv.fit_hyperbola(rc['hs_force'], rc['hs_velocity'])
-            ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'],
-                       color=ax_fv.lines[-1].get_color(),
-                       linestyle = formatting['line_styles'][c-1])
+
+            if formatting['labels'] != []:
+
+                ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'],
+                           color=ax_fv.lines[-1].get_color(),
+                           linestyle = formatting['line_styles'][c-1],
+                           label = formatting['labels'][c - 1])
+            else:
+                ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'],
+                    color=ax_fv.lines[-1].get_color(),
+                    linestyle = formatting['line_styles'][c-1])
 
             ax_pow.plot(rc['hs_force'], rc['hs_power'],
                        formatting['marker_symbols'][c-1],
@@ -593,6 +608,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                           loc='center',
                           verticalalignment='center',
                           rotation=formatting['y_label_rotation'])
+
+        # Add legend on first panel if required
+
+        if formatting['labels'] != []:
+            ax_fv.legend(loc=formatting['legend_location'], fontsize = formatting['y_label_fontsize']-2)
 
         # Power in W m^-3 against Stress
         ax_pow.set_xlim(xt)
@@ -793,7 +813,12 @@ def create_ktr_figure(fig_data, batch_file_string):
                     rc['hs_force'] = rc['hs_force']/max(rc['hs_force'])
 
                 # Plot the ktr curve
-                ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
+
+                if formatting['labels'] != []:
+                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1], label = formatting['labels'][c - 1])
+                else:
+                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
+
 
                 ax_ktr.set_xlabel(formatting['x_axis_label'],
                         fontfamily=formatting['fontname'],
@@ -820,6 +845,11 @@ def create_ktr_figure(fig_data, batch_file_string):
 
                 ax_ktr.invert_xaxis()
 
+        # Add legend on ktr curve if required
+
+        if formatting['labels'] != []:
+            ax_ktr.legend(loc=formatting['legend_location'], fontsize = formatting['y_label_fontsize']-2)        
+            
         # Save figure
         print('Saving ktr figure to: %s'% output_image_file_string)
         dir_name = os.path.dirname(output_image_file_string)
@@ -1719,15 +1749,25 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
             ax_k_tr_force.plot(r2['force'], r2['k_tr'],
                                formatting['marker_symbols'][i],
                                markerfacecolor = formatting['color_set'][i],
+                               markeredgecolor = formatting['color_set'][i],
                                fillstyle = formatting['fill_styles'][i],
                                markeredgewidth=formatting['marker_edge_width'])
-            ax_k_tr_force.plot(r2['force'], r2['k_tr'],
-                               linestyle = formatting['line_styles'][i],
-                               color = formatting['color_set'][i])
+
+            if formatting['labels'] != []:
+        
+                ax_k_tr_force.plot(r2['force'], r2['k_tr'],
+                    linestyle = formatting['line_styles'][i],
+                    color = formatting['color_set'][i],
+                    label = formatting['labels'][i])
+            else:
+                ax_k_tr_force.plot(r2['force'], r2['k_tr'],
+                    linestyle = formatting['line_styles'][i],
+                    color = formatting['color_set'][i])
 
             ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
                                formatting['marker_symbols'][i],
                                markerfacecolor = formatting['color_set'][i],
+                               markeredgecolor = formatting['color_set'][i],
                                fillstyle = formatting['fill_styles'][i],
                                markeredgewidth=formatting['marker_edge_width'])
             ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
@@ -1751,7 +1791,11 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
         ax_k_tr_pCa.set_ylabel('k_tr (s$^{-1}$)')
         if ('k_tr_ticks' in fig_data):
             ax_k_tr_pCa.set_ylim(fig_data['k_tr_ticks'])
+        
+        # Add legend on ktr-force curve if required
 
+        if formatting['labels'] != []:
+            ax_k_tr_force.legend(loc=formatting['legend_location'], fontsize = formatting['y_label_fontsize']-2)
 
         # Save it
         if (fig_data['relative_to'] == 'this_file'):

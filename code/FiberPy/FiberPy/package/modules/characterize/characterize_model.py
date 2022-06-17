@@ -294,14 +294,11 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                                                    'sim_output',
                                                    'force_pCa_normalized')
     fig['output_image_formats'] = pCa_struct['output_image_formats']
-    if ('formatting' in pCa_struct):
-        fig['formatting'] = pCa_struct['formatting']
-    else:
-        fig['formatting'] = dict()
+    fig['formatting'] = dict()
 
-        fig['formatting']['y_axis_label'] = 'Normalized \n force'
-        fig['formatting']['y_normalized_to_max'] = 'True'
-        fig['formatting']['y_label_pad'] = 20
+    fig['formatting']['y_axis_label'] = 'Normalized \n force'
+    fig['formatting']['y_normalized_to_max'] = 'True'
+    fig['formatting']['y_label_pad'] = 20
 
     batch_figs['pCa_curves'].append(fig)
 
