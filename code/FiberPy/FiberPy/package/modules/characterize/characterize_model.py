@@ -727,6 +727,8 @@ def deduce_freeform_properties(json_analysis_file_string,
                                freeform_struct):
     """ Code runs freeform analysis """
     
+    print(freeform_struct)
+    
     # Potentially switch off simulations
     figures_only = False
     if ('figures_only' in freeform_struct):
@@ -805,7 +807,7 @@ def deduce_freeform_properties(json_analysis_file_string,
                 # Adjust hsl by loading model, adjusting hsl and re-writing
                 with open(orig_model_file, 'r') as f:
                     m = json.load(f)
-                    m['muscle']['initial_hs_length'] = hsl
+                    m['muscle']['initial_hs_length'] = float(hsl)
                     
                     # Over-ride m_n if appropriate
                     if ('m_n' in freeform_struct):
@@ -813,14 +815,19 @@ def deduce_freeform_properties(json_analysis_file_string,
                     
                 fn = orig_model_file.split('/')[-1]
                 freeform_model_file = os.path.join(sim_input_dir, fn)
+                
                 with open(freeform_model_file, 'w') as f:
                     json.dump(m, f, indent=4)
                 
                 # Now copy the options file
                 orig_options_file = os.path.join(base_dir,
                                                  model_struct['options_file'])
-                fn = orig_options_file.split('/')[-1]
+                fn = orig_options_file.split(os.path.sep)[-1]
                 freeform_options_file = os.path.join(sim_input_dir, fn)
+                
+                print(fn)
+                print(freeform_options_file)
+                
                 shutil.copyfile(orig_options_file, freeform_options_file)
            
             # Loop through the protocol_files

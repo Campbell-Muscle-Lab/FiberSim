@@ -66,6 +66,8 @@ thin_filament::thin_filament(
     bound_to_m_f = gsl_vector_short_alloc(a_no_of_bs);
     bound_to_m_n = gsl_vector_short_alloc(a_no_of_bs);
 
+    active_neighbors = gsl_vector_short_alloc(a_regulatory_units_per_strand * a_strands_per_filament);
+
     // Initialise arrays
 
     // Special for bs_x, bs_angle, and bs_unit
@@ -78,6 +80,7 @@ thin_filament::thin_filament(
     gsl_vector_short_set_all(bound_to_m_f, -1);
     gsl_vector_short_set_all(bound_to_m_n, -1);
     gsl_vector_short_set_all(unit_status, 1);
+    gsl_vector_short_set_all(active_neighbors, 0);
 
     // Allocate space for node forces
     node_forces = gsl_vector_alloc(a_regulatory_units_per_strand * a_bs_per_unit);
@@ -112,6 +115,7 @@ thin_filament::~thin_filament()
     gsl_vector_short_free(bs_isoform);
     gsl_vector_short_free(bs_unit);
     gsl_vector_short_free(unit_status);
+    gsl_vector_short_free(active_neighbors);
     gsl_vector_short_free(bound_to_m_type);
     gsl_vector_short_free(bound_to_m_f);
     gsl_vector_short_free(bound_to_m_n);

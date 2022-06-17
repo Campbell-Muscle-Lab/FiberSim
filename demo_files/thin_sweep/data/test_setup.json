@@ -1,0 +1,29 @@
+{
+    "FiberSim_analysis":
+    {
+        "FiberCpp_exe":
+        {
+            "relative_to": "this_file",
+            "exe_file": "../../../bin/FiberCpp.exe"
+        },
+        "model":
+        {
+            "relative_to": "this_file",
+            "model_files": [                            "models/model_1_sweep.json"],
+            "options_file": "sim_options.json"
+        },
+        "analysis":
+        [
+            {
+                "type": "freeform",
+                "relative_to": "this_file",
+                "protocol_files": ["protocols/twitch_protocol.txt"],
+                "sim_folder": "../simulations",
+                "m_n": 4,
+                "output_image_formats": ["png"],
+                "figures_only": "False",
+                "trace_figures_on": "True"
+            }
+        ]
+    }
+}

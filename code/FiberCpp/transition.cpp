@@ -68,7 +68,8 @@ transition::~transition(void)
 
 // Functions
 
-double transition::calculate_rate(double x, double x_ext, double node_force, int mybpc_state, int mybpc_iso)
+double transition::calculate_rate(double x, double x_ext, double node_force,
+	int mybpc_state, int mybpc_iso, short int active_neigh)
 {
 	//! Returns the rate for a transition with a given x
 	//! 
@@ -77,7 +78,12 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 	// Variables
 	double rate = 0.0;
 
+	FiberSim_options* p_options;
+
 	// Code
+
+	// Set options
+	p_options = p_parent_m_state->p_parent_scheme->p_fs_options;
 
 	// Constant
 	if (!strcmp(rate_type, "constant"))
@@ -227,10 +233,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 				gsl_pow_int(x + x_center, (int)gsl_vector_get(rate_parameters, 4)));
 	}
 
-	FiberSim_options* p_options = p_parent_m_state->p_parent_scheme->p_fs_options;
-
 	// Decreasing load-dependent exponential
-
 	if (!strcmp(rate_type, "exp"))
 	{
 		double A = gsl_vector_get(rate_parameters, 0);
@@ -264,6 +267,30 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 			(1 + exp(-x_smooth * (x - x_wall))));
 	}
 
+	if (!strcmp(rate_type, "exp_wall_sweep"))
+	{
+		// Variables
+
+		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+		double k0 = gsl_vector_get(rate_parameters, 0);
+		double F = p_model->m_k_cb * (x + x_ext);
+		double d = gsl_vector_get(rate_parameters, 1);
+		double x_wall = gsl_vector_get(rate_parameters, 2);
+		double x_smooth = gsl_vector_get(rate_parameters, 3);
+		double sweep = gsl_vector_get(rate_parameters, 4);
+
+		// Code
+		rate = k0 * exp(-(F * d) /
+			(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
+
+		rate = rate + p_options->max_rate * (1 /
+			(1 + exp(-x_smooth * (x - x_wall))));
+
+		// Add in the sweep, whereby neighboring units in the off state
+		// increase the detachment rate
+		rate = rate + sweep * (2.0 - (double)active_neigh);
+	}
+
 	// Curtail at max rate
 
 	if (rate > (p_options->max_rate))
@@ -271,6 +298,8 @@ double transition::calculate_rate(double x, double x_ext, double node_force, int
 
 	if (rate < 0.0)
 		rate = 0.0;
+
+	printf("active_neigh: %g  rate: %f\n", (double)active_neigh, rate);
 
 	// Return
 	return rate;

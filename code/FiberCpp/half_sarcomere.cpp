@@ -1836,12 +1836,12 @@ void half_sarcomere::myosin_kinetics(double time_step)
 
                 if ((bs_ind < 0) || (bs_ind >= a_bs_per_thin_filament))
                 {
-                    bs_state = -1;           // binding site is not on filament
+                    bs_state = -1;          // binding site is not on filament
                 }
 
                 else if (gsl_vector_short_get(p_af[a_f]->bound_to_m_n, bs_ind) >= 0)
                 {
-                    bs_state = -1;
+                    bs_state = -1;          // binding site is occupied
                 }
 
                 else 
@@ -1854,7 +1854,6 @@ void half_sarcomere::myosin_kinetics(double time_step)
                     cb_counter, span_i, bs_state); // update cb_nearest_a_n_states element
             }
 
-            
             transition_index = return_m_transition(time_step, m_counter, cb_counter);
 
             if (transition_index >= 0)
@@ -2011,6 +2010,8 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     double x_ext;                       // cb state extension
     double node_f;                      // node_force
 
+    short int active_neigh;             // number of active neighbors
+
     gsl_vector* transition_probs;
 
     double alignment_factor;            // double from 0 to 1 that adjusts
@@ -2143,18 +2144,24 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
                     a_n = gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_n, cb_counter);
                     x = gsl_vector_get(p_mf[m_counter]->cb_x, cb_counter) -
                         gsl_vector_get(p_af[a_f]->bs_x, a_n);
+
+                    // Get the number of active neighbors
+                    short int bs_u = gsl_vector_short_get(p_af[a_f]->bs_unit, a_n);
+
+                    active_neigh = gsl_vector_short_get(p_af[a_f]->active_neighbors, (size_t)(bs_u - 1));
                 }
                 else
                 {
                     a_n = -1;
                     x = 0.0;
+                    active_neigh = (short int)0;
                 }
 
                 // Get cb extension
                 x_ext = p_m_state->extension;
 
                 prob = (1.0 - exp(-time_step *
-                    p_trans->calculate_rate(x, x_ext, node_f, mybpc_state, mybpc_iso)));
+                    p_trans->calculate_rate(x, x_ext, node_f, mybpc_state, mybpc_iso, active_neigh)));
 
                 // Update the probability vector
                 prob_index = (t_counter * m_attachment_span);
@@ -2482,6 +2489,46 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
         p_af[a_counter]->calculate_node_forces();
     }
 
+    // Loop through thin filaments setting active neighbors
+    for (int a_counter = 0; a_counter < a_n; a_counter++)
+    {
+        // Loop through strands
+        for (int str_counter = 0; str_counter < a_strands_per_filament; str_counter++)
+        {
+            // Loop through regualtory units
+            for (int unit = 0; unit < a_regulatory_units_per_strand; unit++)
+            {
+                int unit_counter = str_counter + (unit * a_strands_per_filament);
+
+                short int active_neigh = 0;
+
+                // Deduce the status of the neighbors
+                if (unit_counter >= a_strands_per_filament)
+                {
+                    down_neighbor_status =
+                        gsl_vector_short_get(p_af[a_counter]->unit_status,
+                            ((size_t)unit_counter - (size_t)a_strands_per_filament));
+
+                    if (down_neighbor_status == 2)
+                        active_neigh = active_neigh + 1;
+                }
+
+                if (unit_counter <= (a_strands_per_filament * a_regulatory_units_per_strand - a_strands_per_filament - 1))
+                {
+                    up_neighbor_status =
+                        gsl_vector_short_get(p_af[a_counter]->unit_status,
+                            ((size_t)unit_counter + (size_t)a_strands_per_filament));
+
+                    if (up_neighbor_status == 2)
+                        active_neigh = active_neigh + 1;
+                }
+
+                // Set active_neighbors value
+                gsl_vector_short_set(p_af[a_counter]->active_neighbors, unit_counter, active_neigh);
+            }
+        }
+    }
+
     // Loop through thin filaments
     for (int a_counter = 0; a_counter < a_n; a_counter++)
     {
@@ -2514,18 +2561,13 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                 if (gsl_vector_short_get(p_af[a_counter]->unit_status, unit_counter) == 1)
                 {
                     // Site is off and can turn on
-                    coop_boost = 0.0;
-                    if (down_neighbor_status == 2)
-                        coop_boost = coop_boost + a_gamma_coop;
-                    if (up_neighbor_status == 2)
-                        coop_boost = coop_boost + a_gamma_coop;
+                    coop_boost = a_gamma_coop *
+                        (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter);
 
                     // Calculate force boost
                     double node_force = gsl_vector_get(p_af[a_counter]->node_forces,
                         gsl_vector_short_get(bs_indices, 0) / a_bs_per_node);
                     force_boost = a_k_force * node_force;
-
-                    //printf("a_k_force: %g\tnode_force: %g\tforce_boost: %gcoop_boost: %g\n", a_k_force, node_force, force_boost, coop_boost);
 
                     rate = a_k_on * Ca_conc * gsl_max(0, (1.0 + coop_boost + force_boost));
 
@@ -2554,11 +2596,8 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
                     if (unit_occupied == 0)
                     {
-                        coop_boost = 0.0;
-                        if (down_neighbor_status == 1)
-                            coop_boost = coop_boost + a_gamma_coop;
-                        if (up_neighbor_status == 1)
-                            coop_boost = coop_boost + a_gamma_coop;
+                        coop_boost = a_gamma_coop *
+                            (2.0 - (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter));
 
                         rate = a_k_off * (1.0 + coop_boost);
 
@@ -2576,7 +2615,6 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                 }
             }
         }
-
     }
 
     // Update unit status for next round

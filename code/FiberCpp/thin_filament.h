@@ -75,6 +75,12 @@ public:
                                          1 means off
                                          2 means on */
 
+    gsl_vector_short* active_neighbors;
+                                    /**< pointer to a gsl_array of signed short
+                                         integers, indicating the number of
+                                         adjacent regulatory units in the active
+                                         state */
+
     gsl_vector_short* bound_to_m_type;
                                     /**< pointer to a gsl array of signed short
                                          integers indicating what the site is
