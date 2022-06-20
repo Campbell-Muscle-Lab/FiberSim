@@ -24,7 +24,12 @@ This demo:
 
 ## Instructions
 
-Before proceeding, make sure that you have followed the [installation instructions](../../../installation/installation.html). You need the FiberSim folder, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
+Before proceeding, make sure that you have [installed FiberSim](../../../installation/installation.html).
+
+You need:
++ the FiberSim folder
++ an Anaconda distribution of Python
++ and an active FiberSim environment to run this demo.
 
 ### Getting ready
 
@@ -34,13 +39,14 @@ Before proceeding, make sure that you have followed the [installation instructio
 ```
 conda activate fibersim
 ```
-+ Change directory to `<FiberSim_dir>/code/FiberPy/FiberPy`, where `<FiberSim_dir>` is the directory where you installed FiberSim. Here is a short video showing you how to use the `cd` command.
++ Change directory to `<FiberSim_dir>/code/FiberPy/FiberPy`, where `<FiberSim_dir>` is the directory where you installed FiberSim.
++ See [Getting started](../../getting_started/getting_started.html) if you need help.
 
 ### Run a simulation
 
 + Type:
  ```
- python FiberPy.py analyze_model "../../../demo_files/characterization/thin_sweep/sweep_comparison.json.json"
+ python FiberPy.py characterize "../../../demo_files/characterization/thin_sweep/sweep_comparison.json.json"
  ```
 
 + You should see text appearing in the terminal window, showing that the simulations are running.

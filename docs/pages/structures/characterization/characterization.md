@@ -85,6 +85,6 @@ This section defines the type of characterization to run. Different types of cha
 | type | one of, `freeform`, `force_velocity`, `force_pCa` |
 | relative_to | root for subsequent paths |
 | protocol_files | an array of [protocol files](../protocol/protocol.html), such that each model will be run for every protocol |
-| m_n | the number of thick filaments to use in the simulations |
+| m_n | the number of thick filaments to use in the simulations. This number must be a square, e.g. 4, 9, 16, ... 196. Larger numbers reduce stochastic noise but the simulations take longer to run |
 | figures_only | `True` or `False`, setting to true generates the figures from existing simulations and is useful for adjusting the figure options |
 | trace_figures_on | `True` or `False`, setting to true generates summary figures for each trial |
