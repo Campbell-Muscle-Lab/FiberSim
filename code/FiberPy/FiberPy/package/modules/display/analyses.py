@@ -1501,7 +1501,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
             ax[plot_index].set_ylabel('HS length\n(nm)')
 
             plot_index = plot_index + 1
-            ax[plot_index].set_ylabel('Force\n(kN m$^{-2}$)')
+            ax[plot_index].set_ylabel('Force\n(N m$^{-2}$)')
 
             plot_index = plot_index + 1
             ax[plot_index].set_ylabel('Thin\nfilament')

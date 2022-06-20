@@ -289,6 +289,8 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 		// Add in the sweep, whereby neighboring units in the off state
 		// increase the detachment rate
 		rate = rate + sweep * (2.0 - (double)active_neigh);
+
+		//printf("active_neigh: %g  rate: %f\n", (double)active_neigh, rate);
 	}
 
 	// Curtail at max rate
@@ -299,7 +301,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 	if (rate < 0.0)
 		rate = 0.0;
 
-	printf("active_neigh: %g  rate: %f\n", (double)active_neigh, rate);
+	
 
 	// Return
 	return rate;

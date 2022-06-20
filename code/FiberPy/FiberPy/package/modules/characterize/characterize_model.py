@@ -28,21 +28,21 @@ def characterize_model(json_analysis_file_string):
     # Load it
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        anal_struct = json_data['FiberSim_analysis']
+        anal_struct = json_data['FiberSim_characterization']
    
-    # Pull of the analysis tasks
-    anal_struct = anal_struct['analysis']
-    for an in anal_struct:
-        if (an['type'] == 'pCa_length_control'):
+    # Pull of the characterization tasks
+    char_struct = anal_struct['characterization']
+    for ch in char_struct:
+        if (ch['type'] == 'pCa_length_control'):
             deduce_pCa_length_control_properties(json_analysis_file_string,
-                                                 pCa_struct = an)
-        if (an['type'] == 'force_velocity'):
+                                                 pCa_struct = ch)
+        if (ch['type'] == 'force_velocity'):
             deduce_fv_properties(json_analysis_file_string,
-                                 fv_struct = an)
+                                 fv_struct =ch)
         
-        if (an['type'] == 'freeform'):
+        if (ch['type'] == 'freeform'):
             deduce_freeform_properties(json_analysis_file_string,
-                                       freeform_struct = an)
+                                       freeform_struct = ch)
             
 def deduce_pCa_length_control_properties(json_analysis_file_string,
                                          pCa_struct = []):
@@ -740,11 +740,11 @@ def deduce_freeform_properties(json_analysis_file_string,
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        anal_struct = json_data['FiberSim_analysis']
+        char_struct = json_data['FiberSim_characterization']
     
     # Pull off the components
-    FiberCpp_exe_struct = anal_struct['FiberCpp_exe']
-    model_struct = anal_struct['model']
+    FiberCpp_exe_struct = char_struct['FiberCpp_exe']
+    model_struct = char_struct['model']
     
     # Create a batch to run the trials
     freeform_b = dict()
@@ -815,44 +815,54 @@ def deduce_freeform_properties(json_analysis_file_string,
                 
                 with open(freeform_model_file, 'w') as f:
                     json.dump(m, f, indent=4)
-                
-                # Now copy the options file
-                orig_options_file = os.path.join(base_dir,
-                                                 model_struct['options_file'])
-                fn = orig_options_file.split(os.path.sep)[-1]
-                freeform_options_file = os.path.join(sim_input_dir, fn)
-                
-                print(fn)
-                print(freeform_options_file)
-                
-                shutil.copyfile(orig_options_file, freeform_options_file)
            
+            # Work out the path for the base options file
+            orig_options_file = os.path.join(base_dir,
+                                                 model_struct['options_file'])
+            
             # Loop through the protocol_files
             for prot_counter, prot_f in \
                 enumerate(freeform_struct['protocol_files']):
-                
-                if (prot_counter==0):
-                    # Update the options file to dump rates
-                    with open(freeform_options_file, 'r') as f:
-                        json_data = json.load(f)
-                        json_data['options']['rate_files'] = dict()
-                        json_data['options']['rate_files']['relative_to'] = \
-                            'this_file'
-                        json_data['options']['rate_files']['file'] = \
+                    
+                # Update the options file to dump to a local directory
+                with open(orig_options_file, 'r') as f:
+                    json_data = json.load(f)
+                    if (json_data['options']['status_files']):
+                        json_data['options']['status_files']['status_folder'] = \
                             os.path.join('../../sim_output',
                                          ('%i' % dir_counter),
-                                         'rates.txt')
-                    freeform_options_file_rates = os.path.join(
-                        Path(freeform_options_file).parent.absolute(),
-                        'sim_options_rates.json')
+                                         ('%s_%i' % (json_data['options']['status_files']['status_folder'],
+                                                      (prot_counter + 1))))
+                
+                if (prot_counter==0):
+                    # If it is the first protocol for the model,
+                    # update the options file to dump rates
+                    json_data['options']['rate_files'] = dict()
+                    json_data['options']['rate_files']['relative_to'] = \
+                        'this_file'
+                    json_data['options']['rate_files']['file'] = \
+                        os.path.join('../../sim_output',
+                                     ('%i' % dir_counter),
+                                     'rates.txt')
+                
+                # Create the new options file
+                options_file = os.path.join(
+                    Path(sim_input_dir).parent.absolute(),
+                    ('%i' % dir_counter),
+                    ('sim_options_%i.json' % prot_counter))
     
-                    with open(freeform_options_file_rates, 'w') as f:
+                with open(options_file, 'w') as f:
                         json.dump(json_data, f, indent=4)
                 
                 # Copy the protocol file
                 orig_prot_file = os.path.join(base_dir, prot_f)
                 fn = orig_prot_file.split('/')[-1]
-                freeform_prot_file = os.path.join(sim_input_dir, fn)
+                freeform_prot_file = os.path.join(sim_input_dir,
+                                                  fn)
+                
+                print('opf: %s' % orig_prot_file)
+                print('fpf: %s' % freeform_prot_file)
+                
                 shutil.copyfile(orig_prot_file, freeform_prot_file)
                 
                 # Create the job
@@ -865,10 +875,7 @@ def deduce_freeform_properties(json_analysis_file_string,
                                                  ('%i' % dir_counter),
                                                  ('sim_prot_%i.txt' % prot_counter))
                 j['model_file'] = freeform_model_file
-                if (prot_counter == 0):
-                    j['options_file'] = freeform_options_file_rates
-                else:
-                    j['options_file'] = freeform_options_file
+                j['options_file'] = options_file
                 
                 # If required, create an output_handler and add it to
                 # the job

@@ -107,10 +107,14 @@ Super-relaxed heads can only exist as dimers. Thus, if a head transitions from a
 
 ### Transition types
 
+#### Constant
+
 + `constant`
   + rate_parameters:
     + a, s<sup>-1</sup> 
   + rate = a
+
+#### Gaussian
 
 + `gaussian`
   + rate_parameters:
@@ -119,6 +123,8 @@ Super-relaxed heads can only exist as dimers. Thus, if a head transitions from a
   
   where m_k_cb is the crossbridge stiffness and T is the temperature (both defined in the [model file](../model/model.html)). k<sub>B</sub> is the Boltzmann constant. 
   
+#### Gaussian_pc
+
   + `gaussian_pc`
   + rate_parameters:
     + a, s<sup>-1</sup> 
@@ -126,11 +132,15 @@ Super-relaxed heads can only exist as dimers. Thus, if a head transitions from a
   
   where c_k_stiff is the MyBP-C stiffness and T is the temperature (both defined in the [model file](../model.html)). k<sub>B</sub> is the Boltzmann constant. 
 
+#### Force-dependent
+
 + `force_dependent`
   + rate_parameters:
     + a, s<sup>-1</sup> 
     + b, s<sup>-1</sup> N<sup>-1</sup> m<sup>2</sup>
   + rate = a + b * node_force 
+
+#### Poly
 
 + `poly`
   + rate_parameters
@@ -141,6 +151,8 @@ Super-relaxed heads can only exist as dimers. Thus, if a head transitions from a
   + rate = a + b * (x + d)<sup>c</sup>
   
 Note: if d is not specified, the code sets d = the state extension (5.0 in the myosin scheme example shown above)
+
+#### Poly_asym
 
 + `poly_asym`
   + rate_parameters
@@ -155,6 +167,8 @@ Note: if d is not specified, the code sets d = the state extension (5.0 in the m
   
 Note: if f is not specified, the code sets f = the state extension (5.0 in the myosin scheme example shown above)
 
+#### Exp
+
 + `exp`
   + rate_parameters
     + a, s<sup>-1</sup> 
@@ -167,6 +181,8 @@ Note: if f is not specified, the code sets f = the state extension (5.0 in the m
   
   max_rate is defined in the [options file](../options/options.html).
   
+#### Exp_wall
+
 + `exp_wall`
   + rate_parameters
     + a, s<sup>-1</sup> 
@@ -174,9 +190,27 @@ Note: if f is not specified, the code sets f = the state extension (5.0 in the m
     + c, nm
 	+ d, nm<sup>-1</sup> 
 
-  + rate = a * exp<sup>(- b * m_k_cb * (x + x_ext)/(1e18 * k<sub>B</sub> * T))</sup> + max_rate * 1/(1 + exp<sup>(- d * (x - c)</sup>) 
+  + rate = a * exp(- b * m_k_cb * (x + x_ext)/(1e18 * k<sub>B</sub> * T)) + max_rate * 1/(1 + exp(- d * (x - c)) 
   
   where m_k_cb is the crossbridge stiffness and T is the temperature (both defined in the [model file](../model/model.html)). k<sub>B</sub> is the Boltzmann constant.   max_rate is defined in the [options file](../options/options.html).
+
+#### Exp_wall_sweep
+
++ `exp_wall_sweep`
+  + rate_parameters
+    + a, s<sup>-1</sup> 
+    + b, nm
+    + c, nm
+	+ d, nm<sup>-1</sup>
+    + e, s<sup>-1</sup> 
+
+  + rate = a * exp(- b * m_k_cb * (x + x_ext)/(1e18 * k<sub>B</sub> * T)) + max_rate * 1/(1 + exp(- d * (x - c)) + 
+  e * (2.0 - `no_of_active_neighbors`) 
   
+  where m_k_cb is the crossbridge stiffness and T is the temperature (both defined in the [model file](../model/model.html)), k<sub>B</sub> is the Boltzmann constant, max_rate is defined in the [options file](../options/options.html).
+  
+  `no_of_active_neighbors` is the number of adjacent regulatory units on thin filament strand which are active. This number can be 0, 1, or 2, with the lower numbers being more likely when the muscle is minimally activated. If the sweep parameter `e` is greater than 0, myosin heads are more likely to detach when adjacent binding sites are inactive. This mimics the tropomyosin molecule 'sweeping' myosin heads off their binding sites.
+  
+
 
 

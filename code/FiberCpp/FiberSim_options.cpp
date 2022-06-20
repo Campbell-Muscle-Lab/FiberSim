@@ -63,23 +63,20 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
         {
             fs::path options_file = JSON_options_file_string;
             fs::path options_path = options_file.parent_path();
-            fs::path status_path = options_path / status_folder;
+            fs::path status_path = fs::absolute(options_path / status_folder);
 
             // Make sure the status folder exists
-            if (fs::is_directory(status_path))
+            if (fs::exists(status_path))
             {
                 // Clean the directory
-
                 printf("Cleaning status_folder: %s\n", status_path.string().c_str());
-
-                int n = (int)fs::remove_all(status_path);
-                printf("Deleting %i files from status_folder: %s\n",
-                    n, status_path.string().c_str());
-
-                fs::create_directories(status_path);
+                for (auto const& dir_entry : fs::recursive_directory_iterator(status_path))
+                {
+                    fs::remove(dir_entry);
+                }
             }
-            else {
-
+            else
+            {
                 // Create the directory
                 if (fs::create_directories(status_path))
                 {

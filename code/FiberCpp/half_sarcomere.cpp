@@ -2010,7 +2010,7 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     double x_ext;                       // cb state extension
     double node_f;                      // node_force
 
-    short int active_neigh;             // number of active neighbors
+    short active_neigh;                 // number of active neighbors
 
     gsl_vector* transition_probs;
 
@@ -2146,7 +2146,7 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
                         gsl_vector_get(p_af[a_f]->bs_x, a_n);
 
                     // Get the number of active neighbors
-                    short int bs_u = gsl_vector_short_get(p_af[a_f]->bs_unit, a_n);
+                    short bs_u = gsl_vector_short_get(p_af[a_f]->bs_unit, a_n);
 
                     active_neigh = gsl_vector_short_get(p_af[a_f]->active_neighbors, (size_t)(bs_u - 1));
                 }
@@ -2154,7 +2154,7 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
                 {
                     a_n = -1;
                     x = 0.0;
-                    active_neigh = (short int)0;
+                    active_neigh = (short)0;
                 }
 
                 // Get cb extension
@@ -3037,6 +3037,12 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         sprintf_s(temp_string, _MAX_PATH, "unit_status");
         JSON_functions::write_gsl_vector_short_as_JSON_array(
             p_af[thin_counter]->unit_status,
+            output_file,
+            temp_string, false);
+
+        sprintf_s(temp_string, _MAX_PATH, "active_neighbors");
+        JSON_functions::write_gsl_vector_short_as_JSON_array(
+            p_af[thin_counter]->active_neighbors,
             output_file,
             temp_string, false);
 

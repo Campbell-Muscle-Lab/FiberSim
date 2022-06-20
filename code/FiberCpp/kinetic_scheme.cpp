@@ -228,7 +228,7 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[])
 				{
 					// It's a transition
 					double x_ext = p_m_state->extension;
-					double rate = p_trans->calculate_rate(x, x_ext, 0, 0, 0);
+					double rate = p_trans->calculate_rate(x, x_ext, 0, 0, 0, 0);
 
 					fprintf_s(output_file, "\t%8g", rate);
 				}

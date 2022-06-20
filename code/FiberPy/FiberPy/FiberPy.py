@@ -43,7 +43,7 @@ def parse_inputs():
     if (sys.argv[1] == "spatial_visualization"):
         cm(sys.argv[2], sys.argv[3])
     
-    if (sys.argv[1] == "characterize_model"):
+    if (sys.argv[1] == "characterize"):
         characterize.characterize_model(sys.argv[2])
 
     if (sys.argv[1] == "run_all_demos"):
