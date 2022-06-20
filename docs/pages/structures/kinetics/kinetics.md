@@ -209,7 +209,7 @@ Note: if f is not specified, the code sets f = the state extension (5.0 in the m
   
   where m_k_cb is the crossbridge stiffness and T is the temperature (both defined in the [model file](../model/model.html)), k<sub>B</sub> is the Boltzmann constant, max_rate is defined in the [options file](../options/options.html).
   
-  `no_of_active_neighbors` is the number of adjacent regulatory units on thin filament strand which are active. This number can be 0, 1, or 2, with the lower numbers being more likely when the muscle is minimally activated. If the sweep parameter `e` is greater than 0, myosin heads are more likely to detach when adjacent binding sites are inactive. This mimics the tropomyosin molecule 'sweeping' myosin heads off their binding sites.
+  `no_of_active_neighbors` is the number of adjacent regulatory units on the thin filament strand which are active. This can be 0, 1, or 2, with the lower numbers being more likely when the muscle is minimally activated. If the sweep parameter `e` is greater than 0, myosin heads are more likely to detach when adjacent binding sites are inactive. This mimics the tropomyosin molecule 'sweeping' myosin heads off their binding sites.
   
 
 

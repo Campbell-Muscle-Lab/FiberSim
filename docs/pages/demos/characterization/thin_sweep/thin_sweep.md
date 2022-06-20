@@ -12,7 +12,7 @@ nav_order: 10
 
 This demo shows how to compare twitches simulated using 3 models where tropomyosin has different abilities to "sweep" myosin heads off the thin filament.
 
-See [exp_wall_sweep](../../../structures/kinetics.html#exp_wall_sweep) for more details on the sweeping mechanism.
+See [exp_wall_sweep](../../../structures/kinetics/kinetics.html#exp_wall_sweep) for more details on the sweeping mechanism.
 
 ## What this demo does
 
@@ -67,7 +67,7 @@ All of the results from the simulation are written to files in `<repo>/demo_file
 
 ## How this worked
 
-This demonstration used a [FiberSim characterization structure](link to be added) and the
+This demonstration used a [characterization structure](../../../structures/characterization/characterization.html) and the
 + `freeform` characterization mode
 to run simulations:
 + using a single protocol file
@@ -117,7 +117,7 @@ to run simulations:
 }
 ````
 
-The model files are identical, except for the last parameter in the `exp_wall_sweep` description which takes the values of 0, 10, and 20 for the three files.
+The model files are identical, except for the last parameter in the [exp_wall_sweep](../../../structures/kinetics/kinetics.html#exp_wall_sweep) definition which takes the values of 0, 10, and 20 for the three files.
 
 ````
 {
