@@ -12,7 +12,7 @@ nav_order: 10
 
 This demo shows how to compare twitches simulated using 3 models where tropomyosin has different abilities to "sweep" myosin heads off the thin filament.
 
-See [exp_wall_sweep](../../../structures/kinetics#exp_wall_sweep) for more details on the sweeping mechanism.
+See [exp_wall_sweep](../../../structures/kinetics.html#exp_wall_sweep) for more details on the sweeping mechanism.
 
 ## What this demo does
 
@@ -57,7 +57,7 @@ All of the results from the simulation are written to files in `<repo>/demo_file
 + the peak twitch force is reduced
 + the relaxation becomes faster
 
-<img src='superposed_traces.png' width="50%">
+<img src='superposed_traces.png' width="100%">
 
 ## How this worked
 
