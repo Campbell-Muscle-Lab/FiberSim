@@ -5,6 +5,7 @@
  */
 
 #include <cstdio>
+#include <chrono>
 
 #include "half_sarcomere.h"
 #include "thick_filament.h"
@@ -108,6 +109,22 @@ half_sarcomere::half_sarcomere(
     // Initialise the random number generator
     // This needs to be done before the thick filaments are allocated to allow for
     // lambda jitter
+
+    // Set time_seed to 0
+    long time_seed = 0;
+
+    // If the rand_jitter option is true, replace the time_seed with a number that depends on the time
+    if (p_fs_options->rand_jitter == true)
+    {
+        auto now = std::chrono::high_resolution_clock::now();
+        auto today = floor<std::chrono::days>(now);
+        auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - today);
+        std::chrono::duration<long, std::micro> temp = int_ms;
+        time_seed = (long)temp;
+    }
+    printf("\ntime_seed: %i\n\n", time_seed);
+    exit(1);
+
     const gsl_rng_type* T;
     gsl_rng_env_setup();
 

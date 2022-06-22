@@ -834,6 +834,14 @@ def deduce_freeform_properties(json_analysis_file_string,
                                          ('%s_%i' % (json_data['options']['status_files']['status_folder'],
                                                       (prot_counter + 1))))
                 
+                # Adjust the options file if we have randomized repeats
+                print(char_struct)
+                if ('randomized_repeats' in freeform_struct):
+                    rand_repeats = freeform_struct['randomized_repeats']
+                    json_data['options']['rand_jitter'] = "True"
+                else:
+                    rand_repeats = 1
+               
                 if (prot_counter==0):
                     # If it is the first protocol for the model,
                     # update the options file to dump rates
@@ -849,7 +857,7 @@ def deduce_freeform_properties(json_analysis_file_string,
                 options_file = os.path.join(
                     Path(sim_input_dir).parent.absolute(),
                     ('%i' % dir_counter),
-                    ('sim_options_%i.json' % prot_counter))
+                    ('sim_options_%i.json' % (prot_counter+1)))
     
                 with open(options_file, 'w') as f:
                         json.dump(json_data, f, indent=4)
@@ -860,55 +868,56 @@ def deduce_freeform_properties(json_analysis_file_string,
                 freeform_prot_file = os.path.join(sim_input_dir,
                                                   fn)
                 
-                print('opf: %s' % orig_prot_file)
-                print('fpf: %s' % freeform_prot_file)
-                
                 shutil.copyfile(orig_prot_file, freeform_prot_file)
-                
-                # Create the job
-                j = dict()
-                j['relative_to'] = 'False'
-                j['protocol_file'] = freeform_prot_file
-                j['results_file'] = os.path.join(base_dir,
-                                                 freeform_struct['sim_folder'],
-                                                 'sim_output',
-                                                 ('%i' % dir_counter),
-                                                 ('sim_prot_%i.txt' % prot_counter))
-                j['model_file'] = freeform_model_file
-                j['options_file'] = options_file
-                
-                # If required, create an output_handler and add it to
-                # the job
-                if (trace_figures_on == True):
-                    # Create the structure for the output handler
-                    oh = dict()
-                    oh['templated_images'] = []
-                    tf = dict()
-                    tf['relative_to'] = 'this_file'
-                    tf['template_file_string'] = os.path.join(
-                                                    '..',
-                                                    base_dir,
-                                                    'template',
-                                                    'template_summary.json')
-                    tf['output_file_string'] = os.path.join(
-                                                    base_dir,
-                                                    freeform_struct['sim_folder'],
-                                                    'sim_output',
-                                                    ('%i' % dir_counter),
-                                                    ('sim_prot_%i' % prot_counter))
-                    tf['output_image_formats'] = freeform_struct['output_image_formats']
-                    oh['templated_images'].append(tf)
+
+                # Loop through the rand_repeats, creating a job
+                for rep in range(rand_repeats):
+                   # Create the job
+                    j = dict()
+                    j['relative_to'] = 'False'
+                    j['protocol_file'] = freeform_prot_file
+                    j['results_file'] = os.path.join(base_dir,
+                                                     freeform_struct['sim_folder'],
+                                                     'sim_output',
+                                                     ('%i' % dir_counter),
+                                                     ('sim_prot_%i_r%i.txt' %
+                                                      (prot_counter+1, rep+1)))
+                    j['model_file'] = freeform_model_file
+                    j['options_file'] = options_file
                     
-                    # Now add it to the job, and write it to file
-                    j['output_handler_file'] = os.path.join(
-                                                sim_input_dir,
-                                                ('output_handler_prot_%i.json' %
-                                                    prot_counter))
-                    
-                    with open(j['output_handler_file'], 'w') as f:
-                        json.dump(oh, f, indent=4)        
-    
-                freeform_b['job'].append(j)
+                    # If required, create an output_handler and add it to
+                    # the job
+                    if (trace_figures_on == True):
+                        # Create the structure for the output handler
+                        oh = dict()
+                        oh['templated_images'] = []
+                        tf = dict()
+                        tf['relative_to'] = 'this_file'
+                        tf['template_file_string'] = os.path.join(
+                                                        '..',
+                                                        base_dir,
+                                                        'template',
+                                                        'template_summary.json')
+                        tf['output_file_string'] = os.path.join(
+                                                        base_dir,
+                                                        freeform_struct['sim_folder'],
+                                                        'sim_output',
+                                                        ('%i' % dir_counter),
+                                                        ('sim_prot_%i_r%i' %
+                                                         (prot_counter+1, rep+1)))
+                        tf['output_image_formats'] = freeform_struct['output_image_formats']
+                        oh['templated_images'].append(tf)
+                        
+                        # Now add it to the job, and write it to file
+                        j['output_handler_file'] = os.path.join(
+                                                    sim_input_dir,
+                                                    ('output_handler_prot_%i_r%i.json' %
+                                                        (prot_counter+1, rep+1)))
+                        
+                        with open(j['output_handler_file'], 'w') as f:
+                            json.dump(oh, f, indent=4)        
+        
+                    freeform_b['job'].append(j)
                 
     # Now create the batch analysis section
     batch_figs = dict()

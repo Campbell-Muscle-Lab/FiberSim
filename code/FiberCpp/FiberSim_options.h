@@ -44,6 +44,10 @@ public:
                                              Set to 0 for no jitter (aligned filaments). See
                                              https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1635681/
                                              for justification */
+
+    bool rand_jitter;                   /**< bool defining whether the randon number generator is
+                                             initialized based on the system clock or not
+                                             defaults to false if not specified in the  options file */
    
     int dump_precision;                 /**< integer defining the precision of doubles dumped in the half-
                                              sarcomere status files */
