@@ -239,8 +239,6 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     // Check for rand jitter
     if (JSON_functions::is_JSON_member(options, "rand_jitter"))
     {
-        printf("Get_string: %s", options["rand_jitter"].GetString());
-
         JSON_functions::check_JSON_member_string(options, "rand_jitter");
         if (!strcmp("True", options["rand_jitter"].GetString()))
         {

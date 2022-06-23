@@ -113,17 +113,13 @@ half_sarcomere::half_sarcomere(
     // Set time_seed to 0
     long time_seed = 0;
 
-    // If the rand_jitter option is true, replace the time_seed with a number that depends on the time
+    // If the rand_jitter option is true, replace the time_seed with a number that depends on the current time
     if (p_fs_options->rand_jitter == true)
     {
-        auto now = std::chrono::high_resolution_clock::now();
-        auto today = floor<std::chrono::days>(now);
-        auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - today);
-        std::chrono::duration<long, std::micro> temp = int_ms;
-        time_seed = (long)temp;
+        auto t1 = std::chrono::high_resolution_clock::now();
+        auto t2 = t1 - floor<std::chrono::seconds>(t1);
+        time_seed = (long)std::chrono::duration_cast<std::chrono::microseconds>(t2).count();
     }
-    printf("\ntime_seed: %i\n\n", time_seed);
-    exit(1);
 
     const gsl_rng_type* T;
     gsl_rng_env_setup();
@@ -131,7 +127,7 @@ half_sarcomere::half_sarcomere(
     T = gsl_rng_default;
     rand_generator = gsl_rng_alloc(T);
     gsl_rng_set(rand_generator,
-        unsigned long(100 * (p_parent_m->muscle_id + 1) + (hs_id + 1)));
+        unsigned long(100 * (p_parent_m->muscle_id + 1) + (hs_id + 1) + time_seed));
 
     // Log
     if (p_fs_options->log_mode > 0)

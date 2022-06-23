@@ -8,6 +8,8 @@ import os
 import json
 import shutil
 
+import copy
+
 import numpy as np
 import pandas as pd
 
@@ -819,59 +821,67 @@ def deduce_freeform_properties(json_analysis_file_string,
             # Work out the path for the base options file
             orig_options_file = os.path.join(base_dir,
                                                  model_struct['options_file'])
-            
+
+            # Load the options data
+            with open(orig_options_file, 'r') as f:
+                orig_options_data = json.load(f)
+
+            # Adjust the options struct if we have randomized repeats
+            if ('randomized_repeats' in freeform_struct):
+                rand_repeats = freeform_struct['randomized_repeats']
+                orig_options_data['options']['rand_jitter'] = "True"
+            else:
+                rand_repeats = 1
+
             # Loop through the protocol_files
             for prot_counter, prot_f in \
                 enumerate(freeform_struct['protocol_files']):
+
+                # Loop through the rand_repeats, creating a job for each
+                # repeat
+                for rep in range(rand_repeats):
                     
-                # Update the options file to dump to a local directory
-                with open(orig_options_file, 'r') as f:
-                    json_data = json.load(f)
-                    if (json_data['options']['status_files']):
-                        json_data['options']['status_files']['status_folder'] = \
+                    # Copy the option_struct to json_data for local changes
+                    # within the rep
+                    rep_options_data = copy.deepcopy(orig_options_data)
+
+                    # Update the options file to dump to a local directory
+                    if ('status_files' in rep_options_data['options']):
+                        rep_options_data['options']['status_files']['status_folder'] = \
                             os.path.join('../../sim_output',
                                          ('%i' % dir_counter),
-                                         ('%s_%i' % (json_data['options']['status_files']['status_folder'],
-                                                      (prot_counter + 1))))
-                
-                # Adjust the options file if we have randomized repeats
-                print(char_struct)
-                if ('randomized_repeats' in freeform_struct):
-                    rand_repeats = freeform_struct['randomized_repeats']
-                    json_data['options']['rand_jitter'] = "True"
-                else:
-                    rand_repeats = 1
-               
-                if (prot_counter==0):
-                    # If it is the first protocol for the model,
-                    # update the options file to dump rates
-                    json_data['options']['rate_files'] = dict()
-                    json_data['options']['rate_files']['relative_to'] = \
-                        'this_file'
-                    json_data['options']['rate_files']['file'] = \
-                        os.path.join('../../sim_output',
-                                     ('%i' % dir_counter),
-                                     'rates.txt')
-                
-                # Create the new options file
-                options_file = os.path.join(
-                    Path(sim_input_dir).parent.absolute(),
-                    ('%i' % dir_counter),
-                    ('sim_options_%i.json' % (prot_counter+1)))
-    
-                with open(options_file, 'w') as f:
-                        json.dump(json_data, f, indent=4)
-                
-                # Copy the protocol file
-                orig_prot_file = os.path.join(base_dir, prot_f)
-                fn = orig_prot_file.split('/')[-1]
-                freeform_prot_file = os.path.join(sim_input_dir,
-                                                  fn)
-                
-                shutil.copyfile(orig_prot_file, freeform_prot_file)
+                                         ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
+                                                      (prot_counter + 1), (rep+1))))
 
-                # Loop through the rand_repeats, creating a job
-                for rep in range(rand_repeats):
+                    if ((prot_counter==0) and (rep == 0)):
+                        # If it is the first protocol for the model and the last rep,
+                        # update the options file to dump rates
+                        rep_options_data['options']['rate_files'] = dict()
+                        rep_options_data['options']['rate_files']['relative_to'] = \
+                            'this_file'
+                        rep_options_data['options']['rate_files']['file'] = \
+                            os.path.join('../../sim_output',
+                                         ('%i' % dir_counter),
+                                         'rates.txt')
+                    
+                    # Create the new options file
+                    options_file = os.path.join(
+                        Path(sim_input_dir).parent.absolute(),
+                        ('%i' % dir_counter),
+                        ('sim_options_%i_r%i.json' % (prot_counter+1,
+                                                      rep+1)))
+        
+                    with open(options_file, 'w') as f:
+                            json.dump(rep_options_data, f, indent=4)
+                    
+                    # Copy the protocol file
+                    orig_prot_file = os.path.join(base_dir, prot_f)
+                    fn = orig_prot_file.split('/')[-1]
+                    freeform_prot_file = os.path.join(sim_input_dir,
+                                                      fn)
+                    
+                    shutil.copyfile(orig_prot_file, freeform_prot_file)
+
                    # Create the job
                     j = dict()
                     j['relative_to'] = 'False'
