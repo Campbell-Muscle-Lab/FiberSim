@@ -45,9 +45,13 @@ public:
                                              https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1635681/
                                              for justification */
 
-    bool rand_jitter;                   /**< bool defining whether the randon number generator is
-                                             initialized based on the system clock or not
-                                             defaults to false if not specified in the  options file */
+   char rand_seed[_MAX_PATH];         /**< char array controlling seeding of the random number generator
+                                             If string can be converted to a long int, the long int is
+                                             included in the random seed
+                                             If string == "random", the seed includes a component based
+                                             on the system clock to include unpredictability
+                                             If the string is empty, the long int included in the random
+                                             seed is zero */
    
     int dump_precision;                 /**< integer defining the precision of doubles dumped in the half-
                                              sarcomere status files */

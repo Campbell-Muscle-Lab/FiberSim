@@ -40,7 +40,7 @@ def run_batch(json_batch_file_string=[],
     # Pull off the exe path
     exe_structure = batch_structure['FiberCpp_exe']
     exe_string = exe_structure['exe_file']
-    if (not exe_structure['relative_to']):
+    if not ('relative_to' in exe_structure):
         exe_string = os.path.abspath(exe_string)
     elif (exe_structure['relative_to'] == 'this_file'):
         base_directory = Path(json_batch_file_string).parent.absolute()

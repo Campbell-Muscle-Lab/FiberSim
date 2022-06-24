@@ -34,8 +34,6 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 
     lambda_jitter = 0.0;                    /**< default value for lambda jitter */
 
-    rand_jitter = false;                    /**< default value for rand jitter */
-
     dump_precision = 6;                     /**< default value for dump precision */
 
     sprintf_s(rate_file_string, _MAX_PATH, "");
@@ -236,14 +234,15 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
         lambda_jitter = options["lambda_jitter"].GetDouble();
     }
 
-    // Check for rand jitter
-    if (JSON_functions::is_JSON_member(options, "rand_jitter"))
+    // Check for rand_seed - set to empty string if missing
+    if (JSON_functions::is_JSON_member(options, "rand_seed"))
     {
-        JSON_functions::check_JSON_member_string(options, "rand_jitter");
-        if (!strcmp("True", options["rand_jitter"].GetString()))
-        {
-            rand_jitter = true;
-        }
+        JSON_functions::check_JSON_member_string(options, "rand_seed");
+        sprintf_s(rand_seed, _MAX_PATH, "%s", options["rand_seed"].GetString());
+    }
+    else
+    {
+        sprintf_s(rand_seed, _MAX_PATH, "");
     }
 
     // Now check for logging

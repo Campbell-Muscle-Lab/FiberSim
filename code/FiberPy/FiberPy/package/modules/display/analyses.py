@@ -10,6 +10,8 @@ import os
 import numpy as np
 import pandas as pd
 
+import copy
+
 from collections import defaultdict
 
 import matplotlib.cm as cm
@@ -57,6 +59,7 @@ def default_formatting():
     formatting['legend_bbox_to_anchor'] = [1.05, 1]
     formatting['legend_fontsize'] = 9
     formatting['legend_handlelength'] = 1
+    formatting['error_bar_capsize'] = 2
 
 
     return formatting
@@ -126,14 +129,12 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     while (keep_going):
         curve_folder = os.path.join(top_data_folder,
                                     ('%i' % curve_counter))
-        print(curve_folder)
         if os.path.isdir(curve_folder):
             # Find the results files
             for file in os.listdir(curve_folder):
                 if (file.endswith('.txt') and not file.startswith('rates')):
                     data_file_string = \
                         os.path.join(curve_folder, file)
-                    print(data_file_string)
                     d = pd.read_csv(data_file_string, delimiter='\t')
                     pCa_values[curve_counter-1].append(d['pCa'].iloc[-1])
                     y = formatting['y_scaling_factor'] * \
@@ -1703,24 +1704,22 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
         print('Writing k_tr_analysis data to %s' % output_file_string)
         with pd.ExcelWriter(output_file_string, engine='openpyxl') as writer:
             r.to_excel(writer, sheet_name = 'simulation_data', index=False)
-            # for (i,c) in enumerate(curve_data['curve']):
-            #     c.to_excel(writer,
-            #                 index=False,
-            #                 sheet_name = 'curve_%i' % (i+1))
 
     # Create a figure
     if ('output_image_file' in fig_data):
 
         # Make a figure
         fig = plt.figure(constrained_layout=True)
-        gs = fig.add_gridspec(nrows=2, ncols=2,
+        gs = fig.add_gridspec(nrows=2, ncols=3,
                               wspace = 0.5,
                               hspace=0.5)
-        fig.set_size_inches([7, 5])
+        fig.set_size_inches([8, 5])
         ax_force = fig.add_subplot(gs[0,0])
         ax_hsl = fig.add_subplot(gs[1, 0])
-        ax_k_tr_force = fig.add_subplot(gs[0,1])
-        ax_k_tr_pCa = fig.add_subplot(gs[1,1])
+        ax_k_tr_force_raw = fig.add_subplot(gs[0,1])
+        ax_k_tr_pCa_raw = fig.add_subplot(gs[1,1])
+        ax_k_tr_force_mean = fig.add_subplot(gs[0,2])
+        ax_k_tr_pCa_mean = fig.add_subplot(gs[1,2])
 
         # Cycle through curves
         for (i,c) in enumerate(range(1, curve_counter)):
@@ -1745,35 +1744,59 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                               color = formatting['color_set'][i])
 
             # Now draw the plots
-            r2 = r[r['curve'] == c]
-            ax_k_tr_force.plot(r2['force'], r2['k_tr'],
+            
+            # First all the symbols
+            r2 = copy.copy(r[r['curve'] == c])
+            
+            # Prune k_tr values to amplitudes that seem plausible
+            r2['rel_k_tr_size'] = r2['k_tr_amp'] / r2['force']
+            r2 = r2[(r2['rel_k_tr_size'] < 1) &
+                    (r2['rel_k_tr_size'] > 0.02)]
+            
+            # Plot
+            ax_k_tr_force_raw.plot(r2['force'], r2['k_tr'],
                                formatting['marker_symbols'][i],
                                markerfacecolor = formatting['color_set'][i],
                                markeredgecolor = formatting['color_set'][i],
                                fillstyle = formatting['fill_styles'][i],
-                               markeredgewidth=formatting['marker_edge_width'])
+                               markeredgewidth=formatting['marker_edge_width'],
+                               label = formatting['labels'])
 
-            if formatting['labels'] != []:
-        
-                ax_k_tr_force.plot(r2['force'], r2['k_tr'],
-                    linestyle = formatting['line_styles'][i],
-                    color = formatting['color_set'][i],
-                    label = formatting['labels'][i])
-            else:
-                ax_k_tr_force.plot(r2['force'], r2['k_tr'],
-                    linestyle = formatting['line_styles'][i],
-                    color = formatting['color_set'][i])
-
-            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
+            ax_k_tr_pCa_raw.plot(r2['pCa'], r2['k_tr'],
                                formatting['marker_symbols'][i],
                                markerfacecolor = formatting['color_set'][i],
                                markeredgecolor = formatting['color_set'][i],
                                fillstyle = formatting['fill_styles'][i],
-                               markeredgewidth=formatting['marker_edge_width'])
-            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
-                             linestyle = formatting['line_styles'][i],
-                             color = formatting['color_set'][i])
-        
+                               markeredgewidth=formatting['marker_edge_width'],
+                               label = formatting['labels'])
+
+            # Now by the mean values
+            r3 = r2.groupby('pCa').agg(['mean','sem'])
+            
+            # Plot
+            ax_k_tr_force_mean.errorbar(r3[('force','mean')],
+                                        r3['k_tr','mean'],
+                                        xerr = r3[('force','sem')],
+                                        yerr = r3[('k_tr', 'sem')],
+                                        capsize = formatting['error_bar_capsize'],
+                                        color = formatting['color_set'][i],
+                                        marker = formatting['marker_symbols'][i],
+                                        markerfacecolor = formatting['color_set'][i],
+                                        markeredgecolor = formatting['color_set'][i],
+                                        fillstyle = formatting['fill_styles'][i],
+                                        markeredgewidth=formatting['marker_edge_width'])
+            
+            ax_k_tr_pCa_mean.errorbar(r3['k_tr','mean'].keys(),
+                                      r3['k_tr','mean'],
+                                      yerr = r3[('k_tr', 'sem')],
+                                      capsize = formatting['error_bar_capsize'],
+                                      color = formatting['color_set'][i],
+                                      marker = formatting['marker_symbols'][i],
+                                      markerfacecolor = formatting['color_set'][i],
+                                      markeredgecolor = formatting['color_set'][i],
+                                      fillstyle = formatting['fill_styles'][i],
+                                      markeredgewidth=formatting['marker_edge_width'])
+       
         # Draw some labels
         ax_force.set_ylabel('Force (N m$^{-2}$)')
         ax_force.set_xlabel('Time (s)')
@@ -1781,21 +1804,23 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
         ax_hsl.set_ylabel('Half-sarcomere length (nm)')
         ax_hsl.set_xlabel('Time (s)')
 
-        ax_k_tr_force.set_xlabel('Force (N m$^{-2}$)')
-        ax_k_tr_force.set_ylabel('k_tr (s$^{-1}$)')
-        if ('k_tr_ticks' in fig_data):
-            ax_k_tr_force.set_ylim(fig_data['k_tr_ticks'])
+        for a in [ax_k_tr_force_raw, ax_k_tr_force_mean]:
+            a.set_xlabel('Force (N m$^{-2}$)')
+            a.set_ylabel('k_tr (s$^{-1}$)')
+            if ('k_tr_ticks' in fig_data):
+                a.set_ylim(fig_data['k_tr_ticks'])
 
-        ax_k_tr_pCa.set_xlabel('pCa')
-        ax_k_tr_pCa.invert_xaxis()
-        ax_k_tr_pCa.set_ylabel('k_tr (s$^{-1}$)')
-        if ('k_tr_ticks' in fig_data):
-            ax_k_tr_pCa.set_ylim(fig_data['k_tr_ticks'])
+        for a in [ax_k_tr_pCa_raw, ax_k_tr_pCa_mean]:
+            a.set_xlabel('pCa')
+            a.invert_xaxis()
+            a.set_ylabel('k_tr (s$^{-1}$)')
+            if ('k_tr_ticks' in fig_data):
+                a.set_ylim(fig_data['k_tr_ticks'])
         
         # Add legend on ktr-force curve if required
 
         if formatting['labels'] != []:
-            ax_k_tr_force.legend(loc=formatting['legend_location'], fontsize = formatting['y_label_fontsize']-2)
+            ax_k_tr_force_raw.legend(loc=formatting['legend_location'], fontsize = formatting['y_label_fontsize']-2)
 
         # Save it
         if (fig_data['relative_to'] == 'this_file'):

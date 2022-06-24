@@ -113,12 +113,20 @@ half_sarcomere::half_sarcomere(
     // Set time_seed to 0
     long time_seed = 0;
 
-    // If the rand_jitter option is true, replace the time_seed with a number that depends on the current time
-    if (p_fs_options->rand_jitter == true)
+    // If rand_seed is not empty, set the time_seed based on the string, or to an unpredictable
+    // value based on the system clock
+    if (abs(strcmp(p_fs_options->rand_seed, "")))
     {
-        auto t1 = std::chrono::high_resolution_clock::now();
-        auto t2 = t1 - floor<std::chrono::seconds>(t1);
-        time_seed = (long)std::chrono::duration_cast<std::chrono::microseconds>(t2).count();
+        if (!strcmp(p_fs_options->rand_seed, "random"))
+        {
+            auto t1 = std::chrono::high_resolution_clock::now();
+            auto t2 = t1 - floor<std::chrono::seconds>(t1);
+            time_seed = (long)std::chrono::duration_cast<std::chrono::microseconds>(t2).count();
+        }
+        else
+        {
+            time_seed = std::stol(p_fs_options->rand_seed);
+        }
     }
 
     const gsl_rng_type* T;
