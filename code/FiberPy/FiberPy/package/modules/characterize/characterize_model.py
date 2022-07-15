@@ -452,7 +452,7 @@ def deduce_fv_properties(json_analysis_file_string,
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        anal_struct = json_data['FiberSim_analysis']
+        anal_struct = json_data['FiberSim_characterization']
     
     # Pull off the components
     FiberCpp_exe_struct = anal_struct['FiberCpp_exe']
