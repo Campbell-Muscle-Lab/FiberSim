@@ -126,8 +126,11 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 		// where isotype 1, state 1 stabilizes SRX (modifer_base * 0.5)
 		// and isotype 2, state 2, destabilizes SRX (modifier_base * 2)
 		// 
-		// CURRENTLY, ONLY WORKS FOR ISOTYPES THAT ALL HAVE 2 POSSIBLE STATES
+		// CURRENTLY, ONLY WORKS FOR 1 OR 2 ISOTYPES
 		// GOING FURTHER MIGHT NEED PASSING IN INFORMATION ABOUT THE ENTIRE SCHEME
+
+		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+		int no_of_pc_states = p_model->p_c_scheme[0]->no_of_states;
 
 		double k_base = gsl_vector_get(rate_parameters, 0);
 		double k_force = gsl_vector_get(rate_parameters, 1);
@@ -138,8 +141,8 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 		if (mybpc_state > 0)
 		{
 			// Work out how far to step into the rate_parameters vector
-			int base_index = 2 + ((mybpc_iso - 1) * 4) + ((mybpc_state - 1) * 2);
-			int force_index = 2 + ((mybpc_iso - 1) * 4) + ((mybpc_state - 1) * 2) + 1;
+			int base_index = 2 + ((mybpc_iso - 1) * no_of_pc_states * 2) + ((mybpc_state - 1) * 2);
+			int force_index = 2 + ((mybpc_iso - 1) * no_of_pc_states * 2) + ((mybpc_state - 1) * 2) + 1;
 
 			modifier_base = gsl_vector_get(rate_parameters, base_index);
 			modifier_force = gsl_vector_get(rate_parameters, force_index);
