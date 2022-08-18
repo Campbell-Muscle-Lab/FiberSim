@@ -150,6 +150,8 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 			modifier_force = gsl_vector_get(rate_parameters, force_index);
 		}
 
+		printf("mybpc_state: %i\t\tmodifier_base: %g\t\tmodifier_force: %g\n", mybpc_state, modifier_base, modifier_force);
+
 		rate = k_base * modifier_base * (1.0 + (gsl_max(node_force,0.0) * k_force * modifier_force));
 	}
 

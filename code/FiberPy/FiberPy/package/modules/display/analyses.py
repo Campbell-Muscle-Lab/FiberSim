@@ -30,7 +30,7 @@ def default_formatting():
     formatting['marker_size'] = 8
     formatting['marker_symbols'] = ['o','s','^','v','<','>']
     formatting['fill_styles'] = ['full', 'full', 'full', 'full', 'full', 'full']
-    formatting['line_styles'] = ['-','-','-','-','-','-']
+    formatting['line_styles'] = ['-','--','-.','-','-','-']
     formatting['marker_edge_width'] = 1
     formatting['high_pCa_tick'] = 8.0
     formatting['high_pCa_span'] = 0.2
@@ -140,8 +140,6 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     y = formatting['y_scaling_factor'] * \
                             d[fig_data['data_field']].iloc[-50:-1].mean() # take the mean force over last 50 points
                     y_values[curve_counter-1].append(y)
-                    if (np.amax(y) > max_y):
-                        max_y = np.amax(y)
                     
                     # Store data for subsequent output
                     curve_index.append(curve_counter)
@@ -167,9 +165,19 @@ def create_y_pCa_figure(fig_data, batch_file_string):
             # plot
 
             # Normalized data_field if required
-            if formatting['y_normalized_to_max']:
-                res['y_fit'] = res['y_fit']/max(y_values[curve_counter-1])
-                y_values[curve_counter-1] = [x/max(y_values[curve_counter-1]) for x in y_values[curve_counter-1]]                
+            if ('y_normalized_to_max' in formatting):
+                if (formatting['y_normalized_to_max']):
+                    res['y_fit'] = res['y_fit']/max(y_values[curve_counter-1])
+                    y_values[curve_counter-1] = [x/max(y_values[curve_counter-1]) \
+                                                 for x in y_values[curve_counter-1]]                
+                
+            if ('y_normalized' in formatting):
+                if (formatting['y_normalized']):
+                    min_y = min(y_values[curve_counter-1])
+                    max_y = max(y_values[curve_counter-1])
+                    res['y_fit'] = (res['y_fit'] - min_y) / (max_y - min_y)
+                    y_values[curve_counter-1] = [((x - min_y) / (max_y - min_y)) \
+                                                 for x in y_values[curve_counter-1]]
 
             for a in [ax_left, ax_right]:
                 a.plot(pCa_values[curve_counter-1],
@@ -238,6 +246,12 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                        fontsize=formatting['x_label_fontsize'])
     ax_right.set_xticks(formatting['low_pCa_ticks'])
 
+    # Try to deduce max_y
+    max_y = 0
+    for cc in range(curve_counter-1):
+        y = y_values[cc]
+        if (np.amax(y) > max_y):
+            max_y = np.amax(y)
 
     y_ticks = [0, ut.multiple_greater_than(max_y,
                                            0.05*np.power(10, np.ceil(np.log10(max_y))))]
@@ -529,7 +543,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                        fillstyle=formatting['fill_styles'][c-1],
                         color = formatting['color_set'][c - 1])
             pow_curve = cv.fit_power_curve(rc['hs_force'], rc['hs_power'])
-            ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'], '-',
+            ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c-1])
 
@@ -539,7 +553,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                            fillstyle=formatting['fill_styles'][c-1],
                            color = formatting['color_set'][c-1])
             rel_fv_curve = cv.fit_hyperbola(rc['hs_rel_force'], rc['hs_rel_velocity'])
-            ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'], '-',
+            ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'],
                            color=ax_rel_fv.lines[-1].get_color(),
                            linestyle = formatting['line_styles'][c-1])
 
@@ -549,7 +563,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                             fillstyle=formatting['fill_styles'][c-1],
                             color = formatting['color_set'][c - 1])
             rel_pow_curve = cv.fit_power_curve(rc['hs_rel_force'], rc['hs_rel_power'])
-            ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'], '-',
+            ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c-1])
 
@@ -816,9 +830,12 @@ def create_ktr_figure(fig_data, batch_file_string):
                 # Plot the ktr curve
 
                 if formatting['labels'] != []:
-                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1], label = formatting['labels'][c - 1])
+                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o',
+                                color = formatting['color_set'][c - 1],
+                                label = formatting['labels'][c - 1])
                 else:
-                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
+                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o',
+                                color = formatting['color_set'][c - 1])
 
 
                 ax_ktr.set_xlabel(formatting['x_axis_label'],
@@ -834,7 +851,8 @@ def create_ktr_figure(fig_data, batch_file_string):
             if formatting['x_field'] == "pCa": # plot ktr-pCa curve 
 
                 # Plot the ktr curve
-                ax_ktr.plot(rc['hs_pCa'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
+                ax_ktr.plot(rc['hs_pCa'], rc['hs_ktr'], '--o',
+                            color = formatting['color_set'][c - 1])
                 
                 ax_ktr.set_xlabel('pCa',
                                     fontfamily=formatting['fontname'],
@@ -951,22 +969,43 @@ def superpose_ktr_plots(fig_data, batch_file_string):
         d['force'] = d['force']/1000
 
         if formatting['labels'] != []:        
-            axs[2].plot(x, d['force'], label = formatting['labels'][i], color = formatting['color_set'][i], zorder=len(results_files) - i)
+            axs[2].plot(x, d['force'], label = formatting['labels'][i],
+                        color = formatting['color_set'][i],
+                        zorder=len(results_files) - i)
 
         else:
-            axs[2].plot(x, d['force'], color = formatting['color_set'][i], zorder=len(results_files) - i)
+            axs[2].plot(x, d['force'],
+                        color = formatting['color_set'][i],
+                        zorder=len(results_files) - i)
 
         if formatting['labels'] != []:
             axs[2].legend(loc='upper left', bbox_to_anchor=[0.65, 0.65], fontsize = 11)
 
         # Actin pop
-        axs[3].plot(x, d['a_pop_0'], '--' , color = formatting['color_set'][i], zorder=len(results_files) - i)
-        axs[3].plot(x, d['a_pop_1'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+        keep_going = True
+        counter = 0
+        while (keep_going):
+            pop_string = 'a_pop_%i' % counter
+            if (pop_string in d.columns):
+                axs[3].plot(x, d[pop_string],
+                           linestyle = formatting['line_styles'][counter],
+                           zorder = len(results_files) - i)
+                counter = counter + 1
+            else:
+                keep_going = False
 
-        # Myosin pop
-        axs[4].plot(x, d['m_pop_0'], '--' , color = formatting['color_set'][i], zorder=len(results_files) - i)
-        axs[4].plot(x, d['m_pop_1'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
-        axs[4].plot(x, d['m_pop_2'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+        # Actin pop
+        keep_going = True
+        counter = 0
+        while (keep_going):
+            pop_string = 'm_pop_%i' % counter
+            if (pop_string in d.columns):
+                axs[4].plot(x, d[pop_string],
+                           linestyle = formatting['line_styles'][counter],
+                           zorder = len(results_files) - i)
+                counter = counter + 1
+            else:
+                keep_going = False
 
     # Clean axis
 
@@ -1369,7 +1408,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                              wspace = layout['grid_wspace'],
                              hspace = layout['grid_hspace'])
     fig.set_size_inches([3 * no_of_conditions, 2 * no_of_rows])
-
+    
     ax=[]
 
     # Keep track of max and mins
@@ -1390,6 +1429,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
         # Pull off the data files
         condition_folder = os.path.join(top_data_folder,
                                         ('%i' % (i+1)))
+        
         file_counter = 1
         for file in os.listdir(condition_folder):
             if ((file.endswith('.txt')) and not file.endswith('rates.txt')):
@@ -1409,7 +1449,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                 max_force = np.amax([max_force, np.amax(d['force'])])
 
                 if (file_counter==1):
-                    # Make the plots
+                    # Add in the plots for this condition
                     for j in range(no_of_rows):
                         ax.append(fig.add_subplot(spec[j,i]))
 
@@ -1459,13 +1499,14 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                 m_state_counter = 0
                 while (keep_going):
                     m_pop_string = ('m_pop_%i' % m_state_counter)
-                    if (m_pop_string in d):
+                    if (m_pop_string in d.columns):
                         if (file_counter == 1):
                             label = m_pop_string
                         else:
                             label = None
                         ax[plot_index].plot(d['time'], d[m_pop_string],
                                             '-',
+                                            color = color_map[m_state_counter],
                                             linewidth = formatting['data_linewidth'],
                                             label=label)
                         m_state_counter = m_state_counter + 1
@@ -1473,22 +1514,23 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                         keep_going = False
 
                 plot_index = plot_index + 1
-                if (file_counter==1):
-                    label = 'Unbound'
-                else:
-                    label = None
-                ax[plot_index].plot(d['time'], d['c_pop_0'], '-',
-                                    linewidth = formatting['data_linewidth'],
-                                    color = 'r',
-                                    label=label)
-                if (file_counter==1):
-                    label = 'Bound'
-                else:
-                    label = None
-                ax[plot_index].plot(d['time'], d['c_pop_1'], '-',
-                                    linewidth = formatting['data_linewidth'],
-                                    color = 'g',
-                                    label=label)
+                keep_going = True
+                c_state_counter = 0
+                while (keep_going):
+                    c_pop_string = ('c_pop_%i' % c_state_counter)
+                    if (c_pop_string in d.columns):
+                        if (file_counter == 1):
+                            label = c_pop_string
+                        else:
+                            label = None
+                        ax[plot_index].plot(d['time'], d[c_pop_string],
+                                            '-',
+                                            color = color_map[c_state_counter],
+                                            linewidth = formatting['data_linewidth'],
+                                            label=label)
+                        c_state_counter = c_state_counter + 1
+                    else:
+                        keep_going = False
 
                 # Update counter
                 file_counter = file_counter + 1
