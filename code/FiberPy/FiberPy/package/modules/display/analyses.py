@@ -1656,6 +1656,12 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
     if ('formatting' in fig_data):
         for entry in fig_data['formatting']:
             formatting[entry] = fig_data['formatting'][entry]
+            
+    # And the same for layout
+    layout = default_layout()
+    if ('layout' in fig_data):
+        for entry in fig_data['layout']:
+            layout[entry] = fig_data['layout'][entry]
 
     # Find the data folders
     base_folder = os.path.dirname(batch_file_string)
@@ -1753,8 +1759,8 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
         # Make a figure
         fig = plt.figure(constrained_layout=True)
         gs = fig.add_gridspec(nrows=2, ncols=3,
-                              wspace = 0.5,
-                              hspace=0.5)
+                              wspace = layout['grid_wspace'],
+                              hspace = layout['grid_hspace'])
         fig.set_size_inches([8, 5])
         ax_force = fig.add_subplot(gs[0,0])
         ax_hsl = fig.add_subplot(gs[1, 0])
