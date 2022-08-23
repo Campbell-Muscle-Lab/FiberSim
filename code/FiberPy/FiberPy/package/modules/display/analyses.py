@@ -74,6 +74,8 @@ def default_layout():
     layout['right_margin'] = 0.1
     layout['grid_wspace'] = 0.75
     layout['grid_hspace'] = 0.5
+    layout['k_tr_grid_wspace'] = 0.2
+    layout['k_tr_grid_hspace'] = 0.4
 
     return layout
 
@@ -1686,10 +1688,14 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
     sims = dict()
     sims['raw'] = []
     sims['fit'] = []
+    
+    # And holder for force record
+    max_force = 0
 
     while keep_going:
         curve_folder = os.path.join(top_data_folder,
                                     ('%i' % curve_counter))
+        
         if (os.path.isdir(curve_folder)):
             # Find the results files
             for file in os.listdir(curve_folder):
@@ -1728,6 +1734,10 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
 
                     sims['raw'].append(d)
                     sims['fit'].append(d_fit)
+                    
+                    # Track foce at end of record
+                    if (y[-1] > max_force):
+                        max_force = y[-1]                        
 
             curve_counter = curve_counter + 1
 
@@ -1759,8 +1769,8 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
         # Make a figure
         fig = plt.figure(constrained_layout=True)
         gs = fig.add_gridspec(nrows=2, ncols=3,
-                              wspace = layout['grid_wspace'],
-                              hspace = layout['grid_hspace'])
+                              wspace = layout['k_tr_grid_wspace'],
+                              hspace = layout['k_tr_grid_hspace'])
         fig.set_size_inches([8, 5])
         ax_force = fig.add_subplot(gs[0,0])
         ax_hsl = fig.add_subplot(gs[1, 0])
@@ -1771,6 +1781,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
 
         # Cycle through curves
         for (i,c) in enumerate(range(1, curve_counter)):
+            
             vi = np.flatnonzero(r['curve'].to_numpy() == c)
             # Draw traces
             for v in vi:
@@ -1804,7 +1815,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
             # Plot
             ax_k_tr_force_raw.plot(r2['force'], r2['k_tr'],
                                formatting['marker_symbols'][i],
-                               markerfacecolor = formatting['color_set'][i],
+                               markerfacecolor = 'none',
                                markeredgecolor = formatting['color_set'][i],
                                fillstyle = formatting['fill_styles'][i],
                                markeredgewidth=formatting['marker_edge_width'],
@@ -1812,7 +1823,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
 
             ax_k_tr_pCa_raw.plot(r2['pCa'], r2['k_tr'],
                                formatting['marker_symbols'][i],
-                               markerfacecolor = formatting['color_set'][i],
+                               markerfacecolor = 'none',
                                markeredgecolor = formatting['color_set'][i],
                                fillstyle = formatting['fill_styles'][i],
                                markeredgewidth=formatting['marker_edge_width'],
@@ -1829,7 +1840,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                                         capsize = formatting['error_bar_capsize'],
                                         color = formatting['color_set'][i],
                                         marker = formatting['marker_symbols'][i],
-                                        markerfacecolor = formatting['color_set'][i],
+                                        markerfacecolor = 'none',
                                         markeredgecolor = formatting['color_set'][i],
                                         fillstyle = formatting['fill_styles'][i],
                                         markeredgewidth=formatting['marker_edge_width'])
@@ -1840,7 +1851,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                                       capsize = formatting['error_bar_capsize'],
                                       color = formatting['color_set'][i],
                                       marker = formatting['marker_symbols'][i],
-                                      markerfacecolor = formatting['color_set'][i],
+                                      markerfacecolor = 'none',
                                       markeredgecolor = formatting['color_set'][i],
                                       fillstyle = formatting['fill_styles'][i],
                                       markeredgewidth=formatting['marker_edge_width'])
@@ -1848,7 +1859,10 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
         # Draw some labels
         ax_force.set_ylabel('Force (N m$^{-2}$)')
         ax_force.set_xlabel('Time (s)')
-
+        y_ticks = [0, multiple_greater_than(1.2*max_force, multiple=0.2)]
+        ax_force.set_ylim(y_ticks)
+        ax_force.set_yticks(y_ticks)
+    
         ax_hsl.set_ylabel('Half-sarcomere length (nm)')
         ax_hsl.set_xlabel('Time (s)')
 
@@ -1856,15 +1870,25 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
             a.set_xlabel('Force (N m$^{-2}$)')
             a.set_ylabel('k_tr (s$^{-1}$)')
             if ('k_tr_ticks' in fig_data):
-                a.set_ylim(fig_data['k_tr_ticks'])
+                y_ticks = fig_data['k_tr_ticks']
+            else:
+                y_lim = a.get_ylim()
+                y_ticks = [0, multiple_greater_than(1.2*y_lim[-1], 0.1)]
+            a.set_yticks(y_ticks)
+            a.set_ylim(y_ticks)
 
         for a in [ax_k_tr_pCa_raw, ax_k_tr_pCa_mean]:
             a.set_xlabel('pCa')
             a.invert_xaxis()
             a.set_ylabel('k_tr (s$^{-1}$)')
             if ('k_tr_ticks' in fig_data):
-                a.set_ylim(fig_data['k_tr_ticks'])
-        
+                y_ticks = fig_data['k_tr_ticks']
+            else:
+                y_lim = a.get_ylim()
+                y_ticks = [0, multiple_greater_than(1.2*y_lim[-1], 0.1)]
+            a.set_yticks(y_ticks)
+            a.set_ylim(y_ticks)        
+
         # Add legend on ktr-force curve if required
 
         if formatting['labels'] != []:
@@ -1887,3 +1911,15 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
             fig.savefig(ofs, dpi=200, bbox_inches='tight')
 
     plt.close()
+    
+def multiple_greater_than(v, multiple=0.1):
+    if (v > 0):
+        n = np.floor(np.log10(v))
+        m = multiple*np.power(10, n)
+        v = m*np.ceil(v/m)
+    if (v < 0):
+        n = np.floor(np.log10(-v))
+        m = multiple*np.power(10, n)
+        v = m*np.ceil(v/m)
+
+    return v

@@ -9,6 +9,8 @@ import json
 import shutil
 import copy
 
+from natsort import natsorted
+
 import numpy as np
 import pandas as pd
 
@@ -116,7 +118,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
             shutil.rmtree(base_dir, ignore_errors=True)
         except OSError as e:
             print("Error: %s : %s" % (base_dir, e.strerror))
- 
+    
     # Set up dir_counter
     dir_counter = 0
     
@@ -128,7 +130,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
             
             # Update dir_counter
             dir_counter = dir_counter + 1
-        
+            
             # Create the input and output directories           
             sim_input_dir = os.path.join(base_dir,
                                          'sim_input',
@@ -137,8 +139,8 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                 os.makedirs(sim_input_dir)
                 
             sim_output_dir = os.path.join(base_dir,
-                                         'sim_output',
-                                         ('%i' % dir_counter))
+                                          'sim_output',
+                                          ('%i' % dir_counter))
             if not os.path.isdir(sim_output_dir):
                 os.makedirs(sim_output_dir)
                
@@ -314,6 +316,9 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     
     # Deduce the output dir
     output_dir = str(Path(sim_output_dir).parent)
+    
+    # Create a dict for functino return values
+    func_output = dict()
 
     # pCa curves
     batch_figs['pCa_curves'] = []
@@ -333,6 +338,8 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
         fig['formatting'] = dict()
         fig['formatting']['y_axis_label'] = 'Force (N m$^{\\mathregular{-2}}$)'
     batch_figs['pCa_curves'].append(fig)
+
+    func_output['pCa_analysis_file_string'] = fig['output_data_file_string']
 
     # pCa curves - NORMALIZED
     fig = dict()
@@ -404,13 +411,19 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     # Write the batch to file
     base_dir = str(Path(output_dir).parent)
     pCa_lc_batch_file = os.path.join(base_dir,
-                                     'batch_isometric.json')
+                                     'batch_pCa.json')
     print(pCa_lc_batch_file)
     with open(pCa_lc_batch_file, 'w') as f:
         json.dump(pCa_lc_batch, f, indent=4)
         
     # Now run the isometric batch
     batch.run_batch(pCa_lc_batch_file, figures_only=figures_only)
+    
+    # Add the batch to the output
+    func_output['sim_batch'] = pCa_lc_batch    
+    
+    # Return the output
+    return func_output
     
 
 def deduce_fv_properties(json_analysis_file_string,
@@ -480,139 +493,176 @@ def deduce_fv_properties(json_analysis_file_string,
             shutil.rmtree(base_dir, ignore_errors=True)
         except OSError as e:
             print("Error: %s : %s" % (base_dir, e.strerror))
-    
-    # Set up dir_counter
-    dir_counter = 0
-
-    # Loop through the model files
-    for i, mod_f in enumerate(model_struct['model_files']):
+           
+    if (fv_struct['pCa'] == 'pCa50'):
+        # Run a force-pCa curve and deduce pCa50 by repurposing the
+        # deduce_pCa_length_control_properties function
         
-        # Now loop through the half-sarcomere lengths
-        for j, hsl in enumerate(hs_lengths):
-            
-            # Update dir counter
-            dir_counter = dir_counter + 1
-
-            # Create the input and output directories
-            sim_input_dir = os.path.join(base_dir,
-                                         'isometric',
-                                         'sim_input',
-                                         ('%i' % dir_counter))
-            if not os.path.isdir(sim_input_dir):
-                os.makedirs(sim_input_dir)
-                
-            sim_output_dir = os.path.join(base_dir,
-                                         'isometric',
-                                         'sim_output',
-                                         ('%i' % dir_counter))
-            if not os.path.isdir(sim_output_dir):
-                os.makedirs(sim_output_dir)
-            
-            # Copy the model and options files to the sim_input dir
-            if (model_struct['relative_to'] == 'this_file'):
-                model_dir = Path(json_analysis_file_string).parent.absolute()
-                orig_model_file = os.path.join(model_dir, mod_f)
-            else:
-                orig_model_file = mod_f
-                
-            # Adjust hsl by loading model, adjusting hsl and re-writing
-            with open(orig_model_file, 'r') as f:
-                m = json.load(f)
-                m['muscle']['initial_hs_length'] = float(hsl)
-                
-                # Over-ride m_n if appropriate
-                if ('m_n' in fv_struct):
-                    m['thick_structure']['m_n'] = fv_struct['m_n']
-            
-            fn = orig_model_file.split('/')[-1]
-            iso_model_file = os.path.join(sim_input_dir, fn)
-            
-            with open(iso_model_file, 'w') as f:
-                json.dump(m, f, indent=4)
-                    
-            # Copy the base options file
-            orig_options_file = os.path.join(base_dir,
-                                             model_struct['options_file'])
-            fn = orig_options_file.split(os.sep)[-1]
-            iso_options_file = os.path.join(sim_input_dir, fn)
-            shutil.copyfile(orig_options_file, iso_options_file)
+        # Adjust the output directory
+        pCa_struct = copy.deepcopy(fv_struct)
+        pCa_struct['sim_folder'] = os.path.join(base_dir,
+                                                'pCa_curves')
+         
+        pCa_output = deduce_pCa_length_control_properties(
+                        json_analysis_file_string,
+                        pCa_struct = pCa_struct)
         
-            # Create a length control protocol and write it to file
-            df = prot.create_length_control_protocol(
-                                    time_step = fv_struct['time_step_s'],
-                                    step_pCa = fv_struct['pCa'],
-                                    n_points = int(fv_struct['sim_duration_s'] /
-                                                        fv_struct['time_step_s']))
-            prot_file_string = os.path.join(sim_input_dir,
-                                            'prot_iso_pCa_%.0f.txt' % (10 * fv_struct['pCa']))
-            prot.write_protocol_to_file(df, prot_file_string);
-     
-            # Now create a job
-            j = dict()
-            j['relative_to'] = 'False'
-            j['protocol_file'] = prot_file_string
-            j['results_file'] = os.path.join(sim_output_dir,
-                                             'sim_pCa_%.0f.txt' % (10 * fv_struct['pCa']))
-            j['model_file'] = iso_model_file
-            j['options_file'] = iso_options_file
-    
-            # If required, create an output_handler and add it to
-            # the job
-            if (trace_figures_on == True):
-                print('Need to fix paths for trace figures')
-                exit(1)
-                # Create the structure for the output handler
-                oh = dict()
-                oh['templated_images'] = []
-                tf = dict()
-                tf['relative_to'] = 'this_file'
-                tf['template_file_string'] = os.path.join(
-                                                '..',
-                                                base_dir,
-                                                'template',
-                                                'template_summary.json')
-                tf['output_file_string'] = os.path.join(
-                                                base_dir, fv_struct['sim_folder'],
-                                                'isometric', 'sim_output',
-                                                ('%i' % dir_counter),
-                                                'sim_pCa_%.0f' % (10 * fv_struct['pCa']))
-                tf['output_image_formats'] = fv_struct['output_image_formats']
-                oh['templated_images'].append(tf)
-                    
-                # Now add it to the job, and write it to file
-                j['output_handler_file'] = os.path.join(
-                                            sim_input_dir,
-                                            'output_handler_iso_pCa_%.0f.json' %
-                                                (10 * fv_struct['pCa']))
-                
-                with open(j['output_handler_file'], 'w') as f:
-                    json.dump(oh, f, indent=4)
-                    
-            # Delete any existing files in output if running simulations
-            if not figures_only:
-                try:
-                    print('Trying to remove %s' % sim_output_dir)
-                    shutil.rmtree(sim_output_dir, ignore_errors=True)
-                except OSError as e:
-                    print("Error: %s : %s" % (sim_output_dir, e.strerror))
-
-            isometric_b['job'].append(j)
-
-    # Now insert iso_b into a full batch structure
-    isometric_batch = dict()
-    isometric_batch['FiberSim_batch'] = isometric_b    
-    
-    # Set the batch_output_dir
-    batch_output_dir = str(Path(sim_output_dir).parent)
-
-    # Write the batch file
-    isometric_batch_file = os.path.join(batch_output_dir,
-                                        'batch_isometric.json')
-    with open(isometric_batch_file, 'w') as f:
-        json.dump(isometric_batch, f, indent=4)
+        # Now pull off the pCa_values
+        # First get the sheet names
+        fi = pd.ExcelFile(pCa_output['pCa_analysis_file_string'])
+        excel_sheets = fi.sheet_names
+        # Restrict to curves and sort
+        excel_sheets.remove('simulation_data')
+        excel_sheets = natsorted(excel_sheets)
         
-    # Now run the isometric batch
-    batch.run_batch(isometric_batch_file, figures_only=figures_only)
+        pCa_50_values = np.NaN * np.ones(len(excel_sheets))
+        max_force_values = np.NaN * np.ones(len(excel_sheets))
+        
+        for i,c in enumerate(excel_sheets):
+            d = pd.read_excel(pCa_output['pCa_analysis_file_string'],
+                              sheet_name = c)
+            pCa_50_values[i] = d['pCa_50'][0]
+            
+        # Set the isometric jobs
+        isometric_jobs = pCa_output['sim_batch']['FiberSim_batch']['job']    
+        
+    else:
+        # Run an isometric simulation for the specified pCa value
+        # Set up dir_counter
+        dir_counter = 0
+        
+        # Loop through the model files
+        for i, mod_f in enumerate(model_struct['model_files']):
+            
+            # Now loop through the half-sarcomere lengths
+            for j, hsl in enumerate(hs_lengths):
+                
+                # Update dir counter
+                dir_counter = dir_counter + 1
+    
+                # Create the input and output directories
+                sim_input_dir = os.path.join(base_dir,
+                                             'isometric',
+                                             'sim_input',
+                                             ('%i' % dir_counter))
+                if not os.path.isdir(sim_input_dir):
+                    os.makedirs(sim_input_dir)
+                    
+                sim_output_dir = os.path.join(base_dir,
+                                             'isometric',
+                                             'sim_output',
+                                             ('%i' % dir_counter))
+                if not os.path.isdir(sim_output_dir):
+                    os.makedirs(sim_output_dir)
+                
+                # Copy the model and options files to the sim_input dir
+                if (model_struct['relative_to'] == 'this_file'):
+                    model_dir = Path(json_analysis_file_string).parent.absolute()
+                    orig_model_file = os.path.join(model_dir, mod_f)
+                else:
+                    orig_model_file = mod_f
+                    
+                # Adjust hsl by loading model, adjusting hsl and re-writing
+                with open(orig_model_file, 'r') as f:
+                    m = json.load(f)
+                    m['muscle']['initial_hs_length'] = float(hsl)
+                    
+                    # Over-ride m_n if appropriate
+                    if ('m_n' in fv_struct):
+                        m['thick_structure']['m_n'] = fv_struct['m_n']
+                
+                fn = orig_model_file.split('/')[-1]
+                iso_model_file = os.path.join(sim_input_dir, fn)
+                
+                with open(iso_model_file, 'w') as f:
+                    json.dump(m, f, indent=4)
+                        
+                # Copy the base options file
+                orig_options_file = os.path.join(base_dir,
+                                                 model_struct['options_file'])
+                fn = orig_options_file.split(os.sep)[-1]
+                iso_options_file = os.path.join(sim_input_dir, fn)
+                shutil.copyfile(orig_options_file, iso_options_file)
+            
+                # Create a length control protocol and write it to file
+                df = prot.create_length_control_protocol(
+                                        time_step = fv_struct['time_step_s'],
+                                        step_pCa = fv_struct['pCa'],
+                                        n_points = int(fv_struct['sim_duration_s'] /
+                                                            fv_struct['time_step_s']))
+                prot_file_string = os.path.join(sim_input_dir,
+                                                'prot_iso_pCa_%.0f.txt' % (10 * fv_struct['pCa']))
+                prot.write_protocol_to_file(df, prot_file_string);
+         
+                # Now create a job
+                j = dict()
+                j['relative_to'] = 'False'
+                j['protocol_file'] = prot_file_string
+                j['results_file'] = os.path.join(sim_output_dir,
+                                                 'sim_pCa_%.0f.txt' % (10 * fv_struct['pCa']))
+                j['model_file'] = iso_model_file
+                j['options_file'] = iso_options_file
+        
+                # If required, create an output_handler and add it to
+                # the job
+                if (trace_figures_on == True):
+                    print('Need to fix paths for trace figures')
+                    exit(1)
+                    # Create the structure for the output handler
+                    oh = dict()
+                    oh['templated_images'] = []
+                    tf = dict()
+                    tf['relative_to'] = 'this_file'
+                    tf['template_file_string'] = os.path.join(
+                                                    '..',
+                                                    base_dir,
+                                                    'template',
+                                                    'template_summary.json')
+                    tf['output_file_string'] = os.path.join(
+                                                    base_dir, fv_struct['sim_folder'],
+                                                    'isometric', 'sim_output',
+                                                    ('%i' % dir_counter),
+                                                    'sim_pCa_%.0f' % (10 * fv_struct['pCa']))
+                    tf['output_image_formats'] = fv_struct['output_image_formats']
+                    oh['templated_images'].append(tf)
+                        
+                    # Now add it to the job, and write it to file
+                    j['output_handler_file'] = os.path.join(
+                                                sim_input_dir,
+                                                'output_handler_iso_pCa_%.0f.json' %
+                                                    (10 * fv_struct['pCa']))
+                    
+                    with open(j['output_handler_file'], 'w') as f:
+                        json.dump(oh, f, indent=4)
+                        
+                # Delete any existing files in output if running simulations
+                if not figures_only:
+                    try:
+                        print('Trying to remove %s' % sim_output_dir)
+                        shutil.rmtree(sim_output_dir, ignore_errors=True)
+                    except OSError as e:
+                        print("Error: %s : %s" % (sim_output_dir, e.strerror))
+    
+                isometric_b['job'].append(j)
+    
+            # Now insert iso_b into a full batch structure
+            isometric_batch = dict()
+            isometric_batch['FiberSim_batch'] = isometric_b    
+            
+            # Set the batch_output_dir
+            batch_output_dir = str(Path(sim_output_dir).parent)
+        
+            # Write the batch file
+            isometric_batch_file = os.path.join(batch_output_dir,
+                                                'batch_isometric.json')
+            with open(isometric_batch_file, 'w') as f:
+                json.dump(isometric_batch, f, indent=4)
+                
+            # Now run the isometric batch
+            batch.run_batch(isometric_batch_file, figures_only=figures_only)
+            
+            # Save the isometric jobs
+            isometric_jobs = isometric_batch['FiberSim_batch']['job']
 
     # Switch to isotonic stuff
     # First create the isotonic batch dict
@@ -626,155 +676,163 @@ def deduce_fv_properties(json_analysis_file_string,
     # Set up the dir counter
     dir_counter = 0
     
-    for (i,r) in enumerate(isometric_batch['FiberSim_batch']['job']):
-
-        # Update dir_counter
-        dir_counter = dir_counter + 1
-
-        # Pull off the isometric force for the preceding job
-        sim_data = pd.read_csv(r['results_file'], sep='\t')
-        isometric_force = sim_data['force'].iloc[-50:-1].mean() # take the mean force over last 50 points
-
-        # Create folders for the isotonic sim_input and sim_output
-        sim_input_dir = os.path.join(base_dir,
-                                     'isotonic',
-                                     'sim_input',
-                                     ('%i' % dir_counter))
-        if not os.path.isdir(sim_input_dir):
-            os.makedirs(sim_input_dir)
-            
-        sim_output_dir = os.path.join(base_dir,
-                                      'isotonic',
-                                      'sim_output',
-                                      ('%i' % dir_counter))
-        if not os.path.isdir(sim_output_dir):
-            os.makedirs(sim_output_dir)
-   
-        # Copy the model file to the sim_input dir        
-        orig_model_file = r['model_file']
-        fn = orig_model_file.split('\\')[-1]
-        isotonic_model_file = os.path.join(sim_input_dir, fn)
-        shutil.copyfile(orig_model_file, isotonic_model_file)
+    # Loop through the model files
+    for i, mod_f in enumerate(model_struct['model_files']):
         
-        # Load the options
-        orig_options_file = r['options_file']
-        with open(orig_options_file, 'r') as f:
-            orig_options_data = json.load(f)
-        
-        # Adjust the options struct if we have randomized repeats
-        if ('randomized_repeats' in fv_struct):
-            rand_repeats = fv_struct['randomized_repeats']
-            orig_options_data['options']['rand_seed'] = "random"
-        else:
-            rand_repeats = 1
+        # Now loop through the half-sarcomere lengths
+        for j, hsl in enumerate(hs_lengths):
 
-        # Loop through the isotonic forces
-        for (k, rel_f) in enumerate(fv_struct['rel_isotonic_forces']):
-
-            # Loop through the rand repeats
-            for rep in range(rand_repeats):
-                
-                # Copy the orig_options for local changes within the rep
-                rep_options_data = copy.deepcopy(orig_options_data)
-                
-                # Update the options file to dump to a local directory
-                if ('status_files' in rep_options_data['options']):
-                    rep_options_data['options']['status_files']['status_folder'] = \
-                        os.path.join(sim_output_dir,
-                                      ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
-                                                      (k+1), (rep+1))))
-                
-                # If it is the first force and and the first repeat, update
-                # the options to dump rates
-                if ((k==0) and (rep==0)):
-                    rep_options_data['options']['rate_files'] = dict()
-                    rep_options_data['options']['rate_files']['relative_to'] = \
-                        'false'
-                    rep_options_data['options']['rate_files']['file'] = \
-                        os.path.join(sim_output_dir,
-                                     'rates.txt')
-                
-                # Create the new options file
-                options_file = os.path.join(sim_input_dir,
-                                            ('sim_options_%i_r%i.json' % ((k+1), (rep+1))))
-                
-                with open(options_file, 'w') as f:
-                    json.dump(rep_options_data, f, indent=4)
+            # Update dir_counter
+            dir_counter = dir_counter + 1
             
-                j = dict()
-                j['relative_to'] = 'False'
-                j['model_file'] = isotonic_model_file
-                j['options_file'] = options_file
-                prot_file_string = os.path.join(sim_input_dir,
-                                          ('prot_%i.txt' % (k+1)))
-                df = prot.create_force_control_protocol(
-                                        time_step = fv_struct['time_step_s'],
-                                        step_pCa = fv_struct['pCa'],
-                                        n_points = int(fv_struct['sim_duration_s'] /
-                                                            fv_struct['time_step_s']),
-                                        iso_start_s = fv_struct['sim_release_s'],
-                                        iso_f = rel_f * isometric_force)
-                prot.write_protocol_to_file(df, prot_file_string);
-                j['protocol_file'] = prot_file_string
-                j['results_file'] = os.path.join(sim_output_dir,
-                                                  ('sim_%i_r%i.txt' % ((k+1), (rep+1))))
+            if (fv_struct['pCa'] == 'pCa50'):
+                isometric_force = max_force_values[dir_counter - 1]
+                isometric_job_index = (i+j) * len(fv_struct['pCa_values'])
+            else:
+                # Pull off the isoric force for the preceding job
+                isometric_job_index = dir_counter - 1
+                results_file_string = isometric_jobs[isometric_job_index]['results_file']
+                sim_data = pd.read_csv(results_file_string, sep='\t')
+                 # take the mean force over last 50 points
+                isometric_force = sim_data['force'].iloc[-50:-1].mean()
     
-                # If required, create an output_handler and add it to
-                # the job
-                if (trace_figures_on == True):
-                    print('Need to fix paths for trace figures')
-                    exit(1)
-                      # Create the structure for the output handler
-                    oh = dict()
-                    oh['templated_images'] = []
-                    tf = dict()
-                    tf['relative_to'] = 'this_file'
-                    tf['template_file_string'] = os.path.join(
-                                                    '..',
-                                                    base_dir,
-                                                    'template',
-                                                    'template_summary.json')
-                    tf['output_file_string'] = os.path.join(
-                                                    base_dir, fv_struct['sim_folder'],
-                                                    'isotonic', 'sim_output',
-                                                    ('%i' % (i+1)),
-                                                    ('sim_%i_r%i' % ((k+1), (rep+1))))
-                    tf['output_image_formats'] = fv_struct['output_image_formats']
-                    oh['templated_images'].append(tf)
+            # Create folders for the isotonic sim_input and sim_output
+            sim_input_dir = os.path.join(base_dir,
+                                         'isotonic',
+                                         'sim_input',
+                                         ('%i' % dir_counter))
+            if not os.path.isdir(sim_input_dir):
+                os.makedirs(sim_input_dir)
                 
-                    # Now add it to the job, and write it to file
-                    j['output_handler_file'] = os.path.join(
-                                                base_dir, fv_struct['sim_folder'],
-                                                'isotonic', 'sim_input',
-                                                ('%i' % (i+1)),
-                                                ('output_handler_sim_%i_r%i.json' %
-                                                      ((k+1), (rep+1))))
+            sim_output_dir = os.path.join(base_dir,
+                                          'isotonic',
+                                          'sim_output',
+                                          ('%i' % dir_counter))
+            if not os.path.isdir(sim_output_dir):
+                os.makedirs(sim_output_dir)
+       
+            # Copy the model file to the sim_input dir
+            orig_model_file = isometric_jobs[isometric_job_index]['model_file']
+            fn = orig_model_file.split('\\')[-1]
+            isotonic_model_file = os.path.join(sim_input_dir, fn)
+            shutil.copyfile(orig_model_file, isotonic_model_file)
+            
+            # Load the options
+            orig_options_file = isometric_jobs[isometric_job_index]['options_file']
+            with open(orig_options_file, 'r') as f:
+                orig_options_data = json.load(f)
+            
+            # Adjust the options struct if we have randomized repeats
+            if ('randomized_repeats' in fv_struct):
+                rand_repeats = fv_struct['randomized_repeats']
+                orig_options_data['options']['rand_seed'] = "random"
+            else:
+                rand_repeats = 1
+    
+            # Loop through the isotonic forces
+            for (k, rel_f) in enumerate(fv_struct['rel_isotonic_forces']):
+    
+                # Loop through the rand repeats
+                for rep in range(rand_repeats):
+                    
+                    # Copy the orig_options for local changes within the rep
+                    rep_options_data = copy.deepcopy(orig_options_data)
+                    
+                    # Update the options file to dump to a local directory
+                    if ('status_files' in rep_options_data['options']):
+                        rep_options_data['options']['status_files']['status_folder'] = \
+                            os.path.join(sim_output_dir,
+                                          ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
+                                                          (k+1), (rep+1))))
+                    
+                    # If it is the first force and and the first repeat, update
+                    # the options to dump rates
+                    if ((k==0) and (rep==0)):
+                        rep_options_data['options']['rate_files'] = dict()
+                        rep_options_data['options']['rate_files']['relative_to'] = \
+                            'false'
+                        rep_options_data['options']['rate_files']['file'] = \
+                            os.path.join(sim_output_dir,
+                                         'rates.txt')
+                    
+                    # Create the new options file
+                    options_file = os.path.join(sim_input_dir,
+                                                ('sim_options_%i_r%i.json' % ((k+1), (rep+1))))
+                    
+                    with open(options_file, 'w') as f:
+                        json.dump(rep_options_data, f, indent=4)
                 
-                    with open(j['output_handler_file'], 'w') as f:
-                        json.dump(oh, f, indent=4)      
+                    j = dict()
+                    j['relative_to'] = 'False'
+                    j['model_file'] = isotonic_model_file
+                    j['options_file'] = options_file
+                    prot_file_string = os.path.join(sim_input_dir,
+                                              ('prot_%i.txt' % (k+1)))
+                    
+                    if (fv_struct['pCa'] == 'pCa50'):
+                        test_pCa = pCa_50_values[dir_counter-1]
+                    else:
+                        test_pCa = fv_struct['pCa']
+                    
+                    df = prot.create_force_control_protocol(
+                                            time_step = fv_struct['time_step_s'],
+                                            step_pCa = test_pCa,
+                                            n_points = int(fv_struct['sim_duration_s'] /
+                                                                fv_struct['time_step_s']),
+                                            iso_start_s = fv_struct['sim_release_s'],
+                                            iso_f = rel_f * isometric_force)
+                    prot.write_protocol_to_file(df, prot_file_string);
+                    j['protocol_file'] = prot_file_string
+                    j['results_file'] = os.path.join(sim_output_dir,
+                                                      ('sim_%i_r%i.txt' % ((k+1), (rep+1))))
         
-                isotonic_b['job'].append(j)
-
-            # Delete any existing files in output if running simulations
-            if not figures_only:
-                try:
-                    print('Trying to remove %s' % sim_output_dir)
-                    shutil.rmtree(sim_output_dir, ignore_errors=True)
-                except OSError as e:
-                    print("Error: %s : %s" % (sim_output_dir, e.strerror))
+                    # If required, create an output_handler and add it to
+                    # the job
+                    if (trace_figures_on == True):
+                        print('Need to fix paths for trace figures')
+                        exit(1)
+                          # Create the structure for the output handler
+                        oh = dict()
+                        oh['templated_images'] = []
+                        tf = dict()
+                        tf['relative_to'] = 'this_file'
+                        tf['template_file_string'] = os.path.join(
+                                                        '..',
+                                                        base_dir,
+                                                        'template',
+                                                        'template_summary.json')
+                        tf['output_file_string'] = os.path.join(
+                                                        base_dir, fv_struct['sim_folder'],
+                                                        'isotonic', 'sim_output',
+                                                        ('%i' % (i+1)),
+                                                        ('sim_%i_r%i' % ((k+1), (rep+1))))
+                        tf['output_image_formats'] = fv_struct['output_image_formats']
+                        oh['templated_images'].append(tf)
+                    
+                        # Now add it to the job, and write it to file
+                        j['output_handler_file'] = os.path.join(
+                                                    base_dir, fv_struct['sim_folder'],
+                                                    'isotonic', 'sim_input',
+                                                    ('%i' % (i+1)),
+                                                    ('output_handler_sim_%i_r%i.json' %
+                                                          ((k+1), (rep+1))))
+                    
+                        with open(j['output_handler_file'], 'w') as f:
+                            json.dump(oh, f, indent=4)      
+            
+                    isotonic_b['job'].append(j)
 
 
     # Now create the batch analysis section
     batch_figs = dict()
     
     # Create the folders for the analysis
-    results_dir = str(Path(sim_output_dir).parent)
-    batch_output_dir = str(Path(results_dir).parent)
+    batch_output_dir = str(Path(sim_output_dir).parent)
     
     batch_figs['force_velocity'] = []
     fig = dict()
     fig['relative_to'] = "false"
-    fig['results_folder'] = results_dir
+    fig['results_folder'] = batch_output_dir
     fig['time_release_s'] = fv_struct['sim_release_s']
     fig['fit_time_interval_s'] = fv_struct['fit_time_s']
 
@@ -799,7 +857,7 @@ def deduce_fv_properties(json_analysis_file_string,
     batch_figs['rates'] = []
     fig = dict()
     fig['relative_to'] = "False"
-    fig['results_folder'] = results_dir
+    fig['results_folder'] = batch_output_dir
     fig['output_image_file'] = os.path.join(batch_output_dir,
                                             'rates')
     fig['output_image_formats'] = fv_struct['output_image_formats']
@@ -813,7 +871,7 @@ def deduce_fv_properties(json_analysis_file_string,
     batch_figs['superposed_traces'] = []
     fig = dict()
     fig['relative_to'] = "False"
-    fig['results_folder'] = results_dir
+    fig['results_folder'] = batch_output_dir
     fig['output_image_file'] = os.path.join(batch_output_dir,
                                             'superposed_traces')
     fig['output_image_formats'] = fv_struct['output_image_formats']
