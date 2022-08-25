@@ -1436,19 +1436,23 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
         for file in os.listdir(condition_folder):
             if ((file.endswith('.txt')) and not file.endswith('rates.txt')):
                 fs = os.path.join(condition_folder, file)
-                d = pd.read_csv(fs, sep='\t')
+                d = pd.read_csv(fs, sep='\t', na_values = "-nan(ind)")
+                
+                # Replace infinities with nan
+                d.replace([np.inf, -np.inf], np.nan, inplace=True)
 
                 # Keep track of max and mins
                 if ((i==0) and (file_counter==1)):
-                    min_hsl = d['hs_length'].min()
-                    max_hsl = d['hs_length'].max()
-                    min_force = d['force'].min()
-                    max_force = d['force'].max()
-                # Other files
-                min_hsl = np.amin([min_hsl, np.amin(d['hs_length'])])
-                max_hsl = np.amax([max_hsl, np.amax(d['hs_length'])])
-                min_force = np.amin([min_force, np.amin(d['force'])])
-                max_force = np.amax([max_force, np.amax(d['force'])])
+                    min_hsl = d['hs_length'].dropna().min()
+                    max_hsl = d['hs_length'].dropna().max()
+                    min_force = d['force'].dropna().min()
+                    max_force = d['force'].dropna().max()
+                else:
+                    # Other files
+                    min_hsl = np.amin([min_hsl, np.nanmin(d['hs_length'])])
+                    max_hsl = np.amax([max_hsl, np.nanmax(d['hs_length'])])
+                    min_force = np.amin([min_force, np.nanmin(d['force'])])
+                    max_force = np.amax([max_force, np.nanmax(d['force'])])
 
                 if (file_counter==1):
                     # Add in the plots for this condition

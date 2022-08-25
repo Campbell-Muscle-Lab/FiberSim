@@ -465,8 +465,6 @@ def deduce_fv_properties(json_analysis_file_string,
             os.path.join(base_dir, FiberCpp_exe_struct['exe_file'])
     isometric_b['FiberCpp_exe'] = FiberCpp_exe_struct
 
-    isometric_b['job'] = []
-    
     # Check for half-sarcomere lengths in the fv_struct
     # If none are specified, create an hsl array from the model file
     if ('hs_lengths' in fv_struct):
@@ -494,7 +492,7 @@ def deduce_fv_properties(json_analysis_file_string,
         except OSError as e:
             print("Error: %s : %s" % (base_dir, e.strerror))
            
-    if (fv_struct['pCa'] == 'pCa50'):
+    if (fv_struct['pCa'] == 'pCa_50'):
         # Run a force-pCa curve and deduce pCa50 by repurposing the
         # deduce_pCa_length_control_properties function
         
@@ -515,19 +513,33 @@ def deduce_fv_properties(json_analysis_file_string,
         excel_sheets.remove('simulation_data')
         excel_sheets = natsorted(excel_sheets)
         
-        pCa_50_values = np.NaN * np.ones(len(excel_sheets))
-        max_force_values = np.NaN * np.ones(len(excel_sheets))
+        force_pCa_fit = []
         
         for i,c in enumerate(excel_sheets):
             d = pd.read_excel(pCa_output['pCa_analysis_file_string'],
                               sheet_name = c)
-            pCa_50_values[i] = d['pCa_50'][0]
+            
+            c_fit = dict()
+            c_fit['pCa_50'] = d['pCa_50'][0]
+            c_fit['n_H'] = d['n_H'][0]                
+            c_fit['y_min'] = d['y_min'][0]
+            c_fit['y_max'] = d['y_max'][0]
+            
+            # Calculate force at pCa50
+            c_fit['f_at_pCa_50'] = c_fit['y_min'] + \
+                0.5 * (c_fit['y_max'] - c_fit['y_min'])
+            
+            force_pCa_fit.append(c_fit)
             
         # Set the isometric jobs
-        isometric_jobs = pCa_output['sim_batch']['FiberSim_batch']['job']    
+        isometric_jobs = pCa_output['sim_batch']['FiberSim_batch']['job']
         
     else:
         # Run an isometric simulation for the specified pCa value
+        
+        # Create an entry for the jobs
+        isometric_b['job'] = []
+            
         # Set up dir_counter
         dir_counter = 0
         
@@ -685,9 +697,12 @@ def deduce_fv_properties(json_analysis_file_string,
             # Update dir_counter
             dir_counter = dir_counter + 1
             
-            if (fv_struct['pCa'] == 'pCa50'):
-                isometric_force = max_force_values[dir_counter - 1]
+            if (fv_struct['pCa'] == "pCa_50"):
+                # Deduce data from the curve fit
+                c_fit = force_pCa_fit[i]
+                isometric_force = c_fit['f_at_pCa_50']
                 isometric_job_index = (i+j) * len(fv_struct['pCa_values'])
+
             else:
                 # Pull off the isoric force for the preceding job
                 isometric_job_index = dir_counter - 1
@@ -713,6 +728,7 @@ def deduce_fv_properties(json_analysis_file_string,
        
             # Copy the model file to the sim_input dir
             orig_model_file = isometric_jobs[isometric_job_index]['model_file']
+            
             fn = orig_model_file.split('\\')[-1]
             isotonic_model_file = os.path.join(sim_input_dir, fn)
             shutil.copyfile(orig_model_file, isotonic_model_file)
@@ -754,6 +770,10 @@ def deduce_fv_properties(json_analysis_file_string,
                         rep_options_data['options']['rate_files']['file'] = \
                             os.path.join(sim_output_dir,
                                          'rates.txt')
+                    else:
+                        # Clear any existing rate options
+                        if ('rate_files' in rep_options_data['options']):
+                            del rep_options_data['options']['rate_files']
                     
                     # Create the new options file
                     options_file = os.path.join(sim_input_dir,
@@ -769,8 +789,8 @@ def deduce_fv_properties(json_analysis_file_string,
                     prot_file_string = os.path.join(sim_input_dir,
                                               ('prot_%i.txt' % (k+1)))
                     
-                    if (fv_struct['pCa'] == 'pCa50'):
-                        test_pCa = pCa_50_values[dir_counter-1]
+                    if (fv_struct['pCa'] == 'pCa_50'):
+                        test_pCa = c_fit['pCa_50']
                     else:
                         test_pCa = fv_struct['pCa']
                     

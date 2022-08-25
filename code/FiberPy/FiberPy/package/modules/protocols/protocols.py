@@ -24,7 +24,8 @@ def write_protocol_to_file(prot, prot_file_string):
     
     # Write prot to file
     print('Writing protocol to: %s' % prot_file_string)
-    prot.to_csv(prot_file_string, index=False, sep='\t')
+    prot.to_csv(prot_file_string, index=False, sep='\t',
+                float_format="%.5f")
 
 def create_length_control_protocol(time_step=0.0001, n_points=1000,
                               initial_pCa=9.0, step_pCa=4.5,
