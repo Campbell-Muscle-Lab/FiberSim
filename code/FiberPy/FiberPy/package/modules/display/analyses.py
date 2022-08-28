@@ -27,9 +27,9 @@ def default_formatting():
     formatting = dict()
     formatting['data_linewidth'] = 1
     formatting['fontname'] = 'Arial'
-    formatting['marker_size'] = 8
+    formatting['marker_size'] = 6
     formatting['marker_symbols'] = ['o','s','^','v','<','>']
-    formatting['fill_styles'] = ['full', 'full', 'full', 'full', 'full', 'full']
+    formatting['fill_styles'] = ['none', 'none', 'none', 'none', 'full', 'full']
     formatting['line_styles'] = ['-','--','-.','-','-','-']
     formatting['marker_edge_width'] = 1
     formatting['high_pCa_tick'] = 8.0
@@ -156,7 +156,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
             d_parameters = pd.DataFrame({'pCa_50': res['pCa_50'],
                                         'n_H': res['n_H'],
                                         'y_min': res['y_min'],
-                                        'y_max': res['y_max']},
+                                        'y_amp': res['y_amp']},
                                         index=[0])
             d_fits = pd.DataFrame({'x_fit': res['x_fit'],
                                     'y_fit': res['y_fit']});

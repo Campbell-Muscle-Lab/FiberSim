@@ -8,6 +8,8 @@ import os
 import json
 import shutil
 import copy
+import re
+
 
 from natsort import natsorted
 
@@ -161,7 +163,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                 if ('m_n' in pCa_struct):
                     m['thick_structure']['m_n'] = pCa_struct['m_n']
                     
-            fn = orig_model_file.split('/')[-1]
+            fn = re.split('/|\\\\', orig_model_file)[-1]
             model_file = os.path.join(sim_input_dir, fn)
 
             with open(model_file, 'w') as f:
@@ -523,11 +525,10 @@ def deduce_fv_properties(json_analysis_file_string,
             c_fit['pCa_50'] = d['pCa_50'][0]
             c_fit['n_H'] = d['n_H'][0]                
             c_fit['y_min'] = d['y_min'][0]
-            c_fit['y_max'] = d['y_max'][0]
+            c_fit['y_amp'] = d['y_amp'][0]
             
             # Calculate force at pCa50
-            c_fit['f_at_pCa_50'] = c_fit['y_min'] + \
-                0.5 * (c_fit['y_max'] - c_fit['y_min'])
+            c_fit['f_at_pCa_50'] = c_fit['y_min'] + (0.5 * c_fit['y_amp'])
             
             force_pCa_fit.append(c_fit)
             
@@ -699,9 +700,11 @@ def deduce_fv_properties(json_analysis_file_string,
             
             if (fv_struct['pCa'] == "pCa_50"):
                 # Deduce data from the curve fit
-                c_fit = force_pCa_fit[i]
+                c_fit = force_pCa_fit[dir_counter - 1]
                 isometric_force = c_fit['f_at_pCa_50']
-                isometric_job_index = (i+j) * len(fv_struct['pCa_values'])
+                isometric_job_index = (dir_counter - 1) * \
+                                        len(fv_struct['pCa_values']) * \
+                                        fv_struct['randomized_repeats']
 
             else:
                 # Pull off the isoric force for the preceding job
@@ -728,7 +731,6 @@ def deduce_fv_properties(json_analysis_file_string,
        
             # Copy the model file to the sim_input dir
             orig_model_file = isometric_jobs[isometric_job_index]['model_file']
-            
             fn = orig_model_file.split('\\')[-1]
             isotonic_model_file = os.path.join(sim_input_dir, fn)
             shutil.copyfile(orig_model_file, isotonic_model_file)
@@ -787,13 +789,14 @@ def deduce_fv_properties(json_analysis_file_string,
                     j['model_file'] = isotonic_model_file
                     j['options_file'] = options_file
                     prot_file_string = os.path.join(sim_input_dir,
-                                              ('prot_%i.txt' % (k+1)))
+                                              ('prot_%i_%i.txt' % ((k+1), (rep+1))))
                     
                     if (fv_struct['pCa'] == 'pCa_50'):
                         test_pCa = c_fit['pCa_50']
                     else:
                         test_pCa = fv_struct['pCa']
-                    
+                        
+                    # Write the protocol
                     df = prot.create_force_control_protocol(
                                             time_step = fv_struct['time_step_s'],
                                             step_pCa = test_pCa,
@@ -803,6 +806,8 @@ def deduce_fv_properties(json_analysis_file_string,
                                             iso_f = rel_f * isometric_force)
                     prot.write_protocol_to_file(df, prot_file_string);
                     j['protocol_file'] = prot_file_string
+
+                    # Save the results file
                     j['results_file'] = os.path.join(sim_output_dir,
                                                       ('sim_%i_r%i.txt' % ((k+1), (rep+1))))
         

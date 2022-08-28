@@ -25,7 +25,7 @@ def fit_pCa_data(x,y):
         return y
 
     try:
-        min_bounds = [3.0, 0.01, 0.0, 1e-6]
+        min_bounds = [3.0, 0.01, 0.0, 0]
         max_bounds = [10.0, 100.0, np.inf, np.inf]
         popt, pcov = curve_fit(y_pCa, x, y,
                                [6.0, 2, np.amax([0, np.amin(y)]), np.amax([0, np.amax(y)])],
@@ -38,7 +38,7 @@ def fit_pCa_data(x,y):
     d['pCa_50'] = popt[0]
     d['n_H']    = popt[1]
     d['y_min']  = popt[2]
-    d['y_max']  = popt[3]
+    d['y_amp']  = popt[3]
     d['x_fit']  = np.linspace(9.0, 4, 1000)
     d['y_fit']  = y_pCa(d['x_fit'], *popt)
 
