@@ -6,13 +6,15 @@ Created on Wed May 19 16:30:00 2021
 """
 
 import os
+import json
+import copy
 
 import numpy as np
 import pandas as pd
 
-import copy
-
 from collections import defaultdict
+
+from io import StringIO
 
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -1291,6 +1293,12 @@ def create_rates_figure(fig_data, batch_file_string):
     
     model_counter = 1
     keep_going = True
+    
+    # Set up for building arrays
+    m_schemes = []
+    c_schemes = []
+    
+    max_no_of_rates = 0
 
     # Loop through data folders
     while (keep_going):
@@ -1299,49 +1307,88 @@ def create_rates_figure(fig_data, batch_file_string):
 
         if os.path.isdir(condition_folder):
             for file in os.listdir(condition_folder):
-                if (file == 'rates.txt'):
+                if (file == 'rates.json'):
+                    
                     fs = os.path.join(condition_folder, file)
-                    d = pd.read_csv(fs, sep='\t')
-                    rates_data['condition'].append(d)
-                    no_of_rates = len(d.columns) - 1
-                    model_counter = model_counter + 1
+                    with open(fs, 'r') as f:
+                        d = json.load(f, strict=False)
+                    
+                    # Scan through looking for myosins
+                    for m in d['FiberSim_rates']['myosin']:
+                        # Read in the scheme
+                        # Pull of some data
+                        # Append the scheme to the holder as a Pandas
+                        # dataframe
+                        df = pd.read_csv(StringIO(m['scheme']), sep='\t')
+                        no_of_rates = len(df.columns) - 1
+                        max_no_of_rates = np.amax([max_no_of_rates, no_of_rates])
+                        m_schemes.append(df)
+                    
+                    # And now for mybpc
+                    for c in d['FiberSim_rates']['mybpc']:
+                        # Same as for myosin above
+                        df = pd.read_csv(StringIO(c['scheme']), sep='\t')
+                        no_of_rates = len(df.columns) - 1
+                        max_no_of_rates = max([max_no_of_rates, no_of_rates])
+                        c_schemes.append(df)
+                        
+            # Increment the folder counter
+            model_counter = model_counter + 1
         else:
             keep_going = False
 
-    print(d)
-    print(d.columns.to_list())
-
-    # Hold the no_of_conditions
-    no_of_conditions = model_counter-1
-
     # Set-up the figure
+    no_of_cols = 2
     fig = plt.figure(constrained_layout = False)
-    spec = gridspec.GridSpec(nrows=no_of_rates, ncols=1)
-    fig.set_size_inches([3.5, 2 * no_of_rates])
-    
-    # Create the color_map
-    color_map = formatting['color_set']
-    if (len(rates_data['condition']) > len(color_map)):
-        color_map = []
-        for i,c in enumerate(np.linspace(0, 1, len(rates_data['condition']))):
-            color_map.append(cm.rainbow(c))
-       
-    ax = []
-    for i, d in enumerate(rates_data['condition']):
-        for j in range(no_of_rates):
-            if (i==0):
-                ax.append(fig.add_subplot(spec[j,0]))
-                
-            r_string = 'r_%i' % (j+1)
-            if (r_string in d.columns):
-                ax[j].plot(d['x'], np.log10(d[r_string]), '-',
-                           color = color_map[i])
+    spec = gridspec.GridSpec(nrows = max_no_of_rates, ncols = no_of_cols,
+                             wspace = 1, hspace = 0.5)
+    fig.set_size_inches([2 * no_of_cols, 2 * no_of_rates])
 
-            if (i == (no_of_conditions-1)):
-                # Tidy up
-                ax[j].set_ylabel('log10 %s' % r_string)
-                ax[j].set_ylim([-1, 4])
-                ax[j].set_yticks(np.arange(-1,5,1))
+    ax = []
+
+    # Loop through both m and c schemes
+    for i in range(2):
+        if (i==0):
+            s = m_schemes
+        else:
+            s = c_schemes
+
+        # Create the color_map
+        color_map = formatting['color_set']
+        if (len(s) > len(color_map)):
+            color_map = []
+            for i,c in enumerate(np.linspace(0, 1, len(s))):
+                color_map.append(cm.rainbow(c))
+       
+        # Loop through the rates making plots
+        for j in range(max_no_of_rates):
+            ax.append(fig.add_subplot(spec[j,i]))
+       
+        # Loop throught the isotypes and conditions
+        for k, d in enumerate(s):
+            # Loop through the rates
+            for j in range(max_no_of_rates):
+                
+                plot_index = (i * max_no_of_rates) + j
+                
+                r_string = 'r_%i' % (j+1)
+                if (r_string in d.columns):
+                    ax[plot_index].plot(d['x'], np.log10(d[r_string]), '-',
+                               color = color_map[i])
+                    
+                # Add title
+                if (j==0):
+                    if (i==0):
+                        title_string = 'Myosin'
+                    else:
+                        title_string = 'MyBPC'
+                    ax[plot_index].set_title(title_string)
+
+                if (k == (len(s)-1)):
+                    # Tidy up
+                    ax[plot_index].set_ylabel('log10 %s' % r_string)
+                    ax[plot_index].set_ylim([-1, 4])
+                    ax[plot_index].set_yticks(np.arange(-1,5,1))
 
     if (fig_data['output_image_file']):
         if (fig_data['relative_to'] == 'this_file'):

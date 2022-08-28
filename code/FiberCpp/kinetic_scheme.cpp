@@ -140,7 +140,8 @@ void kinetic_scheme::set_transition_types(void)
 	}
 }
 
-void kinetic_scheme::write_rate_functions_to_file(char output_file_string[])
+void kinetic_scheme::write_rate_functions_to_file(char output_file_string[], char file_write_mode[],
+	char JSON_append_string[])
 {
 	//! Writes rate functions to output file
 
@@ -170,14 +171,16 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[])
 		}
 		else
 		{
-			std::cout << "\nError: Results folder could not be created: " <<
+			std::cout << "\nError: Folder for rates file could not be created: " <<
 				output_file_path.parent_path().string() << "\n";
 			exit(1);
 		}
 	}
 
 	// Check file can be opened, abort if not
-	errno_t err = fopen_s(&output_file, output_file_string, "w");
+	// file write status should be "w" for new, or "a" for append
+	errno_t err = fopen_s(&output_file, output_file_string, file_write_mode);
+
 	if (err != 0)
 	{
 		printf("write_rate_functions_to_file(): %s\ncould not be opened\n",
@@ -185,9 +188,10 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[])
 		exit(1);
 	}
 
-	printf("write rate functions to file\n");
+	// Write the JSON bracket
+	fprintf_s(output_file, "\t\t\t{\n\"scheme\":\n\"\n");
 
-	// Cycle through transitions and rates writing the header
+	// Cycle through transitions and rates writing the column headers
 	for (int state_counter = 0; state_counter < no_of_states; state_counter++)
 	{
 		p_m_state = p_m_states[state_counter];
@@ -236,6 +240,9 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[])
 		}
 		fprintf_s(output_file, "\n");
 	}
+
+	// Close the JSON bracket
+	fprintf_s(output_file, "\"\n\t\t\t}%s\n", JSON_append_string);
 
 	fclose(output_file);
 }

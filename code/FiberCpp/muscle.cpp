@@ -50,7 +50,7 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 
 	// Dump rate_functions to file
 	if (strlen(p_fs_options->rate_file_string) > 0)
-		p_hs[0]->p_m_scheme[0]->write_rate_functions_to_file(p_fs_options->rate_file_string);
+		write_rates_file();
 
 	// Initialise_status_counter
 	dump_status_counter = 1;
@@ -270,4 +270,104 @@ void muscle::implement_time_step(int protocol_index)
 		if (dump_status_counter > p_fs_options->skip_status_time_step)
 			dump_status_counter = 1;
 	}
+}
+
+void muscle::write_rates_file()
+{
+	//! Function writes the m and c rate functions to file in JSON format
+
+	// Variables
+	int isotype_counter;					// isotype counter
+
+	char file_write_mode[_MAX_PATH];		// mode for opening file
+
+	char JSON_append_string[_MAX_PATH];		// written after scheme to keep JSON
+											// structure, should be , if other entries follow
+											// otherwise ""
+
+	FILE* output_file;						// pointer for output file
+
+	// Make sure directory exists
+	path output_file_path(p_fs_options->rate_file_string);
+
+	if (!(is_directory(output_file_path.parent_path())))
+	{
+		if (create_directories(output_file_path.parent_path()))
+		{
+			std::cout << "\nCreating folder: " << output_file_path.string() << "\n";
+		}
+		else
+		{
+			std::cout << "\nError: folder for rates file could not be created: " <<
+				output_file_path.parent_path().string() << "\n";
+			exit(1);
+		}
+	}
+
+	// Check file can be opened in write mode, abort if not
+	errno_t err = fopen_s(&output_file, p_fs_options->rate_file_string, "w");
+
+	if (err != 0)
+	{
+		printf("muscle::write_rates_file(): %s\ncould not be opened\n",
+			p_fs_options->rate_file_string);
+		exit(1);
+	}
+
+	// Start JSON structure
+	fprintf_s(output_file, "{\n\t\"FiberSim_rates\":\n\t{\n");
+	fprintf_s(output_file, "\t\t\"myosin\":\n");
+	fprintf_s(output_file, "\t\t[\n");
+	fclose(output_file);
+
+	// Set the file write mode
+	sprintf_s(file_write_mode, _MAX_PATH, "a");
+
+	// Now cycle through the m isotypes
+	for (isotype_counter = 0; isotype_counter < p_fs_model->m_no_of_isotypes; isotype_counter++)
+	{
+		// Set the append string
+		if (isotype_counter < (p_fs_model->m_no_of_isotypes - 1))
+		{
+			sprintf_s(JSON_append_string, _MAX_PATH, ",");
+		}
+		else
+		{
+			sprintf_s(JSON_append_string, _MAX_PATH, "");
+		}
+
+		p_hs[0]->p_m_scheme[isotype_counter]->write_rate_functions_to_file(
+			p_fs_options->rate_file_string, file_write_mode,
+			JSON_append_string);
+	}
+
+	// Re-open the file, close the myosin array, and prep for the c array
+	fopen_s(&output_file, p_fs_options->rate_file_string, "a");
+	fprintf_s(output_file, "\t\t],\n");
+	fprintf_s(output_file, "\t\t\"mybpc\":\n\t\t[\n");
+	fclose(output_file);
+
+	// Now through the c_isotypes
+	for (isotype_counter = 0; isotype_counter < p_fs_model->c_no_of_isotypes; isotype_counter++)
+	{
+		// Set the append string
+		if (isotype_counter < (p_fs_model->c_no_of_isotypes - 1))
+		{
+			sprintf_s(JSON_append_string, _MAX_PATH, ",");
+		}
+		else
+		{
+			sprintf_s(JSON_append_string, _MAX_PATH, "");
+		}
+
+		p_hs[0]->p_c_scheme[isotype_counter]->write_rate_functions_to_file(
+			p_fs_options->rate_file_string, file_write_mode,
+			JSON_append_string);
+	}
+
+	// Now tidy up the rates file
+	// Re-open the file, close the cc array
+	fopen_s(&output_file, p_fs_options->rate_file_string, "a");
+	fprintf_s(output_file, "\t\t]\n\t}\n}\n");
+	fclose(output_file);
 }

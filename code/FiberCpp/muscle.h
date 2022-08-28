@@ -60,6 +60,13 @@ public:
     */
     void implement_time_step(int protocol_index);
 
+    /**
+    * void write_rates_file()
+    * writes the m and c rate functions to file
+    * @ return void
+    */
+    void write_rates_file();
+
     // Variables
 
     char model_version[_MAX_PATH];      /**< FiberSim version from the model file */

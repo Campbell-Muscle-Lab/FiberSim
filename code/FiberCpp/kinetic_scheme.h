@@ -71,6 +71,7 @@ public:
 	* as a tab-delimited file
 	* @return void
 	*/
-	void write_rate_functions_to_file(char output_file_string[]);
+	void write_rate_functions_to_file(char output_file_string[], char file_write_mode[],
+										char JSON_append_string[]);
 
 };
