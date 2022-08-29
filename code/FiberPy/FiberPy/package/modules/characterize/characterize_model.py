@@ -208,7 +208,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                         rep_options_data['options']['rate_files']['relative_to'] = \
                             'false'
                         rep_options_data['options']['rate_files']['file'] = \
-                            os.path.join(sim_output_dir, 'rates.txt')
+                            os.path.join(sim_output_dir, 'rates.json')
                     
                     # Create the new options file
                     options_file = os.path.join(
@@ -771,7 +771,7 @@ def deduce_fv_properties(json_analysis_file_string,
                             'false'
                         rep_options_data['options']['rate_files']['file'] = \
                             os.path.join(sim_output_dir,
-                                         'rates.txt')
+                                         'rates.json')
                     else:
                         # Clear any existing rate options
                         if ('rate_files' in rep_options_data['options']):
