@@ -31,7 +31,7 @@ def default_formatting():
     formatting['fontname'] = 'Arial'
     formatting['marker_size'] = 6
     formatting['marker_symbols'] = ['o','s','^','v','<','>']
-    formatting['fill_styles'] = ['none', 'none', 'none', 'none', 'full', 'full']
+    formatting['fill_styles'] = ['none', 'none', 'none', 'none', 'none', 'none']
     formatting['line_styles'] = ['-','--','-.','-','-','-']
     formatting['marker_edge_width'] = 1
     formatting['high_pCa_tick'] = 8.0

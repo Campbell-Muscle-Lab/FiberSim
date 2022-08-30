@@ -169,7 +169,13 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 	if (!strcmp(rate_type, "gaussian_pc"))
 	{
 		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
-		double k_pc = p_model->c_k_stiff; // use MyBPC stiffness
+		double k_pc = p_model->c_k_stiff; // use MyBPC stiffness as default
+
+		double temp = gsl_vector_get(rate_parameters, 1); // optional parameter which sets mybpc stiffness
+
+		if (!gsl_isnan(temp)) { // optional parameter is not specified, use the state extension instead
+			k_pc = temp;
+		}
 
 		rate = gsl_vector_get(rate_parameters, 0) *
 			exp(-(0.5 * k_pc * gsl_pow_int(x, 2)) /
