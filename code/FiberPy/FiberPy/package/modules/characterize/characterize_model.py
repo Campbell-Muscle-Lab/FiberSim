@@ -267,7 +267,10 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                     prot_file_string = os.path.join(sim_input_dir,
                                                     ('prot_pCa_%.0f_r%i.txt' %
                                                      (10*pCa, rep+1)))
-                    prot.write_protocol_to_file(df, prot_file_string)
+                    
+                    # Write protocol if required
+                    if not figures_only:
+                        prot.write_protocol_to_file(df, prot_file_string)
                 
                     # Create the job
                     j = dict()
@@ -486,7 +489,7 @@ def deduce_fv_properties(json_analysis_file_string,
     else:
         base_dir = fv_struct['sim_folder']        
     
-    # If you are running simulations, delete the existing structure
+    # If you are running simulations, delete the existing sim folders
     if not figures_only:
         try:
             print('Trying to remove %s' % base_dir)
@@ -605,7 +608,10 @@ def deduce_fv_properties(json_analysis_file_string,
                                                             fv_struct['time_step_s']))
                 prot_file_string = os.path.join(sim_input_dir,
                                                 'prot_iso_pCa_%.0f.txt' % (10 * fv_struct['pCa']))
-                prot.write_protocol_to_file(df, prot_file_string);
+                
+                # Write the protocol, unless you are running figures only
+                if not figures_only:
+                    prot.write_protocol_to_file(df, prot_file_string);
          
                 # Now create a job
                 j = dict()
@@ -658,24 +664,24 @@ def deduce_fv_properties(json_analysis_file_string,
     
                 isometric_b['job'].append(j)
     
-            # Now insert iso_b into a full batch structure
-            isometric_batch = dict()
-            isometric_batch['FiberSim_batch'] = isometric_b    
-            
-            # Set the batch_output_dir
-            batch_output_dir = str(Path(sim_output_dir).parent)
+        # Now insert iso_b into a full batch structure
+        isometric_batch = dict()
+        isometric_batch['FiberSim_batch'] = isometric_b    
         
-            # Write the batch file
-            isometric_batch_file = os.path.join(batch_output_dir,
-                                                'batch_isometric.json')
-            with open(isometric_batch_file, 'w') as f:
-                json.dump(isometric_batch, f, indent=4)
-                
-            # Now run the isometric batch
-            batch.run_batch(isometric_batch_file, figures_only=figures_only)
+        # Set the batch_output_dir
+        batch_output_dir = str(Path(sim_output_dir).parent)
+    
+        # Write the batch file
+        isometric_batch_file = os.path.join(batch_output_dir,
+                                            'batch_isometric.json')
+        with open(isometric_batch_file, 'w') as f:
+            json.dump(isometric_batch, f, indent=4)
             
-            # Save the isometric jobs
-            isometric_jobs = isometric_batch['FiberSim_batch']['job']
+        # Now run the isometric batch
+        batch.run_batch(isometric_batch_file, figures_only=figures_only)
+        
+        # Save the isometric jobs
+        isometric_jobs = isometric_batch['FiberSim_batch']['job']
 
     # Switch to isotonic stuff
     # First create the isotonic batch dict
@@ -804,7 +810,10 @@ def deduce_fv_properties(json_analysis_file_string,
                                                                 fv_struct['time_step_s']),
                                             iso_start_s = fv_struct['sim_release_s'],
                                             iso_f = rel_f * isometric_force)
-                    prot.write_protocol_to_file(df, prot_file_string);
+                    
+                    if not figures_only:
+                        prot.write_protocol_to_file(df, prot_file_string);
+                    
                     j['protocol_file'] = prot_file_string
 
                     # Save the results file

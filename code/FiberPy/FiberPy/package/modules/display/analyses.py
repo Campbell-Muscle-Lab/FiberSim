@@ -7,7 +7,6 @@ Created on Wed May 19 16:30:00 2021
 
 import os
 import json
-import copy
 
 import numpy as np
 import pandas as pd
@@ -29,10 +28,10 @@ def default_formatting():
     formatting = dict()
     formatting['data_linewidth'] = 1
     formatting['fontname'] = 'Arial'
-    formatting['marker_size'] = 6
+    formatting['marker_size'] = 8
     formatting['marker_symbols'] = ['o','s','^','v','<','>']
-    formatting['fill_styles'] = ['none', 'none', 'none', 'none', 'none', 'none']
-    formatting['line_styles'] = ['-','--','-.','-','-','-']
+    formatting['fill_styles'] = ['full', 'full', 'full', 'full', 'full', 'full']
+    formatting['line_styles'] = ['-','-','-','-','-','-']
     formatting['marker_edge_width'] = 1
     formatting['high_pCa_tick'] = 8.0
     formatting['high_pCa_span'] = 0.2
@@ -61,7 +60,6 @@ def default_formatting():
     formatting['legend_bbox_to_anchor'] = [1.05, 1]
     formatting['legend_fontsize'] = 9
     formatting['legend_handlelength'] = 1
-    formatting['error_bar_capsize'] = 2
 
 
     return formatting
@@ -76,8 +74,6 @@ def default_layout():
     layout['right_margin'] = 0.1
     layout['grid_wspace'] = 0.75
     layout['grid_hspace'] = 0.5
-    layout['k_tr_grid_wspace'] = 0.2
-    layout['k_tr_grid_hspace'] = 0.4
 
     return layout
 
@@ -133,6 +129,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     while (keep_going):
         curve_folder = os.path.join(top_data_folder,
                                     ('%i' % curve_counter))
+        print(curve_folder)
         if os.path.isdir(curve_folder):
             # Find the results files
             for file in os.listdir(curve_folder):
@@ -144,6 +141,8 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     y = formatting['y_scaling_factor'] * \
                             d[fig_data['data_field']].iloc[-50:-1].mean() # take the mean force over last 50 points
                     y_values[curve_counter-1].append(y)
+                    if (np.amax(y) > max_y):
+                        max_y = np.amax(y)
                     
                     # Store data for subsequent output
                     curve_index.append(curve_counter)
@@ -169,19 +168,9 @@ def create_y_pCa_figure(fig_data, batch_file_string):
             # plot
 
             # Normalized data_field if required
-            if ('y_normalized_to_max' in formatting):
-                if (formatting['y_normalized_to_max']):
-                    res['y_fit'] = res['y_fit']/max(y_values[curve_counter-1])
-                    y_values[curve_counter-1] = [x/max(y_values[curve_counter-1]) \
-                                                 for x in y_values[curve_counter-1]]                
-                
-            if ('y_normalized' in formatting):
-                if (formatting['y_normalized']):
-                    min_y = min(y_values[curve_counter-1])
-                    max_y = max(y_values[curve_counter-1])
-                    res['y_fit'] = (res['y_fit'] - min_y) / (max_y - min_y)
-                    y_values[curve_counter-1] = [((x - min_y) / (max_y - min_y)) \
-                                                 for x in y_values[curve_counter-1]]
+            if formatting['y_normalized_to_max']:
+                res['y_fit'] = res['y_fit']/max(y_values[curve_counter-1])
+                y_values[curve_counter-1] = [x/max(y_values[curve_counter-1]) for x in y_values[curve_counter-1]]                
 
             for a in [ax_left, ax_right]:
                 a.plot(pCa_values[curve_counter-1],
@@ -250,12 +239,6 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                        fontsize=formatting['x_label_fontsize'])
     ax_right.set_xticks(formatting['low_pCa_ticks'])
 
-    # Try to deduce max_y
-    max_y = 0
-    for cc in range(curve_counter-1):
-        y = y_values[cc]
-        if (np.amax(y) > max_y):
-            max_y = np.amax(y)
 
     y_ticks = [0, ut.multiple_greater_than(max_y,
                                            0.05*np.power(10, np.ceil(np.log10(max_y))))]
@@ -410,7 +393,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     curve = []
     hs_force = []
     hs_velocity = []
-    hs_rel_velocity = []
+    hs_velocity_l0_per_s = []
     hs_power = []
 
     while keep_going:
@@ -421,6 +404,10 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             for file in os.listdir(curve_folder):
                 if (file.endswith('.txt') and not file.startswith('rates')):
                     data_file_string = os.path.join(curve_folder, file)
+                    
+                    # Display, as this can be slow
+                    print('Fitting shortening velocity for: %s' %
+                          data_file_string)
 
                     # Load up the results file
                     d = pd.read_csv(data_file_string, delimiter='\t')
@@ -450,7 +437,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                         # Shortening velocity in ML s-1:
 
                         hs_vel = 1e-9* vel_data['amp'] * vel_data['k']  # velocity in m s^-1
-                        hs_rel_vel = vel_data['amp'] * vel_data['k']/initial_hsl # velocity in ML s^-1
+                        hs_vel_l0_per_s = vel_data['amp'] * vel_data['k']/initial_hsl # velocity in ML s^-1
 
                         
                     elif length_fit_mode == 'linear':
@@ -460,7 +447,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
                         # Calculate velocity
                         hs_vel = -1e-9*vel_data['slope'] # velocity in m s^-1
-                        hs_rel_vel = 1e9 * hs_vel / initial_hsl # velocity in ML s^-1
+                        hs_vel_l0_per_s = 1e9 * hs_vel / initial_hsl # velocity in ML s^-1
 
               
                     # Get force and power
@@ -471,7 +458,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                     # Store data
                     curve.append(curve_counter)
                     hs_velocity.append(hs_vel)
-                    hs_rel_velocity.append(hs_rel_vel)
+                    hs_velocity_l0_per_s.append(hs_vel_l0_per_s)
                     hs_force.append(hs_for)
                     hs_power.append(hs_pow)
 
@@ -483,9 +470,45 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     # Take lists and create a data frame
     r = pd.DataFrame({'curve': curve,
                       'hs_velocity': hs_velocity,
-                      'hs_rel_velocity': hs_rel_velocity,
+                      'hs_velocity_l0_per_s': hs_velocity_l0_per_s,
                       'hs_force': hs_force,
                       'hs_power': hs_power})
+    
+    # Drop rows with NaNs, first replace empty with nan
+    r.replace('', np.nan, inplace=True)
+    r.dropna(inplace=True)
+    
+    print(r)
+    
+    with pd.ExcelWriter('d:/temp.test.xlsx', engine='openpyxl') as writer:
+        r.to_excel(writer, sheet_name = 'simulation_data', index=False)
+    
+    # Now cycle through the curves fitting hybperbolas to each condition
+    # This allows you to calculate force relative to isometric and
+    # v relative to V_max
+    
+    for c in range(1, curve_counter):
+        # First get the indices for the curve in the original dataframe        
+        vi = r.index[r['curve'] == c].tolist()
+        
+        # Now make a new frame for just that curve
+        rc = r[r['curve'] == c].copy()
+        
+        # Fit the hyperbola 
+        fv_curve = cv.fit_hyperbola(rc['hs_force'], rc['hs_velocity'])
+
+        # Deduce v_max
+        fv_curve['v_max'] = ((fv_curve['x_0'] + fv_curve['a']) * 
+                                (fv_curve['b'] / fv_curve['a'])) - fv_curve['b']
+
+        # Now calculate the relative force, relative velocity, and relative power            
+        rc['hs_f_to_f_max'] = rc['hs_force'] / fv_curve['x_0']
+        rc['hs_rel_power'] = rc['hs_f_to_f_max'] * rc['hs_velocity_l0_per_s']
+        
+        # Now add these values back into the main frame
+        r.loc[vi, 'hs_f_to_f_max'] = rc['hs_f_to_f_max']
+        r.loc[vi, 'hs_rel_power'] = rc['hs_rel_power']
+    
 
     # Create a figure
     if ('output_image_file' in fig_data):
@@ -517,10 +540,6 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         for c in range(1, curve_counter):
             # Pull off the curve data
             rc = r[r['curve'] == c].copy()
-            
-            # Normalize force
-            rc['hs_rel_force'] = rc['hs_force'] / rc['hs_force'].max()
-            rc['hs_rel_power'] = rc['hs_rel_force'] * rc['hs_rel_velocity']
 
             # Plot the force velocity curve
             ax_fv.plot(rc['hs_force'], rc['hs_velocity'],
@@ -547,35 +566,35 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                        fillstyle=formatting['fill_styles'][c-1],
                         color = formatting['color_set'][c - 1])
             pow_curve = cv.fit_power_curve(rc['hs_force'], rc['hs_power'])
-            ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'],
+            ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'], '-',
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c-1])
 
-            ax_rel_fv.plot(rc['hs_rel_force'], rc['hs_rel_velocity'],
+            ax_rel_fv.plot(rc['hs_f_to_f_max'], rc['hs_v_to_v_max'],
                            formatting['marker_symbols'][c-1],
                            formatting['marker_size'],
                            fillstyle=formatting['fill_styles'][c-1],
                            color = formatting['color_set'][c-1])
-            rel_fv_curve = cv.fit_hyperbola(rc['hs_rel_force'], rc['hs_rel_velocity'])
-            ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'],
+            rel_fv_curve = cv.fit_hyperbola(rc['hs_f_to_f_max'], rc['hs_v_to_v_max'])
+            ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'], '-',
                            color=ax_rel_fv.lines[-1].get_color(),
                            linestyle = formatting['line_styles'][c-1])
 
-            ax_rel_pow.plot(rc['hs_rel_force'], rc['hs_rel_power'],
+            ax_rel_pow.plot(rc['hs_f_to_f_max'], rc['hs_rel_power'],
                             formatting['marker_symbols'][c-1],
                             formatting['marker_size'],
                             fillstyle=formatting['fill_styles'][c-1],
                             color = formatting['color_set'][c - 1])
-            rel_pow_curve = cv.fit_power_curve(rc['hs_rel_force'], rc['hs_rel_power'])
-            ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'],
+            rel_pow_curve = cv.fit_power_curve(rc['hs_f_to_f_max'], rc['hs_rel_power'])
+            ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'], '-',
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c-1])
 
             # Store data to work out ticks later on
             f_ticks = np.concatenate((f_ticks, rc['hs_force']))
-            rel_f_ticks = np.concatenate((rel_f_ticks, rc['hs_rel_force']))
+            rel_f_ticks = np.concatenate((rel_f_ticks, rc['hs_f_to_f_max']))
             v_ticks = np.concatenate((v_ticks, rc['hs_velocity']))
-            rel_v_ticks = np.concatenate((rel_v_ticks, rc['hs_rel_velocity']))
+            rel_v_ticks = np.concatenate((rel_v_ticks, rc['hs_v_to_v_max']))
             p_ticks = np.concatenate((p_ticks, rc['hs_power']))
             rel_p_ticks = np.concatenate((rel_p_ticks, rc['hs_rel_power']))
             
@@ -834,12 +853,9 @@ def create_ktr_figure(fig_data, batch_file_string):
                 # Plot the ktr curve
 
                 if formatting['labels'] != []:
-                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o',
-                                color = formatting['color_set'][c - 1],
-                                label = formatting['labels'][c - 1])
+                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1], label = formatting['labels'][c - 1])
                 else:
-                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o',
-                                color = formatting['color_set'][c - 1])
+                    ax_ktr.plot(rc['hs_force'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
 
 
                 ax_ktr.set_xlabel(formatting['x_axis_label'],
@@ -855,8 +871,7 @@ def create_ktr_figure(fig_data, batch_file_string):
             if formatting['x_field'] == "pCa": # plot ktr-pCa curve 
 
                 # Plot the ktr curve
-                ax_ktr.plot(rc['hs_pCa'], rc['hs_ktr'], '--o',
-                            color = formatting['color_set'][c - 1])
+                ax_ktr.plot(rc['hs_pCa'], rc['hs_ktr'], '--o', color = formatting['color_set'][c - 1])
                 
                 ax_ktr.set_xlabel('pCa',
                                     fontfamily=formatting['fontname'],
@@ -973,43 +988,22 @@ def superpose_ktr_plots(fig_data, batch_file_string):
         d['force'] = d['force']/1000
 
         if formatting['labels'] != []:        
-            axs[2].plot(x, d['force'], label = formatting['labels'][i],
-                        color = formatting['color_set'][i],
-                        zorder=len(results_files) - i)
+            axs[2].plot(x, d['force'], label = formatting['labels'][i], color = formatting['color_set'][i], zorder=len(results_files) - i)
 
         else:
-            axs[2].plot(x, d['force'],
-                        color = formatting['color_set'][i],
-                        zorder=len(results_files) - i)
+            axs[2].plot(x, d['force'], color = formatting['color_set'][i], zorder=len(results_files) - i)
 
         if formatting['labels'] != []:
             axs[2].legend(loc='upper left', bbox_to_anchor=[0.65, 0.65], fontsize = 11)
 
         # Actin pop
-        keep_going = True
-        counter = 0
-        while (keep_going):
-            pop_string = 'a_pop_%i' % counter
-            if (pop_string in d.columns):
-                axs[3].plot(x, d[pop_string],
-                           linestyle = formatting['line_styles'][counter],
-                           zorder = len(results_files) - i)
-                counter = counter + 1
-            else:
-                keep_going = False
+        axs[3].plot(x, d['a_pop_0'], '--' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+        axs[3].plot(x, d['a_pop_1'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
 
-        # Actin pop
-        keep_going = True
-        counter = 0
-        while (keep_going):
-            pop_string = 'm_pop_%i' % counter
-            if (pop_string in d.columns):
-                axs[4].plot(x, d[pop_string],
-                           linestyle = formatting['line_styles'][counter],
-                           zorder = len(results_files) - i)
-                counter = counter + 1
-            else:
-                keep_going = False
+        # Myosin pop
+        axs[4].plot(x, d['m_pop_0'], '--' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+        axs[4].plot(x, d['m_pop_1'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
+        axs[4].plot(x, d['m_pop_2'], '-' , color = formatting['color_set'][i], zorder=len(results_files) - i)
 
     # Clean axis
 
@@ -1457,7 +1451,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                              wspace = layout['grid_wspace'],
                              hspace = layout['grid_hspace'])
     fig.set_size_inches([3 * no_of_conditions, 2 * no_of_rows])
-    
+
     ax=[]
 
     # Keep track of max and mins
@@ -1478,31 +1472,26 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
         # Pull off the data files
         condition_folder = os.path.join(top_data_folder,
                                         ('%i' % (i+1)))
-        
         file_counter = 1
         for file in os.listdir(condition_folder):
             if ((file.endswith('.txt')) and not file.endswith('rates.txt')):
                 fs = os.path.join(condition_folder, file)
-                d = pd.read_csv(fs, sep='\t', na_values = "-nan(ind)")
-                
-                # Replace infinities with nan
-                d.replace([np.inf, -np.inf], np.nan, inplace=True)
+                d = pd.read_csv(fs, sep='\t')
 
                 # Keep track of max and mins
                 if ((i==0) and (file_counter==1)):
-                    min_hsl = d['hs_length'].dropna().min()
-                    max_hsl = d['hs_length'].dropna().max()
-                    min_force = d['force'].dropna().min()
-                    max_force = d['force'].dropna().max()
-                else:
-                    # Other files
-                    min_hsl = np.amin([min_hsl, np.nanmin(d['hs_length'])])
-                    max_hsl = np.amax([max_hsl, np.nanmax(d['hs_length'])])
-                    min_force = np.amin([min_force, np.nanmin(d['force'])])
-                    max_force = np.amax([max_force, np.nanmax(d['force'])])
+                    min_hsl = d['hs_length'].min()
+                    max_hsl = d['hs_length'].max()
+                    min_force = d['force'].min()
+                    max_force = d['force'].max()
+                # Other files
+                min_hsl = np.amin([min_hsl, np.amin(d['hs_length'])])
+                max_hsl = np.amax([max_hsl, np.amax(d['hs_length'])])
+                min_force = np.amin([min_force, np.amin(d['force'])])
+                max_force = np.amax([max_force, np.amax(d['force'])])
 
                 if (file_counter==1):
-                    # Add in the plots for this condition
+                    # Make the plots
                     for j in range(no_of_rows):
                         ax.append(fig.add_subplot(spec[j,i]))
 
@@ -1552,14 +1541,13 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                 m_state_counter = 0
                 while (keep_going):
                     m_pop_string = ('m_pop_%i' % m_state_counter)
-                    if (m_pop_string in d.columns):
+                    if (m_pop_string in d):
                         if (file_counter == 1):
                             label = m_pop_string
                         else:
                             label = None
                         ax[plot_index].plot(d['time'], d[m_pop_string],
                                             '-',
-                                            color = color_map[m_state_counter],
                                             linewidth = formatting['data_linewidth'],
                                             label=label)
                         m_state_counter = m_state_counter + 1
@@ -1709,12 +1697,6 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
     if ('formatting' in fig_data):
         for entry in fig_data['formatting']:
             formatting[entry] = fig_data['formatting'][entry]
-            
-    # And the same for layout
-    layout = default_layout()
-    if ('layout' in fig_data):
-        for entry in fig_data['layout']:
-            layout[entry] = fig_data['layout'][entry]
 
     # Find the data folders
     base_folder = os.path.dirname(batch_file_string)
@@ -1739,14 +1721,10 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
     sims = dict()
     sims['raw'] = []
     sims['fit'] = []
-    
-    # And holder for force record
-    max_force = 0
 
     while keep_going:
         curve_folder = os.path.join(top_data_folder,
                                     ('%i' % curve_counter))
-        
         if (os.path.isdir(curve_folder)):
             # Find the results files
             for file in os.listdir(curve_folder):
@@ -1785,10 +1763,6 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
 
                     sims['raw'].append(d)
                     sims['fit'].append(d_fit)
-                    
-                    # Track foce at end of record
-                    if (y[-1] > max_force):
-                        max_force = y[-1]                        
 
             curve_counter = curve_counter + 1
 
@@ -1813,26 +1787,27 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
         print('Writing k_tr_analysis data to %s' % output_file_string)
         with pd.ExcelWriter(output_file_string, engine='openpyxl') as writer:
             r.to_excel(writer, sheet_name = 'simulation_data', index=False)
+            # for (i,c) in enumerate(curve_data['curve']):
+            #     c.to_excel(writer,
+            #                 index=False,
+            #                 sheet_name = 'curve_%i' % (i+1))
 
     # Create a figure
     if ('output_image_file' in fig_data):
 
         # Make a figure
         fig = plt.figure(constrained_layout=True)
-        gs = fig.add_gridspec(nrows=2, ncols=3,
-                              wspace = layout['k_tr_grid_wspace'],
-                              hspace = layout['k_tr_grid_hspace'])
-        fig.set_size_inches([8, 5])
+        gs = fig.add_gridspec(nrows=2, ncols=2,
+                              wspace = 0.5,
+                              hspace=0.5)
+        fig.set_size_inches([7, 5])
         ax_force = fig.add_subplot(gs[0,0])
         ax_hsl = fig.add_subplot(gs[1, 0])
-        ax_k_tr_force_raw = fig.add_subplot(gs[0,1])
-        ax_k_tr_pCa_raw = fig.add_subplot(gs[1,1])
-        ax_k_tr_force_mean = fig.add_subplot(gs[0,2])
-        ax_k_tr_pCa_mean = fig.add_subplot(gs[1,2])
+        ax_k_tr_force = fig.add_subplot(gs[0,1])
+        ax_k_tr_pCa = fig.add_subplot(gs[1,1])
 
         # Cycle through curves
         for (i,c) in enumerate(range(1, curve_counter)):
-            
             vi = np.flatnonzero(r['curve'].to_numpy() == c)
             # Draw traces
             for v in vi:
@@ -1854,96 +1829,57 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                               color = formatting['color_set'][i])
 
             # Now draw the plots
-            
-            # First all the symbols
-            r2 = copy.copy(r[r['curve'] == c])
-            
-            # Prune k_tr values to amplitudes that seem plausible
-            r2['rel_k_tr_size'] = r2['k_tr_amp'] / r2['force']
-            r2 = r2[(r2['rel_k_tr_size'] < 1) &
-                    (r2['rel_k_tr_size'] > 0.02)]
-            
-            # Plot
-            ax_k_tr_force_raw.plot(r2['force'], r2['k_tr'],
+            r2 = r[r['curve'] == c]
+            ax_k_tr_force.plot(r2['force'], r2['k_tr'],
                                formatting['marker_symbols'][i],
-                               markerfacecolor = 'none',
+                               markerfacecolor = formatting['color_set'][i],
                                markeredgecolor = formatting['color_set'][i],
                                fillstyle = formatting['fill_styles'][i],
-                               markeredgewidth=formatting['marker_edge_width'],
-                               label = formatting['labels'])
+                               markeredgewidth=formatting['marker_edge_width'])
 
-            ax_k_tr_pCa_raw.plot(r2['pCa'], r2['k_tr'],
+            if formatting['labels'] != []:
+        
+                ax_k_tr_force.plot(r2['force'], r2['k_tr'],
+                    linestyle = formatting['line_styles'][i],
+                    color = formatting['color_set'][i],
+                    label = formatting['labels'][i])
+            else:
+                ax_k_tr_force.plot(r2['force'], r2['k_tr'],
+                    linestyle = formatting['line_styles'][i],
+                    color = formatting['color_set'][i])
+
+            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
                                formatting['marker_symbols'][i],
-                               markerfacecolor = 'none',
+                               markerfacecolor = formatting['color_set'][i],
                                markeredgecolor = formatting['color_set'][i],
                                fillstyle = formatting['fill_styles'][i],
-                               markeredgewidth=formatting['marker_edge_width'],
-                               label = formatting['labels'])
-
-            # Now by the mean values
-            r3 = r2.groupby('pCa').agg(['mean','sem'])
-            
-            # Plot
-            ax_k_tr_force_mean.errorbar(r3[('force','mean')],
-                                        r3['k_tr','mean'],
-                                        xerr = r3[('force','sem')],
-                                        yerr = r3[('k_tr', 'sem')],
-                                        capsize = formatting['error_bar_capsize'],
-                                        color = formatting['color_set'][i],
-                                        marker = formatting['marker_symbols'][i],
-                                        markerfacecolor = 'none',
-                                        markeredgecolor = formatting['color_set'][i],
-                                        fillstyle = formatting['fill_styles'][i],
-                                        markeredgewidth=formatting['marker_edge_width'])
-            
-            ax_k_tr_pCa_mean.errorbar(r3['k_tr','mean'].keys(),
-                                      r3['k_tr','mean'],
-                                      yerr = r3[('k_tr', 'sem')],
-                                      capsize = formatting['error_bar_capsize'],
-                                      color = formatting['color_set'][i],
-                                      marker = formatting['marker_symbols'][i],
-                                      markerfacecolor = 'none',
-                                      markeredgecolor = formatting['color_set'][i],
-                                      fillstyle = formatting['fill_styles'][i],
-                                      markeredgewidth=formatting['marker_edge_width'])
-       
+                               markeredgewidth=formatting['marker_edge_width'])
+            ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
+                             linestyle = formatting['line_styles'][i],
+                             color = formatting['color_set'][i])
+        
         # Draw some labels
         ax_force.set_ylabel('Force (N m$^{-2}$)')
         ax_force.set_xlabel('Time (s)')
-        y_ticks = [0, multiple_greater_than(1.2*max_force, multiple=0.2)]
-        ax_force.set_ylim(y_ticks)
-        ax_force.set_yticks(y_ticks)
-    
+
         ax_hsl.set_ylabel('Half-sarcomere length (nm)')
         ax_hsl.set_xlabel('Time (s)')
 
-        for a in [ax_k_tr_force_raw, ax_k_tr_force_mean]:
-            a.set_xlabel('Force (N m$^{-2}$)')
-            a.set_ylabel('k_tr (s$^{-1}$)')
-            if ('k_tr_ticks' in fig_data):
-                y_ticks = fig_data['k_tr_ticks']
-            else:
-                y_lim = a.get_ylim()
-                y_ticks = [0, multiple_greater_than(1.2*y_lim[-1], 0.1)]
-            a.set_yticks(y_ticks)
-            a.set_ylim(y_ticks)
+        ax_k_tr_force.set_xlabel('Force (N m$^{-2}$)')
+        ax_k_tr_force.set_ylabel('k_tr (s$^{-1}$)')
+        if ('k_tr_ticks' in fig_data):
+            ax_k_tr_force.set_ylim(fig_data['k_tr_ticks'])
 
-        for a in [ax_k_tr_pCa_raw, ax_k_tr_pCa_mean]:
-            a.set_xlabel('pCa')
-            a.invert_xaxis()
-            a.set_ylabel('k_tr (s$^{-1}$)')
-            if ('k_tr_ticks' in fig_data):
-                y_ticks = fig_data['k_tr_ticks']
-            else:
-                y_lim = a.get_ylim()
-                y_ticks = [0, multiple_greater_than(1.2*y_lim[-1], 0.1)]
-            a.set_yticks(y_ticks)
-            a.set_ylim(y_ticks)        
-
+        ax_k_tr_pCa.set_xlabel('pCa')
+        ax_k_tr_pCa.invert_xaxis()
+        ax_k_tr_pCa.set_ylabel('k_tr (s$^{-1}$)')
+        if ('k_tr_ticks' in fig_data):
+            ax_k_tr_pCa.set_ylim(fig_data['k_tr_ticks'])
+        
         # Add legend on ktr-force curve if required
 
         if formatting['labels'] != []:
-            ax_k_tr_force_raw.legend(loc=formatting['legend_location'], fontsize = formatting['y_label_fontsize']-2)
+            ax_k_tr_force.legend(loc=formatting['legend_location'], fontsize = formatting['y_label_fontsize']-2)
 
         # Save it
         if (fig_data['relative_to'] == 'this_file'):
@@ -1962,15 +1898,3 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
             fig.savefig(ofs, dpi=200, bbox_inches='tight')
 
     plt.close()
-    
-def multiple_greater_than(v, multiple=0.1):
-    if (v > 0):
-        n = np.floor(np.log10(v))
-        m = multiple*np.power(10, n)
-        v = m*np.ceil(v/m)
-    if (v < 0):
-        n = np.floor(np.log10(-v))
-        m = multiple*np.power(10, n)
-        v = m*np.ceil(v/m)
-
-    return v
