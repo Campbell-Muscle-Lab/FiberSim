@@ -158,17 +158,27 @@ void muscle::implement_time_step(int protocol_index)
 
 		if (sim_mode == -1.0)
 		{
-			// Check slack length mode for ktr
-			p_hs[hs_counter]->hs_slack_length =
-				p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
+			// If the muscle is in tension
+			if (p_hs[hs_counter]->hs_force >= 0.0)
+			{
+				// Check slack length mode for ktr
+				p_hs[hs_counter]->hs_slack_length =
+					p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
 
-			// The hs_length cannot be shorter than its slack length
-			new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
-				p_hs[hs_counter]->hs_command_length);
+				// The hs_length cannot be shorter than its slack length
+				new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
+					p_hs[hs_counter]->hs_command_length);
 
-			// The increment might be smaller than delta_hsl if we are catching up
-			// on slack
-			adjustment = new_length - p_hs[hs_counter]->hs_length;
+				// The increment might be smaller than delta_hsl if we are catching up
+				// on slack
+				adjustment = new_length - p_hs[hs_counter]->hs_length;
+			}
+			else
+			{
+				// Controls for muscle with negative tension, which is stretched
+				// by algorithm in branch above
+				adjustment = p_hs[hs_counter]->hs_command_length - p_hs[hs_counter]->hs_length;
+			}
 
 			// Make the adjustment
 			calculate_x_iterations =
@@ -338,7 +348,7 @@ void muscle::write_rates_file()
 
 		p_hs[0]->p_m_scheme[isotype_counter]->write_rate_functions_to_file(
 			p_fs_options->rate_file_string, file_write_mode,
-			JSON_append_string);
+			JSON_append_string, p_hs[0]);
 	}
 
 	// Re-open the file, close the myosin array, and prep for the c array

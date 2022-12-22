@@ -141,7 +141,7 @@ void kinetic_scheme::set_transition_types(void)
 }
 
 void kinetic_scheme::write_rate_functions_to_file(char output_file_string[], char file_write_mode[],
-	char JSON_append_string[])
+	char JSON_append_string[], half_sarcomere* p_hs)
 {
 	//! Writes rate functions to output file
 
@@ -232,7 +232,7 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[], cha
 				{
 					// It's a transition
 					double x_ext = p_m_state->extension;
-					double rate = p_trans->calculate_rate(x, x_ext, 0, 0, 0, 0);
+					double rate = p_trans->calculate_rate(x, x_ext, 0, 0, 0, 0, p_hs);
 
 					fprintf_s(output_file, "\t%8g", rate);
 				}

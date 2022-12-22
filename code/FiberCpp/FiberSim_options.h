@@ -56,6 +56,11 @@ public:
     int dump_precision;                 /**< integer defining the precision of doubles dumped in the half-
                                              sarcomere status files */
 
+    int thin_filament_sub_steps;       /**< integer defining the number of sub-steps used to calculate
+                                            thin filament kinetics. If sub_steps==1, thin filaments are
+                                            updated using time_step. If sub_steps == n, thin filaments are
+                                            updated using n consecutive steps of time_step/n */
+
     char log_relative_to[_MAX_PATH];    /**< char array used to direct paths */
 
     char log_folder[_MAX_PATH];         /**< Folder to hold files about the program status:

@@ -107,8 +107,8 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     
     # Deduce the base_dir
     if (pCa_struct['relative_to'] == 'this_file'):
-        parent_dir = json_analysis_file_string.parent.absolute()
-        base_dir = os.path_join(parent_dir,
+        parent_dir = Path(json_analysis_file_string).parent.absolute()
+        base_dir = os.path.join(parent_dir,
                                 pCa_struct['sim_folder'])
     else:
         base_dir = pCa_struct['sim_folder']        
@@ -170,8 +170,12 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                 json.dump(m, f, indent=4)
             
             # Work out the path for the base options file
-            orig_options_file = os.path.join(base_dir,
-                                             model_struct['options_file'])
+            if (model_struct['relative_to'] == 'this_file'):
+                model_dir = Path(json_analysis_file_string).parent.absolute()
+                orig_options_file = os.path.join(model_dir,
+                                                 model_struct['options_file'])
+            else:
+                orig_options_file = model_struct['options_file']
 
             # Load the options data
             with open(orig_options_file, 'r') as f:
@@ -219,51 +223,108 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                     with open(options_file, 'w') as f:
                             json.dump(rep_options_data, f, indent=4)
     
-                    # Set the delta_hsl vector
-                    n_points = int(pCa_struct['sim_duration_s'] /
-                                   pCa_struct['time_step_s'])
-                    delta_hsl = np.zeros(n_points)
-                    mode_vector = -2 * np.ones(n_points)
-                    
-                    # Add in k_tr if required
-                    if ('k_tr_start_s' in pCa_struct):
-                        # Calculate some stuff for the k_tr
-                        k_tr_start_ind = int(pCa_struct['k_tr_start_s'] /
-                                             pCa_struct['time_step_s'])
-                        k_tr_stop_ind = int((pCa_struct['k_tr_start_s'] + 
-                                                 pCa_struct['k_tr_duration_s']) /
-                                            pCa_struct['time_step_s'])
-                        k_tr_ramp_points = int(pCa_struct['k_tr_ramp_s'] /
-                                               pCa_struct['time_step_s'])
-                        ramp_inc = pCa_struct['k_tr_magnitude_nm'] / \
-                                        float(k_tr_ramp_points)
-                        # Set the k_tr_shortening
-                        vi = np.arange(k_tr_start_ind,
-                                       k_tr_start_ind + k_tr_ramp_points, 1)
-                        delta_hsl[vi] = -ramp_inc
-                        # Set the k_tr_re-stretch
-                        vi = np.arange(k_tr_stop_ind,
-                                       k_tr_stop_ind + k_tr_ramp_points, 1)
-                        delta_hsl[vi] = ramp_inc
-                        # Set the mode
-                        vi = np.arange(k_tr_start_ind,
-                                       k_tr_stop_ind + k_tr_ramp_points, 1)
-                        mode_vector[vi] = -1
-                    
-                    # Add in user-defined delta_hsl
-                    if ('user_defined_dhsl' in pCa_struct):
-                        dhsl_file = os.path.join(base_dir,
-                                                 pCa_struct['user_defined_dhsl'])
-                        dhsl = pd.read_csv(dhsl_file)
-                        delta_hsl = dhsl['dhsl'].to_numpy()
+                    # Make a protocol, thinking about whether we need smaller
+                    # time steps for k_tr
+                    if not ('k_tr_start_s' in pCa_struct):
+                        n_points = int(pCa_struct['sim_duration_s'] /
+                                       pCa_struct['time_step_s'])
+                        dt = pCa_struct['time_step_s'] * np.ones(n_points)
+                        pCa_vector = pCa * np.ones(n_points)
+                        delta_hsl = np.zeros(n_points)
+                        mode_vector = -2 * np.ones(n_points)
+                    else:
+                        # Pre-phase
+                        pre_points = int(pCa_struct['k_tr_start_s'] /
+                                         pCa_struct['time_step_s'])
+                        pre_dt = pCa_struct['time_step_s'] * np.ones(pre_points)
+                        pre_pCa = pCa * np.ones(pre_points)
+                        pre_delta_hsl = np.zeros(pre_points)
+                        pre_mode_vector = -2 * np.zeros(pre_points)
                         
-                    # Create a length control protocol and write to file
-                    df = prot.create_length_control_protocol(
-                            time_step = pCa_struct['time_step_s'],
-                            step_pCa = pCa,
-                            n_points = n_points,
-                            delta_hsl = delta_hsl,
-                            mode_vector = mode_vector)
+                        # k_tr
+                        k_tr_time_step = pCa_struct['time_step_s'] / 10
+                        k_tr_points = int(pCa_struct['k_tr_duration_s'] / k_tr_time_step)
+                        k_tr_ramp_points = int(pCa_struct['k_tr_ramp_s'] / k_tr_time_step)
+                        ramp_inc = pCa_struct['k_tr_magnitude_nm'] / \
+                                    float(k_tr_ramp_points)
+                        
+                        k_tr_dt = k_tr_time_step * np.ones(k_tr_points)
+                        k_tr_pCa = pCa * np.ones(k_tr_points)
+                        k_tr_delta_hsl = np.zeros(k_tr_points)
+                        vi = np.arange(0, k_tr_ramp_points+1)
+                        k_tr_delta_hsl[vi] = -ramp_inc
+                        vi = np.arange(k_tr_points-1-k_tr_ramp_points, k_tr_points)
+                        k_tr_delta_hsl[vi] = ramp_inc
+                        k_tr_mode_vector = -np.ones(k_tr_points)
+
+                        # Post
+                        post_points = int((pCa_struct['sim_duration_s'] -
+                                           pCa_struct['k_tr_start_s'] -
+                                           pCa_struct['k_tr_duration_s']) /
+                                          pCa_struct['time_step_s'])
+                        post_dt = pCa_struct['time_step_s'] * np.ones(post_points)
+                        post_pCa = pCa * np.ones(post_points)
+                        post_delta_hsl = np.zeros(post_points)
+                        post_mode_vector = -2 * np.zeros(post_points)
+                        
+                        # Stack together
+                        dt = np.hstack((pre_dt, k_tr_dt, post_dt))
+                        pCa_vector = np.hstack((pre_pCa, k_tr_pCa, post_pCa))
+                        delta_hsl = np.hstack((pre_delta_hsl,
+                                               k_tr_delta_hsl,
+                                               post_delta_hsl))
+                        mode_vector = np.hstack((pre_mode_vector,
+                                                 k_tr_mode_vector,
+                                                 post_mode_vector))
+                    
+                    df = pd.DataFrame({'dt': dt,
+                                       'pCa': pCa_vector,
+                                       'delta_hsl': delta_hsl,
+                                       'mode': mode_vector})
+                        
+
+                    
+                    # # Add in k_tr if required
+                    # if ('k_tr_start_s' in pCa_struct):
+                    #     # Calculate some stuff for the k_tr
+                    #     k_tr_start_ind = int(pCa_struct['k_tr_start_s'] /
+                    #                           pCa_struct['time_step_s'])
+                    #     k_tr_stop_ind = int((pCa_struct['k_tr_start_s'] + 
+                    #                               pCa_struct['k_tr_duration_s']) /
+                    #                         pCa_struct['time_step_s'])
+                    #     k_tr_ramp_points = int(pCa_struct['k_tr_ramp_s'] /
+                    #                             pCa_struct['time_step_s'])
+                    #     ramp_inc = pCa_struct['k_tr_magnitude_nm'] / \
+                    #                     float(k_tr_ramp_points)
+                    #     # Set the k_tr_shortening
+                    #     vi = np.arange(k_tr_start_ind,
+                    #                     k_tr_start_ind + k_tr_ramp_points, 1)
+                    #     delta_hsl[vi] = -ramp_inc
+                    #     # Set the k_tr_re-stretch
+                    #     vi = np.arange(k_tr_stop_ind,
+                    #                     k_tr_stop_ind + k_tr_ramp_points, 1)
+                    #     delta_hsl[vi] = ramp_inc
+                    #     # Set the mode
+                    #     vi = np.arange(k_tr_start_ind,
+                    #                     k_tr_stop_ind + k_tr_ramp_points, 1)
+                    #     mode_vector[vi] = -1
+                    
+                    # # Add in user-defined delta_hsl
+                    # if ('user_defined_dhsl' in pCa_struct):
+                    #     dhsl_file = os.path.join(base_dir,
+                    #                               pCa_struct['user_defined_dhsl'])
+                    #     dhsl = pd.read_csv(dhsl_file)
+                    #     delta_hsl = dhsl['dhsl'].to_numpy()
+                        
+                    # # Create a length control protocol and write to file
+                    # df = prot.create_length_control_protocol(
+                    #         time_step = pCa_struct['time_step_s'],
+                    #         step_pCa = pCa,
+                    #         n_points = n_points,
+                    #         delta_hsl = delta_hsl,
+                    #         mode_vector = mode_vector)
+                    
+                    
                     prot_file_string = os.path.join(sim_input_dir,
                                                     ('prot_pCa_%.0f_r%i.txt' %
                                                      (10*pCa, rep+1)))
@@ -936,8 +997,6 @@ def deduce_freeform_properties(json_analysis_file_string,
                                freeform_struct):
     """ Code runs freeform analysis """
     
-    print(freeform_struct)
-    
     # Potentially switch off simulations
     figures_only = False
     if ('figures_only' in freeform_struct):
@@ -963,12 +1022,18 @@ def deduce_freeform_properties(json_analysis_file_string,
     
     # Turn the FiberCpp_exe into absolute paths because the new instruction
     # file will be in a different place
-    if (FiberCpp_exe_struct['relative_to'] == 'this_file'):
-        base_dir = Path(json_analysis_file_string).parent.absolute()
-        FiberCpp_exe_struct['relative_to'] = 'False'
-        FiberCpp_exe_struct['exe_file'] = \
-            os.path.join(base_dir, FiberCpp_exe_struct['exe_file'])
-        freeform_b['FiberCpp_exe'] = FiberCpp_exe_struct
+    cpp_exe = dict()
+    if ('relative_to' in FiberCpp_exe_struct):
+        if (FiberCpp_exe_struct['relative_to'] == 'this_file'):
+            base_dir = Path(json_analysis_file_string).parent.absolute()
+        else:
+            base_dir = FiberCpp_exe_struct['relative_to']
+        cpp_exe['exe_file'] = os.path.join(base_dir,
+                                           FiberCpp_exe_struct['exe_file'])
+    else:
+        cpp_exe['exe_file'] = FiberCpp_exe_struct['exe_file']
+
+    freeform_b['FiberCpp_exe'] = cpp_exe
 
     freeform_b['job'] = []
     
@@ -1002,31 +1067,34 @@ def deduce_freeform_properties(json_analysis_file_string,
                                              freeform_struct['sim_folder'],
                                              'sim_input',
                                              ('%i' % dir_counter))
+                
                 if not os.path.isdir(sim_input_dir):
                     os.makedirs(sim_input_dir)
                 
             # Copy the model and options files to the sim_input dir
             # adjusting half-sarcomere lengths as appropriate
-       
+
+            orig_model_file = mod_f
+            
             if (model_struct['relative_to'] == 'this_file'):
                 base_dir = Path(json_analysis_file_string).parent.absolute()
-                
                 orig_model_file = os.path.join(base_dir, mod_f)
-                
-                # Adjust hsl by loading model, adjusting hsl and re-writing
-                with open(orig_model_file, 'r') as f:
-                    m = json.load(f)
-                    m['muscle']['initial_hs_length'] = float(hsl)
                     
-                    # Over-ride m_n if appropriate
-                    if ('m_n' in freeform_struct):
-                        m['thick_structure']['m_n'] = freeform_struct['m_n']
-                    
-                fn = orig_model_file.split('/')[-1]
-                freeform_model_file = os.path.join(sim_input_dir, fn)
+            
+            # Adjust hsl by loading model, adjusting hsl and re-writing
+            with open(orig_model_file, 'r') as f:
+                m = json.load(f)
+                m['muscle']['initial_hs_length'] = float(hsl)
                 
-                with open(freeform_model_file, 'w') as f:
-                    json.dump(m, f, indent=4)
+                # Over-ride m_n if appropriate
+                if ('m_n' in freeform_struct):
+                    m['thick_structure']['m_n'] = freeform_struct['m_n']
+                
+            fn = re.split('/|\\\\', orig_model_file)[-1]
+            freeform_model_file = os.path.join(sim_input_dir, fn)
+            
+            with open(freeform_model_file, 'w') as f:
+                json.dump(m, f, indent=4)
            
             # Work out the path for the base options file
             orig_options_file = os.path.join(base_dir,
@@ -1072,7 +1140,7 @@ def deduce_freeform_properties(json_analysis_file_string,
                         rep_options_data['options']['rate_files']['file'] = \
                             os.path.join('../../sim_output',
                                          ('%i' % dir_counter),
-                                         'rates.txt')
+                                         'rates.json')
                     
                     # Create the new options file
                     options_file = os.path.join(
@@ -1086,7 +1154,7 @@ def deduce_freeform_properties(json_analysis_file_string,
                     
                     # Copy the protocol file
                     orig_prot_file = os.path.join(base_dir, prot_f)
-                    fn = orig_prot_file.split('/')[-1]
+                    fn = re.split('/|\\\\', orig_prot_file)[-1]
                     freeform_prot_file = os.path.join(sim_input_dir,
                                                       fn)
                     

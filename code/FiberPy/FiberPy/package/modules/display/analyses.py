@@ -30,7 +30,7 @@ def default_formatting():
     formatting['fontname'] = 'Arial'
     formatting['marker_size'] = 8
     formatting['marker_symbols'] = ['o','s','^','v','<','>']
-    formatting['fill_styles'] = ['full', 'full', 'full', 'full', 'full', 'full']
+    formatting['fill_styles'] = ['none', 'none', 'none', 'none', 'none', 'none']
     formatting['line_styles'] = ['-','-','-','-','-','-']
     formatting['marker_edge_width'] = 1
     formatting['high_pCa_tick'] = 8.0
@@ -118,6 +118,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     curve_index = []
     hs_force = []
     hs_pCa = []
+    hs_length = []
         
     # Keep track of max_y
     max_y = -np.inf
@@ -148,6 +149,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     curve_index.append(curve_counter)
                     hs_force.append(y)
                     hs_pCa.append(d['pCa'].iloc[-1])
+                    hs_length.append(d['hs_length'].iloc[-1])
 
             # Add in curve
             res=cv.fit_pCa_data(pCa_values[curve_counter-1],
@@ -166,6 +168,9 @@ def create_y_pCa_figure(fig_data, batch_file_string):
             curve_data['curve'].append(d_curve)
             
             # plot
+            
+            # Deduce curve props
+            c_ind = (curve_counter-1) % len(formatting['marker_symbols'])
 
             # Normalized data_field if required
             if formatting['y_normalized_to_max']:
@@ -175,21 +180,21 @@ def create_y_pCa_figure(fig_data, batch_file_string):
             for a in [ax_left, ax_right]:
                 a.plot(pCa_values[curve_counter-1],
                     y_values[curve_counter-1],
-                    formatting['marker_symbols'][curve_counter-1],
-                    fillstyle=formatting['fill_styles'][curve_counter-1],
+                    formatting['marker_symbols'][c_ind],
+                    fillstyle=formatting['fill_styles'][c_ind],
                     markersize=formatting['marker_size'],
-                    markerfacecolor = formatting['color_set'][curve_counter - 1],
+                    markerfacecolor = formatting['color_set'][c_ind],
                     markeredgewidth=formatting['marker_edge_width'],
-                    markeredgecolor=formatting['color_set'][curve_counter - 1])
+                    markeredgecolor=formatting['color_set'][c_ind])
 
                 if formatting['labels'] != []:
                     a.plot(res['x_fit'], res['y_fit'],'-',
-                        color = formatting['color_set'][curve_counter - 1],
-                        label = formatting['labels'][curve_counter - 1])               
+                        color = formatting['color_set'][c_ind],
+                        label = formatting['labels'][c_ind])               
                 else:                   
                     a.plot(res['x_fit'], res['y_fit'],
-                        color = formatting['color_set'][curve_counter - 1],
-                        linestyle=formatting['line_styles'][curve_counter - 1])
+                        color = formatting['color_set'][c_ind],
+                        linestyle=formatting['line_styles'][c_ind])
 
             # Loop on to the next folder
             curve_counter = curve_counter + 1
@@ -200,12 +205,14 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     # Add legend if required
 
     if formatting['labels'] != []:
-        ax_right.legend(loc=formatting['legend_location'], fontsize = formatting['y_label_fontsize']-2)
+        ax_right.legend(loc=formatting['legend_location'],
+                        fontsize = formatting['y_label_fontsize']-2)
 
     # Take lists and create a data frame
     r = pd.DataFrame({'curve': curve_index,
                       'hs_pCa': hs_pCa,
-                      'hs_force': hs_force})
+                      'hs_force': hs_force,
+                      'hs_length': hs_length})
 
     # Tidy up axis
     ax_left.set_xlim(formatting['high_pCa_tick'] +
@@ -297,13 +304,17 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     
     # Add in data
     for i,c in enumerate(curve_data['curve']):
+
+        # Deduce curve props        
+        c_ind = i % len(formatting['marker_symbols'])
+        
         y_anchor = y_anchor - y_spacing
         ax_right.plot(x_anchor + formatting['table_x_spacing'],
                     y_anchor,
-                    formatting['marker_symbols'][i],
-                    mfc = formatting['color_set'][i],
-                    mec = formatting['color_set'][i],
-                    fillstyle = formatting['fill_styles'][i],
+                    formatting['marker_symbols'][c_ind],
+                    mfc = formatting['color_set'][c_ind],
+                    mec = formatting['color_set'][c_ind],
+                    fillstyle = formatting['fill_styles'][c_ind],
                     markersize=formatting['marker_size'],
                     clip_on=False)
 
@@ -421,17 +432,16 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                     if length_fit_mode == 'exponential':
 
                         # Set the time of clamp as t = 0 
+                        if  ('sim_release_s' in  fig_data):
 
-                        if  'time_release_s' in  fig_data:
-
-                            time_offset = d_fit['time'] - fig_data['time_release_s']
+                            time_offset = d_fit['time'] - fig_data['sim_release_s']
 
                         # if time of clamp not specified, set start fitting time as t = 0
 
                         else: 
                             time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]                            
 
-                        vel_data = cv.fit_exponential_decay(time_offset.to_numpy(),
+                        vel_data = cv.fit_exponential(time_offset.to_numpy(),
                                                 d_fit['hs_length'].to_numpy())
 
                         # Shortening velocity in ML s-1:
@@ -480,7 +490,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     
     print(r)
     
-    with pd.ExcelWriter('d:/temp.test.xlsx', engine='openpyxl') as writer:
+    with pd.ExcelWriter('d:/temp.xlsx', engine='openpyxl') as writer:
         r.to_excel(writer, sheet_name = 'simulation_data', index=False)
     
     # Now cycle through the curves fitting hybperbolas to each condition
@@ -540,61 +550,64 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         for c in range(1, curve_counter):
             # Pull off the curve data
             rc = r[r['curve'] == c].copy()
-
+            
+            # Deduce curve props        
+            c_ind = (c-1) % len(formatting['marker_symbols'])
+            
             # Plot the force velocity curve
             ax_fv.plot(rc['hs_force'], rc['hs_velocity'],
-                       formatting['marker_symbols'][c-1],
+                       formatting['marker_symbols'][c_ind],
                        formatting['marker_size'],
-                       fillstyle=formatting['fill_styles'][c-1],
-                       color = formatting['color_set'][c - 1])
+                       fillstyle=formatting['fill_styles'][c_ind],
+                       color = formatting['color_set'][c_ind])
             fv_curve = cv.fit_hyperbola(rc['hs_force'], rc['hs_velocity'])
 
             if formatting['labels'] != []:
 
                 ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'],
                            color=ax_fv.lines[-1].get_color(),
-                           linestyle = formatting['line_styles'][c-1],
-                           label = formatting['labels'][c - 1])
+                           linestyle = formatting['line_styles'][c_ind],
+                           label = formatting['labels'][c_ind])
             else:
                 ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'],
                     color=ax_fv.lines[-1].get_color(),
-                    linestyle = formatting['line_styles'][c-1])
+                    linestyle = formatting['line_styles'][c_ind])
 
             ax_pow.plot(rc['hs_force'], rc['hs_power'],
-                       formatting['marker_symbols'][c-1],
+                       formatting['marker_symbols'][c_ind],
                        formatting['marker_size'],
-                       fillstyle=formatting['fill_styles'][c-1],
-                        color = formatting['color_set'][c - 1])
+                       fillstyle=formatting['fill_styles'][c_ind],
+                        color = formatting['color_set'][c_ind])
             pow_curve = cv.fit_power_curve(rc['hs_force'], rc['hs_power'])
             ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'], '-',
                         color=ax_pow.lines[-1].get_color(),
-                        linestyle = formatting['line_styles'][c-1])
+                        linestyle = formatting['line_styles'][c_ind])
 
-            ax_rel_fv.plot(rc['hs_f_to_f_max'], rc['hs_v_to_v_max'],
-                           formatting['marker_symbols'][c-1],
+            ax_rel_fv.plot(rc['hs_f_to_f_max'], rc['hs_velocity_l0_per_s'],
+                           formatting['marker_symbols'][c_ind],
                            formatting['marker_size'],
-                           fillstyle=formatting['fill_styles'][c-1],
-                           color = formatting['color_set'][c-1])
-            rel_fv_curve = cv.fit_hyperbola(rc['hs_f_to_f_max'], rc['hs_v_to_v_max'])
+                           fillstyle=formatting['fill_styles'][c_ind],
+                           color = formatting['color_set'][c_ind])
+            rel_fv_curve = cv.fit_hyperbola(rc['hs_f_to_f_max'], rc['hs_velocity_l0_per_s'])
             ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'], '-',
                            color=ax_rel_fv.lines[-1].get_color(),
-                           linestyle = formatting['line_styles'][c-1])
+                           linestyle = formatting['line_styles'][c_ind])
 
             ax_rel_pow.plot(rc['hs_f_to_f_max'], rc['hs_rel_power'],
-                            formatting['marker_symbols'][c-1],
+                            formatting['marker_symbols'][c_ind],
                             formatting['marker_size'],
-                            fillstyle=formatting['fill_styles'][c-1],
-                            color = formatting['color_set'][c - 1])
+                            fillstyle=formatting['fill_styles'][c_ind],
+                            color = formatting['color_set'][c_ind])
             rel_pow_curve = cv.fit_power_curve(rc['hs_f_to_f_max'], rc['hs_rel_power'])
             ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'], '-',
                         color=ax_pow.lines[-1].get_color(),
-                        linestyle = formatting['line_styles'][c-1])
+                        linestyle = formatting['line_styles'][c_ind])
 
             # Store data to work out ticks later on
             f_ticks = np.concatenate((f_ticks, rc['hs_force']))
             rel_f_ticks = np.concatenate((rel_f_ticks, rc['hs_f_to_f_max']))
             v_ticks = np.concatenate((v_ticks, rc['hs_velocity']))
-            rel_v_ticks = np.concatenate((rel_v_ticks, rc['hs_v_to_v_max']))
+            rel_v_ticks = np.concatenate((rel_v_ticks, rc['hs_velocity_l0_per_s']))
             p_ticks = np.concatenate((p_ticks, rc['hs_power']))
             rel_p_ticks = np.concatenate((rel_p_ticks, rc['hs_rel_power']))
             
@@ -1308,18 +1321,19 @@ def create_rates_figure(fig_data, batch_file_string):
                         d = json.load(f, strict=False)
                     
                     # Scan through looking for myosins
-                    for m in d['FiberSim_rates']['myosin']:
+                    for (i,m) in enumerate(d['FiberSim_rates']['myosin']):
                         # Read in the scheme
                         # Pull of some data
                         # Append the scheme to the holder as a Pandas
                         # dataframe
+                        
                         df = pd.read_csv(StringIO(m['scheme']), sep='\t')
                         no_of_rates = len(df.columns) - 1
                         max_no_of_rates = np.amax([max_no_of_rates, no_of_rates])
                         m_schemes.append(df)
                     
                     # And now for mybpc
-                    for c in d['FiberSim_rates']['mybpc']:
+                    for (i,c) in enumerate(d['FiberSim_rates']['mybpc']):
                         # Same as for myosin above
                         df = pd.read_csv(StringIO(c['scheme']), sep='\t')
                         no_of_rates = len(df.columns) - 1
@@ -1330,6 +1344,8 @@ def create_rates_figure(fig_data, batch_file_string):
             model_counter = model_counter + 1
         else:
             keep_going = False
+            
+    print('max_rates: %i' % max_no_of_rates)
 
     # Set-up the figure
     no_of_cols = 2
@@ -1351,8 +1367,8 @@ def create_rates_figure(fig_data, batch_file_string):
         color_map = formatting['color_set']
         if (len(s) > len(color_map)):
             color_map = []
-            for i,c in enumerate(np.linspace(0, 1, len(s))):
-                color_map.append(cm.rainbow(c))
+            for k,c in enumerate(np.linspace(0, 1, len(s))):
+                color_map.append(cm.rainbow(k))
        
         # Loop through the rates making plots
         for j in range(max_no_of_rates):
@@ -1477,6 +1493,10 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
             if ((file.endswith('.txt')) and not file.endswith('rates.txt')):
                 fs = os.path.join(condition_folder, file)
                 d = pd.read_csv(fs, sep='\t')
+                
+                if ('x_ticks' in formatting):
+                    d = d[(d['time'] > formatting['x_ticks'][0]) &
+                          (d['time'] <= formatting['x_ticks'][-1])]
 
                 # Keep track of max and mins
                 if ((i==0) and (file_counter==1)):
@@ -1505,6 +1525,9 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                     
                 plot_index = plot_index + 1
                 ax[plot_index].plot(d['time'], d['hs_length'], '-',
+                                    color = color_map[i],
+                                    linewidth = formatting['data_linewidth'])
+                ax[plot_index].plot(d['time'], d['hs_command_length'], '--',
                                     color = color_map[i],
                                     linewidth = formatting['data_linewidth'])
 
@@ -1548,6 +1571,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                             label = None
                         ax[plot_index].plot(d['time'], d[m_pop_string],
                                             '-',
+                                            color = color_map[m_state_counter],
                                             linewidth = formatting['data_linewidth'],
                                             label=label)
                         m_state_counter = m_state_counter + 1
@@ -1609,12 +1633,12 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
         plot_index = plot_index + 1
-        y_ticks = [min_hsl, max_hsl]
-        ax[plot_index].set_ylim(y_ticks)
-        ax[plot_index].set_yticks(y_ticks)
-        if ('superposed_x_ticks' in fig_data):
-            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
-            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+        # y_ticks = [min_hsl, max_hsl]
+        # ax[plot_index].set_ylim(y_ticks)
+        # ax[plot_index].set_yticks(y_ticks)
+        # if ('superposed_x_ticks' in fig_data):
+        #     ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+        #     ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
 
         plot_index = plot_index + 1
@@ -1716,6 +1740,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
     k_tr = []
     k_tr_amp = []
     pCa = []
+    hs_length = []
 
     # And dicts to hold traces
     sims = dict()
@@ -1757,6 +1782,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                     k_tr.append(k_tr_data['k'])
                     k_tr_amp.append(k_tr_data['amp'])
                     pCa.append(d['pCa'].iloc[-1])
+                    hs_length.append(d['hs_length'].iloc[-1])
 
                     d_fit['x_fit'] = k_tr_data['x_fit'] + d_fit['time'].iloc[0]
                     d_fit['y_fit'] = k_tr_data['y_fit']
@@ -1773,6 +1799,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
     r = pd.DataFrame({'curve': curve,
                       'pCa': pCa,
                       'force': force,
+                      'hs_length': hs_length,
                       'k_tr': k_tr,
                       'k_tr_amp': k_tr_amp})
 
@@ -1809,6 +1836,10 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
         # Cycle through curves
         for (i,c) in enumerate(range(1, curve_counter)):
             vi = np.flatnonzero(r['curve'].to_numpy() == c)
+            
+            # Deduce curve props        
+            c_ind = i % len(formatting['marker_symbols'])
+            
             # Draw traces
             for v in vi:
                 d_fit = sims['fit'][v]
@@ -1819,44 +1850,44 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                 d_raw = d_raw[d_raw['time'] > t_draw_start_s]
 
                 ax_force.plot(d_raw['time'], d_raw['force'],
-                              color = formatting['color_set'][i])
+                              color = formatting['color_set'][c_ind])
                 ax_force.plot(d_fit['time'], d_fit['y_fit'], color='k')
 
                 # Now the lengths
                 ax_hsl.plot(d_raw['time'], d_raw['hs_command_length'],
                               color = 'k')
                 ax_hsl.plot(d_raw['time'], d_raw['hs_length'],
-                              color = formatting['color_set'][i])
+                              color = formatting['color_set'][c_ind])
 
             # Now draw the plots
             r2 = r[r['curve'] == c]
             ax_k_tr_force.plot(r2['force'], r2['k_tr'],
-                               formatting['marker_symbols'][i],
-                               markerfacecolor = formatting['color_set'][i],
-                               markeredgecolor = formatting['color_set'][i],
-                               fillstyle = formatting['fill_styles'][i],
+                               formatting['marker_symbols'][c_ind],
+                               markerfacecolor = formatting['color_set'][c_ind],
+                               markeredgecolor = formatting['color_set'][c_ind],
+                               fillstyle = formatting['fill_styles'][c_ind],
                                markeredgewidth=formatting['marker_edge_width'])
 
             if formatting['labels'] != []:
         
                 ax_k_tr_force.plot(r2['force'], r2['k_tr'],
-                    linestyle = formatting['line_styles'][i],
-                    color = formatting['color_set'][i],
-                    label = formatting['labels'][i])
+                    linestyle = formatting['line_styles'][c_ind],
+                    color = formatting['color_set'][c_ind],
+                    label = formatting['labels'][c_ind])
             else:
                 ax_k_tr_force.plot(r2['force'], r2['k_tr'],
-                    linestyle = formatting['line_styles'][i],
-                    color = formatting['color_set'][i])
+                    linestyle = formatting['line_styles'][c_ind],
+                    color = formatting['color_set'][c_ind])
 
             ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
-                               formatting['marker_symbols'][i],
-                               markerfacecolor = formatting['color_set'][i],
-                               markeredgecolor = formatting['color_set'][i],
-                               fillstyle = formatting['fill_styles'][i],
+                               formatting['marker_symbols'][c_ind],
+                               markerfacecolor = formatting['color_set'][c_ind],
+                               markeredgecolor = formatting['color_set'][c_ind],
+                               fillstyle = formatting['fill_styles'][c_ind],
                                markeredgewidth=formatting['marker_edge_width'])
             ax_k_tr_pCa.plot(r2['pCa'], r2['k_tr'],
-                             linestyle = formatting['line_styles'][i],
-                             color = formatting['color_set'][i])
+                             linestyle = formatting['line_styles'][c_ind],
+                             color = formatting['color_set'][c_ind])
         
         # Draw some labels
         ax_force.set_ylabel('Force (N m$^{-2}$)')

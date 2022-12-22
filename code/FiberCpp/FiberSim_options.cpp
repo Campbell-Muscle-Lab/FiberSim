@@ -29,8 +29,11 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
                                                  available for myosin or mybpc attachment
                                                  0 restricts to nearest site */
 
-    max_rate = 5000.0;                      /**< default value for maximum rate allowed
+    max_rate = 1000.0;                      /**< default value for maximum rate allowed
                                                  in calculations */
+
+    thin_filament_sub_steps = 10;            /**< default value for number of sub_steps
+                                                 used for thin filament kinetics */
 
     lambda_jitter = 0.0;                    /**< default value for lambda jitter */
 
@@ -198,6 +201,12 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     {
         JSON_functions::check_JSON_member_number(options, "max_rate");
         max_rate = options["max_rate"].GetDouble();
+    }
+
+    if (JSON_functions::is_JSON_member(options, "thin_filament_sub_steps"))
+    {
+        JSON_functions::check_JSON_member_int(options, "thin_filament_sub_steps");
+        thin_filament_sub_steps = options["thin_filament_sub_steps"].GetInt();
     }
 
     if (JSON_functions::is_JSON_member(options, "adjacent_bs"))

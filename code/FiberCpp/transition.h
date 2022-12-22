@@ -6,6 +6,7 @@
 * @author	Ken Campbell
 */
 
+#include "half_sarcomere.h"
 #include "m_state.h"
 #include "rapidjson/document.h"
 #include "JSON_functions.h"
@@ -13,6 +14,8 @@
 
 #include "gsl_vector.h"
 
+// Forward declaration
+class half_sarcomere;
 
 class transition
 {
@@ -59,5 +62,6 @@ public:
 	*/
 	double calculate_rate(double x, double x_ext, double node_force,
 							int mybpc_state, int mybpc_iso,
-							short int active_neigh = 0);
+							short int active_neigh = 0,
+							half_sarcomere* p_hs = NULL);
 };

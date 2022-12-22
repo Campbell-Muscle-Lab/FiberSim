@@ -11,6 +11,7 @@
 #include "m_state.h"
 #include "kinetic_scheme.h"
 #include "FiberSim_model.h"
+#include "half_sarcomere.h"
 #include "global_definitions.h"
 #include "JSON_functions.h"
 
@@ -69,7 +70,7 @@ transition::~transition(void)
 // Functions
 
 double transition::calculate_rate(double x, double x_ext, double node_force,
-	int mybpc_state, int mybpc_iso, short int active_neigh)
+	int mybpc_state, int mybpc_iso, short int active_neigh, half_sarcomere* p_hs)
 {
 	//! Returns the rate for a transition with a given x
 	//! 
@@ -105,7 +106,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 	if (!strcmp(rate_type, "force_dependent"))
 	{
 		rate = gsl_vector_get(rate_parameters, 0) *
-			(1.0 + (gsl_max(node_force,0.0) * gsl_vector_get(rate_parameters, 1)));
+			(1.0 + (gsl_max(node_force, 0.0) * gsl_vector_get(rate_parameters, 1)));
 	}
 
 	// Force and MyBPC-dependent
@@ -162,6 +163,44 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 		rate = gsl_vector_get(rate_parameters, 0) *
 			exp(-(0.5 * k_cb * gsl_pow_int(x, 2)) /
 				(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
+	}
+
+	// Gaussian_hsl
+	if (!strcmp(rate_type, "gaussian_hsl"))
+	{
+		// Distance between surface of thick and thin filaments is
+		// (2/3)*d_1,0 - r_thin - r_thick
+		// Assume d_1_0 at hsl = 1100 nm is 37 nm, r_thin = 5.5 nm, t_thick = 7.5 nm
+		// d at hsl = x is (2/3) * (37 / sqrt(x/1100)) - 5/5 - 7.5
+		// first passage time to position y is t = y^2 / (2*D)
+		// rate is proportional to 1/t
+		// rate at hsl == x is ref_rate * (y_ref / y_x)^2
+		// See PMID 35450825 and first passage in
+		// Mechanics of motor proteins and the cytoskeleton, Joe Howard book
+
+		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+		double k_cb = p_model->m_k_cb;
+
+		double hs_length;
+		double y_ref;		// distance between filaments at 1100 nm
+		double y_actual;	// distance between filaments at current hsl
+		double r_thick = 7.5;
+		double r_thin = 5.5;
+
+		y_ref = ((2.0 / 3.0) * 37.0) - r_thick - r_thin;
+
+		if (p_hs == NULL)
+			hs_length = 1100.0;
+		else
+			hs_length = p_hs->hs_length;
+
+		y_actual = (2.0 / 3.0) * (37.0 / sqrt(hs_length / 1100.0)) - r_thick - r_thin;
+
+		rate = gsl_vector_get(rate_parameters, 0) *
+			exp(-(0.5 * k_cb * gsl_pow_int(x, 2)) /
+				(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
+
+		rate = rate * gsl_pow_2(y_ref / y_actual);
 	}
 
 	// Gaussian MyBP-C 

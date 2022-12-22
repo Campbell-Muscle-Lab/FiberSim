@@ -162,8 +162,11 @@ public:
     double t_k_stiff;                   /**< double definining the stiffness of titin
                                              in N m^-1 */
 
-    double t_slack_length;              /**< double defining the slack length of titin
-                                             in nm */
+    double t_sigma;                     /**< double defining scaling factor for
+                                             exponential titin */
+
+    double t_L;                         /**< double defining curvature for
+                                             exponential titin */
 
     // Extracellular parameters
     char e_passive_mode[_MAX_PATH];     /**< char array defining the extracellular

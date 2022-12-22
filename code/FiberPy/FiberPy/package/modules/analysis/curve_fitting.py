@@ -138,6 +138,56 @@ def fit_power_curve(x, y):
     
     return d
 
+def fit_exponential(x, y, n=1):
+    
+    # Test whether system is building or declining
+    # lin_mod = fit_straight_line(x,y)
+    if (y[-1] > y[0]):
+        build_mode = 1
+    else:
+        build_mode = -1
+
+    sorted_y = np.sort(y)
+    min_y = np.amin(y)
+    max_y = np.amax(y)
+    
+    if (build_mode == 1):
+        guess_half_index = np.argmax(sorted_y > (min_y + (0.5 * (max_y - min_y))))
+        p = [max_y, (min_y - max_y)]
+    else:
+        y_sorted = sorted_y[::-1]
+        guess_half_index = len(y_sorted) - np.argmax(y_sorted < (min_y + 0.5 * (max_y - min_y))) - 1
+        p = [min_y, (max_y-min_y)]
+        
+    k = -np.log(0.5) / (x[guess_half_index] - x[0])
+    p.append(k)
+    
+    def y_func(x_data, offset, amp, k):
+        y = np.zeros(len(x_data))
+        for i,x in enumerate(x_data):
+            y[i] = offset + amp*(-abs(k) * x)
+        return y
+    
+    min_bounds = [-np.inf, -np.inf, 0.0]
+    max_bounds = [np.inf, np.inf, np.inf]
+    
+    popt, pcov = curve_fit(y_func, x, y,
+                           p,
+                           bounds=(min_bounds, max_bounds),
+                           maxfev=5000)
+    
+    d = dict()
+    d['offset'] = popt[0]
+    d['amp'] = popt[1]
+    d['k'] = popt[2]
+    d['x_fit'] = x
+    d['y_fit'] = y_func(d['x_fit'], *popt)
+    
+    return d
+    
+    
+    
+
 def fit_exponential_recovery(x, y, n=1):
     """ Fits exponential recovery with a single exponential of form y = offset + amp*(1 - exp(-k*x)) to y data """
     
@@ -148,8 +198,10 @@ def fit_exponential_recovery(x, y, n=1):
                 y[i] = offset + amp*(1 - np.exp(-k*x))
             return y
 
-        min_bounds = [-np.inf, 0, 0.0]
+        min_bounds = [-np.inf, -np.inf, 0.0]
         max_bounds = [np.inf, np.inf, np.inf]
+        
+        
 
         popt, pcov = curve_fit(y_single_exp, x, y,
                                [y[0], y[-1]-y[0], (1/(0.2*np.amax(x)))],
@@ -174,14 +226,23 @@ def fit_exponential_decay(x, y):
             y[i] = offset + amp*np.exp(-k*(x))
         return y   
 
-    min_bounds = [0.0, 0.0, 0.0]
+    min_bounds = [-np.inf, -np.inf, 0.0]
     max_bounds = [np.inf, np.inf, np.inf]
+    
+    st = [y[0], y[-1] - y[0], -np.log(0.5)/0.5*(np.amax(x)+np.amin(x))]
+    st = [1091, 40.24, 0.3]
+    print(st)
+    
+    print(x[0])
     
     try:
         
-        popt, pcov = curve_fit(y_single_exp, x, y, [y[-1], y[0]-y[-1], -np.log(0.5)/0.5*(np.amax(x)+np.amin(x))],
+        popt, pcov, info, mesg = curve_fit(y_single_exp, x, y, [y[-1], y[0]-y[-1], -np.log(0.5)/0.5*(np.amax(x)+np.amin(x))],
                                maxfev=1000,
                                bounds=(min_bounds, max_bounds))
+        
+        print(info)
+        print(mesg)
         
     except:
         print('fit exponential decay failed - setting decay rate to NaN')

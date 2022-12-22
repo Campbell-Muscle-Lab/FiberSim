@@ -16,7 +16,9 @@
 
 #include "global_definitions.h"
 
+// Forward declarations
 class m_state;
+class half_sarcomere;
 
 class kinetic_scheme
 {
@@ -72,6 +74,7 @@ public:
 	* @return void
 	*/
 	void write_rate_functions_to_file(char output_file_string[], char file_write_mode[],
-										char JSON_append_string[]);
+										char JSON_append_string[],
+										half_sarcomere* p_hs = NULL);
 
 };

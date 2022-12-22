@@ -355,8 +355,14 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(titin_parameters, "t_k_stiff");
     t_k_stiff = titin_parameters["t_k_stiff"].GetDouble();
 
-    JSON_functions::check_JSON_member_number(titin_parameters, "t_slack_length");
-    t_slack_length = titin_parameters["t_slack_length"].GetDouble();
+    if (!strcmp(t_passive_mode, "exponential"))
+    {
+        JSON_functions::check_JSON_member_number(titin_parameters, "t_sigma");
+        t_sigma = titin_parameters["t_sigma"].GetDouble();
+
+        JSON_functions::check_JSON_member_number(titin_parameters, "t_L");
+        t_L = titin_parameters["t_L"].GetDouble();
+    }
 
     // Load the extracellular_parameters
     JSON_functions::check_JSON_member_object(doc, "extracellular_parameters");
@@ -492,9 +498,11 @@ void FiberSim_model::write_FiberSim_model_to_file(void)
     fprintf_s(output_file, "\t\"a_gamma_coop\": %g},\n", a_gamma_coop);
 
     fprintf_s(output_file, "\"titin_parameters\":{\n");
+    fprintf_s(output_file, "\t\"t_passive_mode\": %s,\n", t_passive_mode);
     fprintf_s(output_file, "\t\"t_k_stiff\": %g,\n", t_k_stiff);
-    fprintf_s(output_file, "\t\"t_slack_length\": %g,\n", t_slack_length);
-    
+    fprintf_s(output_file, "\t\"t_sigma\": %g,\n", t_sigma);
+    fprintf_s(output_file, "\t\"t_L\": %g,\n", t_L);
+
     // Tidy up
     fclose(output_file);
 }
