@@ -488,11 +488,6 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     r.replace('', np.nan, inplace=True)
     r.dropna(inplace=True)
     
-    print(r)
-    
-    with pd.ExcelWriter('d:/temp.xlsx', engine='openpyxl') as writer:
-        r.to_excel(writer, sheet_name = 'simulation_data', index=False)
-    
     # Now cycle through the curves fitting hybperbolas to each condition
     # This allows you to calculate force relative to isometric and
     # v relative to V_max
@@ -579,7 +574,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                        fillstyle=formatting['fill_styles'][c_ind],
                         color = formatting['color_set'][c_ind])
             pow_curve = cv.fit_power_curve(rc['hs_force'], rc['hs_power'])
-            ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'], '-',
+            ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c_ind])
 
@@ -589,7 +584,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                            fillstyle=formatting['fill_styles'][c_ind],
                            color = formatting['color_set'][c_ind])
             rel_fv_curve = cv.fit_hyperbola(rc['hs_f_to_f_max'], rc['hs_velocity_l0_per_s'])
-            ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'], '-',
+            ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'],
                            color=ax_rel_fv.lines[-1].get_color(),
                            linestyle = formatting['line_styles'][c_ind])
 
@@ -1645,6 +1640,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
         y_ticks = [0, max_force]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].set_yticks(y_ticks)
+        
         if ('superposed_x_ticks' in fig_data):
             ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
@@ -1660,6 +1656,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                           formatting['legend_bbox_to_anchor'][1]),
                       prop={'family': formatting['fontname'],
                        'size': formatting['legend_fontsize']})
+        
         if ('superposed_x_ticks' in fig_data):
             ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
@@ -1676,6 +1673,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                           formatting['legend_bbox_to_anchor'][1]),
                       prop={'family': formatting['fontname'],
                        'size': formatting['legend_fontsize']})
+        
         if ('superposed_x_ticks' in fig_data):
             ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
@@ -1691,9 +1689,15 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                                   formatting['legend_bbox_to_anchor'][1]),
                               prop={'family': formatting['fontname'],
                                'size': formatting['legend_fontsize']})
+        
         if ('superposed_x_ticks' in fig_data):
             ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+            
+    # Remove unnecessary spines
+    for i in range(no_of_conditions * no_of_rows):
+        ax[i].spines['top'].set_color('None')
+        ax[i].spines['right'].set_color('None')
 
     if (fig_data['output_image_file']):
         if (fig_data['relative_to'] == 'this_file'):
