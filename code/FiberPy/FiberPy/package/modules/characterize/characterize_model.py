@@ -1021,15 +1021,15 @@ def deduce_freeform_properties(json_analysis_file_string,
     freeform_b = dict()
     
     # Turn the FiberCpp_exe into absolute paths because the new instruction
-    # file will be in a different place
+    # file will be in a different place, add to new batch
     cpp_exe = dict()
     if ('relative_to' in FiberCpp_exe_struct):
         if (FiberCpp_exe_struct['relative_to'] == 'this_file'):
             base_dir = Path(json_analysis_file_string).parent.absolute()
         else:
             base_dir = FiberCpp_exe_struct['relative_to']
-        cpp_exe['exe_file'] = os.path.join(base_dir,
-                                           FiberCpp_exe_struct['exe_file'])
+        cpp_exe['exe_file'] = str(Path(os.path.join(base_dir,
+                                           FiberCpp_exe_struct['exe_file'])).resolve())
     else:
         cpp_exe['exe_file'] = FiberCpp_exe_struct['exe_file']
 
@@ -1063,14 +1063,17 @@ def deduce_freeform_properties(json_analysis_file_string,
             # Create a folder for the sim_input
             if (freeform_struct['relative_to'] == 'this_file'):
                 base_dir = Path(json_analysis_file_string).parent.absolute()
-                sim_input_dir = os.path.join(base_dir,
-                                             freeform_struct['sim_folder'],
-                                             'sim_input',
-                                             ('%i' % dir_counter))
-                
-                if not os.path.isdir(sim_input_dir):
-                    os.makedirs(sim_input_dir)
-                
+            else:
+                base_dir = ''
+            
+            sim_input_dir = os.path.join(base_dir,
+                                         freeform_struct['sim_folder'],
+                                         'sim_input',
+                                         ('%i' % dir_counter))
+            
+            if not os.path.isdir(sim_input_dir):
+                os.makedirs(sim_input_dir)
+            
             # Copy the model and options files to the sim_input dir
             # adjusting half-sarcomere lengths as appropriate
 
@@ -1078,8 +1081,9 @@ def deduce_freeform_properties(json_analysis_file_string,
             
             if (model_struct['relative_to'] == 'this_file'):
                 base_dir = Path(json_analysis_file_string).parent.absolute()
-                orig_model_file = os.path.join(base_dir, mod_f)
-                    
+            else:
+                base_dir = ''
+            orig_model_file = os.path.join(base_dir, mod_f)
             
             # Adjust hsl by loading model, adjusting hsl and re-writing
             with open(orig_model_file, 'r') as f:
@@ -1153,10 +1157,18 @@ def deduce_freeform_properties(json_analysis_file_string,
                             json.dump(rep_options_data, f, indent=4)
                     
                     # Copy the protocol file
+                    if (freeform_struct['relative_to'] == 'this_file'):
+                        base_dir = Path(json_analysis_file_string).parent.absolute()
+                    else:
+                        base_dir = ''
+
                     orig_prot_file = os.path.join(base_dir, prot_f)
                     fn = re.split('/|\\\\', orig_prot_file)[-1]
                     freeform_prot_file = os.path.join(sim_input_dir,
                                                       fn)
+                    
+                    print("opf: %s" % orig_prot_file)
+                    print("fpf: %s" % freeform_prot_file)
                     
                     shutil.copyfile(orig_prot_file, freeform_prot_file)
 
