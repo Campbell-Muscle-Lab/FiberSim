@@ -1,0 +1,73 @@
+{
+    "FiberSim_batch": {
+        "FiberCpp_exe": {
+            "exe_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\bin\\FiberCpp.exe"
+        },
+        "job": [
+            {
+                "relative_to": "False",
+                "protocol_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\1\\protocol_twitch.txt",
+                "results_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output\\1\\sim_prot_1_r1.txt",
+                "model_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\1\\model_1.json",
+                "options_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\1\\sim_options_1_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\2\\protocol_twitch.txt",
+                "results_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output\\2\\sim_prot_1_r1.txt",
+                "model_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\2\\model_1.json",
+                "options_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\2\\sim_options_1_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\3\\protocol_twitch.txt",
+                "results_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output\\3\\sim_prot_1_r1.txt",
+                "model_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\3\\model_2.json",
+                "options_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\3\\sim_options_1_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\4\\protocol_twitch.txt",
+                "results_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output\\4\\sim_prot_1_r1.txt",
+                "model_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\4\\model_2.json",
+                "options_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\4\\sim_options_1_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\5\\protocol_twitch.txt",
+                "results_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output\\5\\sim_prot_1_r1.txt",
+                "model_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\5\\model_3.json",
+                "options_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\5\\sim_options_1_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\6\\protocol_twitch.txt",
+                "results_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output\\6\\sim_prot_1_r1.txt",
+                "model_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\6\\model_3.json",
+                "options_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_input\\6\\sim_options_1_r1.json"
+            }
+        ],
+        "batch_figures": {
+            "rates": [
+                {
+                    "relative_to": "False",
+                    "results_folder": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output",
+                    "output_image_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output\\rates",
+                    "output_image_formats": [
+                        "png"
+                    ]
+                }
+            ],
+            "superposed_traces": [
+                {
+                    "relative_to": "False",
+                    "results_folder": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output",
+                    "output_image_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\twitch\\sim_data\\sim_output\\superposed_traces",
+                    "output_image_formats": [
+                        "png"
+                    ]
+                }
+            ]
+        }
+    }
+}
