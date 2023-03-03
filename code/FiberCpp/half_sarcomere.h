@@ -253,6 +253,8 @@ public:
 
     double t_sigma, t_L;            /**< doubles defining parameters in
                                          f = sigma * (exp(x/L) - 1) */
+
+    double t_offset;
     
     // Extracellular parameters
     char e_passive_mode[_MAX_PATH];     /**< char array defining the extracellular

@@ -168,6 +168,9 @@ public:
     double t_L;                         /**< double defining curvature for
                                              exponential titin */
 
+    double t_offset;                    /**< double defininig offset for
+                                             titin length */
+
     // Extracellular parameters
     char e_passive_mode[_MAX_PATH];     /**< char array defining the extracellular
                                              passive mode */

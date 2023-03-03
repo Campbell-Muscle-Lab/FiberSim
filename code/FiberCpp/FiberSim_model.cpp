@@ -364,6 +364,16 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         t_L = titin_parameters["t_L"].GetDouble();
     }
 
+    if (JSON_functions::check_JSON_member_exists(titin_parameters, "t_offset"))
+    {
+        JSON_functions::check_JSON_member_number(titin_parameters, "t_offset");
+        t_offset = titin_parameters["t_offset"].GetDouble();
+    }
+    else
+    {
+        t_offset = 0.0;
+    }
+
     // Load the extracellular_parameters
     JSON_functions::check_JSON_member_object(doc, "extracellular_parameters");
     const rapidjson::Value& extracellular_parameters = doc["extracellular_parameters"];

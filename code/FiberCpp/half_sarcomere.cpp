@@ -229,6 +229,7 @@ half_sarcomere::half_sarcomere(
         t_sigma = p_fs_model->t_sigma;
         t_L = p_fs_model->t_L;
     }
+    t_offset = p_fs_model->t_offset;
 
     // Extracellular parameters
     sprintf_s(e_passive_mode, _MAX_PATH, p_fs_model->e_passive_mode);
@@ -586,7 +587,8 @@ void half_sarcomere::initialize_tridiagonal_vectors(void)
 void half_sarcomere::calculate_g_vector(gsl_vector* x_trial)
 {
     //! Sets g_vector which is the part of f in kx = f that is
-    //  due to titin, cross-bridges, or mybpc and depends on x
+    //  cross-bridges, or mybpc and depends on x
+    // and all the titin component because it is easier to put it in here
 
     // Code
 
@@ -614,17 +616,17 @@ void half_sarcomere::calculate_g_vector(gsl_vector* x_trial)
             double x_m = gsl_vector_get(x_trial, thick_node_index);
 
             // There is always a linear component
-            g_adjustment = t_k_stiff * (x_a - x_m);
+            g_adjustment = t_k_stiff * (x_a + t_offset - x_m);
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
-                if (x_m >= x_a)
+                if (x_m > (x_a + t_offset))
                 {
-                    g_adjustment = g_adjustment - t_sigma * (exp((x_m - x_a) / t_L) - 1.0);
+                    g_adjustment = g_adjustment - t_sigma * (exp((x_m - (x_a + t_offset)) / t_L) - 1.0);
                 }
                 else
                 {
-                    g_adjustment = g_adjustment + t_sigma * (exp((x_a - x_m) / t_L) - 1.0);
+                    g_adjustment = g_adjustment + t_sigma * (exp((x_a + t_offset - x_m) / t_L) - 1.0);
                 }
             }
 
@@ -698,7 +700,8 @@ void half_sarcomere::calculate_df_vector(gsl_vector* x_trial)
     // Zero df_vector
     gsl_vector_set_zero(df_vector);
 
-    // Add in titin
+    /*// Add in titin
+    // Titins are added in g vector
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
         int thick_node_index = (a_n * a_nodes_per_thin_filament) +
@@ -721,7 +724,7 @@ void half_sarcomere::calculate_df_vector(gsl_vector* x_trial)
             gsl_vector_set(df_vector, thick_node_index,
                 gsl_vector_get(df_vector, thick_node_index) + df_adjustment);
         }
-    }
+    }*/
 
     // Add in myosins
     for (int m_counter = 0; m_counter < m_n; m_counter++)
@@ -1435,14 +1438,14 @@ double half_sarcomere::calculate_titin_force(void)
             double x_a = gsl_vector_get(x_vector, thin_node_index);
 
             // There is always a linear force
-            holder = holder + t_k_stiff * (x_m - x_a);
+            holder = holder + t_k_stiff * (x_m - (x_a + t_offset));
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
-                if (x_m > x_a)
-                    holder = holder + t_sigma * (exp((x_m - x_a) / t_L) - 1.0);
+                if (x_m > (x_a + t_offset))
+                    holder = holder + t_sigma * (exp((x_m - (x_a + t_offset)) / t_L) - 1.0);
                 else
-                    holder = holder - t_sigma * (exp((x_a - x_m) / t_L) - 1.0);
+                    holder = holder - t_sigma * (exp(((x_a + t_offset) - x_m) / t_L) - 1.0);
             }
         }
     }
