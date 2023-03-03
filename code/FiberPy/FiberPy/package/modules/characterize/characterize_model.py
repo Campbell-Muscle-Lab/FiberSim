@@ -729,12 +729,12 @@ def deduce_fv_properties(json_analysis_file_string,
         isometric_batch = dict()
         isometric_batch['FiberSim_batch'] = isometric_b    
         
-        # Set the batch_output_dir
-        batch_output_dir = str(Path(sim_output_dir).parent)
-    
-        # Write the batch file
-        isometric_batch_file = os.path.join(batch_output_dir,
+        # Set the batch output dir
+        # Create the folders for the analysis
+        isometric_batch_file = os.path.join(base_dir,
+                                            'isometric',
                                             'batch_isometric.json')
+
         with open(isometric_batch_file, 'w') as f:
             json.dump(isometric_batch, f, indent=4)
             

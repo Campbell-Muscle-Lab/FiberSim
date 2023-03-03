@@ -36,6 +36,7 @@ FiberSim_data::FiberSim_data(int set_no_of_time_points,
 	fs_slack_length = gsl_vector_alloc(no_of_time_points);
 	fs_force = gsl_vector_alloc(no_of_time_points);
 	fs_titin_force = gsl_vector_alloc(no_of_time_points);
+	fs_viscous_force = gsl_vector_alloc(no_of_time_points);
 	fs_extracellular_force = gsl_vector_alloc(no_of_time_points);
 	fs_a_length = gsl_vector_alloc(no_of_time_points);
 	fs_m_length = gsl_vector_alloc(no_of_time_points);	
@@ -53,6 +54,7 @@ FiberSim_data::FiberSim_data(int set_no_of_time_points,
 	gsl_vector_set_zero(fs_slack_length);
 	gsl_vector_set_zero(fs_force);
 	gsl_vector_set_zero(fs_titin_force);
+	gsl_vector_set_zero(fs_viscous_force);
 	gsl_vector_set_zero(fs_extracellular_force);
 
 	gsl_vector_set_zero(fs_a_length);
@@ -76,6 +78,7 @@ FiberSim_data::~FiberSim_data(void)
 	gsl_vector_free(fs_slack_length);
 	gsl_vector_free(fs_force);
 	gsl_vector_free(fs_titin_force);
+	gsl_vector_free(fs_viscous_force);
 	gsl_vector_free(fs_extracellular_force);
 
 	gsl_vector_free(fs_a_length);
@@ -137,6 +140,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 	fprintf_s(output_file, "hs_slack_length%c", delimiter);
 	fprintf_s(output_file, "force%c", delimiter);
 	fprintf_s(output_file, "titin_force%c", delimiter);
+	fprintf_s(output_file, "viscous_force%c", delimiter);
 	fprintf_s(output_file, "extracellular_force%c", delimiter);
 	fprintf_s(output_file, "a_fil_length%c", delimiter);
 	fprintf_s(output_file, "m_fil_length%c", delimiter);
@@ -164,7 +168,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 	// Loop through points
 	for (int i = 0; i < no_of_time_points; i++)
 	{
-		fprintf_s(output_file, "%g%c%.3f%c%g%c%g%c%g%c%g%c%g%c%g%c%g%c%g%c",
+		fprintf_s(output_file, "%g%c%.3f%c%g%c%g%c%g%c%g%c%g%c%g%c%g%c%g%c%g%c",
 			gsl_vector_get(fs_time, i), delimiter,
 			gsl_vector_get(fs_pCa, i), delimiter,
 			gsl_vector_get(fs_length, i), delimiter,
@@ -172,6 +176,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 			gsl_vector_get(fs_slack_length, i), delimiter,
 			gsl_vector_get(fs_force, i), delimiter,
 			gsl_vector_get(fs_titin_force, i), delimiter,
+			gsl_vector_get(fs_viscous_force, i), delimiter,
 			gsl_vector_get(fs_extracellular_force, i), delimiter,
 			gsl_vector_get(fs_a_length, i), delimiter,
 			gsl_vector_get(fs_m_length, i), delimiter);

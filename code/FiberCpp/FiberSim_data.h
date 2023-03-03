@@ -71,6 +71,9 @@ public:
 
 	gsl_vector* fs_titin_force;	/**< gsl_vector holding hs_titin_force for each time-point */
 
+	gsl_vector* fs_viscous_force;
+								/**< gsl_vector holding viscous force within half-sarcomere */
+
 	gsl_vector* fs_extracellular_force;
 								/**< gsl_vector holding hs_extracellular_force for each time-point */
 

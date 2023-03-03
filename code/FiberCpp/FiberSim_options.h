@@ -38,6 +38,9 @@ public:
     double x_pos_rel_tol;               /**< double defining the relative tolerance for calculating
                                              x positions */
 
+    int x_vector_max_iterations;       /**< double defining the max number of iterations for
+                                             the x_vector calculation */
+
     double lambda_jitter;               /**< double defining lambda jitter. The first myosin crown on
                                              each thick filament will be at
                                              x = lambda + rand()*lambda_jitter

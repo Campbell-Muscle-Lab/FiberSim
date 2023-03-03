@@ -411,66 +411,75 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         curve_folder = os.path.join(top_data_folder,
                                     ('%i' % curve_counter))
         if (os.path.isdir(curve_folder)):
-            # Find the results files
+            
+            # Find the results files and sort them in natural order
+            results_files = []
+            file_ind = []
             for file in os.listdir(curve_folder):
-                if (file.endswith('.txt') and not file.startswith('rates')):
-                    data_file_string = os.path.join(curve_folder, file)
+                if file.endswith('.txt'):
+                    results_files.append(file)
+                    file_ind.append(int(file.split('_')[1]))
+            si = np.argsort(np.asarray(file_ind))
+            results_files = [results_files[i] for i in si]
+            
+            for file in results_files:
+                data_file_string = os.path.join(curve_folder, file)
+                
+                # Display, as this can be slow
+                print('Fitting shortening velocity for: %s' %
+                      data_file_string)
+
+                # Load up the results file
+                d = pd.read_csv(data_file_string, delimiter='\t')
+                initial_hsl = d['hs_length'].iloc[0] # muscle length at t = 0
+
+                # Filter to fit time_interval
+                d_fit = d.loc[(d['time'] >= fig_data['fit_time_interval_s'][0]) &
+                              (d['time'] <= fig_data['fit_time_interval_s'][-1])]
+
+
+                if length_fit_mode == 'exponential':
+
+                    # Set the time of clamp as t = 0 
+                    if  ('sim_release_s' in  fig_data):
+
+                        time_offset = d_fit['time'] - fig_data['sim_release_s']
+
+                    # if time of clamp not specified, set start fitting time as t = 0
+
+                    else: 
+                        time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]                            
+
+                    vel_data = cv.fit_exponential(time_offset.to_numpy(),
+                                            d_fit['hs_length'].to_numpy())
+
+                    # Shortening velocity in ML s-1:
+
+                    hs_vel = 1e-9* vel_data['amp'] * vel_data['k']  # velocity in m s^-1
+                    hs_vel_l0_per_s = vel_data['amp'] * vel_data['k']/initial_hsl # velocity in ML s^-1
+
                     
-                    # Display, as this can be slow
-                    print('Fitting shortening velocity for: %s' %
-                          data_file_string)
+                elif length_fit_mode == 'linear':
 
-                    # Load up the results file
-                    d = pd.read_csv(data_file_string, delimiter='\t')
-                    initial_hsl = d['hs_length'].iloc[0] # muscle length at t = 0
+                    vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
+                                            d_fit['hs_length'].to_numpy())
 
-                    # Filter to fit time_interval
-                    d_fit = d.loc[(d['time'] >= fig_data['fit_time_interval_s'][0]) &
-                                  (d['time'] <= fig_data['fit_time_interval_s'][-1])]
+                    # Calculate velocity
+                    hs_vel = -1e-9*vel_data['slope'] # velocity in m s^-1
+                    hs_vel_l0_per_s = 1e9 * hs_vel / initial_hsl # velocity in ML s^-1
 
+          
+                # Get force and power
 
-                    if length_fit_mode == 'exponential':
+                hs_for = d_fit['force'].mean()
+                hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
 
-                        # Set the time of clamp as t = 0 
-                        if  ('sim_release_s' in  fig_data):
-
-                            time_offset = d_fit['time'] - fig_data['sim_release_s']
-
-                        # if time of clamp not specified, set start fitting time as t = 0
-
-                        else: 
-                            time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]                            
-
-                        vel_data = cv.fit_exponential(time_offset.to_numpy(),
-                                                d_fit['hs_length'].to_numpy())
-
-                        # Shortening velocity in ML s-1:
-
-                        hs_vel = 1e-9* vel_data['amp'] * vel_data['k']  # velocity in m s^-1
-                        hs_vel_l0_per_s = vel_data['amp'] * vel_data['k']/initial_hsl # velocity in ML s^-1
-
-                        
-                    elif length_fit_mode == 'linear':
-
-                        vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
-                                                d_fit['hs_length'].to_numpy())
-
-                        # Calculate velocity
-                        hs_vel = -1e-9*vel_data['slope'] # velocity in m s^-1
-                        hs_vel_l0_per_s = 1e9 * hs_vel / initial_hsl # velocity in ML s^-1
-
-              
-                    # Get force and power
-
-                    hs_for = d_fit['force'].mean()
-                    hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
-
-                    # Store data
-                    curve.append(curve_counter)
-                    hs_velocity.append(hs_vel)
-                    hs_velocity_l0_per_s.append(hs_vel_l0_per_s)
-                    hs_force.append(hs_for)
-                    hs_power.append(hs_pow)
+                # Store data
+                curve.append(curve_counter)
+                hs_velocity.append(hs_vel)
+                hs_velocity_l0_per_s.append(hs_vel_l0_per_s)
+                hs_force.append(hs_for)
+                hs_power.append(hs_pow)
 
             curve_counter = curve_counter + 1
 
@@ -1535,6 +1544,10 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                                     color = color_map[i],
                                     linewidth = formatting['data_linewidth'],
                                     label='Titin')
+                ax[plot_index].plot(d['time'], d['viscous_force'], '--',
+                                    color = color_map[i],
+                                    linewidth = formatting['data_linewidth'],
+                                    label='Viscous')
 
                 plot_index = plot_index + 1
                 if (file_counter==1):

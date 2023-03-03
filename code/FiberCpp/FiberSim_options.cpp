@@ -25,6 +25,9 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     x_pos_rel_tol = 0.001;                  /**< default value of absolute tolerance for
                                                  calculating x positions */
 
+    x_vector_max_iterations = 100;          /**< default value of max iterations for
+                                                 x vector calculation */
+
     adjacent_bs = 0;                        /**< default value of adjacent binding sites
                                                  available for myosin or mybpc attachment
                                                  0 restricts to nearest site */
@@ -227,6 +230,12 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     {
         JSON_functions::check_JSON_member_number(options, "x_pos_tol");
         x_pos_rel_tol = options["x_pos_tol"].GetDouble();
+    }
+
+    if (JSON_functions::is_JSON_member(options, "x_vector_max_iterations"))
+    {
+        JSON_functions::check_JSON_member_int(options, "x_vector_max_iterations");
+        x_vector_max_iterations = options["x_vector_max_iterations"].GetInt();
     }
 
     // Check if the dump precision was specified.

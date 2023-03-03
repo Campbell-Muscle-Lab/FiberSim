@@ -62,6 +62,8 @@ public:
 
     double hs_titin_force;          /**< double holding half-sarcomere titin force */
 
+    double hs_viscous_force;        /**< double holding half-sarcomere viscous force */
+
     double hs_extracellular_force;  /**< double holding half-sarcomere extracellular force */
 
     double f_activated;             /**< double holding the proportion of binding sites
@@ -79,6 +81,10 @@ public:
     double hs_slack_length;         /**< double holding half-sarcomere length in nm
                                          when force is 0, this is calculated when
                                          mode == -1, is GSL_NaN otherwise */
+
+    // Lattice structure
+
+    double viscosity;               /**< double holding half-sarcomere viscosity */
 
     // Thick filament structure
 
@@ -409,6 +415,12 @@ public:
     * @return double holding the average titin-based force in a thick filament
     */
     double calculate_titin_force(void);
+
+    /**
+    *double calculate_force(double delta_hsl, double time_step)
+    * @return double holding the average force in a thick filament
+    */
+    double calculate_viscous_force(double delta_hsl, double time_step);
 
     /**
     * calculate the extracellular contribution to total force

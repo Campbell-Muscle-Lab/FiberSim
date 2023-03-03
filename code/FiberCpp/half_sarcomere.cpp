@@ -95,6 +95,8 @@ half_sarcomere::half_sarcomere(
     hs_force = 0.0;
     pCa = 0.0;
     hs_titin_force = 0.0;
+    viscosity = p_fs_model->viscosity;
+    hs_viscous_force = 0.0;
     hs_extracellular_force = 0.0;
 
     // Zero the step_counter
@@ -371,7 +373,7 @@ size_t half_sarcomere::implement_time_step(double time_step,
     }
 
     // Branch depending on sim_mode
-    if (sim_mode > 0.0)
+    if (sim_mode >= 0.0)
     {
         // Replace the delta_hsl with the delta_hsl found by
         // an iterative search
@@ -389,10 +391,7 @@ size_t half_sarcomere::implement_time_step(double time_step,
     x_solve_iterations = calculate_x_positions();
 
     unpack_x_vector();
-    hs_titin_force = calculate_titin_force();
-    hs_extracellular_force = calculate_extracellular_force();
     hs_force = calculate_force(delta_hsl, time_step);
-
 
     // Calculate mean filament lengths
     calculate_mean_filament_lengths();
@@ -432,7 +431,7 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force, double
     gsl_root_fsolver* s;
     double r = 0.0;
     double x_lo = -hs_length;
-    double x_hi = GSL_MIN(2000.0 - hs_length, 500);
+    double x_hi = 1000.0;
     struct force_control_params params = { target_force, time_step, this };
 
     gsl_function F;
@@ -863,6 +862,10 @@ size_t half_sarcomere::calculate_x_positions()
         {
             keep_going = 0;
         }
+        else if (no_of_iterations >= p_fs_options->x_vector_max_iterations)
+        {
+            keep_going = 0;
+        }
         else
         {
             // Update vectors for next loop
@@ -1245,7 +1248,6 @@ void half_sarcomere::unpack_x_vector(void)
     }
 }
 
-
 void half_sarcomere::calculate_mean_filament_lengths(void)
 {
     //! Updates the values of a_mean_fil_length and m_mean_fil_length
@@ -1369,9 +1371,12 @@ double half_sarcomere::calculate_force(double delta_hsl, double time_step)
     {
         holder = holder + (m_k_stiff *
             (hs_length - p_mf[m_counter]->m_lambda - m_inter_crown_rest_length -
-                gsl_vector_get(x_vector, node_index('m', m_counter, 0))))
-            + p_fs_model->viscosity * delta_hsl / time_step;
+                gsl_vector_get(x_vector, node_index('m', m_counter, 0))));
     }
+
+    hs_titin_force = calculate_titin_force();
+    hs_viscous_force = calculate_viscous_force(delta_hsl, time_step);
+    hs_extracellular_force = calculate_extracellular_force();
 
     // Adjust for nm scale of filaments, proportion of non-fibrosis muscle,
     // proportion of myofilaments and density of thick filaments
@@ -1380,10 +1385,26 @@ double half_sarcomere::calculate_force(double delta_hsl, double time_step)
     holder = (holder * (1.0 - p_fs_model->prop_fibrosis) *
                     p_fs_model->prop_myofilaments * p_fs_model->m_filament_density *
                     1e-9 / (double)m_n) +
+                hs_viscous_force +
                 hs_extracellular_force;
 
     // Return
     return holder;
+}
+
+double half_sarcomere::calculate_viscous_force(double delta_hsl, double time_step)
+{
+    //! Calculates viscous force
+   
+    // Variables
+    double vf = 0.0;
+
+    // Code
+
+    vf = viscosity * delta_hsl / time_step;
+
+    // Return
+    return vf;
 }
 
 double half_sarcomere::calculate_titin_force(void)
