@@ -126,8 +126,12 @@ def fit_power_curve(x, y):
             y[i] = x*b*(((x_0+a)/(x+a))-1)
         return y
     
-    popt, pcov = curve_fit(y_power, x, y,
+    try:
+        popt, pcov = curve_fit(y_power, x, y,
                            [np.amax(x), 0.2*np.amax(x), 0.1])
+    except:
+        print('fit_power_curve failed')
+        popt = [np.amax(x), 0.2*np.amax(x), 0.1]
     
     d = dict()
     d['x_0'] = popt[0]
