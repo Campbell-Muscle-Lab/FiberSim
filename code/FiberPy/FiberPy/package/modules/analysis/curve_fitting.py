@@ -41,6 +41,7 @@ def fit_pCa_data(x,y):
     d['y_amp']  = popt[3]
     d['x_fit']  = np.linspace(9.0, 4, 1000)
     d['y_fit']  = y_pCa(d['x_fit'], *popt)
+    d['y_predict'] = y_pCa(x, *popt)
 
     return d
 
@@ -114,6 +115,7 @@ def fit_hyperbola(x, y):
     d['b'] = popt[2]
     d['x_fit'] = np.linspace(0, np.amax(x), 1000)
     d['y_fit'] = y_hyperbola(d['x_fit'], *popt)
+    d['y_predict'] = y_hyperbola(x, *popt)
     
     return d
 
@@ -132,6 +134,7 @@ def fit_power_curve(x, y):
     except:
         print('fit_power_curve failed')
         popt = [np.amax(x), 0.2*np.amax(x), 0.1]
+        
     
     d = dict()
     d['x_0'] = popt[0]

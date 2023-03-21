@@ -18,9 +18,11 @@ import pandas as pd
 
 from pathlib import Path
 
-
 from ..protocols import protocols as prot
 from ..batch import batch
+
+# from .characterize_functions import characterize_fv_with_pCa_and_isometric_force
+
 
 def characterize_model(json_analysis_file_string):
     """ Code takes a json struct that includes a model file, and run the
@@ -49,6 +51,11 @@ def characterize_model(json_analysis_file_string):
         if (ch['type'] == 'freeform'):
             deduce_freeform_properties(json_analysis_file_string,
                                        freeform_struct = ch)
+        
+        if (ch['type'] == 'fv_with_pCa_and_isometric_force'):
+            characterize_fv_with_pCa_and_isometric_force(
+                json_analysis_file_string,
+                ch)
             
 def deduce_pCa_length_control_properties(json_analysis_file_string,
                                          pCa_struct = []):
@@ -106,10 +113,12 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
             hs_lengths = np.array([m['muscle']['initial_hs_length']])
     
     # Deduce the base_dir
-    if (pCa_struct['relative_to'] == 'this_file'):
-        parent_dir = Path(json_analysis_file_string).parent.absolute()
-        base_dir = os.path.join(parent_dir,
-                                pCa_struct['sim_folder'])
+    if ('relative_to' in pCa_struct):
+        if (pCa_struct['relative_to'] == 'this_file'):
+            base_dir = Path(json_analysis_file_string).parent.absolute()
+        else:
+            base_dir = pCa_struct['relative_to']
+        base_dir = os.path.join(base_dir, pCa_struct['sim_folder'])
     else:
         base_dir = pCa_struct['sim_folder']        
     
@@ -239,7 +248,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                         pre_dt = pCa_struct['time_step_s'] * np.ones(pre_points)
                         pre_pCa = pCa * np.ones(pre_points)
                         pre_delta_hsl = np.zeros(pre_points)
-                        pre_mode_vector = -2 * np.zeros(pre_points)
+                        pre_mode_vector = -2 * np.ones(pre_points)
                         
                         # k_tr
                         k_tr_time_step = pCa_struct['time_step_s'] / 10
@@ -265,7 +274,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                         post_dt = pCa_struct['time_step_s'] * np.ones(post_points)
                         post_pCa = pCa * np.ones(post_points)
                         post_delta_hsl = np.zeros(post_points)
-                        post_mode_vector = -2 * np.zeros(post_points)
+                        post_mode_vector = -2 * np.ones(post_points)
                         
                         # Stack together
                         dt = np.hstack((pre_dt, k_tr_dt, post_dt))
@@ -281,49 +290,6 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                                        'pCa': pCa_vector,
                                        'delta_hsl': delta_hsl,
                                        'mode': mode_vector})
-                        
-
-                    
-                    # # Add in k_tr if required
-                    # if ('k_tr_start_s' in pCa_struct):
-                    #     # Calculate some stuff for the k_tr
-                    #     k_tr_start_ind = int(pCa_struct['k_tr_start_s'] /
-                    #                           pCa_struct['time_step_s'])
-                    #     k_tr_stop_ind = int((pCa_struct['k_tr_start_s'] + 
-                    #                               pCa_struct['k_tr_duration_s']) /
-                    #                         pCa_struct['time_step_s'])
-                    #     k_tr_ramp_points = int(pCa_struct['k_tr_ramp_s'] /
-                    #                             pCa_struct['time_step_s'])
-                    #     ramp_inc = pCa_struct['k_tr_magnitude_nm'] / \
-                    #                     float(k_tr_ramp_points)
-                    #     # Set the k_tr_shortening
-                    #     vi = np.arange(k_tr_start_ind,
-                    #                     k_tr_start_ind + k_tr_ramp_points, 1)
-                    #     delta_hsl[vi] = -ramp_inc
-                    #     # Set the k_tr_re-stretch
-                    #     vi = np.arange(k_tr_stop_ind,
-                    #                     k_tr_stop_ind + k_tr_ramp_points, 1)
-                    #     delta_hsl[vi] = ramp_inc
-                    #     # Set the mode
-                    #     vi = np.arange(k_tr_start_ind,
-                    #                     k_tr_stop_ind + k_tr_ramp_points, 1)
-                    #     mode_vector[vi] = -1
-                    
-                    # # Add in user-defined delta_hsl
-                    # if ('user_defined_dhsl' in pCa_struct):
-                    #     dhsl_file = os.path.join(base_dir,
-                    #                               pCa_struct['user_defined_dhsl'])
-                    #     dhsl = pd.read_csv(dhsl_file)
-                    #     delta_hsl = dhsl['dhsl'].to_numpy()
-                        
-                    # # Create a length control protocol and write to file
-                    # df = prot.create_length_control_protocol(
-                    #         time_step = pCa_struct['time_step_s'],
-                    #         step_pCa = pCa,
-                    #         n_points = n_points,
-                    #         delta_hsl = delta_hsl,
-                    #         mode_vector = mode_vector)
-                    
                     
                     prot_file_string = os.path.join(sim_input_dir,
                                                     ('prot_pCa_%.0f_r%i.txt' %
@@ -543,12 +509,14 @@ def deduce_fv_properties(json_analysis_file_string,
             hs_lengths = np.array([m['muscle']['initial_hs_length']])
     
     # Deduce the base_dir
-    if (fv_struct['relative_to'] == 'this_file'):
-        parent_dir = json_analysis_file_string.parent.absolute()
-        base_dir = os.path_join(parent_dir,
-                                fv_struct['sim_folder'])
+    if ('relative_to' in fv_struct):
+        if (fv_struct['relative_to'] == 'this_file'):
+            base_dir = Path(json_analysis_file_string).parent.absolute()
+        else:
+            base_dir = fv_struct['relative_to']
+        base_dir = os.path.join(base_dir, fv_struct['sim_folder'])
     else:
-        base_dir = fv_struct['sim_folder']        
+        base_dir = fv_struct['sim_folder']   
     
     # If you are running simulations, delete the existing sim folders
     if not figures_only:
@@ -1285,3 +1253,333 @@ def deduce_freeform_properties(json_analysis_file_string,
         
     # Now run the freeform batch
     batch.run_batch(freeform_batch_file, figures_only=figures_only)
+    
+def characterize_fv_with_pCa_and_isometric_force(json_analysis_file_string,
+                                                 fv_characterize_dict):
+    """ Runs simulations at given pCa and calculates force-velocity
+        properties """
+        
+    # Potentially switch off simulations
+    figures_only = False
+    if ('figures_only' in fv_characterize_dict):
+        if (fv_characterize_dict['figures_only'] == "True"):
+            figures_only = True
+        
+    # Load the analysis file
+    # Load the file
+    with open(json_analysis_file_string, 'r') as f:
+        json_data = json.load(f)
+        char_struct = json_data['FiberSim_characterization']
+        
+    # Create a dict for the force_velocity batch, and fill it in bit by bit
+    fv_dict = dict()
+        
+    # Pull off the exe component
+    FiberCpp_exe_struct = char_struct['FiberCpp_exe']
+    
+    # Turn the FiberCpp_exe into absolute paths because the new instruction
+    # file will be in a different place, add to new batch
+    cpp_exe = dict()
+    cpp_exe['relative_to'] = "False"
+    if ('relative_to' in FiberCpp_exe_struct):
+        if (FiberCpp_exe_struct['relative_to'] == 'this_file'):
+            base_dir = Path(json_analysis_file_string).parent.absolute()
+        else:
+            base_dir = FiberCpp_exe_struct['relative_to']
+        cpp_exe['exe_file'] = os.path.join(base_dir,
+                                           FiberCpp_exe_struct['exe_file'])
+    else:
+        cpp_exe['exe_file'] = FiberCpp_exe_struct['exe_file']
+        
+    fv_dict['FiberCpp_exe'] = cpp_exe
+
+    # Turn the model files into absolute paths as well
+    model_struct = char_struct['model']
+    
+    if ('relative_to' in model_struct):
+        if (model_struct['relative_to'] == 'this_file'):
+            base_dir = Path(json_analysis_file_string).parent.absolute()
+        else:
+            base_dir = model_struct['relative_to']
+    else:
+        base_dir = ''
+    
+    model_files = []
+    for m in model_struct['model_files']:
+        model_files.append(os.path.join(base_dir, m))
+    
+       
+    # Check for half-sarcomere lengths in the fv_dict
+    # If none are specified, create an hsl array from the model file
+    if ('hs_lengths' in fv_dict):
+        hs_lengths = fv_dict['hs_lengths']
+    else:
+        with open(model_files[0], 'r') as f:
+            m = json.load(f)
+            hs_lengths = np.array([m['muscle']['initial_hs_length']])
+             
+    # If you are running simulations, delete the existing structure
+    if not figures_only:
+        try:
+            print('Trying to remove %s' % base_dir)
+            shutil.rmtree(base_dir, ignore_errors=True)
+        except OSError as e:
+            print("Error: %s : %s" % (base_dir, e.strerror))
+    
+    # Set up dir_counter
+    dir_counter = 0
+    
+    # Set up your jobs
+    fv_dict['job'] = []
+    
+    # Get the base directory for the simulations
+    if ('relative_to' in fv_characterize_dict):
+        if (fv_characterize_dict['relative_to'] == 'this_file'):
+            base_dir = str(Path(json_analysis_file_string).resolve.absolute().parent)
+        else:
+            base_dir = fv_characterize_dict['relative_to']
+    else:
+        base_dir = ''
+    base_dir = os.path.join(base_dir, fv_characterize_dict['sim_folder'])
+    
+    # Loop through the model files
+    for i, mod_f in enumerate(model_struct['model_files']):
+        
+        # Now loop through the half-sarcomere lengths
+        for j, hsl in enumerate(hs_lengths):
+            
+            # Update dir_counter
+            dir_counter = dir_counter + 1
+            
+            # Create the input and output directories           
+            sim_input_dir = os.path.join(base_dir,
+                                         'sim_input',
+                                         ('%i' % dir_counter))
+            if not os.path.isdir(sim_input_dir):
+                os.makedirs(sim_input_dir)
+                
+            sim_output_dir = os.path.join(base_dir,
+                                          'sim_output',
+                                          ('%i' % dir_counter))
+            if not os.path.isdir(sim_output_dir):
+                os.makedirs(sim_output_dir)
+               
+            # Copy the model and options files to the sim_input dir
+            # adjusting half-sarcomere length as appropriate
+            if (model_struct['relative_to'] == 'this_file'):
+                model_dir = Path(json_analysis_file_string).parent.absolute()
+                orig_model_file = os.path.join(model_dir, mod_f)
+            else:
+                orig_model_file = mod_f
+            
+            # Adjust hsl by loading model, adjusting hsl and re-writing
+            with open(orig_model_file, 'r') as f:
+                m = json.load(f)
+                m['muscle']['initial_hs_length'] = float(hsl)
+                
+                # Over-ride m_n if appropriate
+                if ('m_n' in fv_characterize_dict):
+                    m['thick_structure']['m_n'] = fv_characterize_dict['m_n']
+                    
+            fn = re.split('/|\\\\', orig_model_file)[-1]
+            model_file = os.path.join(sim_input_dir, fn)
+
+            with open(model_file, 'w') as f:
+                json.dump(m, f, indent=4)
+            
+            # Work out the path for the base options file
+            if (model_struct['relative_to'] == 'this_file'):
+                model_dir = Path(json_analysis_file_string).parent.absolute()
+                orig_options_file = os.path.join(model_dir,
+                                                 model_struct['options_file'])
+            else:
+                orig_options_file = model_struct['options_file']
+
+            # Load the options data
+            with open(orig_options_file, 'r') as f:
+                orig_options_data = json.load(f)
+
+            # Adjust the options struct if we have randomized repeats
+            if ('randomized_repeats' in fv_characterize_dict):
+                rand_repeats = fv_characterize_dict['randomized_repeats']
+                orig_options_data['options']['rand_seed'] = "random"
+            else:
+                rand_repeats = 1
+                
+            # Loop through the isotonic forces
+            for (k, rel_f) in enumerate(fv_characterize_dict['rel_isotonic_forces']):
+            
+                # Loop through the rand repeats
+                for rep in range(rand_repeats):
+                    
+                    # Copy the orig_options for local changes within the rep
+                    rep_options_data = copy.deepcopy(orig_options_data)
+                    
+                    # Update the options file to dump to a local directory
+                    if ('status_files' in rep_options_data['options']):
+                        rep_options_data['options']['status_files']['status_folder'] = \
+                            os.path.join(sim_output_dir,
+                                          ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
+                                                          (k+1), (rep+1))))
+                    
+                    # If it is the first force and and the first repeat, update
+                    # the options to dump rates
+                    if ((k==0) and (rep==0)):
+                        rep_options_data['options']['rate_files'] = dict()
+                        rep_options_data['options']['rate_files']['relative_to'] = \
+                            'false'
+                        rep_options_data['options']['rate_files']['file'] = \
+                            os.path.join(sim_output_dir,
+                                         'rates.json')
+                    else:
+                        # Clear any existing rate options
+                        if ('rate_files' in rep_options_data['options']):
+                            del rep_options_data['options']['rate_files']
+                    
+                    # Create the new options file
+                    options_file = os.path.join(sim_input_dir,
+                                                ('sim_options_%i_r%i.json' % ((k+1), (rep+1))))
+                    
+                    with open(options_file, 'w') as f:
+                        json.dump(rep_options_data, f, indent=4)
+                
+                    j = dict()
+                    j['relative_to'] = 'False'
+                    j['model_file'] = model_file
+                    j['options_file'] = options_file
+                    prot_file_string = os.path.join(sim_input_dir,
+                                              ('prot_%i_%i.txt' % ((k+1), (rep+1))))
+                    
+                    print(prot_file_string)
+                       
+                    # Write the protocol
+                    df = prot.create_force_control_protocol(
+                                            time_step = fv_characterize_dict['time_step_s'],
+                                            step_pCa = fv_characterize_dict['pCa'],
+                                            n_points = int(fv_characterize_dict['sim_duration_s'] /
+                                                                fv_characterize_dict['time_step_s']),
+                                            iso_start_s = fv_characterize_dict['sim_release_s'],
+                                            iso_f = rel_f * fv_characterize_dict['isometric_force'])
+                    
+                    if not figures_only:
+                        prot.write_protocol_to_file(df, prot_file_string)
+                    
+                    j['protocol_file'] = prot_file_string
+            
+                    # Save the results file
+                    j['results_file'] = os.path.join(sim_output_dir,
+                                                      ('sim_%i_r%i.txt' % ((k+1), (rep+1))))
+            
+                    # If required, create an output_handler and add it to
+                    # the job
+                    # if (trace_figures_on == True):
+                    #     print('Need to fix paths for trace figures')
+                    #     exit(1)
+                    #       # Create the structure for the output handler
+                    #     oh = dict()
+                    #     oh['templated_images'] = []
+                    #     tf = dict()
+                    #     tf['relative_to'] = 'this_file'
+                    #     tf['template_file_string'] = os.path.join(
+                    #                                     '..',
+                    #                                     base_dir,
+                    #                                     'template',
+                    #                                     'template_summary.json')
+                    #     tf['output_file_string'] = os.path.join(
+                    #                                     base_dir,
+                    #                                     fv_characterize_dict['sim_folder'],
+                    #                                     'isotonic', 'sim_output',
+                    #                                     ('%i' % (i+1)),
+                    #                                     ('sim_%i_r%i' % ((k+1), (rep+1))))
+                    #     tf['output_image_formats'] = fv_characterize_dict['output_image_formats']
+                    #     oh['templated_images'].append(tf)
+                    
+                    #     # Now add it to the job, and write it to file
+                    #     j['output_handler_file'] = os.path.join(
+                    #                                 base_dir,
+                    #                                 fv_characterize_dict['sim_folder'],
+                    #                                 'isotonic', 'sim_input',
+                    #                                 ('%i' % (i+1)),
+                    #                                 ('output_handler_sim_%i_r%i.json' %
+                    #                                       ((k+1), (rep+1))))
+                    
+                    #     with open(j['output_handler_file'], 'w') as f:
+                    #         json.dump(oh, f, indent=4)      
+            
+                    fv_dict['job'].append(j)          
+    
+    # Now create the batch analysis section
+    batch_figs = dict()
+    
+    # Create the folders for the analysis
+    batch_output_dir = str(Path(sim_output_dir).parent)
+    
+    batch_figs['force_velocity'] = []
+    fig = dict()
+    fig['relative_to'] = "False"
+    fig['results_folder'] = batch_output_dir
+    fig['time_release_s'] = fv_characterize_dict['sim_release_s']
+    fig['fit_time_interval_s'] = fv_characterize_dict['fit_time_s']
+
+    if (not 'length_fit_mode' in fv_characterize_dict): # fit mode for length traces is not specified, exponential is default
+        fig['length_fit_mode'] = 'exponential'
+    else:
+        fig['length_fit_mode'] = fv_characterize_dict['length_fit_mode']
+
+
+    fig['output_data_file_string'] = os.path.join(batch_output_dir,
+                                                  'fv_analysis.xlsx')
+    fig['output_image_file'] = os.path.join(batch_output_dir,
+                                            'fv_and_power')
+    fig['output_image_formats'] = fv_characterize_dict['output_image_formats']
+    
+    if ('formatting' in fv_characterize_dict):
+        fig['formatting'] = fv_characterize_dict['formatting']
+    
+    batch_figs['force_velocity'].append(fig)
+
+    # Rates
+    batch_figs['rates'] = []
+    fig = dict()
+    fig['relative_to'] = "False"
+    fig['results_folder'] = batch_output_dir
+    fig['output_image_file'] = os.path.join(batch_output_dir,
+                                            'rates')
+    fig['output_image_formats'] = fv_characterize_dict['output_image_formats']
+
+    if ('formatting' in fv_characterize_dict):
+        fig['formatting'] = fv_characterize_dict['formatting']
+
+    batch_figs['rates'].append(fig)
+
+    # Superposed traces
+    batch_figs['superposed_traces'] = []
+    fig = dict()
+    fig['relative_to'] = "False"
+    fig['results_folder'] = batch_output_dir
+    fig['output_image_file'] = os.path.join(batch_output_dir,
+                                            'superposed_traces')
+    fig['output_image_formats'] = fv_characterize_dict['output_image_formats']
+    
+    if ('formatting' in fv_characterize_dict):
+        fig['formatting'] = fv_characterize_dict['formatting']
+        
+    batch_figs['superposed_traces'].append(fig)
+ 
+    fv_dict['batch_figures'] = batch_figs
+    
+    # Now insert isotonic_b into a full batch structure
+    isotonic_batch = dict()
+    isotonic_batch['FiberSim_batch'] = fv_dict
+
+    # Write the batch to file
+    base_dir = str(Path(batch_output_dir).parent)
+    isotonic_batch_file = os.path.join(base_dir,
+                                       'batch_isotonic.json')
+    
+    with open(isotonic_batch_file, 'w') as f:
+        json.dump(isotonic_batch, f, indent=4)
+        
+    # Now run the isotonic batch
+    batch.run_batch(isotonic_batch_file, figures_only=figures_only)
+        

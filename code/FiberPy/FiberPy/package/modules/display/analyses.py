@@ -403,6 +403,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     # Create lists to hold data
     curve = []
     hs_force = []
+    hs_force_isometric = []
     hs_velocity = []
     hs_velocity_l0_per_s = []
     hs_power = []
@@ -422,6 +423,15 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             si = np.argsort(np.asarray(file_ind))
             results_files = [results_files[i] for i in si]
             
+            # Make a figure to check 
+            fig = plt.figure(constrained_layout=True)
+            gs = fig.add_gridspec(nrows=2, ncols=1,
+                                  wspace = 0.5,
+                                  hspace=0.1)
+            fig.set_size_inches([3.5, 4])
+            ax_for = fig.add_subplot(gs[0,0])
+            ax_len = fig.add_subplot(gs[1, 0])
+            
             for file in results_files:
                 data_file_string = os.path.join(curve_folder, file)
                 
@@ -436,8 +446,16 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                 # Filter to fit time_interval
                 d_fit = d.loc[(d['time'] >= fig_data['fit_time_interval_s'][0]) &
                               (d['time'] <= fig_data['fit_time_interval_s'][-1])]
+                
+                # Filter for display
+                d_display = d.loc[(d['time'] >= 
+                                   (fig_data['fit_time_interval_s'][0] - fig_data['fit_time_interval_s'][-1])) &
+                                  (d['time'] <= fig_data['fit_time_interval_s'][-1])]
+                
+                ax_for.plot(d_display['time'], d_display['force'], 'b-')
+                ax_len.plot(d_display['time'], d_display['hs_length'], 'b-')
 
-
+                # Now do the fit
                 if length_fit_mode == 'exponential':
 
                     # Set the time of clamp as t = 0 
@@ -467,11 +485,14 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                     # Calculate velocity
                     hs_vel = -1e-9*vel_data['slope'] # velocity in m s^-1
                     hs_vel_l0_per_s = 1e9 * hs_vel / initial_hsl # velocity in ML s^-1
-
+                   
+                # Plot
+                ax_len.plot(d_fit['time'], vel_data['y_fit'], 'r-')
           
                 # Get force and power
 
                 hs_for = d_fit['force'].mean()
+                hs_for_isometric = d['force'].max()
                 hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
 
                 # Store data
@@ -479,7 +500,29 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                 hs_velocity.append(hs_vel)
                 hs_velocity_l0_per_s.append(hs_vel_l0_per_s)
                 hs_force.append(hs_for)
+                hs_force_isometric.append(hs_for_isometric)
                 hs_power.append(hs_pow)
+            
+            
+            fit_traces_string = ('fv_traces_%i' % curve_counter)
+            if (fig_data['relative_to'] == 'this_file'):
+                fit_traces_string = \
+                        os.path.join(base_folder,
+                                     fit_traces_string)
+            else:
+                dir_name = os.path.dirname(fig_data['output_image_file'])
+                fit_traces_string = os.path.join(dir_name, fit_traces_string)
+
+            # Check dir exists
+            dir_name = os.path.dirname(fit_traces_string)
+            
+            if (not os.path.isdir(dir_name)):
+                os.makedirs(dir_name)
+                
+            for f in fig_data['output_image_formats']:
+                ofs = '%s.%s' % (fit_traces_string, f)
+                print('Saving fit traces figure to: %s' % ofs)
+                fig.savefig(ofs, dpi=200, bbox_inches='tight')
 
             curve_counter = curve_counter + 1
 
@@ -491,6 +534,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                       'hs_velocity': hs_velocity,
                       'hs_velocity_l0_per_s': hs_velocity_l0_per_s,
                       'hs_force': hs_force,
+                      'hs_force_isometric': hs_force_isometric,
                       'hs_power': hs_power})
     
     # Drop rows with NaNs, first replace empty with nan
@@ -516,7 +560,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                                 (fv_curve['b'] / fv_curve['a'])) - fv_curve['b']
 
         # Now calculate the relative force, relative velocity, and relative power            
-        rc['hs_f_to_f_max'] = rc['hs_force'] / fv_curve['x_0']
+        rc['hs_f_to_f_max'] = rc['hs_force'] / rc['hs_force_isometric']
         rc['hs_rel_power'] = rc['hs_f_to_f_max'] * rc['hs_velocity_l0_per_s']
         
         # Now add these values back into the main frame
@@ -1650,8 +1694,8 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
 
 
         plot_index = plot_index + 1
-        y_ticks = [0, max_force]
-        ax[plot_index].set_ylim(y_ticks)
+        y_ticks = np.asarray([min_force, 0, max_force])
+        ax[plot_index].set_ylim(y_ticks[[0, -1]])
         ax[plot_index].set_yticks(y_ticks)
         
         if ('superposed_x_ticks' in fig_data):
