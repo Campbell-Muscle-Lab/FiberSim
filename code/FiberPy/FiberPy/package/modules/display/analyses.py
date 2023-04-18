@@ -402,11 +402,15 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
     # Create lists to hold data
     curve = []
+    release_index = []
     hs_force = []
     hs_force_isometric = []
+    hs_force_passive = []
+    hs_force_passive_corrected = []
     hs_velocity = []
     hs_velocity_l0_per_s = []
     hs_power = []
+    hs_power_passive_corrected = []
 
     while keep_going:
         curve_folder = os.path.join(top_data_folder,
@@ -448,9 +452,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                               (d['time'] <= fig_data['fit_time_interval_s'][-1])]
                 
                 # Filter for display
-                d_display = d.loc[(d['time'] >= 
-                                   (fig_data['fit_time_interval_s'][0] - fig_data['fit_time_interval_s'][-1])) &
-                                  (d['time'] <= fig_data['fit_time_interval_s'][-1])]
+                d_display = d.loc[(d['time'] >= (fig_data['fit_time_interval_s'][0] -
+                                                 (5 * (fig_data['fit_time_interval_s'][-1] -
+                                                       fig_data['fit_time_interval_s'][0]))))]
                 
                 ax_for.plot(d_display['time'], d_display['force'], 'b-')
                 ax_len.plot(d_display['time'], d_display['hs_length'], 'b-')
@@ -493,16 +497,25 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
                 hs_for = d_fit['force'].mean()
                 hs_for_isometric = d['force'].max()
+                hs_for_passive = d['force'][0]
                 hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
+                hs_pow_passive_corrected = \
+                    hs_vel * (hs_for - hs_for_passive) / \
+                        (1e-9 * initial_hsl)
 
                 # Store data
                 curve.append(curve_counter)
+                release_index.append((os.path.basename(data_file_string)).split('_')[1])
                 hs_velocity.append(hs_vel)
                 hs_velocity_l0_per_s.append(hs_vel_l0_per_s)
                 hs_force.append(hs_for)
                 hs_force_isometric.append(hs_for_isometric)
+                hs_force_passive.append(hs_for_passive)
+                hs_force_passive_corrected.append(
+                    hs_for - hs_for_passive)
                 hs_power.append(hs_pow)
-            
+                hs_power_passive_corrected.append(hs_pow_passive_corrected)
+           
             
             fit_traces_string = ('fv_traces_%i' % curve_counter)
             if (fig_data['relative_to'] == 'this_file'):
@@ -531,11 +544,15 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
     # Take lists and create a data frame
     r = pd.DataFrame({'curve': curve,
+                      'release_index': release_index,
                       'hs_velocity': hs_velocity,
                       'hs_velocity_l0_per_s': hs_velocity_l0_per_s,
                       'hs_force': hs_force,
                       'hs_force_isometric': hs_force_isometric,
-                      'hs_power': hs_power})
+                      'hs_force_passive': hs_force_passive,
+                      'hs_force_passive_corrected': hs_force_passive_corrected,
+                      'hs_power': hs_power,
+                      'hs_power_passive_corrected': hs_power_passive_corrected})
     
     # Drop rows with NaNs, first replace empty with nan
     r.replace('', np.nan, inplace=True)
@@ -563,9 +580,15 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         rc['hs_f_to_f_max'] = rc['hs_force'] / rc['hs_force_isometric']
         rc['hs_rel_power'] = rc['hs_f_to_f_max'] * rc['hs_velocity_l0_per_s']
         
+        rc['hs_f_to_f_max_pas_corrected'] = \
+            (rc['hs_force'] - rc['hs_force_passive']) / \
+                (rc['hs_force_isometric'] - rc['hs_force_passive'])
+        
         # Now add these values back into the main frame
         r.loc[vi, 'hs_f_to_f_max'] = rc['hs_f_to_f_max']
         r.loc[vi, 'hs_rel_power'] = rc['hs_rel_power']
+        r.loc[vi, 'hs_f_to_f_max_pas_corrected'] = \
+            rc['hs_f_to_f_max_pas_corrected']
     
 
     # Create a figure
@@ -1802,6 +1825,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
     k_tr_amp = []
     pCa = []
     hs_length = []
+    k_tr_r_squared = []
 
     # And dicts to hold traces
     sims = dict()
@@ -1844,6 +1868,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                     k_tr_amp.append(k_tr_data['amp'])
                     pCa.append(d['pCa'].iloc[-1])
                     hs_length.append(d['hs_length'].iloc[-1])
+                    k_tr_r_squared.append(k_tr_data['r_squared'])
 
                     d_fit['x_fit'] = k_tr_data['x_fit'] + d_fit['time'].iloc[0]
                     d_fit['y_fit'] = k_tr_data['y_fit']
@@ -1862,7 +1887,8 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                       'force': force,
                       'hs_length': hs_length,
                       'k_tr': k_tr,
-                      'k_tr_amp': k_tr_amp})
+                      'k_tr_amp': k_tr_amp,
+                      'k_tr_r_squared': k_tr_r_squared})
 
     # Save the data as an excel file if required in the batch file
     if(fig_data['output_data_file_string']):

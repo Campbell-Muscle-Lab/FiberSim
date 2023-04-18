@@ -8,6 +8,7 @@ Created on Wed Feb 12 17:20:25 2020
 import numpy as np
     
 from scipy.optimize import curve_fit
+from sklearn.metrics import r2_score
 
 import matplotlib.pyplot as plt
 
@@ -189,6 +190,7 @@ def fit_exponential(x, y, n=1):
     d['k'] = popt[2]
     d['x_fit'] = x
     d['y_fit'] = y_func(d['x_fit'], *popt)
+    d['r_squared'] = r2_score(y, d['y_fit'])
     
     return d
     
@@ -221,6 +223,7 @@ def fit_exponential_recovery(x, y, n=1):
         d['k'] = popt[2]
         d['x_fit'] = x
         d['y_fit'] = y_single_exp(d['x_fit'], *popt)
+        d['r_squared'] = r2_score(y, d['y_fit'])
         
         return d
 

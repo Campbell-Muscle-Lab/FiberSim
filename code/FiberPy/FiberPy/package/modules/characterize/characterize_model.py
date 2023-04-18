@@ -582,6 +582,10 @@ def deduce_fv_properties(json_analysis_file_string,
             # Now loop through the half-sarcomere lengths
             for j, hsl in enumerate(hs_lengths):
                 
+                print('\n')
+                print(hsl)
+                print('\n')
+                
                 # Update dir counter
                 dir_counter = dir_counter + 1
     
@@ -616,8 +620,14 @@ def deduce_fv_properties(json_analysis_file_string,
                     if ('m_n' in fv_struct):
                         m['thick_structure']['m_n'] = fv_struct['m_n']
                 
-                fn = orig_model_file.split('/')[-1]
+                # fn = orig_model_file.split('/')[-1]
+                fn = re.split('/|\\\\', orig_model_file)[-1]
                 iso_model_file = os.path.join(sim_input_dir, fn)
+                
+                print('iso_model_file\n')
+                print(fn)
+                print(iso_model_file)
+                print('\n')
                 
                 with open(iso_model_file, 'w') as f:
                     json.dump(m, f, indent=4)
@@ -766,7 +776,8 @@ def deduce_fv_properties(json_analysis_file_string,
        
             # Copy the model file to the sim_input dir
             orig_model_file = isometric_jobs[isometric_job_index]['model_file']
-            fn = orig_model_file.split('\\')[-1]
+            # fn = orig_model_file.split('\\')[-1]
+            fn = re.split('/|\\\\', orig_model_file)[-1]
             isotonic_model_file = os.path.join(sim_input_dir, fn)
             shutil.copyfile(orig_model_file, isotonic_model_file)
             
@@ -1318,14 +1329,6 @@ def characterize_fv_with_pCa_and_isometric_force(json_analysis_file_string,
             m = json.load(f)
             hs_lengths = np.array([m['muscle']['initial_hs_length']])
              
-    # If you are running simulations, delete the existing structure
-    if not figures_only:
-        try:
-            print('Trying to remove %s' % base_dir)
-            shutil.rmtree(base_dir, ignore_errors=True)
-        except OSError as e:
-            print("Error: %s : %s" % (base_dir, e.strerror))
-    
     # Set up dir_counter
     dir_counter = 0
     
@@ -1341,6 +1344,14 @@ def characterize_fv_with_pCa_and_isometric_force(json_analysis_file_string,
     else:
         base_dir = ''
     base_dir = os.path.join(base_dir, fv_characterize_dict['sim_folder'])
+    
+    # If you are running simulations, delete the existing structure
+    if not figures_only:
+        try:
+            print('Trying to remove %s' % base_dir)
+            shutil.rmtree(base_dir, ignore_errors=True)
+        except OSError as e:
+            print("Error: %s : %s" % (base_dir, e.strerror))
     
     # Loop through the model files
     for i, mod_f in enumerate(model_struct['model_files']):
