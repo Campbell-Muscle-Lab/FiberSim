@@ -103,9 +103,7 @@ class Main(tk.Tk):
         
         
         
-        
-        
-
+    
 
 main = Main()
 main.after(50000,lambda:main.destroy())

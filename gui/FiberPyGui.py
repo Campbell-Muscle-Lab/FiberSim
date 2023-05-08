@@ -11,8 +11,11 @@ from tkinter import filedialog
 import tkinter as tk
 import pathlib 
 import os
-import sys
 import re
+import importlib
+import FiberPy
+import sys
+
 
 
 class Main(tk.Tk):
@@ -70,12 +73,12 @@ class Main(tk.Tk):
         folder_path_text.grid(row=0,column=1)
         
         demo_list = ["Isometric Activation", "Ramp Shortening","Isotonic Shortening","Isometric Twitch"]
-        demo_selection = ttk.Combobox(left_frame, values=demo_list)
-        demo_selection.set("Select a demo")
-        demo_selection.grid(row=1, column=0, padx=10, pady=10)
-        demo_selection.bind("<<ComboboxSelected>>",self.GenerateDemoPath)
+        self.demo_selection = ttk.Combobox(left_frame, values=demo_list)
+        self.demo_selection.set("Select a demo")
+        self.demo_selection.grid(row=1, column=0, padx=10, pady=10)
+        self.demo_selection.bind("<<ComboboxSelected>>",self.GenerateDemoPath)
         
-        run_demo_but = ttk.Button(left_frame, text="Run Demo")
+        run_demo_but = ttk.Button(left_frame, text="Run Demo", command = self.RunDemo)
         run_demo_but.grid(row=1, column=1, padx=10,pady=10, sticky=tk.W)
         
     # def MidPanel(self):
@@ -93,14 +96,38 @@ class Main(tk.Tk):
         print(self.GuiPath)
         os.chdir(folder_name)
         utku = os.getcwd()
-        print(utku)
+        print(folder_name)
+        # fibpy = importlib.import_module('FiberPy')
+        # from folder_name import FiberPy
+
 
         
     def GenerateDemoPath(self,event):
         
-        self.DemoPath = self.GuiPath
-        print(self.DemoPath)
+        gui_path = self.GuiPath
+        main_folder = os.path.split(gui_path)[0]
+        print(main_folder)
+        demo_name = self.demo_selection.get()
+        print(demo_name)
+        demo_name = re.sub(r"\s","_",demo_name)
+        demo_name = demo_name.lower()
+        print(demo_name)
+        demo_folder = main_folder + "\\demo_files\\getting_started\\" + demo_name
+        print(demo_folder)
+        files = []
+        for file in os.listdir(demo_folder):
+            if file.endswith('.json'):
+                files.append(file)
+        self.demo_file = []
+        self.demo_file = files[0]
+        self.demo_file = demo_folder + "\\" + self.demo_file
+        print(self.demo_file)     
         
+    def RunDemo(self):
+        sys.argv = ["run_batch",self.demo_file]
+        print(os.getcwd())
+        print(sys.argv[1])
+        parse_inputs()
         
         
         
@@ -108,6 +135,6 @@ class Main(tk.Tk):
 
 
 main = Main()
-main.after(50000,lambda:main.destroy())
+# main.after(25000,lambda:main.destroy())
 main.mainloop()    
         

@@ -1,0 +1,353 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu May  4 15:03:12 2023
+
+@author: utkug
+"""
+
+from tkinter import *
+from tkinter import ttk
+from tkinter import filedialog
+import tkinter as tk
+import pathlib 
+import os
+import re
+import importlib
+import sys
+import subprocess
+from PIL import Image, ImageTk
+import json
+import collections
+
+
+class ValueTypes:
+    DICT = 1
+    LIST = 2
+    STR = 3
+    FILEPATH = 4
+    
+class Tags:
+    DICT = 'dict'
+    LIST = 'list'
+    ROOT = 'root'
+    LEAF = 'leaf'
+    FILE = 'file'
+
+
+class Main(tk.Tk):
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+        
+        
+        self.FiberPyPath = StringVar()
+        self.SetAppSize()
+        self.DivideRowsColumns()
+        self.LeftPanelTop()
+        self.LeftPanelBottom()
+        self.JSONEditor()
+        self.RightPanel()
+        
+        
+        
+
+    def SetAppSize(self):
+        
+        self.title("FiberSim")
+        self.iconbitmap("favicon.ico")
+        
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        print("Screen width:", screen_width)
+        print("Screen height:", screen_height)
+        
+        app_window_width = screen_width * 0.75
+        app_window_height = screen_height * 0.75
+        
+        x = (screen_width/2) - (app_window_width/2)
+        y = (screen_height/2) - (app_window_height/2)
+        
+        self.geometry('%dx%d+%d+%d' % (app_window_width,app_window_height, 
+                                       x, y))
+        self.attributes('-topmost',1)
+        
+    def DivideRowsColumns(self):
+            
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1,weight=1)
+        #self.columnconfigure(2,weight=1)
+        
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1,weight=1)
+        self.rowconfigure(2,weight=80)
+            
+        
+    def LeftPanelTop(self):
+        
+        left_frame_top = tk.LabelFrame(self, text="Simulation Input Panel")
+        left_frame_top.grid(row=0,column=0,rowspan=1,
+                            sticky='WENS',padx=10,pady=10)
+        
+        locate_fiberpy_button = ttk.Button(left_frame_top,
+                                           text="Select FiberPy Folder", 
+                                           command=self.LocateFiberPy)
+        locate_fiberpy_button.grid(row=0, column=0, padx=10,pady=10, sticky='W')
+        
+        wid = int(self.winfo_width()/4)
+        folder_path_text = ttk.Entry(left_frame_top, width = wid, 
+                                     textvariable = self.FiberPyPath)
+        folder_path_text.grid(row=0,column=1)
+        
+        demo_list = ["Isometric Activation", "Ramp Shortening",
+                     "Isotonic Shortening","Isometric Twitch"]
+        self.demo_selection = ttk.Combobox(left_frame_top, values=demo_list)
+        self.demo_selection.set("Select a demo")
+        self.demo_selection.grid(row=1, column=0, padx=10, pady=10)
+        self.demo_selection.bind("<<ComboboxSelected>>",self.GenerateDemoPath)
+        
+        run_demo_but = ttk.Button(left_frame_top, 
+                                  text="Run Demo", command = self.RunDemo)
+        run_demo_but.grid(row=1, column=1, padx=10,pady=10, sticky='W')
+        
+    def LeftPanelBottom(self):
+        
+        left_frame_bottom = tk.LabelFrame(self,text="Simulation JSON Files")
+        left_frame_bottom.grid(row=1, column=0,rowspan=1,
+                               sticky='WENS',padx=10,pady=10)
+        
+        jtab = ["batch","model","options","output_handler","template_summary"]
+        
+        batch_json_button = ttk.Button(left_frame_bottom, 
+                                       text="Batch JSON File",
+                                       command=lambda jbut = "batch":self.LocateJSON(jbut))
+        batch_json_button.grid(row=0, column=0, padx=10,pady=10, sticky='W')
+        
+        
+        model_json_button = ttk.Button(left_frame_bottom, 
+                                       text="Model JSON File",
+                                       command=lambda jbut = "model":self.LocateJSON(jbut))
+        model_json_button.grid(row=0, column=1, padx=10,pady=10, sticky='W')
+
+        
+        options_json_button = ttk.Button(left_frame_bottom, 
+                                       text="Options JSON File",
+                                       command=lambda jbut = "options":self.LocateJSON(jbut))
+        options_json_button.grid(row=0, column=2, padx=10,pady=10, sticky='W')
+
+        
+        output_json_button = ttk.Button(left_frame_bottom, 
+                                       text="Output JSON File",
+                                       command=lambda jbut = "output_handler":self.LocateJSON(jbut))
+        output_json_button.grid(row=0, column=3, padx=10,pady=10, sticky='W')
+
+        
+        summary_json_button = ttk.Button(left_frame_bottom, 
+                                       text="Summary JSON File",
+                                       command=lambda jbut = "template_summary":self.LocateJSON(jbut))
+        summary_json_button.grid(row=0, column=4, padx=10,pady=10, sticky='W')
+    
+    def JSONEditor(self):
+        
+        json_editor = tk.LabelFrame(self,text="JSON Editor")
+        json_editor.grid(row=2, column=0,rowspan=1,
+                               sticky='WENS',padx=10,pady=10)
+
+        self.tree = ttk.Treeview(json_editor, selectmode='browse',height=30)
+        self.tree.pack(fill=tk.BOTH,padx=10,pady=10)
+        
+        self.SetEditorColumns()
+
+    def SetEditorColumns(self, columns=('Key/Parameter', 'Value')):
+        """
+        Sets the column headings with the given column tuple.
+        :param columns: A <tuple> containing <str> objects.
+        """
+        col_ids = ['#'+str(i) for i in range(len(columns)-1)]
+        self.tree.configure(column=col_ids)
+        for i in range(len(columns)):
+            self.tree.heading('#'+str(i), text=columns[i])
+            
+    def LocateJSON(self,jbut):
+        self.jbut = jbut
+        if self.jbut == "batch":
+            batch_json_path = self.demo_file
+            self.jbut_file = batch_json_path
+            print(batch_json_path)
+            self.LoadJSON()
+            
+        else:
+            json_file_name = self.jbut + ".json"
+            print(json_file_name)
+
+            def find(name, path):
+                for root, dirs, files in os.walk(path):
+                    if name in files:
+                        return os.path.join(root, name)
+                    
+            self.jbut_file = find(json_file_name,self.demo_folder)
+            print(self.jbut_file)
+            self.LoadJSON()
+
+            
+    def LoadJSON(self):
+        
+        self.dat = {}
+        
+        jf = open(self.jbut_file,'r')
+        self.dat = json.load(jf)
+        self.AddItemJSON(jf.name,self.dat,tags=[Tags.FILE])
+    
+    def SaveJSON(self, filepath, data):
+        
+        jf = open(filepath,'w')
+        json.dump(self.dat,jf)
+    
+    def AddItemJSON(self,key,value,parent='',tags=[]):
+        
+        self.PopulateItem(key,value,parent,tags)
+        if parent == '':
+            return
+        json_root = self.GetJSONRoot(parent)
+        if self.tree.tag_has(Tags.FILE, json_root):
+            self.SaveJSON(self.GetJSONFilePath(json_root), 
+                                self.GetValue(json_root))
+        
+    def PopulateItem(self, key, value, node='', tags=[]):
+        
+        if node == '':
+            tags = tags+[Tags.ROOT]
+            
+        if type(value) is dict:
+            node = self.tree.insert(node, tk.END, text=str(key)+'={}',
+                                    tags=tags+[Tags.DICT])
+            for k in value:
+                self.PopulateItem(k,value[k],node)
+        elif type(value) is list:
+            node = self.tree.insert(node, tk.END, text=str(key)+'=[]',
+                                    tags=tags+[Tags.LIST])
+            for k in range(len(value)):
+                self.PopulateItem(k,value[k],node)
+        else:
+            self.tree.insert(node, tk.END, text=str(key), 
+                             tags=tags+[Tags.LEAF], values=[value])
+            
+    def GetJSONRoot(self,index):
+        
+        if index == '': return NONE
+        if self.tree.tag_has(Tags.ROOT, index):
+            return index
+        return self.GetJSONRoot(self.tree.parent(index))
+    
+    def GetJSONFilePath(self,index):
+        return self.GetKey(self.GetJSONRoot(index))
+    
+    def GetKey(self, index):
+        item = self.tree.item(index)
+        key = item['text']
+        if self.tree.tag_has(Tags.DICT, index) or self.tree.tag_has(Tags.LIST, index):
+            key = item['text'].split('=')[0].strip()
+        return key
+    
+    def GetValue(self, index):
+
+        item = self.tree.item(index)
+        value = None
+        if self.tree.tag_has(Tags.DICT, index):
+            value = {}
+            child_nodes = self.tree.get_children(index)
+            for child in child_nodes:
+                value[self.get_key(child)] = self.get_value(child)
+        elif self.tree.tag_has(Tags.LIST, index):
+            value = []
+            child_nodes = self.tree.get_children(index)
+            for child in child_nodes:
+                value.append(self.get_value(child))
+        else:
+            value = item['values'][0]
+        return value
+    
+        
+        
+        
+
+        
+        
+    def RightPanel(self):
+        
+        self.right_frame = tk.LabelFrame(self, text="Simulation Output Panel")
+        self.right_frame.grid(row=0,column=1,rowspan=3,columnspan=1,sticky='WENS',padx=10,pady=10)
+                
+    def LocateFiberPy(self):
+        
+        folder_name = filedialog.askdirectory()
+        self.FiberPyPath.set(folder_name)
+        self.GuiPath = os.getcwd()
+        print(self.GuiPath)
+        os.chdir(folder_name)
+        utku = os.getcwd()
+        print(folder_name)
+        
+    def GenerateDemoPath(self,event):
+        
+        gui_path = self.GuiPath
+        main_folder = os.path.split(gui_path)[0]
+        print(main_folder)
+        demo_name = self.demo_selection.get()
+        print(demo_name)
+        demo_name = re.sub(r"\s","_",demo_name)
+        demo_name = demo_name.lower()
+        print(demo_name)
+        self.demo_folder = "..\\..\\..\\" + "demo_files\\getting_started\\" + demo_name
+        print(self.demo_folder)
+        files = []
+        for file in os.listdir(self.demo_folder):
+            if file.endswith('.json'):
+                files.append(file)
+        self.demo_file = []
+        self.demo_file = files[0]
+        self.demo_file = self.demo_folder + "\\" + self.demo_file
+        print(self.demo_file)     
+        
+    def RunDemo(self):
+        sys.argv = ["run_batch",self.demo_file]
+        print(os.getcwd())
+        print(sys.argv[1])
+        print('demo starts')
+        subprocess.call(["python", "FiberPy.py", *sys.argv])
+        print('demo ends')
+        self.OutputDisplay()
+        
+    def OutputDisplay(self):
+        
+        output_summary  = self.demo_folder + "\\sim_output\\" + "summary.png"
+        print(output_summary)
+        im = Image.open(output_summary)
+        aspect_ratio = im.height/im.width
+        print(aspect_ratio)
+        self.right_frame.update()
+        height = self.right_frame.winfo_height()-50
+        width = height / aspect_ratio
+        width = int(width)
+        height = int(height)
+        im_small = im.resize((width,height))
+        im_r = ImageTk.PhotoImage(im_small)
+        label = Label(self.right_frame, image = im_r,anchor= CENTER)
+        label.image = im_r
+        #label.grid(row=0,column=1,rowspan=3,columnspan=1,sticky='EW')
+        label.pack()
+
+        
+        
+        
+        
+        
+        
+        
+
+
+main = Main()
+
+
+# main.after(25000,lambda:main.destroy())
+main.mainloop()    
+        
