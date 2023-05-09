@@ -43,12 +43,7 @@ class Main(tk.Tk):
         self.SetAppSize()
         self.DivideRowsColumns()
         self.LeftPanelTop()
-        self.LeftPanelBottom()
-        self.JSONEditor()
         self.RightPanel()
-        
-        
-        
 
     def SetAppSize(self):
         
@@ -111,61 +106,64 @@ class Main(tk.Tk):
         
     def LeftPanelBottom(self):
         
-        left_frame_bottom = tk.LabelFrame(self,text="Simulation JSON Files")
-        left_frame_bottom.grid(row=1, column=0,rowspan=1,
+        left_frame_bottom = tk.LabelFrame(self,text="JSON File Editor")
+        left_frame_bottom.grid(row=1, column=0,rowspan=2,
                                sticky='WENS',padx=10,pady=10)
         
-        jtab = ["batch","model","options","output_handler","template_summary"]
+        self.tabs = ttk.Notebook(left_frame_bottom)
         
-        batch_json_button = ttk.Button(left_frame_bottom, 
-                                       text="Batch JSON File",
-                                       command=lambda jbut = "batch":self.LocateJSON(jbut))
-        batch_json_button.grid(row=0, column=0, padx=10,pady=10, sticky='W')
+        tab = {}
+        self.tree = {}
+        self.dat = {}
+        k = 1
         
-        
-        model_json_button = ttk.Button(left_frame_bottom, 
-                                       text="Model JSON File",
-                                       command=lambda jbut = "model":self.LocateJSON(jbut))
-        model_json_button.grid(row=0, column=1, padx=10,pady=10, sticky='W')
+        tab_name=["Batch","Model","Options","Output Handler","Template Summary"]
+        for i in range(0,5):
+            key = 'tab'+ str(i)
+            print(key)
+            tab[key] = ttk.Frame(self.tabs)
+            self.tabs.add(tab[key],text=tab_name[i])
+            # ttk.Label(tab[key]).grid(column=0, row=1)
+            self.dat[key] = {}
+            self.tree[key] = ttk.Treeview(tab[key], selectmode='browse',height=30)
+            self.tree[key].pack(fill=tk.BOTH,padx=10,pady=10)
+            self.key = key
+            
+            self.SetEditorColumns()
 
+        self.tabs.pack(expand=1, fill="both")
         
-        options_json_button = ttk.Button(left_frame_bottom, 
-                                       text="Options JSON File",
-                                       command=lambda jbut = "options":self.LocateJSON(jbut))
-        options_json_button.grid(row=0, column=2, padx=10,pady=10, sticky='W')
-
-        
-        output_json_button = ttk.Button(left_frame_bottom, 
-                                       text="Output JSON File",
-                                       command=lambda jbut = "output_handler":self.LocateJSON(jbut))
-        output_json_button.grid(row=0, column=3, padx=10,pady=10, sticky='W')
-
-        
-        summary_json_button = ttk.Button(left_frame_bottom, 
-                                       text="Summary JSON File",
-                                       command=lambda jbut = "template_summary":self.LocateJSON(jbut))
-        summary_json_button.grid(row=0, column=4, padx=10,pady=10, sticky='W')
+        self.tabs.bind('<<NotebookTabChanged>>',self.NavigateJSON)       
     
-    def JSONEditor(self):
+    def NavigateJSON(self,event):
         
-        json_editor = tk.LabelFrame(self,text="JSON Editor")
-        json_editor.grid(row=2, column=0,rowspan=1,
-                               sticky='WENS',padx=10,pady=10)
+        jbut = self.tabs.tab(self.tabs.select(),"text")
+        jix = self.tabs.index(self.tabs.select())
+        self.key = 'tab'+str(jix)
+        print(self.key)
+        jbut = jbut.lower()
+        jbut = re.sub(r"\s","_",jbut)
+        
+        self.LocateJSON(jbut)        
+        
+        
+    # def JSONEditor(self):
+        
+    #     json_editor = tk.LabelFrame(self,text="JSON Editor")
+    #     json_editor.grid(row=2, column=0,rowspan=1,
+    #                            sticky='WENS',padx=10,pady=10)
 
-        self.tree = ttk.Treeview(json_editor, selectmode='browse',height=30)
-        self.tree.pack(fill=tk.BOTH,padx=10,pady=10)
+    #     self.tree = ttk.Treeview(json_editor, selectmode='browse',height=30)
+    #     self.tree.pack(fill=tk.BOTH,padx=10,pady=10)
         
-        self.SetEditorColumns()
+    #     self.SetEditorColumns()
 
     def SetEditorColumns(self, columns=('Key/Parameter', 'Value')):
-        """
-        Sets the column headings with the given column tuple.
-        :param columns: A <tuple> containing <str> objects.
-        """
+        
         col_ids = ['#'+str(i) for i in range(len(columns)-1)]
-        self.tree.configure(column=col_ids)
+        self.tree[self.key].configure(column=col_ids)
         for i in range(len(columns)):
-            self.tree.heading('#'+str(i), text=columns[i])
+            self.tree[self.key].heading('#'+str(i), text=columns[i])
             
     def LocateJSON(self,jbut):
         self.jbut = jbut
@@ -191,11 +189,14 @@ class Main(tk.Tk):
             
     def LoadJSON(self):
         
-        self.dat = {}
+        
         
         jf = open(self.jbut_file,'r')
-        self.dat = json.load(jf)
-        self.AddItemJSON(jf.name,self.dat,tags=[Tags.FILE])
+        if not self.dat[self.key]:
+            self.dat[self.key] = json.load(jf)
+            self.AddItemJSON(jf.name,self.dat,tags=[Tags.FILE])
+        else:
+            return
     
     def SaveJSON(self, filepath, data):
         
@@ -218,17 +219,17 @@ class Main(tk.Tk):
             tags = tags+[Tags.ROOT]
             
         if type(value) is dict:
-            node = self.tree.insert(node, tk.END, text=str(key)+'={}',
+            node = self.tree[self.key].insert(node, tk.END, text=str(key)+'={}',
                                     tags=tags+[Tags.DICT])
             for k in value:
                 self.PopulateItem(k,value[k],node)
         elif type(value) is list:
-            node = self.tree.insert(node, tk.END, text=str(key)+'=[]',
+            node = self.tree[self.key].insert(node, tk.END, text=str(key)+'=[]',
                                     tags=tags+[Tags.LIST])
             for k in range(len(value)):
                 self.PopulateItem(k,value[k],node)
         else:
-            self.tree.insert(node, tk.END, text=str(key), 
+            self.tree[self.key].insert(node, tk.END, text=str(key), 
                              tags=tags+[Tags.LEAF], values=[value])
             
     def GetJSONRoot(self,index):
@@ -268,10 +269,6 @@ class Main(tk.Tk):
     
         
         
-        
-
-        
-        
     def RightPanel(self):
         
         self.right_frame = tk.LabelFrame(self, text="Simulation Output Panel")
@@ -306,7 +303,11 @@ class Main(tk.Tk):
         self.demo_file = []
         self.demo_file = files[0]
         self.demo_file = self.demo_folder + "\\" + self.demo_file
-        print(self.demo_file)     
+        print(self.demo_file)
+        self.LeftPanelBottom()
+        
+
+
         
     def RunDemo(self):
         sys.argv = ["run_batch",self.demo_file]
@@ -350,4 +351,5 @@ main = Main()
 
 # main.after(25000,lambda:main.destroy())
 main.mainloop()    
-        
+
+
