@@ -8,6 +8,9 @@ Created on Thu May  4 15:03:12 2023
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
+from tkinter import messagebox
+from tkinter import simpledialog
+
 import tkinter as tk
 import pathlib 
 import os
@@ -39,6 +42,9 @@ class Main(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         
         
+        self.editor_menu_set = collections.OrderedDict()
+        self.editor_menu_set['edit_child'] = {'text': 'Edit',
+                                          'action': lambda: self.EditJSON()}
         self.FiberPyPath = StringVar()
         self.SetAppSize()
         self.DivideRowsColumns()
@@ -49,7 +55,8 @@ class Main(tk.Tk):
         
         self.title("FiberSim")
         self.iconbitmap("favicon.ico")
-        
+        self.output_label = []
+
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
 
@@ -117,16 +124,20 @@ class Main(tk.Tk):
         self.dat = {}
         k = 1
         
-        tab_name=["Batch","Model","Options","Output Handler","Template Summary"]
-        for i in range(0,5):
+        self.tab_name=["Batch","Model","Options","Output Handler","Template Summary"]
+        for i in range(len(self.tab_name)):
             key = 'tab'+ str(i)
             print(key)
             tab[key] = ttk.Frame(self.tabs)
-            self.tabs.add(tab[key],text=tab_name[i])
+            self.tabs.add(tab[key],text=self.tab_name[i])
             # ttk.Label(tab[key]).grid(column=0, row=1)
             self.dat[key] = {}
             self.tree[key] = ttk.Treeview(tab[key], selectmode='browse',height=30)
             self.tree[key].pack(fill=tk.BOTH,padx=10,pady=10)
+            self.tree[key].bind('<Button-3>', 
+                                 lambda event: self.ShowEditorMenu(event))
+            self.editor_menu = tk.Menu(self.tree[key], tearoff=0)
+            self.LoadEditorMenu()
             self.key = key
             
             self.SetEditorColumns()
@@ -189,19 +200,19 @@ class Main(tk.Tk):
             
     def LoadJSON(self):
         
-        
-        
         jf = open(self.jbut_file,'r')
         if not self.dat[self.key]:
             self.dat[self.key] = json.load(jf)
-            self.AddItemJSON(jf.name,self.dat,tags=[Tags.FILE])
+            self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
         else:
             return
     
     def SaveJSON(self, filepath, data):
         
+        print(filepath)
         jf = open(filepath,'w')
-        json.dump(self.dat,jf)
+        print(self.dat[self.key])
+        json.dump(self.dat[self.key] ,jf)
     
     def AddItemJSON(self,key,value,parent='',tags=[]):
         
@@ -231,43 +242,88 @@ class Main(tk.Tk):
         else:
             self.tree[self.key].insert(node, tk.END, text=str(key), 
                              tags=tags+[Tags.LEAF], values=[value])
+        
+        childrens = self.tree[self.key].get_children()
+        for child in childrens:
+            self.ExpandItems(child)
+        
+    def ExpandItems(self,index):
+
+        self.tree[self.key].item(index, open=True)
+        childrens = self.tree[self.key].get_children([index])
+
+        if len(childrens) > 0:
+            for child in childrens:
+                self.ExpandItems(child)
+                
+    def EditJSON(self):
+        
+        index = self.tree[self.key].selection()
+        is_leaf = self.tree[self.key].tag_has(Tags.LEAF,index)
+        
+    
+        if is_leaf and tk.messagebox.askyesno("Edit Value",
+                                   "Are you sure to edit value?"):
+            value = simpledialog.askstring("Value Input","Enter new value: ")
+            if self.VerifyValue(value):
+                self.EditItemJSON(index,value=value)
+                
+    def EditItemJSON(self,index,key=None,value=None):
+        
+        if value:
+            self.tree[self.key].item(index,values=[value])
             
+        print(index)
+            
+        if index == '':
+            return
+        
+        json_root = self.GetJSONRoot(index)
+        print(json_root)
+        if self.tree[self.key].tag_has(Tags.FILE, json_root):
+            self.SaveJSON(self.GetJSONFilePath(json_root), self.GetValue(json_root))
+            
+        
+    def VerifyValue(self,value):
+        if len(value.encode('utf-8')):
+            return True
+        return False
+    
     def GetJSONRoot(self,index):
         
         if index == '': return NONE
-        if self.tree.tag_has(Tags.ROOT, index):
+        if self.tree[self.key].tag_has(Tags.ROOT, index):
             return index
-        return self.GetJSONRoot(self.tree.parent(index))
+        return self.GetJSONRoot(self.tree[self.key].parent(index))
+    
     
     def GetJSONFilePath(self,index):
         return self.GetKey(self.GetJSONRoot(index))
     
     def GetKey(self, index):
-        item = self.tree.item(index)
+        item = self.tree[self.key].item(index)
         key = item['text']
-        if self.tree.tag_has(Tags.DICT, index) or self.tree.tag_has(Tags.LIST, index):
+        if self.tree[self.key].tag_has(Tags.DICT, index) or self.tree[self.key].tag_has(Tags.LIST, index):
             key = item['text'].split('=')[0].strip()
         return key
     
     def GetValue(self, index):
 
-        item = self.tree.item(index)
+        item = self.tree[self.key].item(index)
         value = None
-        if self.tree.tag_has(Tags.DICT, index):
+        if self.tree[self.key].tag_has(Tags.DICT, index):
             value = {}
-            child_nodes = self.tree.get_children(index)
+            child_nodes = self.tree[self.key].get_children(index)
             for child in child_nodes:
-                value[self.get_key(child)] = self.get_value(child)
-        elif self.tree.tag_has(Tags.LIST, index):
+                value[self.GetKey(child)] = self.GetValue(child)
+        elif self.tree[self.key].tag_has(Tags.LIST, index):
             value = []
-            child_nodes = self.tree.get_children(index)
+            child_nodes = self.tree[self.key].get_children(index)
             for child in child_nodes:
-                value.append(self.get_value(child))
+                value.append(self.GetValue(child))
         else:
             value = item['values'][0]
         return value
-    
-        
         
     def RightPanel(self):
         
@@ -326,17 +382,35 @@ class Main(tk.Tk):
         aspect_ratio = im.height/im.width
         print(aspect_ratio)
         self.right_frame.update()
-        height = self.right_frame.winfo_height()-50
+        height = 0.9*self.right_frame.winfo_height()
         width = height / aspect_ratio
         width = int(width)
         height = int(height)
         im_small = im.resize((width,height))
         im_r = ImageTk.PhotoImage(im_small)
-        label = Label(self.right_frame, image = im_r,anchor= CENTER)
-        label.image = im_r
+        if not self.output_label:
+            self.output_label = Label(self.right_frame, image = im_r,anchor= CENTER)
+            self.output_label.image = im_r
+        else:
+            self.output_label.configure(image = im_r)
+            # self.output_label = Label(self.right_frame, image = im_r,anchor= CENTER)
+            self.output_label.image = im_r
         #label.grid(row=0,column=1,rowspan=3,columnspan=1,sticky='EW')
-        label.pack()
-
+        self.output_label.pack()
+   
+    def ShowEditorMenu(self, event):
+        
+        print("hello")
+        self.tree[self.key].selection_set(self.tree[self.key].identify_row(event.y))
+        if self.tree[self.key].selection():
+            print(self.tree[self.key].selection())
+            self.editor_menu.post(event.x_root, event.y_root)
+            
+    def LoadEditorMenu(self):
+        self.editor_menu.delete(0,tk.END)
+        for i in self.editor_menu_set:
+            self.editor_menu.add_command(label=self.editor_menu_set[i]['text'],
+                                         command=self.editor_menu_set[i]['action'])
         
         
         
