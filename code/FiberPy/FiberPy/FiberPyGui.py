@@ -48,13 +48,14 @@ class Main(tk.Tk):
         self.FiberPyPath = StringVar()
         self.SetAppSize()
         self.DivideRowsColumns()
-        self.LeftPanelTop()
+        self.SimSessionPanel()
+        self.SimInputPanel()
         self.RightPanel()
 
     def SetAppSize(self):
         
         self.title("FiberSim")
-        self.iconbitmap("favicon.ico")
+        self.iconbitmap(default="favicon.ico")
         self.output_label = []
 
         screen_width = self.winfo_screenwidth()
@@ -76,45 +77,137 @@ class Main(tk.Tk):
     def DivideRowsColumns(self):
             
         self.columnconfigure(0, weight=1)
-        self.columnconfigure(1,weight=1)
+        self.columnconfigure(1,weight=10)
         #self.columnconfigure(2,weight=1)
         
         self.rowconfigure(0, weight=1)
-        self.rowconfigure(1,weight=1)
+        self.rowconfigure(1,weight=2)
         self.rowconfigure(2,weight=80)
             
         
-    def LeftPanelTop(self):
+    def SimSessionPanel(self):
         
-        left_frame_top = tk.LabelFrame(self, text="Simulation Input Panel")
+        left_frame_top = tk.LabelFrame(self, text="Simulation Session Panel")
         left_frame_top.grid(row=0,column=0,rowspan=1,
                             sticky='WENS',padx=10,pady=10)
-        
+
         locate_fiberpy_button = ttk.Button(left_frame_top,
                                            text="Select FiberPy Folder", 
                                            command=self.LocateFiberPy)
         locate_fiberpy_button.grid(row=0, column=0, padx=10,pady=10, sticky='W')
         
-        wid = int(self.winfo_width()/4)
-        folder_path_text = ttk.Entry(left_frame_top, width = wid, 
+        
+        wid = int(self.winfo_width())
+        folder_path_text = ttk.Entry(left_frame_top, width = 50*wid, 
                                      textvariable = self.FiberPyPath)
         folder_path_text.grid(row=0,column=1)
         
-        demo_list = ["Isometric Activation", "Ramp Shortening",
-                     "Isotonic Shortening","Isometric Twitch"]
-        self.demo_selection = ttk.Combobox(left_frame_top, values=demo_list)
-        self.demo_selection.set("Select a demo")
-        self.demo_selection.grid(row=1, column=0, padx=10, pady=10)
-        self.demo_selection.bind("<<ComboboxSelected>>",self.GenerateDemoPath)
+        rad_but = {"Demo Simulations":"demo",
+                   "Custom Simulations": "custom"}
+        self.radio = tk.StringVar()
         
-        run_demo_but = ttk.Button(left_frame_top, 
+        session_type = ["demo","custom"]
+        self.session = {}
+        m = 0
+        
+        for (text, value) in rad_but.items():
+            
+            ix = m + 2
+            st = session_type[m]
+            self.session[st] = ttk.Radiobutton(left_frame_top, text = text, 
+                            variable = self.radio, 
+                            value=value,
+                            command=self.RadioButtonSelected).grid(row=0,
+                                                                   column=ix, 
+                                                                   padx = 10)
+            
+            self.session_type = st
+            print(self.session_type)
+            m += 1
+            
+        left_frame_top.update()    
+        self.sim_sess_wid = left_frame_top.winfo_width()
+        self.sim_sess_heg = left_frame_top.winfo_height()
+        
+    def RadioButtonSelected(self):
+        
+        self.SimInputPanel()
+        
+    def SimInputPanel(self):
+        
+        self.sim_input_panel = tk.LabelFrame(self, 
+                                             text="Simulation Input Panel",
+                                             width=self.sim_sess_wid,
+                                             height=self.sim_sess_heg)
+        self.sim_input_panel.grid(row=1,column=0,rowspan=1,
+                            sticky='WENS',padx=10,pady=10)
+        
+        if self.radio.get() == 'demo':
+            demo_list = ["Isometric Activation", "Ramp Shortening",
+                      "Isotonic Shortening","Isometric Twitch"]
+            self.demo_selection = ttk.Combobox(self.sim_input_panel, values=demo_list)
+            self.demo_selection.set("Select a demo")
+            self.demo_selection.grid(row=1, column=0, padx=10, pady=10)
+            self.demo_selection.bind("<<ComboboxSelected>>",self.GenerateDemoPath)
+        
+            run_demo_but = ttk.Button(self.sim_input_panel, 
                                   text="Run Demo", command = self.RunDemo)
-        run_demo_but.grid(row=1, column=1, padx=10,pady=10, sticky='W')
+            run_demo_but.grid(row=1, column=1, padx=10,pady=10, sticky='W')
         
+        elif self.radio.get() == 'custom':
+            
+            self.custom_files = {}
+            self.but_indicators = {}
+            self.custom_buttons = {}
+            self.canvas = {}
+            
+            but_text = ["Batch File","Model File",
+                        "Options File","Output File",
+                        "Summary File"]
+            
+            col = ['red','red','red','red','red']
+            
+            
+            
+            
+            m = 0
+            k = 1
+            for i in range(len(but_text)):
+                
+                but_key = but_text[i]
+                print(but_key)
+                but_key = but_key.lower()
+                but_key = re.sub(r"\s","_",but_key)
+                
+                self.custom_files[but_key[i]]={}
+                self.custom_buttons[but_key[i]] = ttk.Button(self.sim_input_panel, 
+                                           text=but_text[i],
+                                           command=lambda jbut = but_key
+                                           :self.UploadJSON(jbut))
+                
+
+                
+                self.custom_buttons[but_key[i]].grid(row=1, column=i,
+                                                     padx=10,pady=10, 
+                                                     sticky='W')
+                
+                m = m + 2
+                
+                self.canvas[but_key[i]] = Canvas(self.sim_input_panel, 
+                                                         width=50, height=50)
+
+                self.canvas[but_key[i]].grid(row=2, column=i, padx=10)
+                
+                k = k + 2
+                self.but_indicators[but_key[i]] = self.canvas[but_key[i]].create_oval(10, 10, 40, 40, 
+                                                            width=0, 
+                                                            fill=col[i])
+                
+                print(but_key)
     def LeftPanelBottom(self):
         
         left_frame_bottom = tk.LabelFrame(self,text="JSON File Editor")
-        left_frame_bottom.grid(row=1, column=0,rowspan=2,
+        left_frame_bottom.grid(row=2, column=0,rowspan=2,
                                sticky='WENS',padx=10,pady=10)
         
         self.tabs = ttk.Notebook(left_frame_bottom)
@@ -176,8 +269,17 @@ class Main(tk.Tk):
         for i in range(len(columns)):
             self.tree[self.key].heading('#'+str(i), text=columns[i])
             
+    def UploadJSON(self,jbut):
+        print(jbut)
+        self.custom_files[jbut]=filedialog.askopenfilename(filetypes=[("JSON File"
+                                                                       ,".json")])
+        
+        self.canvas[jbut].itemconfig(self.but_indicators[jbut], fill='green')
+        
+                    
     def LocateJSON(self,jbut):
         self.jbut = jbut
+        print(jbut)
         if self.jbut == "batch":
             batch_json_path = self.demo_file
             self.jbut_file = batch_json_path
@@ -203,8 +305,6 @@ class Main(tk.Tk):
         jf = open(self.jbut_file,'r')
         if not self.dat[self.key]:
             self.dat[self.key] = json.load(jf)
-            # print(self.dat[self.key]['muscle']['prop_fibrosis'])
-            # print(type(self.dat[self.key]['muscle']['prop_fibrosis']))
             self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
         else:
             return
@@ -212,8 +312,6 @@ class Main(tk.Tk):
     def SaveJSON(self, filepath, data):
         
         # print(data)
-        print(self.dat[self.key]['muscle']['prop_fibrosis'])
-        print(type(self.dat[self.key]['muscle']['prop_fibrosis']))
         with open(filepath,'w') as jf:
         # print(self.dat[self.key])
             json.dump(data ,jf,indent=4)
