@@ -1,62 +1,63 @@
 {
-    "layout":
-    {
+    "layout": {
         "fig_width": 7,
-        "top_margin": 0,
+        "top_margin": "utku",
         "left_margin": 0,
         "right_margin": 0,
         "panel_height": 2,
         "grid_wspace": -0.5
     },
-    "x_display":{
+    "x_display": {
         "global_x_field": "time",
-        "label": "Time (s)"
+        "label": 380
     },
-    "formatting":
-    {
+    "formatting": {
         "x_label_fontsize": 14,
         "y_label_fontsize": 14,
         "tick_fontsize": 14,
         "legend_fontsize": 14,
         "y_label_pad": 25,
-        "legend_bbox_to_anchor": [1.0, 1],
+        "legend_bbox_to_anchor": [
+            1.0,
+            1
+        ],
         "patch_alpha": 0.3
     },
-    "panels":
-    [
+    "panels": [
         {
             "column": 1,
-          "y_info": {
-            "label": "pCa",
-            "ticks": [ 9, 4.5 ],
-            "series": [
-              {
-                "field": "pCa"
-              }
-            ]
-          }
+            "y_info": {
+                "label": "pCa",
+                "ticks": [
+                    9,
+                    4.5
+                ],
+                "series": [
+                    {
+                        "field": "pCa"
+                    }
+                ]
+            }
         },
         {
             "column": 1,
-          "y_info": {
-            "label": "HS length\n(nm)",
-            "scaling_type": "close_fit",
-            "series": [
-              {
-                "field": "hs_length",
-                "max": 1200,
-                "min ":  1100
-              }
-            ]
-          }
+            "y_info": {
+                "label": "HS length\n(nm)",
+                "scaling_type": "close_fit",
+                "series": [
+                    {
+                        "field": "hs_length",
+                        "max": 1200,
+                        "min ": 1100
+                    }
+                ]
+            }
         },
         {
             "column": 1,
-            "y_info":
-            {
+            "y_info": {
                 "label": "Force \n(kN m$^{-2})$",
-                "series":
-                [
+                "series": [
                     {
                         "field": "force",
                         "field_label": "Total",
@@ -72,11 +73,9 @@
         },
         {
             "column": 1,
-            "y_info":
-            {
+            "y_info": {
                 "label": "Thin\nfilament",
-                "series":
-                [
+                "series": [
                     {
                         "field": "a_pop_0",
                         "field_label": "Inactive"
@@ -88,25 +87,25 @@
                 ]
             }
         },
-      {
-        "column": 1,
-        "y_info": {
-          "label": "Thick\nfilament",
-          "series": [
-            {
-              "field": "m_pop_0",
-              "field_label": "SRX"
-            },
-            {
-              "field": "m_pop_1",
-              "field_label": "DRX"
-            },
-            {
-              "field": "m_pop_2",
-              "field_label": "FG"
+        {
+            "column": 1,
+            "y_info": {
+                "label": "Thick\nfilament",
+                "series": [
+                    {
+                        "field": "m_pop_0",
+                        "field_label": "SRX"
+                    },
+                    {
+                        "field": "m_pop_1",
+                        "field_label": "DRX"
+                    },
+                    {
+                        "field": "m_pop_2",
+                        "field_label": "FG"
+                    }
+                ]
             }
-          ]
         }
-      }
     ]
 }

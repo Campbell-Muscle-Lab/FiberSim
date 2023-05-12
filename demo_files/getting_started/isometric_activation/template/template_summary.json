@@ -1,6 +1,5 @@
 {
-    "layout":
-    {
+    "layout": {
         "fig_width": 7,
         "top_margin": 0,
         "left_margin": 0,
@@ -8,98 +7,103 @@
         "panel_height": 2,
         "grid_wspace": -0.5
     },
-    "x_display":{
+    "x_display": {
         "global_x_field": "time",
         "label": "Time (s)"
     },
-    "formatting":
-    {
-        "x_label_fontsize": 12,
+    "formatting": {
+        "x_label_fontsize": 0,
         "y_label_fontsize": 12,
         "tick_fontsize": 12,
         "legend_fontsize": 12,
         "y_label_pad": 25,
-        "legend_bbox_to_anchor": [1.0, 1],
+        "legend_bbox_to_anchor": [
+            1.0,
+            1
+        ],
         "patch_alpha": 0.3
     },
-  "panels": [
-    {
-      "column": 1,
-      "y_info": {
-        "label": "pCa",
-        "ticks": [ 9, 4.5 ],
-        "series": [
-          {
-            "field": "pCa"
-          }
-        ]
-      }
-    },
-    {
-      "column": 1,
-      "y_info": {
-        "label": "HS length\n(nm)",
-        "scaling_type": "close_fit",
-        "series": [
-          {
-            "field": "hs_length"
-          }
-        ]
-      }
-    },
-    {
-      "column": 1,
-      "y_info": {
-        "label": "Stress\n(kN m$^{-2}$)",
-        "series": [
-          {
-            "field": "force",
-            "field_label": "Total",
-            "scaling_factor": 0.001
-          },
-          {
-            "field": "titin_force",
-            "field_label": "Titin",
-            "scaling_factor": 0.001
-          }
-        ]
-      }
-    },
-    {
-      "column": 1,
-      "y_info": {
-        "label": "Thin\nfilament",
-        "series": [
-          {
-            "field": "a_pop_0",
-            "field_label": "Inactive"
-          },
-          {
-            "field": "a_pop_1",
-            "field_label": "Active"
-          }
-        ]
-      }
-    },
-    {
-      "column": 1,
-      "y_info": {
-        "label": "Thick\nfilament",
-        "series": [
-          {
-            "field": "m_pop_0",
-            "field_label": "SRX"
-          },
-          {
-            "field": "m_pop_1",
-            "field_label": "DRX"
-          },
-          {
-            "field": "m_pop_2",
-            "field_label": "FG"
-          }
-        ]
-      }
-    }
-  ]
+    "panels": [
+        {
+            "column": 1,
+            "y_info": {
+                "label": "pCa",
+                "ticks": [
+                    9,
+                    4.5
+                ],
+                "series": [
+                    {
+                        "field": "pCa"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info": {
+                "label": "HS length\n(nm)",
+                "scaling_type": "close_fit",
+                "series": [
+                    {
+                        "field": "hs_length"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info": {
+                "label": "Stress\n(kN m$^{-2}$)",
+                "series": [
+                    {
+                        "field": "force",
+                        "field_label": "Total",
+                        "scaling_factor": 0.001
+                    },
+                    {
+                        "field": "titin_force",
+                        "field_label": "Titin",
+                        "scaling_factor": 0.001
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info": {
+                "label": "Thin\nfilament",
+                "series": [
+                    {
+                        "field": "a_pop_0",
+                        "field_label": "Inactive"
+                    },
+                    {
+                        "field": "a_pop_1",
+                        "field_label": "Active"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info": {
+                "label": "Thick\nfilament",
+                "series": [
+                    {
+                        "field": "m_pop_0",
+                        "field_label": "SRX"
+                    },
+                    {
+                        "field": "m_pop_1",
+                        "field_label": "DRX"
+                    },
+                    {
+                        "field": "m_pop_2",
+                        "field_label": "FG"
+                    }
+                ]
+            }
+        }
+    ]
 }

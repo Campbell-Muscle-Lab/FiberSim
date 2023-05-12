@@ -50,7 +50,7 @@ class Main(tk.Tk):
         self.DivideRowsColumns()
         self.SimSessionPanel()
         self.SimInputPanel()
-        self.RightPanel()
+        self.SimOutputPanel()
 
     def SetAppSize(self):
         
@@ -60,9 +60,6 @@ class Main(tk.Tk):
 
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
-
-        print("Screen width:", screen_width)
-        print("Screen height:", screen_height)
         
         app_window_width = screen_width * 0.75
         app_window_height = screen_height * 0.75
@@ -74,6 +71,10 @@ class Main(tk.Tk):
                                        x, y))
         self.attributes('-topmost',1)
         
+        self.tab = {}
+        self.tree = {}
+        self.dat = {}
+        
     def DivideRowsColumns(self):
             
         self.columnconfigure(0, weight=1)
@@ -81,8 +82,8 @@ class Main(tk.Tk):
         #self.columnconfigure(2,weight=1)
         
         self.rowconfigure(0, weight=1)
-        self.rowconfigure(1,weight=2)
-        self.rowconfigure(2,weight=80)
+        self.rowconfigure(1,weight=3)
+        self.rowconfigure(2,weight=60)
             
         
     def SimSessionPanel(self):
@@ -122,7 +123,6 @@ class Main(tk.Tk):
                                                                    padx = 10)
             
             self.session_type = st
-            print(self.session_type)
             m += 1
             
         left_frame_top.update()    
@@ -143,6 +143,7 @@ class Main(tk.Tk):
                             sticky='WENS',padx=10,pady=10)
         
         if self.radio.get() == 'demo':
+            self.demo_files = {}
             demo_list = ["Isometric Activation", "Ramp Shortening",
                       "Isotonic Shortening","Isometric Twitch"]
             self.demo_selection = ttk.Combobox(self.sim_input_panel, values=demo_list)
@@ -162,94 +163,92 @@ class Main(tk.Tk):
             self.canvas = {}
             
             but_text = ["Batch File","Model File",
-                        "Options File","Output File",
-                        "Summary File"]
-            
-            col = ['red','red','red','red','red']
-            
-            
-            
-            
-            m = 0
-            k = 1
+                        "Options File","Output Handler File",
+                        "Template Summary File"]
+            ix = [0,2,4,6,8]
+            lix = [1,3,5,7,9]            
             for i in range(len(but_text)):
                 
                 but_key = but_text[i]
-                print(but_key)
+                # # print(but_key)
                 but_key = but_key.lower()
                 but_key = re.sub(r"\s","_",but_key)
                 
-                self.custom_files[but_key[i]]={}
-                self.custom_buttons[but_key[i]] = ttk.Button(self.sim_input_panel, 
+                self.custom_files[but_key]={}
+                self.custom_buttons[but_key] = ttk.Button(self.sim_input_panel, 
                                            text=but_text[i],
                                            command=lambda jbut = but_key
                                            :self.UploadJSON(jbut))
                 
 
                 
-                self.custom_buttons[but_key[i]].grid(row=1, column=i,
-                                                     padx=10,pady=10, 
+                self.custom_buttons[but_key].grid(row=1, column=ix[i],
+                                                     padx=5,pady=10, 
                                                      sticky='W')
+                                
+                self.canvas[but_key] = Canvas(self.sim_input_panel, 
+                                                         width=25, height=25)
                 
-                m = m + 2
+                self.canvas[but_key].grid(row=1, column=lix[i], padx=5)
                 
-                self.canvas[but_key[i]] = Canvas(self.sim_input_panel, 
-                                                         width=50, height=50)
-
-                self.canvas[but_key[i]].grid(row=2, column=i, padx=10)
-                
-                k = k + 2
-                self.but_indicators[but_key[i]] = self.canvas[but_key[i]].create_oval(10, 10, 40, 40, 
+                self.but_indicators[but_key] = self.canvas[but_key].create_oval(5, 5, 20, 20, 
                                                             width=0, 
-                                                            fill=col[i])
+                                                            fill='red')
                 
-                print(but_key)
-    def LeftPanelBottom(self):
+                # print(but_key)
+                
+    def EditorPanel(self):
         
-        left_frame_bottom = tk.LabelFrame(self,text="JSON File Editor")
+        left_frame_bottom = tk.LabelFrame(self,text="Editor Panel")
         left_frame_bottom.grid(row=2, column=0,rowspan=2,
                                sticky='WENS',padx=10,pady=10)
         
         self.tabs = ttk.Notebook(left_frame_bottom)
         
-        tab = {}
-        self.tree = {}
-        self.dat = {}
+
         k = 1
         
-        self.tab_name=["Batch","Model","Options","Output Handler","Template Summary"]
+        self.tab_name=["Batch File","Model File","Options File",
+                       "Output Handler File","Template Summary File"]
         for i in range(len(self.tab_name)):
-            key = 'tab'+ str(i)
-            # print(key)
-            tab[key] = ttk.Frame(self.tabs)
-            self.tabs.add(tab[key],text=self.tab_name[i])
+           
+            key = self.tab_name[i]
+            # # print(but_key)
+            key = key.lower()
+            key = re.sub(r"\s","_",key)
+            
+            self.tab[key] = ttk.Frame(self.tabs)
+            self.tabs.add(self.tab[key],text=self.tab_name[i])
             # ttk.Label(tab[key]).grid(column=0, row=1)
             self.dat[key] = {}
-            self.tree[key] = ttk.Treeview(tab[key], selectmode='browse',height=30)
+            self.tree[key] = ttk.Treeview(self.tab[key], selectmode='browse',height=30)
             self.tree[key].pack(fill=tk.BOTH,padx=10,pady=10)
             self.tree[key].bind('<Button-3>', 
                                  lambda event: self.ShowEditorMenu(event))
             self.editor_menu = tk.Menu(self.tree[key], tearoff=0)
             self.LoadEditorMenu()
-            self.key = key
             
-            self.SetEditorColumns()
-
+            self.SetEditorColumns(key)
+            
+            if self.radio.get() == 'demo':
+                self.LocateJSON(key)
+                self.tabs.select(self.tab['batch_file'])
+                 
+        
         self.tabs.pack(expand=1, fill="both")
         
-        self.tabs.bind('<<NotebookTabChanged>>',self.NavigateJSON)       
+        self.tabs.bind('<<NotebookTabChanged>>',self.NavigateJSON)
+        if self.radio.get() == 'custom':
+            self.LocateJSON(self.key)         
     
     def NavigateJSON(self,event):
         
         jbut = self.tabs.tab(self.tabs.select(),"text")
         jix = self.tabs.index(self.tabs.select())
-        self.key = 'tab'+str(jix)
-        # print(self.key)
         jbut = jbut.lower()
         jbut = re.sub(r"\s","_",jbut)
-        
-        self.LocateJSON(jbut)        
-        
+        self.key = jbut
+        # self.LocateJSON(jbut)             
         
     # def JSONEditor(self):
         
@@ -262,62 +261,78 @@ class Main(tk.Tk):
         
     #     self.SetEditorColumns()
 
-    def SetEditorColumns(self, columns=('Key/Parameter', 'Value')):
+    def SetEditorColumns(self, key, columns=('Key/Parameter', 'Value')):
         
         col_ids = ['#'+str(i) for i in range(len(columns)-1)]
-        self.tree[self.key].configure(column=col_ids)
+        self.tree[key].configure(column=col_ids)
         for i in range(len(columns)):
-            self.tree[self.key].heading('#'+str(i), text=columns[i])
+            self.tree[key].heading('#'+str(i), text=columns[i])
             
     def UploadJSON(self,jbut):
-        print(jbut)
+        self.key = jbut
         self.custom_files[jbut]=filedialog.askopenfilename(filetypes=[("JSON File"
                                                                        ,".json")])
+        if self.custom_files[jbut]:
+            self.canvas[jbut].itemconfig(self.but_indicators[jbut], fill='green')
         
-        self.canvas[jbut].itemconfig(self.but_indicators[jbut], fill='green')
-        
-                    
-    def LocateJSON(self,jbut):
-        self.jbut = jbut
-        print(jbut)
-        if self.jbut == "batch":
-            batch_json_path = self.demo_file
-            self.jbut_file = batch_json_path
-            # print(batch_json_path)
-            self.LoadJSON()
-            
+        if not self.tree:    
+            self.EditorPanel()
         else:
-            json_file_name = self.jbut + ".json"
-            # print(json_file_name)
-
-            def find(name, path):
-                for root, dirs, files in os.walk(path):
-                    if name in files:
-                        return os.path.join(root, name)
+            self.LocateJSON(self.key)
+            
+        
                     
-            self.jbut_file = find(json_file_name,self.demo_folder)
-            # print(self.jbut_file)
+    def LocateJSON(self,key):
+        def find(name, path):
+            for root, dirs, files in os.walk(path):
+                if name in files:
+                    return os.path.join(root, name)
+        self.key = key        
+        if self.radio.get() == 'demo':
+            self.demo_files[key] = re.sub('_file','',key) + ".json"
+            # self.jbut = jbut
+            # # print(self.demo_folder)
+            if self.demo_files[key] == "batch.json":
+                self.demo_files[key] = self.demo_file
+                self.LoadJSON()    
+            else:
+                self.demo_files[key] = find(self.demo_files[key],self.demo_folder)
+                self.LoadJSON()
+        else:
             self.LoadJSON()
-
+            print(self.key)
+            
             
     def LoadJSON(self):
         
-        jf = open(self.jbut_file,'r')
-        if not self.dat[self.key]:
-            self.dat[self.key] = json.load(jf)
-            self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
-        else:
-            return
-    
+        try:
+            with open(self.demo_files[self.key],'r') as jf:
+                if not self.dat[self.key]:
+                    self.dat[self.key] = json.load(jf)
+                    self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
+                else:
+                    return
+        except:
+            if self.custom_files[self.key]:
+                print()
+                with open(self.custom_files[self.key],'r') as jf:
+                    if not self.dat[self.key]:
+                        self.dat[self.key] = json.load(jf)
+                        self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
+                        # print(self.tab[self.key])
+                    else:
+                        return
+                
     def SaveJSON(self, filepath, data):
         
-        # print(data)
+        # # print(data)
         with open(filepath,'w') as jf:
-        # print(self.dat[self.key])
+        # # print(self.dat[self.key])
             json.dump(data ,jf,indent=4)
     
     def AddItemJSON(self,key,value,parent='',tags=[]):
         
+        self.tabs.select(self.tab[self.key])
         self.PopulateItem(key,value,parent,tags)
         if parent == '':
             return
@@ -332,27 +347,27 @@ class Main(tk.Tk):
             tags = tags+[Tags.ROOT]
             
         if type(value) is dict:
-            # print(type(value))
+            # # print(type(value))
             node = self.tree[self.key].insert(node, tk.END, text=str(key)+'={}',
                                     tags=tags+[Tags.DICT])
-            print(node)
+            # # print(node)
             for k in value:
-                # print(value)
+                # # print(value)
                 self.PopulateItem(k,value[k],node)
         elif type(value) is list:
-            # print(type(value))
+            # # print(type(value))
             node = self.tree[self.key].insert(node, tk.END, text=str(key)+'=[]',
                                     tags=tags+[Tags.LIST])
-            print(node)
+            # # print(node)
             for k in range(len(value)):
                 self.PopulateItem(k,value[k],node)
         else:
-            print(value)
+            # # print(value)
             # value = float(value)
             self.tree[self.key].insert(node, tk.END, text=str(key), 
                              tags=tags+[Tags.LEAF], values=[value])
     
-        # print(self.tree[self.key])
+        # # print(self.tree[self.key])
         childrens = self.tree[self.key].get_children()
         for child in childrens:
             self.ExpandItems(child)
@@ -368,6 +383,7 @@ class Main(tk.Tk):
                 
     def EditJSON(self):
         
+        print(self.key)
         index = self.tree[self.key].selection()
         is_leaf = self.tree[self.key].tag_has(Tags.LEAF,index)
         is_parent_dict = self.tree[self.key].tag_has(Tags.DICT, self.tree[self.key].parent(index))
@@ -376,27 +392,26 @@ class Main(tk.Tk):
         if is_leaf and tk.messagebox.askyesno("Edit Value",
                                    "Are you sure to edit value?"):
             value = simpledialog.askstring("Value Input","Enter new value: ")
-            print(value)
             if self.VerifyValue(value):
                 self.EditItemJSON(index,value=value)
                 
     def EditItemJSON(self,index,key=None,value=None):
         
-        # print(value)
+        # # print(value)
         if key:
-            # print(value)
+            # # print(value)
             self.tree[self.key].item(index, text=key)
 
         if value:
-            # print(value)
+            # # print(value)
             self.tree[self.key].item(index, values=[value])
 
         if index == '':
             return
         json_root = self.GetJSONRoot(index)
-        # print(json_root)
+        # # print(json_root)
         if self.tree[self.key].tag_has(Tags.FILE, json_root):
-            # print(self.GetValue(json_root))
+            # # print(self.GetValue(json_root))
             self.SaveJSON(self.GetJSONFilePath(json_root), self.GetValue(json_root))
             
         
@@ -432,10 +447,10 @@ class Main(tk.Tk):
             value = {}
             child_nodes = self.tree[self.key].get_children(index)
             for child in child_nodes:
-                # print("utku")
+                # # print("utku")
                 key_text = self.GetKey(child)
                 value[self.GetKey(child)] = self.GetValue(child)
-                print(value)
+                # # print(value)
         elif self.tree[self.key].tag_has(Tags.LIST, index):
             value = []
             child_nodes = self.tree[self.key].get_children(index)
@@ -445,10 +460,8 @@ class Main(tk.Tk):
         else:
             value = item['values'][0]
         
-        print(type(value))
-        print(key_text)
-
-
+        # # print(type(value))
+        # # print(key_text)
 
         if isinstance(value, int):
             value = value
@@ -460,7 +473,7 @@ class Main(tk.Tk):
         return value
 
         
-    def RightPanel(self):
+    def SimOutputPanel(self):
         
         self.right_frame = tk.LabelFrame(self, text="Simulation Output Panel")
         self.right_frame.grid(row=0,column=1,rowspan=3,columnspan=1,sticky='WENS',padx=10,pady=10)
@@ -470,23 +483,23 @@ class Main(tk.Tk):
         folder_name = filedialog.askdirectory()
         self.FiberPyPath.set(folder_name)
         self.GuiPath = os.getcwd()
-        # print(self.GuiPath)
+        # # print(self.GuiPath)
         os.chdir(folder_name)
         utku = os.getcwd()
-        # print(folder_name)
+        # # print(folder_name)
         
     def GenerateDemoPath(self,event):
         
         gui_path = self.GuiPath
         main_folder = os.path.split(gui_path)[0]
-        # print(main_folder)
+        # # print(main_folder)
         demo_name = self.demo_selection.get()
-        # print(demo_name)
+        # # print(demo_name)
         demo_name = re.sub(r"\s","_",demo_name)
         demo_name = demo_name.lower()
-        # print(demo_name)
+        # # print(demo_name)
         self.demo_folder = "..\\..\\..\\" + "demo_files\\getting_started\\" + demo_name
-        # print(self.demo_folder)
+        # # print(self.demo_folder)
         files = []
         for file in os.listdir(self.demo_folder):
             if file.endswith('.json'):
@@ -494,28 +507,27 @@ class Main(tk.Tk):
         self.demo_file = []
         self.demo_file = files[0]
         self.demo_file = self.demo_folder + "\\" + self.demo_file
-        # print(self.demo_file)
-        self.LeftPanelBottom()
+        self.EditorPanel()
         
 
 
         
     def RunDemo(self):
         sys.argv = ["run_batch",self.demo_file]
-        # print(os.getcwd())
-        # print(sys.argv[1])
-        # print('demo starts')
+        # # print(os.getcwd())
+        # # print(sys.argv[1])
+        # # print('demo starts')
         subprocess.call(["python", "FiberPy.py", *sys.argv])
-        # print('demo ends')
+        # # print('demo ends')
         self.OutputDisplay()
         
     def OutputDisplay(self):
         
         output_summary  = self.demo_folder + "\\sim_output\\" + "summary.png"
-        print(output_summary)
+        # print(output_summary)
         im = Image.open(output_summary)
         aspect_ratio = im.height/im.width
-        print(aspect_ratio)
+        # print(aspect_ratio)
         self.right_frame.update()
         height = 0.9*self.right_frame.winfo_height()
         width = height / aspect_ratio
@@ -535,12 +547,12 @@ class Main(tk.Tk):
    
     def ShowEditorMenu(self, event):
         
-        # print("hello")
+        # # print("hello")
         self.tree[self.key].selection_set(self.tree[self.key].identify_row(event.y))
         if self.tree[self.key].selection():
             item = self.tree[self.key].selection()
             curItem = self.tree[self.key].focus()
-            print(self.tree[self.key].item(curItem))
+            # print(self.tree[self.key].item(curItem))
             self.editor_menu.post(event.x_root, event.y_root)
             
     def LoadEditorMenu(self):
