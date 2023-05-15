@@ -10,7 +10,7 @@ from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import simpledialog
-
+import pandas as pd
 import tkinter as tk
 import pathlib 
 import os
@@ -21,6 +21,7 @@ import subprocess
 from PIL import Image, ImageTk
 import json
 import collections
+
 
 
 class ValueTypes:
@@ -162,15 +163,17 @@ class Main(tk.Tk):
             self.custom_buttons = {}
             self.canvas = {}
             
-            but_text = ["Batch File","Model File",
+            but_text = ["Batch File","Model File", "Protocol File",
                         "Options File","Output Handler File",
                         "Template Summary File"]
-            ix = [0,2,4,6,8]
-            lix = [1,3,5,7,9]            
+            ix = [0,0,2,2,4,4]
+            lix = [1,1,3,3,5,5]
+            rix = [0,1,0,1,0,1]
+
+                        
             for i in range(len(but_text)):
                 
                 but_key = but_text[i]
-                # # print(but_key)
                 but_key = but_key.lower()
                 but_key = re.sub(r"\s","_",but_key)
                 
@@ -182,20 +185,27 @@ class Main(tk.Tk):
                 
 
                 
-                self.custom_buttons[but_key].grid(row=1, column=ix[i],
+                self.custom_buttons[but_key].grid(row=rix[i], column=ix[i],
                                                      padx=5,pady=10, 
                                                      sticky='W')
                                 
                 self.canvas[but_key] = Canvas(self.sim_input_panel, 
                                                          width=25, height=25)
                 
-                self.canvas[but_key].grid(row=1, column=lix[i], padx=5)
+                self.canvas[but_key].grid(row=rix[i], column=lix[i], padx=5)
                 
-                self.but_indicators[but_key] = self.canvas[but_key].create_oval(5, 5, 20, 20, 
-                                                            width=0, 
-                                                            fill='red')
-                
-                # print(but_key)
+                self.but_indicators[but_key] = self.canvas[but_key].create_oval(5, 20, 20, 5, 
+                                                            width=2, 
+                                                            fill='red',
+                                                            outline='black')
+            run_sim_but = ttk.Button(self.sim_input_panel, 
+                                  text="Run Simulation", command = self.RunSimulation)
+            
+            clear_sim_files_but = ttk.Button(self.sim_input_panel, 
+                                  text="Clear Files", command = self.ClearFiles)
+            
+            run_sim_but.grid(row=0, column=lix[-1]+1, padx=10,pady=10, sticky='W')
+            clear_sim_files_but.grid(row=1, column=lix[-1]+1, padx=10,pady=10, sticky='W')
                 
     def EditorPanel(self):
         
@@ -208,12 +218,12 @@ class Main(tk.Tk):
 
         k = 1
         
-        self.tab_name=["Batch File","Model File","Options File",
+        self.tab_name=["Batch File","Model File","Protocol File","Options File",
                        "Output Handler File","Template Summary File"]
+        
         for i in range(len(self.tab_name)):
            
             key = self.tab_name[i]
-            # # print(but_key)
             key = key.lower()
             key = re.sub(r"\s","_",key)
             
@@ -231,8 +241,10 @@ class Main(tk.Tk):
             self.SetEditorColumns(key)
             
             if self.radio.get() == 'demo':
+                print('utku burdasin')
                 self.LocateJSON(key)
-                self.tabs.select(self.tab['batch_file'])
+
+
                  
         
         self.tabs.pack(expand=1, fill="both")
@@ -242,7 +254,8 @@ class Main(tk.Tk):
             self.LocateJSON(self.key)         
     
     def NavigateJSON(self,event):
-        
+
+        print('meko burdasin')
         jbut = self.tabs.tab(self.tabs.select(),"text")
         jix = self.tabs.index(self.tabs.select())
         jbut = jbut.lower()
@@ -263,6 +276,10 @@ class Main(tk.Tk):
 
     def SetEditorColumns(self, key, columns=('Key/Parameter', 'Value')):
         
+        if key == 'protocol_file':
+            columns = ('ix','dt','pCa','dhsl','mode')
+            self.tree[key]['show'] = 'headings'
+
         col_ids = ['#'+str(i) for i in range(len(columns)-1)]
         self.tree[key].configure(column=col_ids)
         for i in range(len(columns)):
@@ -270,8 +287,20 @@ class Main(tk.Tk):
             
     def UploadJSON(self,jbut):
         self.key = jbut
-        self.custom_files[jbut]=filedialog.askopenfilename(filetypes=[("JSON File"
-                                                                       ,".json")])
+
+        if jbut == 'protocol_file':
+            text = "Text File"
+            ext = ".txt"
+        else:
+            text = "JSON File"
+            ext = ".json"
+        
+        c_file = re.sub('_',' ',jbut).title()
+
+        dialog_title = 'Open %s' % (c_file)
+        self.custom_files[jbut]=filedialog.askopenfilename(filetypes=[(text
+                                                                       ,ext)],
+                                                                         title=dialog_title)
         if self.custom_files[jbut]:
             self.canvas[jbut].itemconfig(self.but_indicators[jbut], fill='green')
         
@@ -289,7 +318,11 @@ class Main(tk.Tk):
                     return os.path.join(root, name)
         self.key = key        
         if self.radio.get() == 'demo':
-            self.demo_files[key] = re.sub('_file','',key) + ".json"
+
+            if key == 'protocol_file':
+                self.demo_files[key] = re.sub('_file','',key) + ".txt"
+            else:
+                self.demo_files[key] = re.sub('_file','',key) + ".json"
             # self.jbut = jbut
             # # print(self.demo_folder)
             if self.demo_files[key] == "batch.json":
@@ -298,30 +331,53 @@ class Main(tk.Tk):
             else:
                 self.demo_files[key] = find(self.demo_files[key],self.demo_folder)
                 self.LoadJSON()
-        else:
+        else:  
             self.LoadJSON()
-            print(self.key)
+            #print(self.key)
             
             
     def LoadJSON(self):
         
-        try:
-            with open(self.demo_files[self.key],'r') as jf:
-                if not self.dat[self.key]:
-                    self.dat[self.key] = json.load(jf)
-                    self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
-                else:
-                    return
-        except:
-            if self.custom_files[self.key]:
-                print()
-                with open(self.custom_files[self.key],'r') as jf:
+        if self.key == 'protocol_file':
+
+            if self.tree[self.key]:
+                for item in self.tree[self.key].get_children():
+                    self.tree[self.key].delete(item)
+            try:
+                self.dat[self.key] = pd.read_csv(self.custom_files[self.key],delim_whitespace=True)
+            except:
+                self.dat[self.key] = pd.read_csv(self.demo_files[self.key],delim_whitespace=True)
+            self.dat[self.key].columns = ['dt','pCa','dhsl','mode']
+            for i in range(len(self.dat[self.key]['dt'])):
+                
+                self.tree[self.key].insert('', 'end', values=(self.dat[self.key]['dt'][i],self.dat[self.key]['pCa'][i],
+                                                              self.dat[self.key]['dhsl'][i],self.dat[self.key]['mode'][i]))
+                        
+            for column in ['#1','#2','#3','#4']:
+                self.tree[self.key].column(column,anchor = CENTER)
+            self.tabs.select(self.tab[self.key])
+        else:
+            try:
+                with open(self.demo_files[self.key],'r') as jf:
                     if not self.dat[self.key]:
                         self.dat[self.key] = json.load(jf)
                         self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
-                        # print(self.tab[self.key])
                     else:
                         return
+            except:
+                if self.custom_files[self.key]:
+                    if self.tree[self.key]:
+                        for item in self.tree[self.key].get_children():
+                            self.tree[self.key].delete(item)
+                            self.dat[self.key] = {}
+                    with open(self.custom_files[self.key],'r') as jf:
+                        if not self.dat[self.key]:
+                            self.dat[self.key] = json.load(jf)
+                            print(self.dat[self.key])
+                            self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
+                            # print(self.tab[self.key])
+                        else:
+                            return
                 
     def SaveJSON(self, filepath, data):
         
@@ -485,7 +541,6 @@ class Main(tk.Tk):
         self.GuiPath = os.getcwd()
         # # print(self.GuiPath)
         os.chdir(folder_name)
-        utku = os.getcwd()
         # # print(folder_name)
         
     def GenerateDemoPath(self,event):
@@ -508,22 +563,43 @@ class Main(tk.Tk):
         self.demo_file = files[0]
         self.demo_file = self.demo_folder + "\\" + self.demo_file
         self.EditorPanel()
-        
 
+    def ClearFiles(self):
+        for files in self.custom_files:
+            self.custom_files[files] = {}
+            self.dat[files] = {}
+            self.canvas[files].itemconfig(self.but_indicators[files], fill='red')
+            for item in self.tree[files].get_children():
+                self.tree[files].delete(item)
+                self.tabs.select(self.tab['batch_file'])
 
+    def RunSimulation(self):
+
+        for i in range(len(self.tab_name)):
+            c_file = re.sub(r"\s","_",self.tab_name[i])
+            c_file = c_file.lower()
+
+            if not self.custom_files[c_file]:
+                text = '%s is missing please upload and run again' % (self.tab_name[i])
+                tk.messagebox.showwarning("FiberSim",text)
+                return
+        sys.argv = ["run_batch",self.custom_files['batch_file']]
+        subprocess.call(["python","FiberPy.py",*sys.argv])
+        self.OutputDisplay()
         
     def RunDemo(self):
         sys.argv = ["run_batch",self.demo_file]
-        # # print(os.getcwd())
-        # # print(sys.argv[1])
-        # # print('demo starts')
         subprocess.call(["python", "FiberPy.py", *sys.argv])
-        # # print('demo ends')
         self.OutputDisplay()
         
     def OutputDisplay(self):
         
-        output_summary  = self.demo_folder + "\\sim_output\\" + "summary.png"
+        if self.radio.get() == 'demo':
+            dirname = self.demo_folder
+        else:
+            dirname = os.path.dirname(self.custom_files['batch_file'])
+
+        output_summary  = dirname + "\\sim_output\\" + "summary.png"
         # print(output_summary)
         im = Image.open(output_summary)
         aspect_ratio = im.height/im.width
