@@ -47,6 +47,8 @@ class Main(tk.Tk):
         self.editor_menu_set['edit_child'] = {'text': 'Edit',
                                           'action': lambda: self.EditJSON()}
         self.FiberPyPath = StringVar()
+        self.ProtocolPath = StringVar()
+        self.ProtocolName = StringVar()
         self.SetAppSize()
         self.DivideRowsColumns()
         self.SimSessionPanel()
@@ -204,9 +206,92 @@ class Main(tk.Tk):
             clear_sim_files_but = ttk.Button(self.sim_input_panel, 
                                   text="Clear Files", command = self.ClearFiles)
             
+            open_protocol_win_but = ttk.Button(self.sim_input_panel, 
+                                  text="Custom Protocol Window", command = self.OpenCustomProtocol)
+            
             run_sim_but.grid(row=0, column=lix[-1]+1, padx=10,pady=10, sticky='W')
             clear_sim_files_but.grid(row=1, column=lix[-1]+1, padx=10,pady=10, sticky='W')
-                
+            open_protocol_win_but.grid(row=0, column=lix[-1]+2, padx=10,pady=10, sticky='W')
+
+    def OpenCustomProtocol(self):
+
+        self.protocol_window = Toplevel(self)
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        
+        app_window_width = screen_width * 0.5
+        app_window_height = screen_height * 0.5
+        
+        x = (screen_width/2) - (app_window_width/2)
+        y = (screen_height/2) - (app_window_height/2)
+        
+        self.protocol_window.geometry('%dx%d+%d+%d' % (app_window_width,app_window_height, 
+                                       x, y))
+        self.protocol_window.title("Custom Protocol")
+        self.protocol_window.attributes('-topmost',1)
+
+        self.protocol_window.rowconfigure(0, weight=1)
+        self.protocol_window.rowconfigure(1,weight=10)
+        self.protocol_window.columnconfigure(0, weight=100)
+        self.protocol_window.columnconfigure(1,weight=1)
+
+        top_frame = tk.LabelFrame(self.protocol_window, text="Protocol Type")
+        top_frame.grid(row=0, column=0, sticky='NEWS',padx=10,pady=10)
+
+        prot_rad_but = {"Length Control":"length",
+                        "Force Control": "force",
+                        "Twitch":"twitch"}
+        
+        self.prot_radio = tk.StringVar()        
+        i = 0
+        for (text,value) in prot_rad_but.items():
+
+            but = ttk.Radiobutton(top_frame, text = text, 
+                            variable = self.prot_radio, 
+                            value=value,
+                            command=self.ProtocolButtonSelected).grid(row=0,
+                                                                   column=i, 
+                                                                   padx = 10)
+            i += 1
+
+    def ProtocolButtonSelected(self):
+
+        prot_entry = tk.LabelFrame(self.protocol_window, text="Protocol Parameter Entry")
+        prot_entry.grid(row=1, column=0, sticky='NEWS',padx=10,pady=10)
+
+        locate_prot_folder_button = ttk.Button(prot_entry,
+                                           text="Select Protocol Output Folder", 
+                                           command=self.GetProtocolFolder)
+        locate_prot_folder_button.grid(row=0, column=0, padx=10,pady=10, sticky='W')
+
+        wid = int(15*prot_entry.winfo_width())
+        folder_path_text = ttk.Entry(prot_entry, width= wid,
+                                     textvariable = self.ProtocolPath)
+        folder_path_text.grid(row=0,column=1)
+
+        protocol_file_name_label = tk.Label(prot_entry, text='Protocol File Name')
+        protocol_file_name = ttk.Entry(prot_entry, width= wid,
+                                     textvariable = self.ProtocolName)
+        
+        protocol_file_name_label.grid(row=1,column=0)
+        protocol_file_name.grid(row=1,column=1)
+
+
+        lab_text = ['Time Step (s)','No of Points','Initial pCa','Step pCa', 'Step pCa Timepoint (s)', 'Length Change (nm)','Mode']
+        for i in range(len(lab_text)):
+
+            prot_lab = tk.Label(prot_entry, text=lab_text[i])
+            prot_lab.grid(row=3,column=i)
+
+
+
+
+
+    def GetProtocolFolder(self):
+        folder_name = filedialog.askdirectory()
+        self.ProtocolPath.set(folder_name)
+        
+
     def EditorPanel(self):
         
         left_frame_bottom = tk.LabelFrame(self,text="Editor Panel")
@@ -255,7 +340,6 @@ class Main(tk.Tk):
     
     def NavigateJSON(self,event):
 
-        print('meko burdasin')
         jbut = self.tabs.tab(self.tabs.select(),"text")
         jix = self.tabs.index(self.tabs.select())
         jbut = jbut.lower()
