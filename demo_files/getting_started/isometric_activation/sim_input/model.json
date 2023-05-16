@@ -100,7 +100,7 @@
                             "new_state": 3,
                             "rate_type": "gaussian",
                             "rate_parameters": [
-                                500
+                                10
                             ]
                         }
                     ]

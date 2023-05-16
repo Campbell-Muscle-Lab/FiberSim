@@ -1,7 +1,7 @@
 {
     "layout": {
         "fig_width": 7,
-        "top_margin": "utku",
+        "top_margin": 0,
         "left_margin": 0,
         "right_margin": 0,
         "panel_height": 2,
