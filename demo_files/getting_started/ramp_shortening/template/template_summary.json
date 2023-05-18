@@ -9,7 +9,7 @@
     },
     "x_display": {
         "global_x_field": "time",
-        "label": 380
+        "label": "Time (s)"
     },
     "formatting": {
         "x_label_fontsize": 14,
