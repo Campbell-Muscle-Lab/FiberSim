@@ -7,6 +7,7 @@ Created on Thu May  4 15:03:12 2023
 
 from tkinter import *
 from tkinter import ttk
+from tkinter import font
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import simpledialog
@@ -42,7 +43,9 @@ class Main(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         
-        
+        self.defaultFont = font.nametofont("TkDefaultFont")
+        self.defaultFont.configure(family="Arial")
+
         self.editor_menu_set = collections.OrderedDict()
         self.editor_menu_set['edit_child'] = {'text': 'Edit',
                                           'action': lambda: self.EditJSON()}
@@ -57,7 +60,7 @@ class Main(tk.Tk):
         
         self.title("FiberSim")
         self.iconbitmap(default="favicon.ico")
-        self.output_label = []
+        self.output_label = {}
 
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
@@ -80,14 +83,14 @@ class Main(tk.Tk):
         self.ProtocolName = StringVar()
         self.files = {}
         self.f_struct = []
-        self.d_struct = []
+        self.disp = []
 
         
     def DivideRowsColumns(self):
             
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1,weight=1)
-        self.columnconfigure(2,weight=20)
+        self.columnconfigure(2,weight=60)
 
         
         self.rowconfigure(0, weight=1)
@@ -243,6 +246,8 @@ class Main(tk.Tk):
 
         job_no = int(self.spin.get())
         self.LocateJSON(job_no)
+        self.OutputDisplay(job_no)
+        
 
 
     def GetProtocolFolder(self):
@@ -340,9 +345,9 @@ class Main(tk.Tk):
         self.key = key
         
         with open(self.files['batch_file'], 'r') as f:
-            dat = json.load(f)
+            d = json.load(f)
 
-        batch_structure = dat['FiberSim_batch']
+        batch_structure = d['FiberSim_batch']
         job_data = batch_structure['job']
         if len(job_data) > 1:
             self.spin.config(to=len(job_data)-1)
@@ -361,20 +366,22 @@ class Main(tk.Tk):
                     self.files[f] = os.path.join(base_directory, self.files[f])
             base_directory = pathlib.Path(self.files['output_handler_file']).parent.absolute()        
             with open(self.files['output_handler_file'],'r') as jf:
-                dat = json.load(jf)
-            temp = dat['templated_images']
+                d = json.load(jf)
+            temp = d['templated_images']
             self.files['template_summary_file'] = temp[0]['template_file_string']
-            self.files['template_summary_file'] = os.path.join(base_directory,temp[0]['template_file_string'])
-            self.f_struct.append(self.files.copy())
+            self.files['template_summary_file'] = os.path.join(base_directory,self.files['template_summary_file'])
             
-            self.d_struct.append(self.dat.copy())
+            res = temp[0]['output_file_string']
+            res = os.path.join(base_directory,res) + ".png"
+            self.disp.append(res)
+            self.f_struct.append(self.files.copy())
 
         job_no = int(self.spin.get())
-        print(job_no)
         self.LoadJSON(job_no)
+        self.tabs.select(self.tab['batch_file'])
 
     def LoadJSON(self,job_no):
-        
+
         f_struct = self.f_struct[job_no]
         for files in f_struct:
             self.key = files
@@ -385,7 +392,6 @@ class Main(tk.Tk):
                         self.tree[self.key].delete(item)
                 self.dat[self.key] = pd.read_csv(f_struct[self.key],delim_whitespace=True)
                 self.dat[self.key].columns = ['dt','pCa','dhsl','mode']
-                print(self.dat[self.key])
                 for i in range(len(self.dat[self.key]['dt'])):
                     self.tree[self.key].insert('', 'end', values=(self.dat[self.key]['dt'][i],
                                                               self.dat[self.key]['pCa'][i],
@@ -397,11 +403,13 @@ class Main(tk.Tk):
 
             else:
                 if f_struct[self.key]:
+                    
                     if self.tree[self.key]:
+                        
                         for item in self.tree[self.key].get_children():
                             self.tree[self.key].delete(item)
                             self.dat[self.key] = {}
-                            print('utku')
+
                         with open(f_struct[self.key],'r') as jf:
                             if not self.dat[self.key]:
                                 self.dat[self.key] = json.load(jf)
@@ -543,8 +551,9 @@ class Main(tk.Tk):
         
     def SimOutputPanel(self):
         
-        self.right_frame = tk.LabelFrame(self, text="Simulation Output Panel")
-        self.right_frame.grid(row=0,column=2,rowspan=3,columnspan=1,sticky='WENS',padx=10,pady=10)
+        self.sim_output_panel = tk.LabelFrame(self, text="Simulation Output Panel")
+        self.sim_output_panel.grid(row=0,column=2,rowspan=3,columnspan=1,sticky='WENS',padx=10,pady=10)
+        
                 
     def LocateFiberPy(self):
         
@@ -577,8 +586,9 @@ class Main(tk.Tk):
         self.files['batch_file'] = files[0]
         
         self.files['batch_file'] = self.demo_folder + "\\" + self.files['batch_file']
-
-        print(self.files['batch_file'])
+        if self.disp:
+            self.disp = []
+        
         self.EditorPanel()
 
     def ClearFiles(self):
@@ -602,35 +612,33 @@ class Main(tk.Tk):
                 return
         sys.argv = ["run_batch",self.files['batch_file']]
         subprocess.call(["python","FiberPy.py",*sys.argv])
-        self.OutputDisplay()
+        job_no = int(self.spin.get())
+        self.OutputDisplay(job_no)
         
     def RunDemo(self):
         sys.argv = ["run_batch",self.files['batch_file']]
         subprocess.call(["python", "FiberPy.py", *sys.argv])
-        self.OutputDisplay()
+        job_no = int(self.spin.get())
+        self.OutputDisplay(job_no)
         
-    def OutputDisplay(self):
-        
-        if self.radio.get() == 'demo':
-            dirname = self.demo_folder
-        else:
-            dirname = os.path.dirname(self.files['batch_file'])
-
-        output_summary  = dirname + "\\sim_output\\" + "summary.png"
+    def OutputDisplay(self,job_no):
+        output_summary  = self.disp[job_no]
         im = Image.open(output_summary)
         aspect_ratio = im.height/im.width
-        self.right_frame.update()
-        height = 0.9*self.right_frame.winfo_height()
+        self.sim_output_panel.update()
+        height = 0.9*self.sim_output_panel.winfo_height()
         width = height / aspect_ratio
         width = int(width)
         height = int(height)
         im_small = im.resize((width,height))
         im_r = ImageTk.PhotoImage(im_small)
+        im_text = "Batch Job %s" % (job_no)
         if not self.output_label:
-            self.output_label = Label(self.right_frame, image = im_r,anchor= CENTER)
+            self.output_label = Label(self.sim_output_panel, text=im_text,
+                                        image = im_r,anchor= CENTER,compound='bottom')
             self.output_label.image = im_r
         else:
-            self.output_label.configure(image = im_r)
+            self.output_label.configure(image = im_r,text=im_text)
             self.output_label.image = im_r
         self.output_label.pack()
    

@@ -23,9 +23,9 @@ def generate_protocols():
     
     prot = dict()
     prot['dt'] = 0.0001
-    prot['n_points'] = 7000
+    prot['n_points'] = 200
     prot['initial_pCa'] = 8.0
-    prot['n_step_pCa'] = 200
+    prot['n_step_pCa'] = 10
     prot['step_pCa'] = 8.0
 
     # Create a job_struct

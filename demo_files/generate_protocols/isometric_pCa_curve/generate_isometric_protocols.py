@@ -17,10 +17,10 @@ def write_protocols():
     # Variables
     protocol_path = 'protocols'
     
-    isometric_pCa_values = np.concatenate(([8.0],
-                                           np.arange(6.4, 5.0, -0.2),
-                                           [4.6]))
-    
+    # isometric_pCa_values = np.concatenate(([8.0],
+                                           # np.arange(6.4, 5.0, -0.2),
+                                           # [4.6]))
+    isometric_pCa_values = [4.8, 5.2, 5.4, 5.6, 5.7, 6.0, 8.0]
     # Code
     
     # Add protocols to the path
@@ -36,11 +36,11 @@ def write_protocols():
         
         # Generate the file_string
         prot_file_string = os.path.join(protocol_path,
-                                        ('protocol_pCa_%.1f.txt' % (10*pCa)))
+                                        ('prot_pCa_%d.txt' % (100*pCa)))
         
         # Generate the protocol
         prot = protocols.create_length_control_protocol(time_step = 0.0001,
-                                                        n_points = 1000,
+                                                        n_points = 200,
                                                         step_pCa_s = 0.001,
                                                         step_pCa = pCa)
         

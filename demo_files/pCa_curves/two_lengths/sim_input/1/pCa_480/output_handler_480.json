@@ -3,7 +3,7 @@
         {
             "relative_to": "this_file",
             "template_file_string": "../../../template/template_summary.json",
-            "output_file_string": "../../../sim_output\\1\\summary_480"
+            "output_file_string": "../../../sim_output\\1\\summary_480.png"
         }
     ]
 }
