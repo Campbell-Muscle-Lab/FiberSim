@@ -84,13 +84,14 @@ class Main(tk.Tk):
         self.files = {}
         self.f_struct = []
         self.disp = []
+        self.job_tot = 0
 
         
     def DivideRowsColumns(self):
             
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1,weight=1)
-        self.columnconfigure(2,weight=60)
+        self.columnconfigure(2,weight=100)
 
         
         self.rowconfigure(0, weight=1)
@@ -144,9 +145,12 @@ class Main(tk.Tk):
     def RadioButtonSelected(self):
 
         if self.tree:
-            for i in self.tree:
-                for item in self.tree[i].get_children():
-                    self.tree[i].delete(item)
+            for tabs in self.tree:
+                self.dat[tabs] = {}
+                for item in self.tree[tabs].get_children():
+                    self.tree[tabs].delete(item)
+        
+        self.disp = []
         self.SimInputPanel()
         
     def SimInputPanel(self):
@@ -163,7 +167,9 @@ class Main(tk.Tk):
             self.demo_files = {}
             self.gs_demo_list = ["Isometric Activation", "Ramp Shortening",
                       "Isotonic Shortening","Isometric Twitch"]
-            self.demo_selection = ttk.Combobox(self.sim_input_panel, values=self.gs_demo_list)
+            self.demo_list = ["Isometric Activation", "Ramp Shortening",
+                      "Isotonic Shortening","Isometric Twitch","pCa Curves","Ktr"]
+            self.demo_selection = ttk.Combobox(self.sim_input_panel, values=self.demo_list)
             self.demo_selection.set("Select a demo")
             self.demo_selection.grid(row=1, column=0, padx=10, pady=10)
             self.demo_selection.bind("<<ComboboxSelected>>",self.GenerateDemoPath)
@@ -242,11 +248,27 @@ class Main(tk.Tk):
         self.spin = tk.Spinbox(self.batch_counter_panel, from_=0, to=0,textvariable=var,width=2,wrap=True,command=self.ChangeJob)
         self.spin.grid(row = 1,column = 0, pady=2,padx=5,sticky='WENS')
 
-    def ChangeJob(self):
+        sum_figure = ttk.Button(self.batch_counter_panel, text='Summary Figure', command = self.SummaryFigure)
 
-        job_no = int(self.spin.get())
+        sum_figure.grid(row=2,column=0,columnspan = 1,
+                                        sticky='W',padx=10,pady=10)
+
+    def SummaryFigure(self):
+        self.OutputDisplay(self.job_tot)
+
+    def ChangeJob(self):
+        
+        tab = self.tabs.tab(self.tabs.select(),'text')
+        tab = tab.lower()
+        tab = re.sub(" ","_",tab)
+        job_no = self.spin.get()
+        self.disp = []
+        job_no = int(job_no)
         self.LocateJSON(job_no)
         self.OutputDisplay(job_no)
+        self.tabs.select(self.tab[tab])
+
+
         
 
 
@@ -347,10 +369,11 @@ class Main(tk.Tk):
         with open(self.files['batch_file'], 'r') as f:
             d = json.load(f)
 
+        
+
         batch_structure = d['FiberSim_batch']
         job_data = batch_structure['job']
-        if len(job_data) > 1:
-            self.spin.config(to=len(job_data)-1)
+
 
         for i,j in enumerate(job_data):
             for f in ['model_file','protocol_file',
@@ -364,6 +387,7 @@ class Main(tk.Tk):
                 else:
                     base_directory = j['relative_to']
                     self.files[f] = os.path.join(base_directory, self.files[f])
+
             base_directory = pathlib.Path(self.files['output_handler_file']).parent.absolute()        
             with open(self.files['output_handler_file'],'r') as jf:
                 d = json.load(jf)
@@ -377,21 +401,34 @@ class Main(tk.Tk):
             self.f_struct.append(self.files.copy())
 
         job_no = int(self.spin.get())
+        base_directory = pathlib.Path(self.files['batch_file']).parent.absolute()
+        try:
+            batch_figures = batch_structure['batch_figures']
+            for i in batch_figures:
+                try:
+                    res = batch_figures[i][0]['output_image_file']
+                except:
+                    res = batch_figures[i][0]['output_image_file_string']
+                res = os.path.join(base_directory,res) + ".png"
+                self.disp.append(res)
+        except:
+            pass
+        
+        if len(job_data) > 1:
+            self.spin.config(to=len(job_data)-1)
         self.LoadJSON(job_no)
         self.tabs.select(self.tab['batch_file'])
+        self.job_tot = len(job_data)
 
     def LoadJSON(self,job_no):
 
         f_struct = self.f_struct[job_no]
         for files in f_struct:
             self.key = files
-
             if self.key == 'protocol_file':    
                 if self.tree[self.key]:
-                    for item in self.tree[self.key].get_children():
-                        self.tree[self.key].delete(item)
-                self.dat[self.key] = pd.read_csv(f_struct[self.key],delim_whitespace=True)
-                self.dat[self.key].columns = ['dt','pCa','dhsl','mode']
+                    self.dat[self.key] = pd.read_csv(f_struct[self.key],delim_whitespace=True)
+                    self.dat[self.key].columns = ['dt','pCa','dhsl','mode']
                 for i in range(len(self.dat[self.key]['dt'])):
                     self.tree[self.key].insert('', 'end', values=(self.dat[self.key]['dt'][i],
                                                               self.dat[self.key]['pCa'][i],
@@ -402,20 +439,18 @@ class Main(tk.Tk):
                 self.tabs.select(self.tab[self.key])
 
             else:
-                if f_struct[self.key]:
-                    
-                    if self.tree[self.key]:
-                        
-                        for item in self.tree[self.key].get_children():
-                            self.tree[self.key].delete(item)
-                            self.dat[self.key] = {}
 
-                        with open(f_struct[self.key],'r') as jf:
-                            if not self.dat[self.key]:
-                                self.dat[self.key] = json.load(jf)
-                                self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
-                            else:
-                                return
+                if f_struct[self.key]:     
+
+                    for item in self.tree[self.key].get_children():
+                        self.tree[self.key].delete(item)
+                        self.dat[self.key] = {}
+                    with open(f_struct[self.key],'r') as jf:
+                        if not self.dat[self.key]:
+                            self.dat[self.key] = json.load(jf)
+                            self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
+                        else:
+                            return
                         
             if self.radio.get() == "custom":
                 self.canvas[self.key].itemconfig(self.but_indicators[self.key], fill='green')
@@ -574,6 +609,7 @@ class Main(tk.Tk):
             folder_key = "getting_started\\"
         else:
             folder_key = {}
+            
         demo_name = re.sub(r"\s","_",demo_name)
         demo_name = demo_name.lower()
 
@@ -626,13 +662,24 @@ class Main(tk.Tk):
         im = Image.open(output_summary)
         aspect_ratio = im.height/im.width
         self.sim_output_panel.update()
-        height = 0.9*self.sim_output_panel.winfo_height()
-        width = height / aspect_ratio
+        
+        if aspect_ratio > 1:
+            height = 0.9*self.sim_output_panel.winfo_height()
+            width = height / aspect_ratio
+        else:
+            width = 0.9*self.sim_output_panel.winfo_width()
+            height = width * aspect_ratio
+            
         width = int(width)
         height = int(height)
+
+
         im_small = im.resize((width,height))
         im_r = ImageTk.PhotoImage(im_small)
-        im_text = "Batch Job %s" % (job_no)
+        if job_no < self.job_tot:
+            im_text = "Batch Job %s" % (job_no)
+        else:
+            im_text = "Summary"
         if not self.output_label:
             self.output_label = Label(self.sim_output_panel, text=im_text,
                                         image = im_r,anchor= CENTER,compound='bottom')
