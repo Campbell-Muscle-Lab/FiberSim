@@ -168,7 +168,7 @@ class Main(tk.Tk):
             self.gs_demo_list = ["Isometric Activation", "Ramp Shortening",
                       "Isotonic Shortening","Isometric Twitch"]
             self.demo_list = ["Isometric Activation", "Ramp Shortening",
-                      "Isotonic Shortening","Isometric Twitch","pCa Curves","Ktr"]
+                      "Isotonic Shortening","Isometric Twitch","pCa Curves","K_tr"]
             self.demo_selection = ttk.Combobox(self.sim_input_panel, values=self.demo_list)
             self.demo_selection.set("Select a demo")
             self.demo_selection.grid(row=1, column=0, padx=10, pady=10)
@@ -608,17 +608,18 @@ class Main(tk.Tk):
         if demo_name in self.gs_demo_list:
             folder_key = "getting_started\\"
         else:
-            folder_key = {}
+            folder_key = ""
             
         demo_name = re.sub(r"\s","_",demo_name)
         demo_name = demo_name.lower()
 
         self.demo_folder = "..\\..\\..\\" + "demo_files\\" + folder_key + demo_name
-        
+        print(self.demo_folder)
         files = []
         for file in os.listdir(self.demo_folder):
             if file.endswith('.json'):
                 files.append(file)
+        print
         self.files['batch_file'] = files[0]
         
         self.files['batch_file'] = self.demo_folder + "\\" + self.files['batch_file']
