@@ -172,7 +172,7 @@ class Main(tk.Tk):
             self.demo_selection = ttk.Combobox(self.sim_input_panel, values=self.demo_list)
             self.demo_selection.set("Select a demo")
             self.demo_selection.grid(row=1, column=0, padx=10, pady=10)
-            self.demo_selection.bind("<<ComboboxSelected>>",self.GenerateDemoPath)
+            self.demo_selection.bind("<<ComboboxSelected>>",self.DemoSelection)
         
             run_demo_but = ttk.Button(self.sim_input_panel, 
                                   text="Run Demo", command = self.RunDemo)
@@ -267,10 +267,6 @@ class Main(tk.Tk):
         self.LocateJSON(job_no)
         self.OutputDisplay(job_no)
         self.tabs.select(self.tab[tab])
-
-
-        
-
 
     def GetProtocolFolder(self):
         folder_name = filedialog.askdirectory()
@@ -597,7 +593,7 @@ class Main(tk.Tk):
         self.GuiPath = os.getcwd()
         os.chdir(folder_name)
         
-    def GenerateDemoPath(self,event):
+    def DemoSelection(self,event):
 
         if self.f_struct:
             self.f_struct = []
@@ -605,6 +601,29 @@ class Main(tk.Tk):
         main_folder = os.path.split(gui_path)[0]
         demo_name = self.demo_selection.get()
 
+        options = ["Single Length", "Multiple Lengths"]
+
+        if "pCa" in demo_name:
+
+            self.sin_mul_selection = ttk.Combobox(self.sim_input_panel, values=options)
+            self.sin_mul_selection.grid(row=2,column=0,sticky=W,padx=10, pady=10)
+            self.sin_mul_selection.set("Select Demo Option")
+            self.sin_mul_selection.bind("<<ComboboxSelected>>",self.DemoOption)
+
+        else:
+            self.GenerateDemoPath(demo_name)
+                
+    def DemoOption(self,event):
+        len_option = self.sin_mul_selection.get()
+        print(len_option)
+        if "Single" in len_option:
+            demo_name = 'pCa Curves Single Curve'
+            print('function')
+            self.GenerateDemoPath(demo_name)
+
+    def GenerateDemoPath(self,demo_name):
+
+        print(demo_name)
         if demo_name in self.gs_demo_list:
             folder_key = "getting_started\\"
         else:
