@@ -22,6 +22,7 @@ import subprocess
 from PIL import Image, ImageTk
 import json
 import collections
+import time
 
 
 
@@ -45,15 +46,17 @@ class Main(tk.Tk):
         
         self.defaultFont = font.nametofont("TkDefaultFont")
         self.defaultFont.configure(family="Arial")
+        s = ttk.Style()
+        s.configure('Treeview', rowheight=30)   
 
         self.editor_menu_set = collections.OrderedDict()
         self.editor_menu_set['edit_child'] = {'text': 'Edit',
                                           'action': lambda: self.EditJSON()}
+        
+
         self.SetAppSize()
         self.DivideRowsColumns()
         self.SimSessionPanel()
-        self.SimInputPanel()
-        self.BatchJobCounter()
         self.SimOutputPanel()
 
     def SetAppSize(self):
@@ -65,7 +68,7 @@ class Main(tk.Tk):
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         
-        app_window_width = screen_width * 0.75
+        app_window_width = screen_width * 0.50
         app_window_height = screen_height * 0.75
         
         x = (screen_width/2) - (app_window_width/2)
@@ -79,6 +82,7 @@ class Main(tk.Tk):
         self.tree = {}
         self.dat = {}
         self.FiberPyPath = StringVar()
+        self.BatchPath = StringVar()
         self.ProtocolPath = StringVar()
         self.ProtocolName = StringVar()
         self.files = {}
@@ -90,171 +94,62 @@ class Main(tk.Tk):
     def DivideRowsColumns(self):
             
         self.columnconfigure(0, weight=1)
-        self.columnconfigure(1,weight=1)
-        self.columnconfigure(2,weight=100)
+        # self.columnconfigure(1,weight=1)
+        # self.columnconfigure(2,weight=1)
 
         
         self.rowconfigure(0, weight=1)
-        self.rowconfigure(1,weight=3)
+        self.rowconfigure(1,weight=1)
         self.rowconfigure(2,weight=60)
             
         
     def SimSessionPanel(self):
         
-        left_frame_top = tk.LabelFrame(self, text="Simulation Session Panel")
-        left_frame_top.grid(row=0,column=0,rowspan=1,columnspan=2,
+        self.session_panel = tk.LabelFrame(self, text="Simulation Session")
+        self.session_panel.grid(row=0,column=0,
                             sticky='WENS',padx=10,pady=10)
 
-        locate_fiberpy_button = ttk.Button(left_frame_top,
+        locate_fiberpy_button = ttk.Button(self.session_panel,
                                            text="Select FiberPy Folder", 
                                            command=self.LocateFiberPy)
-        locate_fiberpy_button.grid(row=0, column=0, padx=10,pady=10, sticky='W')
+        locate_fiberpy_button.grid(row=0, column=0, padx=10,pady=10,sticky='WENS')
         
-        
-        wid = int(self.winfo_width())
-        folder_path_text = ttk.Entry(left_frame_top, width = 50*wid, 
-                                     textvariable = self.FiberPyPath)
-        folder_path_text.grid(row=0,column=1)
-        
-        rad_but = {"Demo Simulations":"demo",
-                   "Custom Simulations": "custom"}
-        self.radio = tk.StringVar()
-        
-        session_type = ["demo","custom"]
-        self.session = {}
-        m = 0
-        
-        for (text, value) in rad_but.items():
-            
-            ix = m + 2
-            st = session_type[m]
-            self.session[st] = ttk.Radiobutton(left_frame_top, text = text, 
-                            variable = self.radio, 
-                            value=value,
-                            command=self.RadioButtonSelected).grid(row=0,
-                                                                   column=ix, 
-                                                                   padx = 10)
-            
-            self.session_type = st
-            m += 1
-            
-        left_frame_top.update()    
-        self.sim_sess_wid = left_frame_top.winfo_width()
-        self.sim_sess_heg = left_frame_top.winfo_height()
-        
-    def RadioButtonSelected(self):
-
-        if self.tree:
-            for tabs in self.tree:
-                self.dat[tabs] = {}
-                for item in self.tree[tabs].get_children():
-                    self.tree[tabs].delete(item)
-        
-        self.disp = []
-        self.SimInputPanel()
-        
-    def SimInputPanel(self):
-        
-        self.sim_input_panel = tk.LabelFrame(self, 
-                                             text="Simulation Input Panel",
-                                             width=self.sim_sess_wid,
-                                             height=self.sim_sess_heg)
-        
-        self.sim_input_panel.grid(row=1,column=0,rowspan=1,columnspan = 1,
-                            sticky='WENS',padx=10,pady=10)
-        
-        if self.radio.get() == 'demo':
-            self.demo_files = {}
-            self.gs_demo_list = ["Isometric Activation", "Ramp Shortening",
-                      "Isotonic Shortening","Isometric Twitch"]
-            self.demo_list = ["Isometric Activation", "Ramp Shortening",
-                      "Isotonic Shortening","Isometric Twitch","pCa Curves","K_tr"]
-            self.demo_selection = ttk.Combobox(self.sim_input_panel, values=self.demo_list)
-            self.demo_selection.set("Select a demo")
-            self.demo_selection.grid(row=1, column=0, padx=10, pady=10)
-            self.demo_selection.bind("<<ComboboxSelected>>",self.DemoSelection)
-        
-            run_demo_but = ttk.Button(self.sim_input_panel, 
-                                  text="Run Demo", command = self.RunDemo)
-            run_demo_but.grid(row=1, column=1, padx=10,pady=10, sticky='W')
-        
-        elif self.radio.get() == 'custom':
-            
-            self.but_indicators = {}
-            self.custom_buttons = {}
-            self.canvas = {}
-            
-            but_text = ["Batch File","Model File", "Protocol File",
-                        "Options File","Output Handler File",
-                        "Template Summary File"]
-            ix = [0,0,2,2,4,4]
-            lix = [1,1,3,3,5,5]
-            rix = [0,1,0,1,0,1]
-
-                        
-            for i in range(len(but_text)):
-                
-                but_key = but_text[i]
-                but_key = but_key.lower()
-                but_key = re.sub(r"\s","_",but_key)
-                
-                self.files[but_key]={}
-                self.custom_buttons[but_key] = ttk.Button(self.sim_input_panel, 
-                                           text=but_text[i],
-                                           command=lambda jbut = but_key
+        load_batch_file_button = ttk.Button(self.session_panel,
+                                           text="Load Batch File", 
+                                           command=lambda jbut = 'batch_file'
                                            :self.UploadJSON(jbut))
-                
-
-                
-                self.custom_buttons[but_key].grid(row=rix[i], column=ix[i],
-                                                     padx=5,pady=10, 
-                                                     sticky='W')
-                                
-                self.canvas[but_key] = Canvas(self.sim_input_panel, 
-                                                         width=25, height=25)
-                
-                self.canvas[but_key].grid(row=rix[i], column=lix[i], padx=5)
-                
-                self.but_indicators[but_key] = self.canvas[but_key].create_oval(5, 20, 20, 5, 
-                                                            width=2, 
-                                                            fill='red',
-                                                            outline='black')
-            run_sim_but = ttk.Button(self.sim_input_panel, 
-                                  text="Run Simulation", command = self.RunSimulation)
-            
-            clear_sim_files_but = ttk.Button(self.sim_input_panel, 
-                                  text="Clear Files", command = self.ClearFiles)
-            
-            run_sim_but.grid(row=0, column=lix[-1]+1, padx=10,pady=10, sticky='W')
-            clear_sim_files_but.grid(row=1, column=lix[-1]+1, padx=10,pady=10, sticky='W')
         
-        self.sim_input_panel.update()    
-        self.sim_sess_wid2 = self.sim_input_panel.winfo_width()
-        self.sim_sess_heg2 = self.sim_input_panel.winfo_height()
+        load_batch_file_button.grid(row=1, column=0, padx=10,pady=10, sticky='WENS')
 
-    def BatchJobCounter(self):
+        wid = int(self.winfo_width())
+        folder_path_text = ttk.Entry(self.session_panel, width = 100*wid, 
+                                     textvariable = self.FiberPyPath)
+        folder_path_text.grid(row=0,column=1,sticky='WE')
+
+        load_batch_file_text = ttk.Entry(self.session_panel, width = 100*wid, 
+                                     textvariable = self.BatchPath)
+        load_batch_file_text.grid(row=1,column=1,sticky='WE')
+
+        self.run_sim_but = ttk.Button(self.session_panel, 
+                                  text="Run FiberSim", command = self.RunSimulation)
         
-        self.batch_counter_panel = tk.LabelFrame(self, 
-                                             text="Batch Job Counter",
-                                             width=self.sim_sess_wid)
-                
-        self.batch_counter_panel.grid(row=1,column=1,columnspan = 1,
-                            sticky='WENS',padx=10,pady=10)
-    
-        spin_label = tk.Label(self.batch_counter_panel, text='Batch Job No')
-        spin_label.grid(row = 0,column = 0, pady=2,padx=1)
-        var = StringVar(self.batch_counter_panel)
-        var.set("0")
-        self.spin = tk.Spinbox(self.batch_counter_panel, from_=0, to=0,textvariable=var,width=2,wrap=True,command=self.ChangeJob)
-        self.spin.grid(row = 1,column = 0, pady=2,padx=5,sticky='WENS')
+        self.sim_res_but = ttk.Button(self.session_panel, 
+                                  text="FiberSim Results", command = self.ResultsFolder)
+            
+        self.run_sim_but.grid(row=2, column=0, padx=10,pady=10, sticky='WENS')
+        self.sim_sess_wid = self.session_panel.winfo_width()
+        self.sim_sess_heg = self.session_panel.winfo_height()
 
-        sum_figure = ttk.Button(self.batch_counter_panel, text='Summary Figure', command = self.SummaryFigure)
+        spin_label = tk.Label(self.session_panel, text='Batch Job No')
+        spin_label.grid(row = 1,column = 2, pady=5,padx=5)
+        var = StringVar(self.session_panel)
+        var.set("1")
+        self.spin = tk.Spinbox(self.session_panel, from_=1, to=1,textvariable=var,width=2,wrap=True,command=self.ChangeJob)
+        self.spin.grid(row = 1,column = 3, pady=5,padx=1,sticky='W')
+        self.session_panel.update()    
+        self.sim_sess_wid2 = self.session_panel.winfo_width()
+        self.sim_sess_heg2 = self.session_panel.winfo_height()
 
-        sum_figure.grid(row=2,column=0,columnspan = 1,
-                                        sticky='W',padx=10,pady=10)
-
-    def SummaryFigure(self):
-        self.OutputDisplay(self.job_tot)
 
     def ChangeJob(self):
         
@@ -263,20 +158,16 @@ class Main(tk.Tk):
         tab = re.sub(" ","_",tab)
         job_no = self.spin.get()
         self.disp = []
-        job_no = int(job_no)
+        job_no = int(job_no)-1
+        self.ContainerReset()
         self.LocateJSON(job_no)
-        self.OutputDisplay(job_no)
+        # self.OutputDisplay(job_no)
         self.tabs.select(self.tab[tab])
-
-    def GetProtocolFolder(self):
-        folder_name = filedialog.askdirectory()
-        self.ProtocolPath.set(folder_name)
-        
 
     def EditorPanel(self):
         
-        self.editor_panel_frame = tk.LabelFrame(self,text="Editor Panel")
-        self.editor_panel_frame.grid(row=2, column=0,rowspan=2,columnspan=2,
+        self.editor_panel_frame = tk.LabelFrame(self,text="Editor")
+        self.editor_panel_frame.grid(row=1, column=0,rowspan=2,columnspan=2,
                                sticky='WENS',padx=10,pady=10)
         
         self.tabs = ttk.Notebook(self.editor_panel_frame)
@@ -304,15 +195,11 @@ class Main(tk.Tk):
             self.LoadEditorMenu()
             
             self.SetEditorColumns(key)
-            
-        if self.radio.get() == 'demo':
-            self.LocateJSON(key)
 
         self.tabs.pack(expand=1, fill="both")
         
         self.tabs.bind('<<NotebookTabChanged>>',self.NavigateJSON)
-        if self.radio.get() == 'custom':
-            self.LocateJSON(self.key)         
+        self.LocateJSON(self.key)         
     
     def NavigateJSON(self,event):
 
@@ -348,11 +235,14 @@ class Main(tk.Tk):
 
         dialog_title = 'Open %s' % (c_file)
         self.files[jbut]=filedialog.askopenfilename(filetypes=[(text,ext)],title=dialog_title)
+        self.BatchPath.set(self.files[jbut])
+
         if self.f_struct:
             self.f_struct = []
         if not self.tree:    
             self.EditorPanel()
         else:
+            self.ContainerReset()
             self.LocateJSON(self.key)
             
     def LocateJSON(self,key):
@@ -364,9 +254,7 @@ class Main(tk.Tk):
         
         with open(self.files['batch_file'], 'r') as f:
             d = json.load(f)
-
         
-
         batch_structure = d['FiberSim_batch']
         job_data = batch_structure['job']
 
@@ -396,7 +284,7 @@ class Main(tk.Tk):
             self.disp.append(res)
             self.f_struct.append(self.files.copy())
 
-        job_no = int(self.spin.get())
+        job_no = int(self.spin.get())-1
         base_directory = pathlib.Path(self.files['batch_file']).parent.absolute()
         try:
             batch_figures = batch_structure['batch_figures']
@@ -411,18 +299,25 @@ class Main(tk.Tk):
             pass
         
         if len(job_data) > 1:
-            self.spin.config(to=len(job_data)-1)
+            self.spin.config(to=len(job_data))
         self.LoadJSON(job_no)
         self.tabs.select(self.tab['batch_file'])
         self.job_tot = len(job_data)
+
+    def ContainerReset(self):
+        for i,j in enumerate(self.tab):
+            for item in self.tree[j].get_children():
+                self.tree[j].delete(item)
+                self.dat[j] = {} 
+
 
     def LoadJSON(self,job_no):
 
         f_struct = self.f_struct[job_no]
         for files in f_struct:
             self.key = files
-            if self.key == 'protocol_file':    
-                if self.tree[self.key]:
+            if self.key == 'protocol_file': 
+                if self.tree[self.key]:         
                     self.dat[self.key] = pd.read_csv(f_struct[self.key],delim_whitespace=True)
                     self.dat[self.key].columns = ['dt','pCa','dhsl','mode']
                 for i in range(len(self.dat[self.key]['dt'])):
@@ -438,18 +333,12 @@ class Main(tk.Tk):
 
                 if f_struct[self.key]:     
 
-                    for item in self.tree[self.key].get_children():
-                        self.tree[self.key].delete(item)
-                        self.dat[self.key] = {}
                     with open(f_struct[self.key],'r') as jf:
                         if not self.dat[self.key]:
                             self.dat[self.key] = json.load(jf)
                             self.AddItemJSON(jf.name,self.dat[self.key],tags=[Tags.FILE])
                         else:
                             return
-                        
-            if self.radio.get() == "custom":
-                self.canvas[self.key].itemconfig(self.but_indicators[self.key], fill='green')
                 
     def SaveJSON(self, filepath, data):
         
@@ -582,8 +471,8 @@ class Main(tk.Tk):
         
     def SimOutputPanel(self):
         
-        self.sim_output_panel = tk.LabelFrame(self, text="Simulation Output Panel")
-        self.sim_output_panel.grid(row=0,column=2,rowspan=3,columnspan=1,sticky='WENS',padx=10,pady=10)
+        self.sim_output_panel = tk.LabelFrame(self, text="Simulation Output")
+        # self.sim_output_panel.grid(row=0,column=2,sticky='WENS',padx=10,pady=10)
         
                 
     def LocateFiberPy(self):
@@ -592,69 +481,6 @@ class Main(tk.Tk):
         self.FiberPyPath.set(folder_name)
         self.GuiPath = os.getcwd()
         os.chdir(folder_name)
-        
-    def DemoSelection(self,event):
-
-        if self.f_struct:
-            self.f_struct = []
-        gui_path = self.GuiPath
-        main_folder = os.path.split(gui_path)[0]
-        demo_name = self.demo_selection.get()
-
-        options = ["Single Length", "Multiple Lengths"]
-
-        if "pCa" in demo_name:
-
-            self.sin_mul_selection = ttk.Combobox(self.sim_input_panel, values=options)
-            self.sin_mul_selection.grid(row=2,column=0,sticky=W,padx=10, pady=10)
-            self.sin_mul_selection.set("Select Demo Option")
-            self.sin_mul_selection.bind("<<ComboboxSelected>>",self.DemoOption)
-
-        else:
-            self.GenerateDemoPath(demo_name)
-                
-    def DemoOption(self,event):
-        len_option = self.sin_mul_selection.get()
-        print(len_option)
-        if "Single" in len_option:
-            demo_name = 'pCa Curves Single Curve'
-            print('function')
-            self.GenerateDemoPath(demo_name)
-
-    def GenerateDemoPath(self,demo_name):
-
-        print(demo_name)
-        if demo_name in self.gs_demo_list:
-            folder_key = "getting_started\\"
-        else:
-            folder_key = ""
-            
-        demo_name = re.sub(r"\s","_",demo_name)
-        demo_name = demo_name.lower()
-
-        self.demo_folder = "..\\..\\..\\" + "demo_files\\" + folder_key + demo_name
-        print(self.demo_folder)
-        files = []
-        for file in os.listdir(self.demo_folder):
-            if file.endswith('.json'):
-                files.append(file)
-        print
-        self.files['batch_file'] = files[0]
-        
-        self.files['batch_file'] = self.demo_folder + "\\" + self.files['batch_file']
-        if self.disp:
-            self.disp = []
-        
-        self.EditorPanel()
-
-    def ClearFiles(self):
-        for files in self.files:
-            self.files[files] = {}
-            self.dat[files] = {}
-            self.canvas[files].itemconfig(self.but_indicators[files], fill='red')
-            for item in self.tree[files].get_children():
-                self.tree[files].delete(item)
-                self.tabs.select(self.tab['batch_file'])
 
     def RunSimulation(self):
 
@@ -666,48 +492,46 @@ class Main(tk.Tk):
                 text = '%s is missing please upload and run again' % (self.tab_name[i])
                 tk.messagebox.showwarning("FiberSim",text)
                 return
+
+        # self.run_sim_but.config(text='FiberSim is running')
+        self.PassToTerminal()
+
+        # self.OutputDisplay(job_no)
+    def PassToTerminal(self):
         sys.argv = ["run_batch",self.files['batch_file']]
         subprocess.call(["python","FiberPy.py",*sys.argv])
-        job_no = int(self.spin.get())
-        self.OutputDisplay(job_no)
         
-    def RunDemo(self):
-        sys.argv = ["run_batch",self.files['batch_file']]
-        subprocess.call(["python", "FiberPy.py", *sys.argv])
-        job_no = int(self.spin.get())
-        self.OutputDisplay(job_no)
+    # def OutputDisplay(self,job_no):
+    #     output_summary  = self.disp[job_no]
+    #     im = Image.open(output_summary)
+    #     aspect_ratio = im.height/im.width
+    #     self.sim_output_panel.update()
         
-    def OutputDisplay(self,job_no):
-        output_summary  = self.disp[job_no]
-        im = Image.open(output_summary)
-        aspect_ratio = im.height/im.width
-        self.sim_output_panel.update()
-        
-        if aspect_ratio > 1:
-            height = 0.9*self.sim_output_panel.winfo_height()
-            width = height / aspect_ratio
-        else:
-            width = 0.9*self.sim_output_panel.winfo_width()
-            height = width * aspect_ratio
+    #     if aspect_ratio > 1:
+    #         height = 0.9*self.sim_output_panel.winfo_height()
+    #         width = height / aspect_ratio
+    #     else:
+    #         width = 0.9*self.sim_output_panel.winfo_width()
+    #         height = width * aspect_ratio
             
-        width = int(width)
-        height = int(height)
+    #     width = int(width)
+    #     height = int(height)
 
 
-        im_small = im.resize((width,height))
-        im_r = ImageTk.PhotoImage(im_small)
-        if job_no < self.job_tot:
-            im_text = "Batch Job %s" % (job_no)
-        else:
-            im_text = "Summary"
-        if not self.output_label:
-            self.output_label = Label(self.sim_output_panel, text=im_text,
-                                        image = im_r,anchor= CENTER,compound='bottom')
-            self.output_label.image = im_r
-        else:
-            self.output_label.configure(image = im_r,text=im_text)
-            self.output_label.image = im_r
-        self.output_label.pack()
+    #     im_small = im.resize((width,height))
+    #     im_r = ImageTk.PhotoImage(im_small)
+    #     if job_no < self.job_tot:
+    #         im_text = "Batch Job %s" % (job_no)
+    #     else:
+    #         im_text = "Summary"
+    #     if not self.output_label:
+    #         self.output_label = Label(self.sim_output_panel, text=im_text,
+    #                                     image = im_r,anchor= CENTER,compound='bottom')
+    #         self.output_label.image = im_r
+    #     else:
+    #         self.output_label.configure(image = im_r,text=im_text)
+    #         self.output_label.image = im_r
+    #     self.output_label.pack()
    
     def ShowEditorMenu(self, event):
         
