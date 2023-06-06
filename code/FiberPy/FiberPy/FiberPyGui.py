@@ -89,6 +89,7 @@ class Main(tk.Tk):
         self.f_struct = []
         self.disp = []
         self.job_tot = 0
+        self.sim_res_but_visible = 0
 
         
     def DivideRowsColumns(self):
@@ -222,6 +223,9 @@ class Main(tk.Tk):
             
     def UploadJSON(self,jbut):
 
+        if self.sim_res_but_visible == 1:
+            self.sim_res_but.grid_forget()
+
         self.key = jbut
 
         if jbut == 'protocol_file':
@@ -281,6 +285,7 @@ class Main(tk.Tk):
             
             res = temp[0]['output_file_string']
             res = os.path.join(base_directory,res) + ".png"
+            self.single_res_folder = os.path.dirname(res)
             self.disp.append(res)
             self.f_struct.append(self.files.copy())
 
@@ -288,6 +293,7 @@ class Main(tk.Tk):
         base_directory = pathlib.Path(self.files['batch_file']).parent.absolute()
         try:
             batch_figures = batch_structure['batch_figures']
+            self.single_res_folder = {}
             for i in batch_figures:
                 try:
                     res = batch_figures[i][0]['output_image_file']
@@ -295,6 +301,7 @@ class Main(tk.Tk):
                     res = batch_figures[i][0]['output_image_file_string']
                 res = os.path.join(base_directory,res) + ".png"
                 self.disp.append(res)
+                self.batch_res_folder = os.path.dirname(res)
         except:
             pass
         
@@ -500,6 +507,19 @@ class Main(tk.Tk):
     def PassToTerminal(self):
         sys.argv = ["run_batch",self.files['batch_file']]
         subprocess.call(["python","FiberPy.py",*sys.argv])
+        self.sim_res_but.grid(row=2, column=1, padx=5, pady=5,sticky='W')
+        self.sim_res_but_visible = 1
+
+
+    def ResultsFolder(self):
+
+        if self.single_res_folder:
+            folder = self.single_res_folder
+            os.startfile(folder)
+        else:
+            folder = self.batch_res_folder
+            os.startfile(folder)
+        
         
     # def OutputDisplay(self,job_no):
     #     output_summary  = self.disp[job_no]

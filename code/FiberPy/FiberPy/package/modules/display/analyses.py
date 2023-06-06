@@ -422,8 +422,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             file_ind = []
             for file in os.listdir(curve_folder):
                 if file.endswith('.txt'):
+                    print(file)
                     results_files.append(file)
-                    file_ind.append(int(file.split('_')[1]))
+                    file_ind.append(int(file.split('_')[0]))
             si = np.argsort(np.asarray(file_ind))
             results_files = [results_files[i] for i in si]
             

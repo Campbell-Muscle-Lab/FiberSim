@@ -12,7 +12,7 @@
                 "model_file": "sim_input\\1\\model_1.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input\\1\\rel_f_5\\prot_rel_f_5.txt",
-                "results_file": "sim_output\\1\\results_5.txt",
+                "results_file": "sim_output\\1\\5_results.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_5\\output_handler_5.json"
             },
             {
@@ -20,7 +20,7 @@
                 "model_file": "sim_input\\1\\model_1.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input\\1\\rel_f_16\\prot_rel_f_16.txt",
-                "results_file": "sim_output\\1\\results_16.txt",
+                "results_file": "sim_output\\1\\16_results.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_16\\output_handler_16.json"
             },
             {
@@ -28,7 +28,7 @@
                 "model_file": "sim_input\\1\\model_1.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input\\1\\rel_f_26\\prot_rel_f_26.txt",
-                "results_file": "sim_output\\1\\results_26.txt",
+                "results_file": "sim_output\\1\\26_results.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_26\\output_handler_26.json"
             },
             {
@@ -36,7 +36,7 @@
                 "model_file": "sim_input\\1\\model_1.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input\\1\\rel_f_37\\prot_rel_f_37.txt",
-                "results_file": "sim_output\\1\\results_37.txt",
+                "results_file": "sim_output\\1\\37_results.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_37\\output_handler_37.json"
             },
             {
@@ -44,7 +44,7 @@
                 "model_file": "sim_input\\1\\model_1.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input\\1\\rel_f_47\\prot_rel_f_47.txt",
-                "results_file": "sim_output\\1\\results_47.txt",
+                "results_file": "sim_output\\1\\47_results.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_47\\output_handler_47.json"
             },
             {
@@ -52,7 +52,7 @@
                 "model_file": "sim_input\\1\\model_1.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input\\1\\rel_f_58\\prot_rel_f_58.txt",
-                "results_file": "sim_output\\1\\results_58.txt",
+                "results_file": "sim_output\\1\\58_results.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_58\\output_handler_58.json"
             },
             {
@@ -60,7 +60,7 @@
                 "model_file": "sim_input\\1\\model_1.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input\\1\\rel_f_68\\prot_rel_f_68.txt",
-                "results_file": "sim_output\\1\\results_68.txt",
+                "results_file": "sim_output\\1\\68_results.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_68\\output_handler_68.json"
             },
             {
@@ -68,7 +68,7 @@
                 "model_file": "sim_input\\1\\model_1.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input\\1\\rel_f_79\\prot_rel_f_79.txt",
-                "results_file": "sim_output\\1\\results_79.txt",
+                "results_file": "sim_output\\1\\79_results.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_79\\output_handler_79.json"
             },
             {
@@ -76,7 +76,7 @@
                 "model_file": "sim_input\\1\\model_1.json",
                 "options_file": "sim_input/sim_options.json",
                 "protocol_file": "sim_input\\1\\rel_f_89\\prot_rel_f_89.txt",
-                "results_file": "sim_output\\1\\results_89.txt",
+                "results_file": "sim_output\\1\\89_results.txt",
                 "output_handler_file": "sim_input\\1\\rel_f_89\\output_handler_89.json"
             },
           {
@@ -84,7 +84,7 @@
             "model_file": "sim_input\\1\\model_1.json",
             "options_file": "sim_input/sim_options.json",
             "protocol_file": "sim_input\\1\\rel_f_100\\prot_rel_f_100.txt",
-            "results_file": "sim_output\\1\\results_100.txt",
+            "results_file": "sim_output\\1\\100_results.txt",
             "output_handler_file": "sim_input\\1\\rel_f_100\\output_handler_100.json"
           }
         ],
