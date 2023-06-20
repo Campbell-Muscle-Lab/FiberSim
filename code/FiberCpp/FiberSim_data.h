@@ -37,6 +37,8 @@ public:
 	*/
 	void write_data_to_delimited_file(char output_file_string[], char delimiter = '\t');
 
+	void write_progress_file(char process_file_string[]);
+
 	// Variables
 	int no_of_time_points;		/**< integer number of time-points in the simulation */
 

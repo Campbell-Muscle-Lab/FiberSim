@@ -23,6 +23,8 @@ from PIL import Image, ImageTk
 import json
 import collections
 import time
+import webbrowser
+from tkinter.scrolledtext import ScrolledText
 
 
 
@@ -68,7 +70,7 @@ class Main(tk.Tk):
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         
-        app_window_width = screen_width * 0.50
+        app_window_width = screen_width * 0.7
         app_window_height = screen_height * 0.75
         
         x = (screen_width/2) - (app_window_width/2)
@@ -76,7 +78,7 @@ class Main(tk.Tk):
         
         self.geometry('%dx%d+%d+%d' % (app_window_width,app_window_height, 
                                        x, y))
-        self.attributes('-topmost',1)
+        #self.attributes('-topmost',1)
         
         self.tab = {}
         self.tree = {}
@@ -90,13 +92,17 @@ class Main(tk.Tk):
         self.disp = []
         self.job_tot = 0
         self.sim_res_but_visible = 0
+        self.running_message = {}
+        self.im_labels = []
 
         
     def DivideRowsColumns(self):
             
         self.columnconfigure(0, weight=1)
-        # self.columnconfigure(1,weight=1)
-        # self.columnconfigure(2,weight=1)
+        self.columnconfigure(1,weight=1)
+        self.columnconfigure(2,weight=1)
+        self.columnconfigure(2,weight=1)
+
 
         
         self.rowconfigure(0, weight=1)
@@ -108,7 +114,7 @@ class Main(tk.Tk):
         
         self.session_panel = tk.LabelFrame(self, text="Simulation Session")
         self.session_panel.grid(row=0,column=0,
-                            sticky='WENS',padx=10,pady=10)
+                            sticky='WENS',padx=10,pady=10,columnspan=1)
 
         locate_fiberpy_button = ttk.Button(self.session_panel,
                                            text="Select FiberPy Folder", 
@@ -123,11 +129,11 @@ class Main(tk.Tk):
         load_batch_file_button.grid(row=1, column=0, padx=10,pady=10, sticky='WENS')
 
         wid = int(self.winfo_width())
-        folder_path_text = ttk.Entry(self.session_panel, width = 100*wid, 
+        folder_path_text = ttk.Entry(self.session_panel, width = 95*wid, 
                                      textvariable = self.FiberPyPath)
         folder_path_text.grid(row=0,column=1,sticky='WE')
 
-        load_batch_file_text = ttk.Entry(self.session_panel, width = 100*wid, 
+        load_batch_file_text = ttk.Entry(self.session_panel, width = 95*wid, 
                                      textvariable = self.BatchPath)
         load_batch_file_text.grid(row=1,column=1,sticky='WE')
 
@@ -142,11 +148,11 @@ class Main(tk.Tk):
         self.sim_sess_heg = self.session_panel.winfo_height()
 
         spin_label = tk.Label(self.session_panel, text='Batch Job No')
-        spin_label.grid(row = 1,column = 2, pady=5,padx=5)
+        # spin_label.grid(row = 1,column = 2, pady=5,padx=5)
         var = StringVar(self.session_panel)
         var.set("1")
         self.spin = tk.Spinbox(self.session_panel, from_=1, to=1,textvariable=var,width=2,wrap=True,command=self.ChangeJob)
-        self.spin.grid(row = 1,column = 3, pady=5,padx=1,sticky='W')
+        # self.spin.grid(row = 1,column = 3, pady=5,padx=1,sticky='W')
         self.session_panel.update()    
         self.sim_sess_wid2 = self.session_panel.winfo_width()
         self.sim_sess_heg2 = self.session_panel.winfo_height()
@@ -168,7 +174,7 @@ class Main(tk.Tk):
     def EditorPanel(self):
         
         self.editor_panel_frame = tk.LabelFrame(self,text="Editor")
-        self.editor_panel_frame.grid(row=1, column=0,rowspan=2,columnspan=2,
+        self.editor_panel_frame.grid(row=1, column=0,rowspan=2,columnspan=1,
                                sticky='WENS',padx=10,pady=10)
         
         self.tabs = ttk.Notebook(self.editor_panel_frame)
@@ -223,6 +229,14 @@ class Main(tk.Tk):
             
     def UploadJSON(self,jbut):
 
+        try:
+            self.results_listbox.delete('1.0', END) 
+            self.results_listbox.images.clear()        
+        except:
+            pass
+
+        self.disp = []
+        self.im_labels = []
         if self.sim_res_but_visible == 1:
             self.sim_res_but.grid_forget()
 
@@ -262,6 +276,23 @@ class Main(tk.Tk):
         batch_structure = d['FiberSim_batch']
         job_data = batch_structure['job']
 
+        job_no = int(self.spin.get())-1
+        base_directory = pathlib.Path(self.files['batch_file']).parent.absolute()
+        try:
+            batch_figures = batch_structure['batch_figures']
+            self.single_res_folder = {}
+            for i in batch_figures:
+                try:
+                    res = batch_figures[i][0]['output_image_file']
+                except:
+                    res = batch_figures[i][0]['output_image_file_string']
+                res = os.path.join(base_directory,res) + ".png"
+                res1 = res + ".png"
+                self.im_labels.append(res1)
+                self.disp.append(res)
+                self.batch_res_folder = os.path.dirname(res)
+        except:
+            pass
 
         for i,j in enumerate(job_data):
             for f in ['model_file','protocol_file',
@@ -284,26 +315,13 @@ class Main(tk.Tk):
             self.files['template_summary_file'] = os.path.join(base_directory,self.files['template_summary_file'])
             
             res = temp[0]['output_file_string']
+            res1 = res + ".png"
+            self.im_labels.append(res1)
             res = os.path.join(base_directory,res) + ".png"
+            print(res)
             self.single_res_folder = os.path.dirname(res)
             self.disp.append(res)
             self.f_struct.append(self.files.copy())
-
-        job_no = int(self.spin.get())-1
-        base_directory = pathlib.Path(self.files['batch_file']).parent.absolute()
-        try:
-            batch_figures = batch_structure['batch_figures']
-            self.single_res_folder = {}
-            for i in batch_figures:
-                try:
-                    res = batch_figures[i][0]['output_image_file']
-                except:
-                    res = batch_figures[i][0]['output_image_file_string']
-                res = os.path.join(base_directory,res) + ".png"
-                self.disp.append(res)
-                self.batch_res_folder = os.path.dirname(res)
-        except:
-            pass
         
         if len(job_data) > 1:
             self.spin.config(to=len(job_data))
@@ -479,8 +497,13 @@ class Main(tk.Tk):
     def SimOutputPanel(self):
         
         self.sim_output_panel = tk.LabelFrame(self, text="Simulation Output")
-        # self.sim_output_panel.grid(row=0,column=2,sticky='WENS',padx=10,pady=10)
-        
+        self.sim_output_panel.grid(row=0,column=1,rowspan=3,columnspan = 2, sticky='WENS',padx=5,pady=10)
+
+        self.results_listbox = ScrolledText(self.sim_output_panel,width=10,wrap=WORD)
+        self.results_listbox.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+
+        # self.results_listbox = tk.Listbox(self.sim_output_panel)
+        # self.results_listbox.pack(side=LEFT, fill=BOTH,expand=True)
                 
     def LocateFiberPy(self):
         
@@ -490,7 +513,9 @@ class Main(tk.Tk):
         os.chdir(folder_name)
 
     def RunSimulation(self):
-
+        if self.sim_res_but_visible == 1:
+            self.sim_res_but.grid_forget()
+        
         for i in range(len(self.tab_name)):
             c_file = re.sub(r"\s","_",self.tab_name[i])
             c_file = c_file.lower()
@@ -500,18 +525,21 @@ class Main(tk.Tk):
                 tk.messagebox.showwarning("FiberSim",text)
                 return
 
-        # self.run_sim_but.config(text='FiberSim is running')
         self.PassToTerminal()
 
-        # self.OutputDisplay(job_no)
     def PassToTerminal(self):
+        try:
+            self.results_listbox.delete('1.0', END) 
+            self.results_listbox.images.clear()        
+        except:
+            pass
         sys.argv = ["run_batch",self.files['batch_file']]
-        subprocess.call(["python","FiberPy.py",*sys.argv])
-        self.sim_res_but.grid(row=2, column=1, padx=5, pady=5,sticky='W')
+        self.p = subprocess.Popen(["python","FiberPy.py",*sys.argv])
         self.sim_res_but_visible = 1
-
-
+        self.IsFiberSimRunning()
+        
     def ResultsFolder(self):
+        
 
         if self.single_res_folder:
             folder = self.single_res_folder
@@ -520,38 +548,6 @@ class Main(tk.Tk):
             folder = self.batch_res_folder
             os.startfile(folder)
         
-        
-    # def OutputDisplay(self,job_no):
-    #     output_summary  = self.disp[job_no]
-    #     im = Image.open(output_summary)
-    #     aspect_ratio = im.height/im.width
-    #     self.sim_output_panel.update()
-        
-    #     if aspect_ratio > 1:
-    #         height = 0.9*self.sim_output_panel.winfo_height()
-    #         width = height / aspect_ratio
-    #     else:
-    #         width = 0.9*self.sim_output_panel.winfo_width()
-    #         height = width * aspect_ratio
-            
-    #     width = int(width)
-    #     height = int(height)
-
-
-    #     im_small = im.resize((width,height))
-    #     im_r = ImageTk.PhotoImage(im_small)
-    #     if job_no < self.job_tot:
-    #         im_text = "Batch Job %s" % (job_no)
-    #     else:
-    #         im_text = "Summary"
-    #     if not self.output_label:
-    #         self.output_label = Label(self.sim_output_panel, text=im_text,
-    #                                     image = im_r,anchor= CENTER,compound='bottom')
-    #         self.output_label.image = im_r
-    #     else:
-    #         self.output_label.configure(image = im_r,text=im_text)
-    #         self.output_label.image = im_r
-    #     self.output_label.pack()
    
     def ShowEditorMenu(self, event):
         
@@ -566,6 +562,66 @@ class Main(tk.Tk):
         for i in self.editor_menu_set:
             self.editor_menu.add_command(label=self.editor_menu_set[i]['text'],
                                          command=self.editor_menu_set[i]['action'])
+            
+    def IsFiberSimRunning(self):
+        try:
+            token = self.p.poll()
+            print(token)
+            if token is None: 
+                if not self.running_message:
+                    self.FiberSimInfo()
+                main.after(3000, self.IsFiberSimRunning)
+            elif token == 0:
+                print(token)
+                self.p = {}
+                self.sim_res_but.grid(row=2, column=1, padx=5, pady=5,sticky='W')
+                self.running_message.destroy()
+                self.running_message = {}
+                self.OutputImages()
+        except:
+            pass
+
+    def FiberSimInfo(self):
+        print(self.running_message)
+        def callback(url):
+            webbrowser.open_new_tab(url)
+            
+        self.running_message = Toplevel()
+        self.running_message.geometry('472x60')
+        self.running_message.title('FiberSim')
+        t1 = Label(self.running_message, text="FiberSim is running",font=('Arial', 11))
+        t2 = Label(self.running_message, text="Visit our website in the meantime: https://www.campbellmusclelab.org",font=('Arial', 11),
+                   fg="blue", cursor="hand2")
+        t1.grid(row=0,column=0,padx=10)
+        t2.grid(row=1,column=0,padx=10)
+        t2.bind("<Button-1>", lambda e:callback("https://sites.google.com/g.uky.edu/cml/home"))
+
+    def OutputImages(self):
+        self.results_listbox.images = []
+        self.results_listbox.delete('1.0', END)
+        print(self.disp) 
+        print(len(self.disp))
+
+        for i in range(len(self.disp)+1):
+            img = Image.open(self.disp[i])
+
+            aspect_ratio = img.height/img.width
+            self.sim_output_panel.update()
         
+            width = 0.6*self.results_listbox.winfo_width()
+            height = width * aspect_ratio
+            
+            width = int(width)
+            height = int(height)
+            im_small = img.resize((width,height))
+            im_r = ImageTk.PhotoImage(im_small)
+
+            self.results_listbox.insert(INSERT, self.im_labels[i])
+            self.results_listbox.insert(INSERT, '\n')
+            self.results_listbox.image_create(INSERT, padx=5, pady=5, image=im_r)
+            self.results_listbox.images.append(im_r)
+            self.results_listbox.insert(INSERT, '\n')
+            
+            
 main = Main()
 main.mainloop()    

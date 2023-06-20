@@ -204,6 +204,9 @@ void muscle::implement_time_step(int protocol_index)
 				gsl_vector_get(p_hs[hs_counter]->a_pops, 0),
 				gsl_vector_get(p_hs[hs_counter]->m_pops, 0),
 				gsl_vector_get(p_hs[hs_counter]->c_pops, 0));
+
+			double prog = 100*protocol_index / (p_fs_protocol->no_of_time_points);
+			printf("progress: %.2f\n", prog);
 		}
 	}
 
@@ -213,6 +216,7 @@ void muscle::implement_time_step(int protocol_index)
 		exit(1);
 	}
 
+	// Update FiberSim_data
 	// Update FiberSim_data
 	gsl_vector_set(p_fs_data->fs_time, protocol_index, p_hs[0]->time_s);
 	gsl_vector_set(p_fs_data->fs_length, protocol_index, p_hs[0]->hs_length);

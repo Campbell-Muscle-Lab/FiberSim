@@ -92,6 +92,26 @@ FiberSim_data::~FiberSim_data(void)
 
 // Functions
 
+void FiberSim_data::write_progress_file(char progress_file_string[])
+{
+	// Writes a progress file for the FiberPyGUI
+
+	// Variables
+	FILE* progress_output_file;
+
+	// Code
+	path;
+
+	errno_t err = fopen_s(&output_file, output_file_string, "w");
+	if (err != 0)
+	{
+		printf("Results file: %s\ncould not be opened\n",
+			output_file_string);
+		exit(1);
+	}
+	
+}
+
 void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char delimiter)
 {
 	//! Writes data to a delimited file
