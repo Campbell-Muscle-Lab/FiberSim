@@ -87,6 +87,7 @@ class Main(tk.Tk):
         self.BatchPath = StringVar()
         self.ProtocolPath = StringVar()
         self.ProtocolName = StringVar()
+        self.progress_completion = StringVar()
         self.files = {}
         self.f_struct = []
         self.disp = []
@@ -99,9 +100,9 @@ class Main(tk.Tk):
     def DivideRowsColumns(self):
             
         self.columnconfigure(0, weight=1)
-        self.columnconfigure(1,weight=1)
-        self.columnconfigure(2,weight=1)
-        self.columnconfigure(2,weight=1)
+        self.columnconfigure(1,weight=8)
+        self.columnconfigure(2,weight=8)
+        self.columnconfigure(3,weight=8)
 
 
         
@@ -114,7 +115,7 @@ class Main(tk.Tk):
         
         self.session_panel = tk.LabelFrame(self, text="Simulation Session")
         self.session_panel.grid(row=0,column=0,
-                            sticky='WENS',padx=10,pady=10,columnspan=1)
+                            sticky='WENS',padx=10,pady=10,columnspan=2)
 
         locate_fiberpy_button = ttk.Button(self.session_panel,
                                            text="Select FiberPy Folder", 
@@ -129,12 +130,12 @@ class Main(tk.Tk):
         load_batch_file_button.grid(row=1, column=0, padx=10,pady=10, sticky='WENS')
 
         wid = int(self.winfo_width())
-        folder_path_text = ttk.Entry(self.session_panel, width = 95*wid, 
-                                     textvariable = self.FiberPyPath)
+        folder_path_text = ttk.Entry(self.session_panel, 
+                                     textvariable = self.FiberPyPath,width=100)
         folder_path_text.grid(row=0,column=1,sticky='WE')
 
-        load_batch_file_text = ttk.Entry(self.session_panel, width = 95*wid, 
-                                     textvariable = self.BatchPath)
+        load_batch_file_text = ttk.Entry(self.session_panel, 
+                                     textvariable = self.BatchPath,width=100)
         load_batch_file_text.grid(row=1,column=1,sticky='WE')
 
         self.run_sim_but = ttk.Button(self.session_panel, 
@@ -157,24 +158,37 @@ class Main(tk.Tk):
         self.sim_sess_wid2 = self.session_panel.winfo_width()
         self.sim_sess_heg2 = self.session_panel.winfo_height()
 
+    def JobNavigator(self):
 
-    def ChangeJob(self):
+        self.job_list_panel = tk.LabelFrame(self, text="Batch Job List")
+        self.job_list_panel.grid(row=1, column=0,
+                            sticky='WENS',padx=5,pady=10,columnspan=1,rowspan=2)
+        self.job_list = tk.Listbox(self.job_list_panel)
+        self.job_list.pack(fill=BOTH,expand=True)
+        self.job_list.bind("<Double-Button-1>", lambda event: self.ChangeJob(event))
+        for i in range(self.job_tot):
+            t = "Job %i" % (i+1)
+            self.job_list.insert(i+1,t)
+        print(self.job_tot)
+
+    def ChangeJob(self,event):
         
         tab = self.tabs.tab(self.tabs.select(),'text')
         tab = tab.lower()
         tab = re.sub(" ","_",tab)
-        job_no = self.spin.get()
-        self.disp = []
-        job_no = int(job_no)-1
+        # self.disp = []
+        # job_no = int(job_no)-1
         self.ContainerReset()
-        self.LocateJSON(job_no)
+        self.LocateJSON(tab)
         # self.OutputDisplay(job_no)
+        print(tab)
+        self.tabs.hide(self.tab['batch_file'])
         self.tabs.select(self.tab[tab])
 
     def EditorPanel(self):
         
         self.editor_panel_frame = tk.LabelFrame(self,text="Editor")
-        self.editor_panel_frame.grid(row=1, column=0,rowspan=2,columnspan=1,
+        self.editor_panel_frame.grid(row=1, column=1,rowspan=2,columnspan=1,
                                sticky='WENS',padx=10,pady=10)
         
         self.tabs = ttk.Notebook(self.editor_panel_frame)
@@ -206,7 +220,9 @@ class Main(tk.Tk):
         self.tabs.pack(expand=1, fill="both")
         
         self.tabs.bind('<<NotebookTabChanged>>',self.NavigateJSON)
-        self.LocateJSON(self.key)         
+        self.LocateJSON(self.key)
+        self.tabs.hide(self.tab['batch_file'])         
+
     
     def NavigateJSON(self,event):
 
@@ -232,8 +248,19 @@ class Main(tk.Tk):
         try:
             self.results_listbox.delete('1.0', END) 
             self.results_listbox.images.clear()        
+
         except:
             pass
+
+        try:
+            self.job_list.delete(0,END)
+        except:
+            pass
+
+        if self.job_tot != 0:
+            self.job_tot = 0
+
+
 
         self.disp = []
         self.im_labels = []
@@ -259,9 +286,14 @@ class Main(tk.Tk):
             self.f_struct = []
         if not self.tree:    
             self.EditorPanel()
+            self.JobNavigator()
         else:
             self.ContainerReset()
             self.LocateJSON(self.key)
+            print(self.job_tot)
+            self.JobNavigator()
+            self.tabs.hide(self.tab['batch_file'])
+
             
     def LocateJSON(self,key):
         def find(name, path):
@@ -276,7 +308,17 @@ class Main(tk.Tk):
         batch_structure = d['FiberSim_batch']
         job_data = batch_structure['job']
 
-        job_no = int(self.spin.get())-1
+        try:
+            print('trying list')
+            selection = self.job_list.curselection()
+            for item in selection:
+                job_no = item
+            if not job_no:
+                job_no = 0
+        except:
+            print('trying list exception')
+            job_no = 0
+            
         base_directory = pathlib.Path(self.files['batch_file']).parent.absolute()
         try:
             batch_figures = batch_structure['batch_figures']
@@ -296,7 +338,7 @@ class Main(tk.Tk):
 
         for i,j in enumerate(job_data):
             for f in ['model_file','protocol_file',
-                      'options_file','output_handler_file']:
+                      'options_file','output_handler_file','progress_file']:
                 self.files[f] = j[f]
                 if (not j['relative_to']):
                     self.files[f] = os.path.abspath(self.files[f])
@@ -318,7 +360,6 @@ class Main(tk.Tk):
             res1 = res + ".png"
             self.im_labels.append(res1)
             res = os.path.join(base_directory,res) + ".png"
-            print(res)
             self.single_res_folder = os.path.dirname(res)
             self.disp.append(res)
             self.f_struct.append(self.files.copy())
@@ -328,6 +369,7 @@ class Main(tk.Tk):
         self.LoadJSON(job_no)
         self.tabs.select(self.tab['batch_file'])
         self.job_tot = len(job_data)
+        print(self.job_tot)
 
     def ContainerReset(self):
         for i,j in enumerate(self.tab):
@@ -339,8 +381,10 @@ class Main(tk.Tk):
     def LoadJSON(self,job_no):
 
         f_struct = self.f_struct[job_no]
+        print(f_struct['template_summary_file'])
         for files in f_struct:
             self.key = files
+            print(files)
             if self.key == 'protocol_file': 
                 if self.tree[self.key]:         
                     self.dat[self.key] = pd.read_csv(f_struct[self.key],delim_whitespace=True)
@@ -353,11 +397,10 @@ class Main(tk.Tk):
                 for column in ['#1','#2','#3','#4']:
                     self.tree[self.key].column(column,anchor = CENTER)
                 self.tabs.select(self.tab[self.key])
-
+            elif self.key == 'progress_file':
+                pass
             else:
-
-                if f_struct[self.key]:     
-
+                if f_struct[self.key]:
                     with open(f_struct[self.key],'r') as jf:
                         if not self.dat[self.key]:
                             self.dat[self.key] = json.load(jf)
@@ -497,7 +540,7 @@ class Main(tk.Tk):
     def SimOutputPanel(self):
         
         self.sim_output_panel = tk.LabelFrame(self, text="Simulation Output")
-        self.sim_output_panel.grid(row=0,column=1,rowspan=3,columnspan = 2, sticky='WENS',padx=5,pady=10)
+        self.sim_output_panel.grid(row=0,column=2,rowspan=3,columnspan = 2, sticky='WENS',padx=5,pady=10)
 
         self.results_listbox = ScrolledText(self.sim_output_panel,width=10,wrap=WORD)
         self.results_listbox.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
@@ -513,9 +556,15 @@ class Main(tk.Tk):
         os.chdir(folder_name)
 
     def RunSimulation(self):
+        self.FiberSimInfo()
         if self.sim_res_but_visible == 1:
             self.sim_res_but.grid_forget()
-        
+        self.progress = ttk.Progressbar(self.session_panel,orient = HORIZONTAL,
+            length = 100, mode = 'determinate')
+        self.progress.grid(row = 2, column = 1,sticky='WE')
+
+        self.progress_label = ttk.Label(self.session_panel, text="Simulation Status: 0%")
+        self.progress_label.grid(column=2, row=2)
         for i in range(len(self.tab_name)):
             c_file = re.sub(r"\s","_",self.tab_name[i])
             c_file = c_file.lower()
@@ -566,23 +615,36 @@ class Main(tk.Tk):
     def IsFiberSimRunning(self):
         try:
             token = self.p.poll()
-            print(token)
             if token is None: 
                 if not self.running_message:
-                    self.FiberSimInfo()
+                    print(self.f_struct['progress_file'])
+
+                prog = 0
+                for job in range(self.job_tot):
+                    print(self.f_struct[job]['progress_file'])
+                    f = open(self.f_struct[job]['progress_file'],'r')
+                    p_j = f.read()
+                    prog = prog + float(p_j)
+                    print(prog)
+                    
+
+                prog = prog/self.job_tot
+                self.progress['value'] = prog
+                self.progress_label['text'] = 'Simulation Status: %.2f %% completed' % prog
+                self.session_panel.update_idletasks()
                 main.after(3000, self.IsFiberSimRunning)
             elif token == 0:
-                print(token)
                 self.p = {}
                 self.sim_res_but.grid(row=2, column=1, padx=5, pady=5,sticky='W')
                 self.running_message.destroy()
                 self.running_message = {}
+                self.progress_label.grid_forget()
+                self.progress.grid_forget()
                 self.OutputImages()
         except:
             pass
 
     def FiberSimInfo(self):
-        print(self.running_message)
         def callback(url):
             webbrowser.open_new_tab(url)
             
@@ -599,9 +661,6 @@ class Main(tk.Tk):
     def OutputImages(self):
         self.results_listbox.images = []
         self.results_listbox.delete('1.0', END)
-        print(self.disp) 
-        print(len(self.disp))
-
         for i in range(len(self.disp)+1):
             img = Image.open(self.disp[i])
 

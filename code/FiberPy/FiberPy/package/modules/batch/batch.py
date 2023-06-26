@@ -58,7 +58,7 @@ def run_batch(json_batch_file_string=[],
         # Build up command string
         com_string = exe_string
         for f in ['model_file', 'options_file',
-                  'protocol_file', 'results_file']:
+                  'protocol_file', 'results_file','progress_file']:
             fs = j[f]
             if (not j['relative_to']):
                 fs = os.path.abspath(fs)

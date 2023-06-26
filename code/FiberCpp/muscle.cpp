@@ -78,7 +78,7 @@ muscle::~muscle()
 
 // Functions
 
-void muscle::implement_protocol(char set_protocol_file_string[], char set_results_file_string[])
+void muscle::implement_protocol(char set_protocol_file_string[], char set_results_file_string[], char set_progress_file_string[])
 {
 	//! Code runs a muscle through a protocol
 
@@ -91,6 +91,8 @@ void muscle::implement_protocol(char set_protocol_file_string[], char set_result
 
 	// Update the protocol file_string
 	sprintf_s(protocol_file_string, _MAX_PATH, "%s", set_protocol_file_string);
+
+	sprintf_s(progress_file_string, _MAX_PATH, "%s", set_progress_file_string);
 
 
 	// Load the protocol
@@ -207,6 +209,18 @@ void muscle::implement_time_step(int protocol_index)
 
 			double prog = 100*protocol_index / (p_fs_protocol->no_of_time_points);
 			printf("progress: %.2f\n", prog);
+
+			FILE* progress_output_file;
+
+			errno_t err = fopen_s(&progress_output_file, progress_file_string, "w");
+			if (err != 0)
+			{
+				printf("Progress file: %s\ncould not be opened\n",
+					progress_file_string);
+				exit(1);
+			}
+			fprintf_s(progress_output_file, "%.2f", prog);
+			fclose(progress_output_file);
 		}
 	}
 

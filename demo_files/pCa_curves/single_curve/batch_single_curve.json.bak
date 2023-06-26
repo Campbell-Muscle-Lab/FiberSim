@@ -58,7 +58,7 @@
         "options_file": "sim_input/sim_options.json",
         "protocol_file": "sim_input\\1\\pCa_520\\prot_pCa_520.txt",
         "results_file": "sim_output\\1\\pCa_520_results.txt",
-		"progress_file": "sim_output\\1\\progress_520.txt",
+		"progress_file": "sim_output\\1\\progress_50.txt",
         "output_handler_file": "sim_input\\1\\pCa_520\\output_handler_520.json"
       },
       {
@@ -67,7 +67,7 @@
         "options_file": "sim_input/sim_options.json",
         "protocol_file": "sim_input\\1\\pCa_480\\prot_pCa_480.txt",
         "results_file": "sim_output\\1\\pCa_480_results.txt",
-		"progress_file": "sim_output\\1\\progress_480.txt",
+		"progress_file": "sim_output\\1\\pCa_480_progress.txt",
         "output_handler_file": "sim_input\\1\\pCa_480\\output_handler_480.json"
       }
     ],

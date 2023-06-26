@@ -34,12 +34,14 @@ int main(int argc, char* argv[])
     char options_file_string[_MAX_PATH];
     char protocol_file_string[_MAX_PATH];
     char results_file_string[_MAX_PATH];
+	char progress_file_string[_MAX_PATH];
 
     // Unpack inputs
     sprintf_s(model_file_string, _MAX_PATH, "%s", argv[1]);
     sprintf_s(options_file_string, _MAX_PATH, "%s", argv[2]);
     sprintf_s(protocol_file_string, _MAX_PATH, "%s", argv[3]);
     sprintf_s(results_file_string, _MAX_PATH, "%s", argv[4]);
+	sprintf_s(progress_file_string, _MAX_PATH, "%s", argv[5]);
 
     // Display
     printf("FiberSim: starting (version %s)\n", code_version.c_str());
@@ -51,7 +53,7 @@ int main(int argc, char* argv[])
 	version_comp(p_muscle->model_version, code_version);
 
     // Run the protocol
-    p_muscle->implement_protocol(protocol_file_string, results_file_string);
+    p_muscle->implement_protocol(protocol_file_string, results_file_string,progress_file_string);
 
     // Tidy up
     delete p_muscle;

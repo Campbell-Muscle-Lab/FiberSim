@@ -12,7 +12,6 @@
                 "options_file": "sim_input/options.json",
                 "protocol_file": "sim_input/twitch_protocol.txt",
                 "results_file": "sim_output/results.txt",
-				"progress_file": "sim_output/progress.txt",
                 "output_handler_file": "sim_input/output_handler.json"
             }
         ]
