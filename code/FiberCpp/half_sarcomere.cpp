@@ -2876,7 +2876,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     // Titin parameters
 
     fprintf(output_file, "\"titin\": {\n");
-    fprintf(output_file, "\t\"t_passive_mode: %s\n", t_passive_mode);
+    fprintf(output_file, "\t\"t_passive_mode\": \"%s\",\n", t_passive_mode);
     fprintf(output_file, "\t\"t_k_stiff\": %.*F,\n", p_fs_options->dump_precision, t_k_stiff);
     fprintf(output_file, "\t\"t_sigma\": %.*F,\n", p_fs_options->dump_precision, t_sigma);
     fprintf(output_file, "\t\"t_L\": %.*F,\n", p_fs_options->dump_precision, t_L);

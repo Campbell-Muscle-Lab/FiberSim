@@ -512,3 +512,6 @@ Gemfile.lock
 **/demo_files/analyze_model/simulations/**
 **/demo_files/force_length/**
 **/demo_files/**/isotypes/**/*.txt
+**/demo_files/**/*.txt
+**/demo_files/**/sim_data/**/*.*
+**/demo_files/**/generated/**/*.*

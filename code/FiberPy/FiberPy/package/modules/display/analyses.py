@@ -1417,6 +1417,10 @@ def create_rates_figure(fig_data, batch_file_string):
             keep_going = False
             
     print('max_rates: %i' % max_no_of_rates)
+    print('m_schemes')
+    print(m_schemes)
+    print('c_schemes')
+    print(c_schemes)
 
     # Set-up the figure
     no_of_cols = 2

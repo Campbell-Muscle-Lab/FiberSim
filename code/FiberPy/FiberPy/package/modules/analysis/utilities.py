@@ -5,8 +5,16 @@ Created on Wed Feb 12 17:20:25 2020
 @author: kscamp3
 """
 
-import numpy as np
 import os
+import json
+import re
+
+import numpy as np
+import pandas as pd
+
+import natsort
+
+from pathlib import Path
 
 def fit_pCa_data(x,y):
     """ Fits Hill-curve to x-y data """
@@ -45,3 +53,61 @@ def save_figure_to_file(f, im_file_string, dpi=250, verbose=1):
         print('Saving figure to: %s' % im_file_string)
         
     f.savefig(im_file_string, dpi=dpi)
+    
+def collate_sim_data(sim_output_directory,
+                     no_of_a_states = 2, no_of_m_states = 3,
+                     no_of_c_states = 3):
+    """ Collates population data from summary output files """
+    
+    # Get list of directories
+    curve_paths = [x for x in Path(sim_output_directory).iterdir() if x.is_dir()]
+    curve_folders = []
+    for c in curve_paths:
+        curve_folders.append(str(c))
+
+    # Remember to sort the folders into a natural order    
+    curve_folders = natsort.natsorted(curve_folders)
+    
+    # Create the holders
+    sim_data = dict()
+    sim_data['curve'] = []
+    sim_data['pCa'] = []
+    sim_data['rep'] = []
+    for i in range(no_of_a_states):
+        sim_data['a_pop_%i' % i] = []
+    for i in range(no_of_m_states):
+        sim_data['m_pop_%i' % i] = []
+    for i in range(no_of_c_states):
+        sim_data['c_pop_%i' % i] = []        
+
+    # Loop through the curve folders, finding results files
+    for (ci, cf) in enumerate(curve_folders):
+        for file in os.listdir(cf):
+            if (file.endswith('.txt')):
+                dfs = os.path.join(cf, file)
+                print(dfs)
+                d = pd.read_csv(dfs, sep='\t')
+                
+                sim_data['curve'].append((ci+1))
+                sim_data['pCa'].append(d['pCa'].iloc[-1])
+                sim_data['rep'].append(re.findall(r'\d+', dfs)[-1])
+                for i in range(3):
+                    if (i==0):
+                        field_string = 'a_pop_%i'
+                        n = no_of_a_states
+                    if (i==1):
+                        field_string = 'm_pop_%i'
+                        n = no_of_m_states
+                    if (i==2):
+                        field_string = 'c_pop_%i'
+                        n = no_of_c_states
+                    for j in range(n):
+                        sim_data[field_string % j].append(d[field_string % j].iloc[-1])
+                
+    collated_data = pd.DataFrame(data=sim_data)
+    
+    return collated_data
+                
+                
+                
+        

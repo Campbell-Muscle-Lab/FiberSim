@@ -111,6 +111,11 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
         with open(model_file, 'r') as f:
             m = json.load(f)
             hs_lengths = np.array([m['muscle']['initial_hs_length']])
+            
+    if ('length_step_nm' in pCa_struct):
+        length_steps = pCa_struct['length_step_nm']
+    else:
+        length_steps = [0]
     
     # Deduce the base_dir
     if ('relative_to' in pCa_struct):
@@ -139,209 +144,251 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
         # Now loop through the half-sarcomere lengths
         for j, hsl in enumerate(hs_lengths):
             
-            # Update dir_counter
-            dir_counter = dir_counter + 1
-            
-            # Create the input and output directories           
-            sim_input_dir = os.path.join(base_dir,
-                                         'sim_input',
-                                         ('%i' % dir_counter))
-            if not os.path.isdir(sim_input_dir):
-                os.makedirs(sim_input_dir)
+            # Now loop through the length_steps
+            for k, length_step in enumerate(length_steps):
                 
-            sim_output_dir = os.path.join(base_dir,
-                                          'sim_output',
-                                          ('%i' % dir_counter))
-            if not os.path.isdir(sim_output_dir):
-                os.makedirs(sim_output_dir)
-               
-            # Copy the model and options files to the sim_input dir
-            # adjusting half-sarcomere length as appropriate
-            if (model_struct['relative_to'] == 'this_file'):
-                model_dir = Path(json_analysis_file_string).parent.absolute()
-                orig_model_file = os.path.join(model_dir, mod_f)
-            else:
-                orig_model_file = mod_f
-            
-            # Adjust hsl by loading model, adjusting hsl and re-writing
-            with open(orig_model_file, 'r') as f:
-                m = json.load(f)
-                m['muscle']['initial_hs_length'] = float(hsl)
+                # Update dir_counter
+                dir_counter = dir_counter + 1
                 
-                # Over-ride m_n if appropriate
-                if ('m_n' in pCa_struct):
-                    m['thick_structure']['m_n'] = pCa_struct['m_n']
+                # Create the input and output directories           
+                sim_input_dir = os.path.join(base_dir,
+                                             'sim_input',
+                                             ('%i' % dir_counter))
+                if not os.path.isdir(sim_input_dir):
+                    os.makedirs(sim_input_dir)
                     
-            fn = re.split('/|\\\\', orig_model_file)[-1]
-            model_file = os.path.join(sim_input_dir, fn)
-
-            with open(model_file, 'w') as f:
-                json.dump(m, f, indent=4)
-            
-            # Work out the path for the base options file
-            if (model_struct['relative_to'] == 'this_file'):
-                model_dir = Path(json_analysis_file_string).parent.absolute()
-                orig_options_file = os.path.join(model_dir,
-                                                 model_struct['options_file'])
-            else:
-                orig_options_file = model_struct['options_file']
-
-            # Load the options data
-            with open(orig_options_file, 'r') as f:
-                orig_options_data = json.load(f)
-
-            # Adjust the options struct if we have randomized repeats
-            if ('randomized_repeats' in pCa_struct):
-                rand_repeats = pCa_struct['randomized_repeats']
-                orig_options_data['options']['rand_seed'] = "random"
-            else:
-                rand_repeats = 1
-           
-            # Loop through the pCa values
-            for pCa_counter,pCa in enumerate(pCa_struct['pCa_values']):
+                sim_output_dir = os.path.join(base_dir,
+                                              'sim_output',
+                                              ('%i' % dir_counter))
+                if not os.path.isdir(sim_output_dir):
+                    os.makedirs(sim_output_dir)
+                   
+                # Copy the model and options files to the sim_input dir
+                # adjusting half-sarcomere length as appropriate
+                if (model_struct['relative_to'] == 'this_file'):
+                    model_dir = Path(json_analysis_file_string).parent.absolute()
+                    orig_model_file = os.path.join(model_dir, mod_f)
+                else:
+                    orig_model_file = mod_f
                 
-                # Loop through the rand_repeats, creating a job for each repeat
-                for rep in range(rand_repeats):
+                # Adjust hsl by loading model, adjusting hsl and re-writing
+                with open(orig_model_file, 'r') as f:
+                    m = json.load(f)
+                    m['muscle']['initial_hs_length'] = float(hsl)
                     
-                    # Copy the orig_options_struct for local changes
-                    # within the rep
-                    rep_options_data = copy.deepcopy(orig_options_data)
-                    
-                    # Update the options file to dump to a local directory
-                    if ('status_files' in rep_options_data['options']):
-                        rep_options_data['options']['status_files']['status_folder'] = \
-                            os.path.join(sim_output_dir,
-                                        ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
-                                                      (pCa_counter + 1), (rep+1))))
-                            
-                    if ((pCa_counter==0) and (rep == 0)):
-                        # If it is the first pCa_value for the model and the first rep,
-                        # update the options file to dump rates
-                        rep_options_data['options']['rate_files'] = dict()
-                        rep_options_data['options']['rate_files']['relative_to'] = \
-                            'false'
-                        rep_options_data['options']['rate_files']['file'] = \
-                            os.path.join(sim_output_dir, 'rates.json')
-                    
-                    # Create the new options file
-                    options_file = os.path.join(
-                        sim_input_dir,
-                        ('sim_options_%i_r%i.json' % (pCa_counter+1,
-                                                      rep+1)))
-        
-                    with open(options_file, 'w') as f:
-                            json.dump(rep_options_data, f, indent=4)
+                    # Over-ride m_n if appropriate
+                    if ('m_n' in pCa_struct):
+                        m['thick_structure']['m_n'] = pCa_struct['m_n']
+                        
+                fn = re.split('/|\\\\', orig_model_file)[-1]
+                model_file = os.path.join(sim_input_dir, fn)
     
-                    # Make a protocol, thinking about whether we need smaller
-                    # time steps for k_tr
-                    if not ('k_tr_start_s' in pCa_struct):
-                        n_points = int(pCa_struct['sim_duration_s'] /
-                                       pCa_struct['time_step_s'])
-                        dt = pCa_struct['time_step_s'] * np.ones(n_points)
-                        pCa_vector = pCa * np.ones(n_points)
-                        delta_hsl = np.zeros(n_points)
-                        mode_vector = -2 * np.ones(n_points)
-                    else:
-                        # Pre-phase
-                        pre_points = int(pCa_struct['k_tr_start_s'] /
-                                         pCa_struct['time_step_s'])
-                        pre_dt = pCa_struct['time_step_s'] * np.ones(pre_points)
-                        pre_pCa = pCa * np.ones(pre_points)
-                        pre_delta_hsl = np.zeros(pre_points)
-                        pre_mode_vector = -2 * np.ones(pre_points)
-                        
-                        # k_tr
-                        k_tr_time_step = pCa_struct['time_step_s'] / 10
-                        k_tr_points = int(pCa_struct['k_tr_duration_s'] / k_tr_time_step)
-                        k_tr_ramp_points = int(pCa_struct['k_tr_ramp_s'] / k_tr_time_step)
-                        ramp_inc = pCa_struct['k_tr_magnitude_nm'] / \
-                                    float(k_tr_ramp_points)
-                        
-                        k_tr_dt = k_tr_time_step * np.ones(k_tr_points)
-                        k_tr_pCa = pCa * np.ones(k_tr_points)
-                        k_tr_delta_hsl = np.zeros(k_tr_points)
-                        vi = np.arange(0, k_tr_ramp_points+1)
-                        k_tr_delta_hsl[vi] = -ramp_inc
-                        vi = np.arange(k_tr_points-1-k_tr_ramp_points, k_tr_points)
-                        k_tr_delta_hsl[vi] = ramp_inc
-                        k_tr_mode_vector = -np.ones(k_tr_points)
-
-                        # Post
-                        post_points = int((pCa_struct['sim_duration_s'] -
-                                           pCa_struct['k_tr_start_s'] -
-                                           pCa_struct['k_tr_duration_s']) /
-                                          pCa_struct['time_step_s'])
-                        post_dt = pCa_struct['time_step_s'] * np.ones(post_points)
-                        post_pCa = pCa * np.ones(post_points)
-                        post_delta_hsl = np.zeros(post_points)
-                        post_mode_vector = -2 * np.ones(post_points)
-                        
-                        # Stack together
-                        dt = np.hstack((pre_dt, k_tr_dt, post_dt))
-                        pCa_vector = np.hstack((pre_pCa, k_tr_pCa, post_pCa))
-                        delta_hsl = np.hstack((pre_delta_hsl,
-                                               k_tr_delta_hsl,
-                                               post_delta_hsl))
-                        mode_vector = np.hstack((pre_mode_vector,
-                                                 k_tr_mode_vector,
-                                                 post_mode_vector))
-                    
-                    df = pd.DataFrame({'dt': dt,
-                                       'pCa': pCa_vector,
-                                       'delta_hsl': delta_hsl,
-                                       'mode': mode_vector})
-                    
-                    prot_file_string = os.path.join(sim_input_dir,
-                                                    ('prot_pCa_%.0f_r%i.txt' %
-                                                     (10*pCa, rep+1)))
-                    
-                    # Write protocol if required
-                    if not figures_only:
-                        prot.write_protocol_to_file(df, prot_file_string)
+                with open(model_file, 'w') as f:
+                    json.dump(m, f, indent=4)
                 
-                    # Create the job
-                    j = dict()
-                    j['relative_to'] = 'False'
-                    j['protocol_file'] = prot_file_string
-                    j['results_file'] = os.path.join(sim_output_dir,
-                                                     ('sim_pCa_%.0f_r%i.txt' %
-                                                      (10*pCa, rep+1)))
-                    j['model_file'] = model_file
-                    j['options_file'] = options_file
-                
-                    # If required, create an output_handler and add it to
-                    # the job
-                    if (trace_figures_on == True):
-                        print('Need to fix trace figures')
-                        exit(1)
-                        # Create the structure for the output handler
-                        oh = dict()
-                        oh['templated_images'] = []
-                        tf = dict()
-                        tf['relative_to'] = 'this_file'
+                # Work out the path for the base options file
+                if (model_struct['relative_to'] == 'this_file'):
+                    model_dir = Path(json_analysis_file_string).parent.absolute()
+                    orig_options_file = os.path.join(model_dir,
+                                                     model_struct['options_file'])
+                else:
+                    orig_options_file = model_struct['options_file']
+    
+                # Load the options data
+                with open(orig_options_file, 'r') as f:
+                    orig_options_data = json.load(f)
+    
+                # Adjust the options struct if we have randomized repeats
+                if ('randomized_repeats' in pCa_struct):
+                    rand_repeats = pCa_struct['randomized_repeats']
+                    orig_options_data['options']['rand_seed'] = "random"
+                else:
+                    rand_repeats = 1
+               
+                # Loop through the pCa values
+                for pCa_counter,pCa in enumerate(pCa_struct['pCa_values']):
+                    
+                    # Loop through the rand_repeats, creating a job for each repeat
+                    for rep in range(rand_repeats):
                         
-                        tf['template_file_string'] = os.path.join(
-                                                        '..',
-                                                        base_dir,
-                                                        'template',
-                                                        'template_summary.json')
-                        tf['output_file_string'] = os.path.join(
-                                                        sim_output_dir,
-                                                        ('sim_pCa_%.0f_r%i' %
-                                                         (10*pCa, rep+1)))
-                        tf['output_image_formats'] = pCa_struct['output_image_formats']
-                        oh['templated_images'].append(tf)
+                        # Copy the orig_options_struct for local changes
+                        # within the rep
+                        rep_options_data = copy.deepcopy(orig_options_data)
                         
-                        # Now add it to the job, and write it to file
-                        j['output_handler_file'] = os.path.join(
-                                                    sim_input_dir,
-                                                    ('output_handler_pCa_%.0f_r%i.json' %
-                                                        (10*pCa, rep+1)))
+                        # Update the options file to dump to a local directory
+                        if ('status_files' in rep_options_data['options']):
+                            rep_options_data['options']['status_files']['status_folder'] = \
+                                os.path.join(sim_output_dir,
+                                            ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
+                                                          (pCa_counter + 1), (rep+1))))
+                                
+                        if ((pCa_counter==0) and (rep == 0)):
+                            # If it is the first pCa_value for the model and the first rep,
+                            # update the options file to dump rates
+                            rep_options_data['options']['rate_files'] = dict()
+                            rep_options_data['options']['rate_files']['relative_to'] = \
+                                'false'
+                            rep_options_data['options']['rate_files']['file'] = \
+                                os.path.join(sim_output_dir, 'rates.json')
                         
-                        with open(j['output_handler_file'], 'w') as f:
-                            json.dump(oh, f, indent=4)        
+                        # Create the new options file
+                        options_file = os.path.join(
+                            sim_input_dir,
+                            ('sim_options_%i_r%i.json' % (pCa_counter+1,
+                                                          rep+1)))
+            
+                        with open(options_file, 'w') as f:
+                                json.dump(rep_options_data, f, indent=4)
         
-                    pCa_lc_b['job'].append(j)
+                        # Make a protocol, thinking about whether we need smaller
+                        # time steps for k_tr
+                        if not ('k_tr_start_s' in pCa_struct):
+                            n_points = int(pCa_struct['sim_duration_s'] /
+                                           pCa_struct['time_step_s'])
+                            dt = pCa_struct['time_step_s'] * np.ones(n_points)
+                            pCa_vector = pCa * np.ones(n_points)
+                            delta_hsl = np.zeros(n_points)
+                            mode_vector = -2 * np.ones(n_points)
+                        else:
+                            # Pre-phase
+                            if not ('length_step_nm' in pCa_struct):
+                                pre_points = int(pCa_struct['k_tr_start_s'] /
+                                                 pCa_struct['time_step_s'])
+                                pre_dt = pCa_struct['time_step_s'] * np.ones(pre_points)
+                                pre_pCa = pCa * np.ones(pre_points)
+                                pre_delta_hsl = np.zeros(pre_points)
+                                pre_mode_vector = -2 * np.ones(pre_points)
+                            else:
+                                # Break up pre_ktr period into before length step,
+                                # during length step and after length step
+                                pre_1_points = int(pCa_struct['length_step_s'] /
+                                                   pCa_struct['time_step_s'])
+                                pre_1_dt = pCa_struct['time_step_s'] * np.ones(pre_1_points)
+                                pre_1_delta_hsl = np.zeros(pre_1_points)
+                                pre_1_mode_vector = -2 * np.ones(pre_1_points)
+                                
+                                ramp_time_step = pCa_struct['time_step_s']  / 10
+                                step_ramp_points = int(pCa_struct['length_step_ramp_s'] /
+                                                       ramp_time_step)
+                                step_ramp_dt = ramp_time_step * np.ones(step_ramp_points)
+                                step_ramp_inc = length_step / float(step_ramp_points)
+                                step_ramp_delta_hsl = step_ramp_inc * np.ones(step_ramp_points)
+                                step_ramp_mode_vector = -1 * np.ones(step_ramp_points)
+                                
+                                pre_2_points = int((pCa_struct['k_tr_start_s'] -
+                                                        pCa_struct['length_step_s'] -
+                                                        pCa_struct['length_step_ramp_s']) /
+                                                   pCa_struct['time_step_s'])
+                                pre_2_dt = pCa_struct['time_step_s'] * np.ones(pre_2_points)
+                                pre_2_delta_hsl = np.zeros(pre_2_points)
+                                pre_2_mode_vector = -2 * np.ones(pre_2_points)
+                                
+                                # Assemble into pre arrays
+                                pre_points = pre_1_points + step_ramp_points + pre_2_points
+                                pre_dt = np.hstack((pre_1_dt,
+                                                    step_ramp_dt,
+                                                    pre_2_dt))
+                                pre_pCa = pCa * np.ones(pre_points)
+                                pre_delta_hsl = np.hstack((pre_1_delta_hsl,
+                                                           step_ramp_delta_hsl,
+                                                           pre_2_delta_hsl))
+                                pre_mode_vector = np.hstack((pre_1_mode_vector,
+                                                             step_ramp_mode_vector,
+                                                             pre_2_mode_vector))
+                                
+                            
+                            # k_tr
+                            k_tr_time_step = pCa_struct['time_step_s'] / 10
+                            k_tr_points = int(pCa_struct['k_tr_duration_s'] / k_tr_time_step)
+                            k_tr_ramp_points = int(pCa_struct['k_tr_ramp_s'] / k_tr_time_step)
+                            ramp_inc = pCa_struct['k_tr_magnitude_nm'] / \
+                                        float(k_tr_ramp_points)
+                            
+                            k_tr_dt = k_tr_time_step * np.ones(k_tr_points)
+                            k_tr_pCa = pCa * np.ones(k_tr_points)
+                            k_tr_delta_hsl = np.zeros(k_tr_points)
+                            vi = np.arange(0, k_tr_ramp_points+1)
+                            k_tr_delta_hsl[vi] = -ramp_inc
+                            vi = np.arange(k_tr_points-1-k_tr_ramp_points, k_tr_points)
+                            k_tr_delta_hsl[vi] = ramp_inc
+                            k_tr_mode_vector = -np.ones(k_tr_points)
+    
+                            # Post
+                            post_points = int((pCa_struct['sim_duration_s'] -
+                                               pCa_struct['k_tr_start_s'] -
+                                               pCa_struct['k_tr_duration_s']) /
+                                              pCa_struct['time_step_s'])
+                            post_dt = pCa_struct['time_step_s'] * np.ones(post_points)
+                            post_pCa = pCa * np.ones(post_points)
+                            post_delta_hsl = np.zeros(post_points)
+                            post_mode_vector = -2 * np.ones(post_points)
+                            
+                            # Stack together
+                            dt = np.hstack((pre_dt, k_tr_dt, post_dt))
+                            pCa_vector = np.hstack((pre_pCa, k_tr_pCa, post_pCa))
+                            delta_hsl = np.hstack((pre_delta_hsl,
+                                                   k_tr_delta_hsl,
+                                                   post_delta_hsl))
+                            mode_vector = np.hstack((pre_mode_vector,
+                                                     k_tr_mode_vector,
+                                                     post_mode_vector))
+                        
+                        df = pd.DataFrame({'dt': dt,
+                                           'pCa': pCa_vector,
+                                           'delta_hsl': delta_hsl,
+                                           'mode': mode_vector})
+                        
+                        prot_file_string = os.path.join(sim_input_dir,
+                                                        ('prot_pCa_%.0f_s_%.0f_r%i.txt' %
+                                                         (10*pCa, 10*length_step, rep+1)))
+                        
+                        # Write protocol if required
+                        if not figures_only:
+                            prot.write_protocol_to_file(df, prot_file_string)
+                    
+                        # Create the job
+                        j = dict()
+                        j['relative_to'] = 'False'
+                        j['protocol_file'] = prot_file_string
+                        j['results_file'] = os.path.join(sim_output_dir,
+                                                         ('sim_pCa_%.0f_s_%.0f_r%i.txt' %
+                                                          (10*pCa, 10*length_step, rep+1)))
+                        j['model_file'] = model_file
+                        j['options_file'] = options_file
+                    
+                        # If required, create an output_handler and add it to
+                        # the job
+                        if (trace_figures_on == True):
+                            print('Need to fix trace figures')
+                            exit(1)
+                            # Create the structure for the output handler
+                            oh = dict()
+                            oh['templated_images'] = []
+                            tf = dict()
+                            tf['relative_to'] = 'this_file'
+                            
+                            tf['template_file_string'] = os.path.join(
+                                                            '..',
+                                                            base_dir,
+                                                            'template',
+                                                            'template_summary.json')
+                            tf['output_file_string'] = os.path.join(
+                                                            sim_output_dir,
+                                                            ('sim_pCa_%.0f_r%i' %
+                                                             (10*pCa, rep+1)))
+                            tf['output_image_formats'] = pCa_struct['output_image_formats']
+                            oh['templated_images'].append(tf)
+                            
+                            # Now add it to the job, and write it to file
+                            j['output_handler_file'] = os.path.join(
+                                                        sim_input_dir,
+                                                        ('output_handler_pCa_%.0f_r%i.json' %
+                                                            (10*pCa, rep+1)))
+                            
+                            with open(j['output_handler_file'], 'w') as f:
+                                json.dump(oh, f, indent=4)        
+            
+                        pCa_lc_b['job'].append(j)
 
     # Now create the analysis section
     batch_figs = dict()
@@ -508,6 +555,7 @@ def deduce_fv_properties(json_analysis_file_string,
             m = json.load(f)
             hs_lengths = np.array([m['muscle']['initial_hs_length']])
     
+    
     # Deduce the base_dir
     if ('relative_to' in fv_struct):
         if (fv_struct['relative_to'] == 'this_file'):
@@ -582,13 +630,14 @@ def deduce_fv_properties(json_analysis_file_string,
             # Now loop through the half-sarcomere lengths
             for j, hsl in enumerate(hs_lengths):
                 
-                print('\n')
-                print(hsl)
-                print('\n')
-                
                 # Update dir counter
                 dir_counter = dir_counter + 1
-    
+                
+                if (model_struct['relative_to'] == 'this_file'):
+                    model_dir = Path(json_analysis_file_string).parent.absolute()
+                else:
+                    model_dir = ''
+                    
                 # Create the input and output directories
                 sim_input_dir = os.path.join(base_dir,
                                              'isometric',
@@ -601,15 +650,19 @@ def deduce_fv_properties(json_analysis_file_string,
                                              'isometric',
                                              'sim_output',
                                              ('%i' % dir_counter))
+                
+                # Delete any existing files in output if running simulations
+                if not figures_only:
+                    try:
+                        print('Trying to remove %s' % sim_output_dir)
+                        shutil.rmtree(sim_output_dir, ignore_errors=True)
+                    except OSError as e:
+                        print("Error: %s : %s" % (sim_output_dir, e.strerror))
+                
                 if not os.path.isdir(sim_output_dir):
                     os.makedirs(sim_output_dir)
                 
-                # Copy the model and options files to the sim_input dir
-                if (model_struct['relative_to'] == 'this_file'):
-                    model_dir = Path(json_analysis_file_string).parent.absolute()
-                    orig_model_file = os.path.join(model_dir, mod_f)
-                else:
-                    orig_model_file = mod_f
+                orig_model_file = os.path.join(model_dir, mod_f)
                     
                 # Adjust hsl by loading model, adjusting hsl and re-writing
                 with open(orig_model_file, 'r') as f:
@@ -624,20 +677,39 @@ def deduce_fv_properties(json_analysis_file_string,
                 fn = re.split('/|\\\\', orig_model_file)[-1]
                 iso_model_file = os.path.join(sim_input_dir, fn)
                 
-                print('iso_model_file\n')
-                print(fn)
-                print(iso_model_file)
-                print('\n')
-                
                 with open(iso_model_file, 'w') as f:
                     json.dump(m, f, indent=4)
                         
                 # Copy the base options file
-                orig_options_file = os.path.join(base_dir,
+                orig_options_file = os.path.join(model_dir,
                                                  model_struct['options_file'])
-                fn = orig_options_file.split(os.sep)[-1]
+
+                # Load the options
+                with open(orig_options_file, 'r') as f:
+                    orig_options_data = json.load(f)
+
+                
+                # Copy the orig_options for local changes within the rep
+                rep_options_data = copy.deepcopy(orig_options_data)
+                    
+                # Update the options file to dump to a local directory
+                if ('status_files' in rep_options_data['options']):
+                    rep_options_data['options']['status_files']['relative_to'] = \
+                        'false'
+                    rep_options_data['options']['status_files']['status_folder'] = \
+                        os.path.join(sim_output_dir,
+                                      ('%s' % (rep_options_data['options']['status_files']['status_folder'])))
+                    
+                    # Make the status folder if required
+                    test_dir = rep_options_data['options']['status_files']['status_folder']
+                    if not os.path.isdir(test_dir):
+                        os.makedirs(test_dir)
+               
+                fn = re.split('/|\\\\', orig_options_file)[-1]
                 iso_options_file = os.path.join(sim_input_dir, fn)
-                shutil.copyfile(orig_options_file, iso_options_file)
+                
+                with open(iso_options_file, 'w') as f:
+                    json.dump(rep_options_data, f, indent=4)
             
                 # Create a length control protocol and write it to file
                 df = prot.create_length_control_protocol(
@@ -693,13 +765,7 @@ def deduce_fv_properties(json_analysis_file_string,
                     with open(j['output_handler_file'], 'w') as f:
                         json.dump(oh, f, indent=4)
                         
-                # Delete any existing files in output if running simulations
-                if not figures_only:
-                    try:
-                        print('Trying to remove %s' % sim_output_dir)
-                        shutil.rmtree(sim_output_dir, ignore_errors=True)
-                    except OSError as e:
-                        print("Error: %s : %s" % (sim_output_dir, e.strerror))
+                
     
                 isometric_b['job'].append(j)
     
@@ -771,6 +837,15 @@ def deduce_fv_properties(json_analysis_file_string,
                                           'isotonic',
                                           'sim_output',
                                           ('%i' % dir_counter))
+            
+            # Delete any existing files in output if running simulations
+            if not figures_only:
+                try:
+                    print('Trying to remove %s' % sim_output_dir)
+                    shutil.rmtree(sim_output_dir, ignore_errors=True)
+                except OSError as e:
+                    print("Error: %s : %s" % (sim_output_dir, e.strerror))
+            
             if not os.path.isdir(sim_output_dir):
                 os.makedirs(sim_output_dir)
        
@@ -804,10 +879,20 @@ def deduce_fv_properties(json_analysis_file_string,
                     
                     # Update the options file to dump to a local directory
                     if ('status_files' in rep_options_data['options']):
+                        rep_options_data['options']['status_files']['relative_to'] = \
+                            'false'
+                        last_folder = re.split('/|\\\\',
+                                               rep_options_data['options']['status_files']['status_folder'])[-1]
                         rep_options_data['options']['status_files']['status_folder'] = \
                             os.path.join(sim_output_dir,
-                                          ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
+                                          ('%s_%i_r%i' % (last_folder,
                                                           (k+1), (rep+1))))
+                           
+                        # Make the status folder if required
+                        test_dir = rep_options_data['options']['status_files']['status_folder']
+                        
+                        if not os.path.isdir(test_dir):
+                            os.makedirs(test_dir)
                     
                     # If it is the first force and and the first repeat, update
                     # the options to dump rates
@@ -1113,6 +1198,10 @@ def deduce_freeform_properties(json_analysis_file_string,
                                          ('%i' % dir_counter),
                                          ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
                                                       (prot_counter + 1), (rep+1))))
+                        # Make the status folder if required
+                        test_dir = rep_options_data['options']['status_files']['status_folder']
+                        if not os.path.isdir(test_dir):
+                            os.makedirs(test_dir)
 
                     if ((prot_counter==0) and (rep == 0)):
                         # If it is the first protocol for the model and the first rep,
