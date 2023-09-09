@@ -19,6 +19,9 @@
 #include "kinetic_scheme.h"
 #include "series_component.h"
 
+#include "gsl_vector.h";
+#include "gsl_multiroots.h"
+
 #include "rapidjson\document.h"
 #include "rapidjson\istreamwrapper.h"
 
@@ -30,6 +33,8 @@ struct m_length_control_params
 	double time_step;
 	muscle* p_m;
 };
+
+int length_control_wrapper(const gsl_vector* x, void* params, gsl_vector* f);
 
 struct force_control_params
 {
@@ -249,7 +254,7 @@ void muscle::implement_time_step(int protocol_index)
 		// Branch on control mode
 		sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
 
-		if (sim_mode < 0.0)
+		if (sim_mode >= 0.0)
 		{
 			// Force control
 			force_control_muscle_system();
@@ -257,7 +262,7 @@ void muscle::implement_time_step(int protocol_index)
 		else
 		{
 			// Length control
-			length_control_muscle_system();
+			length_control_muscle_system(protocol_index);
 		}
 	}
 
@@ -345,38 +350,6 @@ void muscle::implement_time_step(int protocol_index)
 				protocol_index, i, gsl_vector_get(p_hs[0]->c_pops, i));
 		}
 	}
-/*
-			
-			p_fs_data->fs_length, protocol_index, p_hs[0]->hs_length);
-	gsl_vector_set(p_fs_data->fs_command_length, protocol_index, p_hs[0]->hs_command_length);
-	gsl_vector_set(p_fs_data->fs_slack_length, protocol_index, p_hs[0]->hs_slack_length);
-	gsl_vector_set(p_fs_data->fs_force, protocol_index, p_hs[0]->hs_force);
-	gsl_vector_set(p_fs_data->fs_titin_force, protocol_index, p_hs[0]->hs_titin_force);
-	gsl_vector_set(p_fs_data->fs_viscous_force, protocol_index, p_hs[0]->hs_viscous_force);
-	gsl_vector_set(p_fs_data->fs_extracellular_force, protocol_index,
-		p_hs[0]->hs_extracellular_force);
-	gsl_vector_set(p_fs_data->fs_pCa, protocol_index, p_hs[0]->pCa);
-
-	gsl_vector_set(p_fs_data->fs_a_length, protocol_index, p_hs[0]->a_mean_fil_length);
-	gsl_vector_set(p_fs_data->fs_m_length, protocol_index, p_hs[0]->m_mean_fil_length);
-
-	// Update pops
-	for (int i = 0; i < p_fs_model->a_no_of_bs_states; i++)
-	{
-		gsl_matrix_set(p_fs_data->fs_a_pops,
-			protocol_index, i, gsl_vector_get(p_hs[0]->a_pops, i));
-	}
-	for (int i = 0; i < p_fs_model->p_m_scheme[0]->no_of_states; i++)
-	{
-		gsl_matrix_set(p_fs_data->fs_m_pops,
-				protocol_index, i, gsl_vector_get(p_hs[0]->m_pops, i));
-	}
-	for (int i = 0; i < p_fs_model->p_c_scheme[0]->no_of_states; i++)
-	{
-		gsl_matrix_set(p_fs_data->fs_c_pops,
-			protocol_index, i, gsl_vector_get(p_hs[0]->c_pops, i));
-	}
-	*/
 
 	// Dump the hs_status files if required
 	if (protocol_index >= (p_fs_options->start_status_time_step - 1))
@@ -511,54 +484,93 @@ void muscle::force_control_muscle_system(void)
 }
 
 
-void muscle::length_control_muscle_system(void)
+void muscle::length_control_muscle_system(int protocol_index)
 {
 	//! Tries to impose length control on a system with a series compliance
 	//! and/or 1 or more half-sarcomeres
 
-	// Try to find an s vector such that the forces in each half-sarcomere
+	// Try to find a vector x such that the forces in each half-sarcomere
 	// and the force in the series elastic element (which is the length
 	// of the muscle - the combined length of the half-sarcomeres)
-	// are all equal
+	// are all equal. The initial guess is called x_init
 
 	// Variables
-	size_t s_length;
+	size_t x_length;
 
-	gsl_vector* s_vector;
+	gsl_vector* x;
 
 	// Code
 
-	// Deduce length of s_vector
-	s_length = p_fs_model->no_of_half_sarcomeres;
+	// Deduce length of x
+	x_length = p_fs_model->no_of_half_sarcomeres;
 
 	if (p_sc != NULL)
-		s_length = s_length + 1;
+		x_length = x_length + 1;
 
-	// Allocate the vector
-	s_vector = gsl_vector_alloc(s_length);
-
+	// Allocate the vectors
+	x = gsl_vector_alloc(x_length);
+	
 	// Now we have to initialize the s_vector, which depends on whether or not we have a series component
 	if (p_sc == NULL)
 	{
 		// The s-vector has (n-1) half-sarcomere lengths followed by the force in the last half-sarcomere
 		for (int hs_counter = 0; hs_counter < (p_fs_model->no_of_half_sarcomeres - 1); hs_counter++)
 		{
-			gsl_vector_set(s_vector, hs_counter, p_hs[hs_counter]->hs_length);
+			gsl_vector_set(x, hs_counter, p_hs[hs_counter]->hs_length);
 		}
-		gsl_vector_set(s_vector, s_length - 1, p_hs[p_fs_model->no_of_half_sarcomeres - 1]->hs_force);
+		gsl_vector_set(x, x_length - 1, p_hs[p_fs_model->no_of_half_sarcomeres - 1]->hs_force);
 	}
 	else
 	{
+		printf("In series_component branch\n");
+
 		// The s-vector has all the half-sarcomere lengths followed by the force in the series component
 		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
 		{
-			gsl_vector_set(s_vector, hs_counter, p_hs[hs_counter]->hs_length);
+			gsl_vector_set(x, hs_counter, p_hs[hs_counter]->hs_length);
 		}
-		gsl_vector_set(s_vector, s_length - 1, p_sc->return_series_force(p_sc->sc_extension));
+		gsl_vector_set(x, x_length - 1, p_sc->return_series_force(p_sc->sc_extension));
 	}
 
+	// Do the root finding
+	const gsl_multiroot_fsolver_type* T;
+	gsl_multiroot_fsolver* s;
+
+	int status;
+	size_t i, iter = 0;
+	const size_t n = x_length;
+
+	struct m_length_control_params* par;
+	par->p_m = this;
+	par->time_step = gsl_vector_get(p_fs_protocol->dt, protocol_index);
+	
+	gsl_multiroot_function f;
+	f.f = &length_control_wrapper;
+	f.n = n;
+	f.params = par;
+
+	T = gsl_multiroot_fsolver_hybrids;
+	s = gsl_multiroot_fsolver_alloc(T, n);
+
+	gsl_multiroot_fsolver_set(s, &f, x);
+
+	printf("\nhello\n");
+	exit(1);
+
+
 	// Tidy up
-	gsl_vector_free(s_vector);
+	gsl_vector_free(x);
+}
+
+int length_control_wrapper(const gsl_vector* x, void* params, gsl_vector* f)
+{
+	struct m_length_control_params* p =
+		(struct m_length_control_params*)params;
+
+	muscle* p_m = p->p_m;
+
+	p_m->check_residuals_for_myofibril_length_control(x, params, f);
+
 }
 
 int muscle::check_residuals_for_myofibril_length_control(
@@ -618,4 +630,6 @@ int muscle::check_residuals_for_myofibril_length_control(
 
 		gsl_vector_set(f, f->size - 1, force_diff);
 	}
+
+	return GSL_SUCCESS;
 }
