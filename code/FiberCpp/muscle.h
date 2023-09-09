@@ -18,6 +18,7 @@ class FiberSim_protocol;
 class FiberSim_options;
 class FiberSim_data;
 class half_sarcomere;
+class series_component;
 
 using namespace std::filesystem;
 
@@ -67,6 +68,12 @@ public:
     */
     void write_rates_file();
 
+    /**
+    */
+    void force_control_muscle_system();
+
+    void length_control_muscle_system();
+
     // Variables
 
     char model_version[_MAX_PATH];      /**< FiberSim version from the model file */
@@ -97,6 +104,8 @@ public:
 
     half_sarcomere * p_hs [MAX_NO_OF_HALF_SARCOMERES];
                                         /**< pointer to an array of half-sarcomere objects */
+
+    series_component* p_sc;             /**< Pointer to a series elastic component */
 
     // Functions
 };

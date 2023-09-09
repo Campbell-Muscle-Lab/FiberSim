@@ -54,6 +54,9 @@
     <ClCompile Include="transition.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="series_component.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FiberSim_model.h">
@@ -96,6 +99,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FiberSim_version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="series_component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

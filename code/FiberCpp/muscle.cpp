@@ -16,6 +16,7 @@
 
 #include "half_sarcomere.h"
 #include "kinetic_scheme.h"
+#include "series_component.h"
 
 #include "rapidjson\document.h"
 #include "rapidjson\istreamwrapper.h"
@@ -48,6 +49,12 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 		p_hs[hs_counter] = new half_sarcomere(p_fs_model, p_fs_options, p_fs_protocol, this, hs_counter);
 	}
 
+	// Make a series component if you need one
+	if (!gsl_isnan(p_fs_model->sc_k_stiff))
+		p_sc = new series_component(p_fs_model, p_fs_options, this);
+	else
+		p_sc = NULL;
+
 	// Dump rate_functions to file
 	if (strlen(p_fs_options->rate_file_string) > 0)
 		write_rates_file();
@@ -68,6 +75,10 @@ muscle::~muscle()
 	{
 		delete p_hs[hs_counter];
 	}
+
+	// Delete the series component if it was created
+	if (p_sc != NULL)
+		delete p_sc;
 
 	// Delete the FiberSim_model object
 	delete p_fs_model;
@@ -153,46 +164,64 @@ void muscle::implement_time_step(int protocol_index)
 		p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_command_length +
 			gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
 
-		// Branch on control mode
-		sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
-
-		// Clever check for comparing sim_mode to -1.0
-		if (gsl_fcmp(sim_mode, -1.0, 1e-3) == 0)
+		if ((p_fs_model->no_of_half_sarcomeres == 1) && (p_sc == NULL))
 		{
-			// Check slack length mode for ktr
-			p_hs[hs_counter]->hs_slack_length =
-				p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
+			// Simplest case of 1 half-sarcomere and no compliance
 
-			// The hs_length cannot be shorter than its slack length
-			new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
-				p_hs[hs_counter]->hs_command_length);
+			// Branch on control mode
+			sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
 
-			adjustment = new_length - p_hs[hs_counter]->hs_length;
+			// Clever check for comparing sim_mode to -1.0
+			if (gsl_fcmp(sim_mode, -1.0, 1e-3) == 0)
+			{
+				// Check slack length mode for ktr
+				p_hs[hs_counter]->hs_slack_length =
+					p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
 
-			// Make the adjustment
-			calculate_x_iterations =
-				p_hs[hs_counter]->implement_time_step(
-					gsl_vector_get(p_fs_protocol->dt, protocol_index),
-					adjustment,
-					sim_mode,
-					gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+				// The hs_length cannot be shorter than its slack length
+				new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
+					p_hs[hs_counter]->hs_command_length);
+
+				adjustment = new_length - p_hs[hs_counter]->hs_length;
+
+				// Make the adjustment
+				calculate_x_iterations =
+					p_hs[hs_counter]->implement_time_step(
+						gsl_vector_get(p_fs_protocol->dt, protocol_index),
+						adjustment,
+						sim_mode,
+						gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+			}
+			else
+			{
+				// Over-write slack length
+				p_hs[hs_counter]->hs_slack_length = GSL_NAN;
+
+				// Normal operation
+				calculate_x_iterations =
+					p_hs[hs_counter]->implement_time_step(
+						gsl_vector_get(p_fs_protocol->dt, protocol_index),
+						gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index),
+						gsl_vector_get(p_fs_protocol->sim_mode, protocol_index),
+						gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+
+				// Update command length with current hs_length
+				// which will have changed in isotonic mode
+				p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_length;
+			}
 		}
 		else
 		{
-			// Over-write slack length
-			p_hs[hs_counter]->hs_slack_length = GSL_NAN;
-
-			// Normal operation
-			calculate_x_iterations =
-				p_hs[hs_counter]->implement_time_step(
-					gsl_vector_get(p_fs_protocol->dt, protocol_index),
-					gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index),
-					gsl_vector_get(p_fs_protocol->sim_mode, protocol_index),
-					gsl_vector_get(p_fs_protocol->pCa, protocol_index));
-
-			// Update command length with current hs_length
-			// which will have changed in isotonic mode
-			p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_length;
+			if (sim_mode < 0.0)
+			{
+				// Force control
+				force_control_muscle_system();
+			}
+			else
+			{
+				// Length control
+				length_control_muscle_system();
+			}
 		}
 
 		if ((protocol_index % 100) == 0)
@@ -370,4 +399,40 @@ void muscle::write_rates_file()
 	fopen_s(&output_file, p_fs_options->rate_file_string, "a");
 	fprintf_s(output_file, "\t\t]\n\t}\n}\n");
 	fclose(output_file);
+}
+
+void muscle::force_control_muscle_system(void)
+{
+
+}
+
+
+void muscle::length_control_muscle_system(void)
+{
+	//! Tries to impose length control on a system with a series compliance
+	//! and/or 1 or more half-sarcomeres
+
+	// Try to find an s vector such that the forces in each half-sarcomere
+	// and the force in the series elastic element (which is the length
+	// of the muscle - the combined length of the half-sarcomeres)
+	// are all equal
+
+	// Variables
+	int s_length;
+
+	gsl_vector* s_vector;
+
+	// Code
+
+	// Deduce length of s_vector
+	s_length = p_fs_model->no_of_half_sarcomeres;
+
+	if (p_sc != NULL)
+		s_length = s_length + 1;
+
+	// Make the vector
+	s_vector = gsl_vector_alloc(s_length);
+
+	// Tidy up
+	gsl_vector_free(s_vector);
 }
