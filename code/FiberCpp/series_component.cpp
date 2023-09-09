@@ -33,6 +33,9 @@ series_component::series_component(
 
 	// Set the initial length to 0
 	sc_extension = 0.0;
+
+	// And the force to 0
+	sc_force = 0.0;
 }
 
 // Destructor

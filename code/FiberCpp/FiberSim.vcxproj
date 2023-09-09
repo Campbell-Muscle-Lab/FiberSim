@@ -170,6 +170,7 @@
     <ClCompile Include="FiberSim_options.cpp" />
     <ClCompile Include="FiberSim_protocol.cpp" />
     <ClCompile Include="half_sarcomere.cpp" />
+    <ClCompile Include="hs_data.cpp" />
     <ClCompile Include="JSON_functions.cpp" />
     <ClCompile Include="kinetic_scheme.cpp" />
     <ClCompile Include="muscle.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="FiberSim_version.h" />
     <ClInclude Include="global_definitions.h" />
     <ClInclude Include="half_sarcomere.h" />
+    <ClInclude Include="hs_data.h" />
     <ClInclude Include="JSON_functions.h" />
     <ClInclude Include="kinetic_scheme.h" />
     <ClInclude Include="muscle.h" />

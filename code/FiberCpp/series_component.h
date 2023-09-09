@@ -37,6 +37,8 @@ public:
 
     double sc_k_stiff;                          /**< double holdering sc stiffness in N m^-1 */
 
+    double sc_force;                            /**< double holding the sc force in N m^-2 */
+
     // Functions
 
     /**

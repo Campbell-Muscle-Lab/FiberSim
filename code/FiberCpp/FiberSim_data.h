@@ -9,8 +9,11 @@
 #include "gsl_vector.h"
 #include "gsl_matrix.h"
 
+#include "global_definitions.h"
+
 class FiberSim_options;
 class FiberSim_model;
+class hs_data;
 
 class FiberSim_data
 {
@@ -50,39 +53,20 @@ public:
 
 	gsl_vector* fs_time;		/**< gsl_vector holding time in second at
 									 each time-point */
-	
-	gsl_vector* fs_pCa;			/**< gsl_vector holding pCa for each time-point */
 
-	gsl_vector* fs_length;		/**< gsl_vector holding hs_length (nm) for each time-point */
+	gsl_vector* fs_m_length;	/**< gsl_vector holding muscle length (nm) for each time-point */
 
-	gsl_vector* fs_command_length;
-								/**< gsl_vector holding command_length for each time point */
+	gsl_vector* fs_m_force;		/**< gsl_vector holding muscle force (N m^-2) for each time-point */
 
-	gsl_vector* fs_slack_length;
-								/**< gsl_vector holding slack length for each time-point */
+	gsl_vector* fs_sc_extension;
+								/**< gsl_vector holding series component extension (nm)
+									 for each time-step */
 
-	gsl_vector* fs_a_length;	/**< gsl_vector holder thin_filament length (nm) for
-										 each time-point */
+	gsl_vector* fs_sc_force;
+								/**< gsl_vector holding series component force
+									 in N m^-2 for each time-step */
 
-	gsl_vector * fs_m_length;	/**< gsl_vector holder thick_filament length (nm) for
-									 each time-point */
-
-	gsl_vector* fs_force;		/**< gsl_vector holding hs_force for each time-point */
-
-	gsl_vector* fs_titin_force;	/**< gsl_vector holding hs_titin_force for each time-point */
-
-	gsl_vector* fs_viscous_force;
-								/**< gsl_vector holding viscous force within half-sarcomere */
-
-	gsl_vector* fs_extracellular_force;
-								/**< gsl_vector holding hs_extracellular_force for each time-point */
-
-	gsl_matrix* fs_a_pops;		/**< gsl_matrix holding the proportion of binding sites
-									 in each state at each time-point */
-
-	gsl_matrix* fs_m_pops;		/**< gsl_matrix holding the proportion of cross-bridges
-									 in each state at each time-point */
-
-	gsl_matrix* fs_c_pops;		/**< gsl_matrix holding the proportion of MyBPC
-									 in each state at each time-point */
+	hs_data* p_hs_data [MAX_NO_OF_HALF_SARCOMERES];
+								/**< pointer to an array of data objects for
+									 individual half-sarcomeres */
 };

@@ -11,6 +11,8 @@
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
 
+#include "gsl_vector.h"
+
 #include "global_definitions.h"
 
 class FiberSim_model;
@@ -74,11 +76,18 @@ public:
 
     void length_control_muscle_system();
 
+    int check_residuals_for_myofibril_length_control(const gsl_vector* x,
+        void* params, gsl_vector* f);
+
     // Variables
 
     char model_version[_MAX_PATH];      /**< FiberSim version from the model file */
 
     int muscle_id;                      /**< integer labeling the muscle */
+
+    double m_length;                    /**< double defining the length of the muscle in nm */
+
+    double m_force;                     /**< double defining the stress in the muscle in N m^-2 */
 
     int dump_status_counter;            /**< Integer used to track which status files
                                              to dump */

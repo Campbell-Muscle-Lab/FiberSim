@@ -13,6 +13,7 @@
 #include "FiberSim_options.h"
 #include "FiberSim_protocol.h"
 #include "FiberSim_data.h"
+#include "hs_data.h"
 
 #include "half_sarcomere.h"
 #include "kinetic_scheme.h"
@@ -22,6 +23,20 @@
 #include "rapidjson\istreamwrapper.h"
 
 namespace fs = std::filesystem;
+
+// Structure used for root-finding for myofibril in length-control mode
+struct m_length_control_params
+{
+	double time_step;
+	muscle* p_m;
+};
+
+struct force_control_params
+{
+	double target_force;
+	double time_step;
+	half_sarcomere* p_hs;
+};
 
 // Constructor
 muscle::muscle(char set_model_file_string[], char set_options_file_string[])
@@ -43,11 +58,19 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 
 	sprintf_s(model_version, _MAX_PATH, p_fs_model->version);
 
+	// Initialize the muscle length, and build it from the half-sarcomeres
+	m_length = 0.0;
+
 	// Now create the half_sarcomeres
 	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
 	{
 		p_hs[hs_counter] = new half_sarcomere(p_fs_model, p_fs_options, p_fs_protocol, this, hs_counter);
+
+		m_length = m_length + p_hs[hs_counter]->hs_length;
 	}
+
+	// Set the muscle force to the force in the last half-sarcomere
+	m_force = p_hs[0]->hs_force;
 
 	// Make a series component if you need one
 	if (!gsl_isnan(p_fs_model->sc_k_stiff))
@@ -156,95 +179,175 @@ void muscle::implement_time_step(int protocol_index)
 	double new_length;						// hs_length if muscle is slack
 	double adjustment;						// length change to implose
 
+	int hs_counter;
+
 	// Code
 
-	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	if ((p_fs_model->no_of_half_sarcomeres == 1) && (p_sc == NULL))
 	{
+		// Simplest case of 1 half-sarcomere and no compliance
+		hs_counter = 0;
+
 		// Update the hs_command_length
 		p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_command_length +
 			gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
 
-		if ((p_fs_model->no_of_half_sarcomeres == 1) && (p_sc == NULL))
+		// Update the muscle length
+		m_length = p_hs[hs_counter]->hs_command_length;
+
+		// Branch on control mode
+		sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
+
+		// Semi-clever check for comparing sim_mode to -1.0
+		if (gsl_fcmp(sim_mode, -1.0, 1e-3) == 0)
 		{
-			// Simplest case of 1 half-sarcomere and no compliance
+			// Check slack length mode for ktr
+			p_hs[hs_counter]->hs_slack_length =
+				p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
 
-			// Branch on control mode
-			sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
+			// The hs_length cannot be shorter than its slack length
+			new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
+				p_hs[hs_counter]->hs_command_length);
 
-			// Clever check for comparing sim_mode to -1.0
-			if (gsl_fcmp(sim_mode, -1.0, 1e-3) == 0)
-			{
-				// Check slack length mode for ktr
-				p_hs[hs_counter]->hs_slack_length =
-					p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
+			adjustment = new_length - p_hs[hs_counter]->hs_length;
 
-				// The hs_length cannot be shorter than its slack length
-				new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
-					p_hs[hs_counter]->hs_command_length);
-
-				adjustment = new_length - p_hs[hs_counter]->hs_length;
-
-				// Make the adjustment
-				calculate_x_iterations =
-					p_hs[hs_counter]->implement_time_step(
-						gsl_vector_get(p_fs_protocol->dt, protocol_index),
-						adjustment,
-						sim_mode,
-						gsl_vector_get(p_fs_protocol->pCa, protocol_index));
-			}
-			else
-			{
-				// Over-write slack length
-				p_hs[hs_counter]->hs_slack_length = GSL_NAN;
-
-				// Normal operation
-				calculate_x_iterations =
-					p_hs[hs_counter]->implement_time_step(
-						gsl_vector_get(p_fs_protocol->dt, protocol_index),
-						gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index),
-						gsl_vector_get(p_fs_protocol->sim_mode, protocol_index),
-						gsl_vector_get(p_fs_protocol->pCa, protocol_index));
-
-				// Update command length with current hs_length
-				// which will have changed in isotonic mode
-				p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_length;
-			}
+			// Make the adjustment
+			calculate_x_iterations =
+				p_hs[hs_counter]->implement_time_step(
+					gsl_vector_get(p_fs_protocol->dt, protocol_index),
+					adjustment,
+					sim_mode,
+					gsl_vector_get(p_fs_protocol->pCa, protocol_index));
 		}
 		else
 		{
-			if (sim_mode < 0.0)
-			{
-				// Force control
-				force_control_muscle_system();
-			}
-			else
-			{
-				// Length control
-				length_control_muscle_system();
-			}
+			// Over-write slack length
+			p_hs[hs_counter]->hs_slack_length = GSL_NAN;
+
+			// Normal operation
+			calculate_x_iterations =
+				p_hs[hs_counter]->implement_time_step(
+					gsl_vector_get(p_fs_protocol->dt, protocol_index),
+					gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index),
+					gsl_vector_get(p_fs_protocol->sim_mode, protocol_index),
+					gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+
+			// Update command length and muscle length with current hs_length
+			// which will have changed in isotonic mode
+			p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_length;
+
+			m_length = p_hs[hs_counter]->hs_command_length;
 		}
 
-		if ((protocol_index % 100) == 0)
+		// Update the muscle force
+		m_force = p_hs[hs_counter]->hs_force;
+	}
+	else
+	{
+		// We have a myofibril
+
+		// Branch on control mode
+		sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
+
+		if (sim_mode < 0.0)
 		{
-			printf("muscle->hs[%i][%i] ->calculate_x_iterations: %i hsl: %.2f force: %g  a[0]: %g  m[0]: %g c[0]: %g\n",
-				hs_counter, protocol_index, (int)calculate_x_iterations,
-				p_hs[hs_counter]->hs_length,
+			// Force control
+			force_control_muscle_system();
+		}
+		else
+		{
+			// Length control
+			length_control_muscle_system();
+		}
+	}
+
+	if ((protocol_index % 100) == 0)
+	{
+		printf("muscle->hs[%i][%i] ->calculate_x_iterations: %i hsl: %.2f force: %g  a[0]: %g  m[0]: %g c[0]: %g\n",
+			hs_counter, protocol_index, (int)calculate_x_iterations,
+			p_hs[hs_counter]->hs_length,
 				p_hs[hs_counter]->hs_force,
 				gsl_vector_get(p_hs[hs_counter]->a_pops, 0),
 				gsl_vector_get(p_hs[hs_counter]->m_pops, 0),
 				gsl_vector_get(p_hs[hs_counter]->c_pops, 0));
-		}
-	}
-
-	if (p_fs_model->no_of_half_sarcomeres > 1)
-	{
-		printf("Muscle::implement_time_step does not yet work with >1 half-sarcomere\n");
-		exit(1);
 	}
 
 	// Update FiberSim_data
+
+	// First the shared variables
 	gsl_vector_set(p_fs_data->fs_time, protocol_index, p_hs[0]->time_s);
-	gsl_vector_set(p_fs_data->fs_length, protocol_index, p_hs[0]->hs_length);
+	gsl_vector_set(p_fs_data->fs_m_length, protocol_index, m_length);
+	gsl_vector_set(p_fs_data->fs_m_force, protocol_index, m_force);
+
+	if (p_sc != NULL)
+	{
+		gsl_vector_set(p_fs_data->fs_sc_extension, protocol_index, p_sc->sc_extension);
+		gsl_vector_set(p_fs_data->fs_sc_force, protocol_index, p_sc->sc_force);
+	}
+
+	// Now the half-sarcomeres
+	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	{
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_pCa,
+			protocol_index,
+			p_hs[hs_counter]->pCa);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_length,
+			protocol_index,
+			p_hs[hs_counter]->hs_length);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_command_length,
+			protocol_index,
+			p_hs[hs_counter]->hs_command_length);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_slack_length,
+			protocol_index,
+			p_hs[hs_counter]->hs_slack_length);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_force,
+			protocol_index,
+			p_hs[hs_counter]->hs_force);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_titin_force,
+			protocol_index,
+			p_hs[hs_counter]->hs_titin_force);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_viscous_force,
+			protocol_index,
+			p_hs[hs_counter]->hs_viscous_force);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_extracellular_force,
+			protocol_index,
+			p_hs[hs_counter]->hs_extracellular_force);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_a_length,
+			protocol_index,
+			p_hs[hs_counter]->a_mean_fil_length);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_m_length,
+			protocol_index,
+			p_hs[hs_counter]->m_mean_fil_length);
+
+		// Update pops
+		for (int i = 0; i < p_fs_model->a_no_of_bs_states; i++)
+		{
+			gsl_matrix_set(p_fs_data->p_hs_data[hs_counter]->hs_a_pops,
+				protocol_index, i, gsl_vector_get(p_hs[hs_counter]->a_pops, i));
+		}
+		for (int i = 0; i < p_fs_model->p_m_scheme[0]->no_of_states; i++)
+		{
+			gsl_matrix_set(p_fs_data->p_hs_data[hs_counter]->hs_m_pops,
+				protocol_index, i, gsl_vector_get(p_hs[0]->m_pops, i));
+		}
+		for (int i = 0; i < p_fs_model->p_c_scheme[0]->no_of_states; i++)
+		{
+			gsl_matrix_set(p_fs_data->p_hs_data[hs_counter]->hs_c_pops,
+				protocol_index, i, gsl_vector_get(p_hs[0]->c_pops, i));
+		}
+	}
+/*
+			
+			p_fs_data->fs_length, protocol_index, p_hs[0]->hs_length);
 	gsl_vector_set(p_fs_data->fs_command_length, protocol_index, p_hs[0]->hs_command_length);
 	gsl_vector_set(p_fs_data->fs_slack_length, protocol_index, p_hs[0]->hs_slack_length);
 	gsl_vector_set(p_fs_data->fs_force, protocol_index, p_hs[0]->hs_force);
@@ -273,9 +376,10 @@ void muscle::implement_time_step(int protocol_index)
 		gsl_matrix_set(p_fs_data->fs_c_pops,
 			protocol_index, i, gsl_vector_get(p_hs[0]->c_pops, i));
 	}
+	*/
 
-		// Dump the hs_status files if required
-		if (protocol_index >= (p_fs_options->start_status_time_step - 1))
+	// Dump the hs_status files if required
+	if (protocol_index >= (p_fs_options->start_status_time_step - 1))
 	{
 		if (protocol_index <= (p_fs_options->stop_status_time_step - 1))
 		{
@@ -418,7 +522,7 @@ void muscle::length_control_muscle_system(void)
 	// are all equal
 
 	// Variables
-	int s_length;
+	size_t s_length;
 
 	gsl_vector* s_vector;
 
@@ -430,9 +534,88 @@ void muscle::length_control_muscle_system(void)
 	if (p_sc != NULL)
 		s_length = s_length + 1;
 
-	// Make the vector
+	// Allocate the vector
 	s_vector = gsl_vector_alloc(s_length);
+
+	// Now we have to initialize the s_vector, which depends on whether or not we have a series component
+	if (p_sc == NULL)
+	{
+		// The s-vector has (n-1) half-sarcomere lengths followed by the force in the last half-sarcomere
+		for (int hs_counter = 0; hs_counter < (p_fs_model->no_of_half_sarcomeres - 1); hs_counter++)
+		{
+			gsl_vector_set(s_vector, hs_counter, p_hs[hs_counter]->hs_length);
+		}
+		gsl_vector_set(s_vector, s_length - 1, p_hs[p_fs_model->no_of_half_sarcomeres - 1]->hs_force);
+	}
+	else
+	{
+		// The s-vector has all the half-sarcomere lengths followed by the force in the series component
+		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		{
+			gsl_vector_set(s_vector, hs_counter, p_hs[hs_counter]->hs_length);
+		}
+		gsl_vector_set(s_vector, s_length - 1, p_sc->return_series_force(p_sc->sc_extension));
+	}
 
 	// Tidy up
 	gsl_vector_free(s_vector);
+}
+
+int muscle::check_residuals_for_myofibril_length_control(
+	const gsl_vector* x, void* params, gsl_vector* f)
+{
+	//! 
+	
+	// Variables
+	struct m_length_control_params* p =
+		(struct m_length_control_params*) params;
+
+	double delta_hsl;
+	double cum_hs_length;
+	double force_diff;
+	
+	// Code
+
+	// The f-vector is the difference between the force in each element and the last element
+	// The length of the last element depends on the length of the others
+	// The calculation depends on whether or not we have a series component
+	if (p_sc == NULL)
+	{
+		printf("not yet implemented\n");
+		exit(1);
+	}
+	else
+	{
+		// The x vector has a series of lengths followed by a muscle force
+		// Calculate the force in each half-sarcomere and compare it to the force
+		// Store up the half-sarcomere lengths as you go, and use that to calculate the length
+		// of the series component
+
+		// We need the force-control params for the calculation
+		struct force_control_params* fp;
+		fp->target_force = gsl_vector_get(x, x->size - 1);
+		fp->time_step = p->time_step;
+
+		// And a series compoent length
+		double test_se_length;
+
+		cum_hs_length = 0.0;
+
+		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		{
+			cum_hs_length = cum_hs_length + p_hs[hs_counter]->hs_length;
+
+			delta_hsl = gsl_vector_get(x, hs_counter) - p_hs[hs_counter]->hs_length;
+
+			force_diff = p_hs[hs_counter]->test_force_for_delta_hsl(delta_hsl, fp);
+
+			gsl_vector_set(f, hs_counter, force_diff);
+		}
+
+		// Now deduce the series elastic force
+		test_se_length = m_length = cum_hs_length;
+		force_diff = p_sc->return_series_force(test_se_length) - fp->target_force;
+
+		gsl_vector_set(f, f->size - 1, force_diff);
+	}
 }
