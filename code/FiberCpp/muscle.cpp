@@ -19,7 +19,7 @@
 #include "kinetic_scheme.h"
 #include "series_component.h"
 
-#include "gsl_vector.h";
+#include "gsl_vector.h"
 #include "gsl_multiroots.h"
 
 #include "rapidjson\document.h"
@@ -532,27 +532,43 @@ void muscle::length_control_muscle_system(int protocol_index)
 		gsl_vector_set(x, x_length - 1, p_sc->return_series_force(p_sc->sc_extension));
 	}
 
+	printf("aa\n");
+
 	// Do the root finding
 	const gsl_multiroot_fsolver_type* T;
 	gsl_multiroot_fsolver* s;
+
+	printf("bb\n");
 
 	int status;
 	size_t i, iter = 0;
 	const size_t n = x_length;
 
-	struct m_length_control_params* par;
+	m_length_control_params* par = new m_length_control_params;
 	par->p_m = this;
 	par->time_step = gsl_vector_get(p_fs_protocol->dt, protocol_index);
 	
-	gsl_multiroot_function f;
-	f.f = &length_control_wrapper;
-	f.n = n;
-	f.params = par;
+	printf("cc\n");
+
+	printf("p_m: %i\n", par->p_m);
+	printf("ts: %g\n", par->time_step);
+	printf("this: %i\n", this);
+	printf("par: %i\n", par);
+
+	gsl_multiroot_function f = { &length_control_wrapper, n, par };
+	
+	printf("dd\n");
 
 	T = gsl_multiroot_fsolver_hybrids;
 	s = gsl_multiroot_fsolver_alloc(T, n);
 
-	gsl_multiroot_fsolver_set(s, &f, x);
+	printf("ee\n");
+
+	int test = gsl_multiroot_fsolver_set(s, &f, x);
+
+	printf("test: %i\n", test);
+
+	printf("ff\n");
 
 	printf("\nhello\n");
 	exit(1);
@@ -560,27 +576,40 @@ void muscle::length_control_muscle_system(int protocol_index)
 
 	// Tidy up
 	gsl_vector_free(x);
+
+	delete par;
 }
 
-int length_control_wrapper(const gsl_vector* x, void* params, gsl_vector* f)
+int length_control_wrapper(const gsl_vector* x, void* p, gsl_vector* f)
 {
-	struct m_length_control_params* p =
-		(struct m_length_control_params*)params;
+	//! This is a wrapper around muscle::check_residuals_for_myofibril_length_control()
+	//! that handles the re-casting of pointers
 
-	muscle* p_m = p->p_m;
+	// Variables
+	int f_return_value;
 
-	p_m->check_residuals_for_myofibril_length_control(x, params, f);
+	struct m_length_control_params* params =
+		(struct m_length_control_params*)p;
 
+	// Code
+
+	muscle* p_m = params->p_m;
+
+	printf("wrapper: p_m: %i\n", p_m);
+
+	f_return_value = p_m->check_residuals_for_myofibril_length_control(x, params, f);
+
+	return f_return_value;
 }
 
 int muscle::check_residuals_for_myofibril_length_control(
-	const gsl_vector* x, void* params, gsl_vector* f)
+	const gsl_vector* x, void* p, gsl_vector* f)
 {
 	//! 
 	
 	// Variables
-	struct m_length_control_params* p =
-		(struct m_length_control_params*) params;
+	struct m_length_control_params* params =
+		(struct m_length_control_params*) p;
 
 	double delta_hsl;
 	double cum_hs_length;
@@ -603,10 +632,16 @@ int muscle::check_residuals_for_myofibril_length_control(
 		// Store up the half-sarcomere lengths as you go, and use that to calculate the length
 		// of the series component
 
+		printf("fc_params\n");
+		printf("params->time_step: %g\n", params->time_step);
+
 		// We need the force-control params for the calculation
-		struct force_control_params* fp;
+		force_control_params* fp = new force_control_params;
 		fp->target_force = gsl_vector_get(x, x->size - 1);
-		fp->time_step = p->time_step;
+		fp->time_step = params->time_step;
+
+		printf("fp->time_step: %g\n", fp->time_step);
+		printf("fp->target_force: %g\n", fp->target_force);
 
 		// And a series compoent length
 		double test_se_length;
@@ -619,16 +654,26 @@ int muscle::check_residuals_for_myofibril_length_control(
 
 			delta_hsl = gsl_vector_get(x, hs_counter) - p_hs[hs_counter]->hs_length;
 
-			force_diff = p_hs[hs_counter]->test_force_for_delta_hsl(delta_hsl, fp);
+			printf("delta_hsl[%i]: %g\n", hs_counter, delta_hsl);
+
+			fp->p_hs = p_hs[hs_counter];
+
+			force_diff = p_hs[hs_counter]->test_force_wrapper(delta_hsl, fp);
 
 			gsl_vector_set(f, hs_counter, force_diff);
 		}
 
 		// Now deduce the series elastic force
-		test_se_length = m_length = cum_hs_length;
+		test_se_length = m_length - cum_hs_length;
 		force_diff = p_sc->return_series_force(test_se_length) - fp->target_force;
 
+		printf("test_se_length: %g\n", test_se_length);
+
+		printf("force_diff: %g\n", force_diff);
+
 		gsl_vector_set(f, f->size - 1, force_diff);
+
+		delete fp;
 	}
 
 	return GSL_SUCCESS;
