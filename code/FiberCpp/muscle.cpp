@@ -550,11 +550,6 @@ void muscle::length_control_muscle_system(int protocol_index)
 	
 	printf("cc\n");
 
-	printf("p_m: %i\n", par->p_m);
-	printf("ts: %g\n", par->time_step);
-	printf("this: %i\n", this);
-	printf("par: %i\n", par);
-
 	gsl_multiroot_function f = { &length_control_wrapper, n, par };
 	
 	printf("dd\n");
@@ -566,7 +561,41 @@ void muscle::length_control_muscle_system(int protocol_index)
 
 	int test = gsl_multiroot_fsolver_set(s, &f, x);
 
-	printf("test: %i\n", test);
+	printf("\nbefore do loop\n");
+
+	do
+	{
+		printf("\nLoop begin\n");
+		for (int i = 0; i < x_length; i++)
+		{
+			printf("x[%i]: %g\n", i, gsl_vector_get(x, i));
+		}
+
+		iter++;
+		status = gsl_multiroot_fsolver_iterate(s);
+
+		printf("iter: %i  status: %i\n", iter, status);
+
+		if (status)
+		{
+			printf("Myofibril multiroot solver break\n");
+			break;
+		}
+
+		status = gsl_multiroot_test_residual(s->f, 1e-9);
+	} while ((status == GSL_CONTINUE) && (iter < 3));
+
+	printf("\nAfter do loop\n");
+	for (int i = 0; i < x_length; i++)
+	{
+		printf("x[%i]: %g\n", i, gsl_vector_get(x, i));
+	}
+
+	gsl_multiroot_fsolver_free(s);
+	gsl_vector_free(x);
+
+
+	
 
 	printf("ff\n");
 
@@ -594,8 +623,6 @@ int length_control_wrapper(const gsl_vector* x, void* p, gsl_vector* f)
 	// Code
 
 	muscle* p_m = params->p_m;
-
-	printf("wrapper: p_m: %i\n", p_m);
 
 	f_return_value = p_m->check_residuals_for_myofibril_length_control(x, params, f);
 
@@ -632,15 +659,18 @@ int muscle::check_residuals_for_myofibril_length_control(
 		// Store up the half-sarcomere lengths as you go, and use that to calculate the length
 		// of the series component
 
-		printf("fc_params\n");
-		printf("params->time_step: %g\n", params->time_step);
+		printf("\nIn residuals\n");
+		for (int i = 0; i < x->size; i++)
+		{
+			printf("x[%i]: %g\t", i, gsl_vector_get(x, i));
+		}
+		printf("\n");
 
 		// We need the force-control params for the calculation
 		force_control_params* fp = new force_control_params;
 		fp->target_force = gsl_vector_get(x, x->size - 1);
 		fp->time_step = params->time_step;
 
-		printf("fp->time_step: %g\n", fp->time_step);
 		printf("fp->target_force: %g\n", fp->target_force);
 
 		// And a series compoent length
@@ -650,7 +680,7 @@ int muscle::check_residuals_for_myofibril_length_control(
 
 		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
 		{
-			cum_hs_length = cum_hs_length + p_hs[hs_counter]->hs_length;
+			cum_hs_length = cum_hs_length + gsl_vector_get(x, hs_counter);
 
 			delta_hsl = gsl_vector_get(x, hs_counter) - p_hs[hs_counter]->hs_length;
 
@@ -667,11 +697,15 @@ int muscle::check_residuals_for_myofibril_length_control(
 		test_se_length = m_length - cum_hs_length;
 		force_diff = p_sc->return_series_force(test_se_length) - fp->target_force;
 
-		printf("test_se_length: %g\n", test_se_length);
-
-		printf("force_diff: %g\n", force_diff);
+		printf("se_length: %g, force_diff: %g\n", test_se_length, force_diff);
 
 		gsl_vector_set(f, f->size - 1, force_diff);
+
+		for (int i = 0; i < x->size; i++)
+		{
+			printf("f[%i]: %g\t", i, gsl_vector_get(f, i));
+		}
+		printf("\n");
 
 		delete fp;
 	}

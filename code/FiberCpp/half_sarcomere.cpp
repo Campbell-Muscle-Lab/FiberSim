@@ -1984,8 +1984,6 @@ void half_sarcomere::myosin_kinetics(double time_step)
     }
 }
 
-
-
 void half_sarcomere::mybpc_kinetics(double time_step)
 {
     //! Code implements mybpc kinetics
