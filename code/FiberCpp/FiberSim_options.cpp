@@ -45,6 +45,12 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     sprintf_s(rate_file_string, _MAX_PATH, "");
                                             /**< default value for rate file string */
 
+    myofibril_force_tolerance = 0.001;      /**< default value for the force tolerance
+                                                 for myofibril multiroot calculations */
+
+    myofibril_max_iterations = 100;         /**< default value for the maximum number of
+                                                 iterations in myofibril multiroot
+                                                 calculations */
 
     // Update values from log file
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
@@ -261,6 +267,18 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     else
     {
         sprintf_s(rand_seed, _MAX_PATH, "");
+    }
+
+    // Check for myofibrils
+    if (JSON_functions::check_JSON_member_exists(options, "myofibrils"))
+    {
+        const rapidjson::Value& myofibrils = options["myofibrils"];
+
+        JSON_functions::check_JSON_member_number(myofibrils, "force_tolerance");
+        myofibril_force_tolerance = myofibrils["force_tolerance"].GetDouble();
+
+        JSON_functions::check_JSON_member_int(myofibrils, "max_iterations");
+        myofibril_max_iterations = myofibrils["max_iterations"].GetInt();
     }
 
     // Now check for logging

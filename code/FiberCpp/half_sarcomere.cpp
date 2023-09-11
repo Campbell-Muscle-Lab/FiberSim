@@ -343,6 +343,66 @@ half_sarcomere::~half_sarcomere()
 
 // Functions
 
+void half_sarcomere::sarcomere_kinetics(double time_step, double set_pCa)
+{
+    //! Code updates the status of the thin, thick, and mybp-c molecules
+
+    // Variables
+
+    // Update the pCa
+    pCa = set_pCa;
+
+    // Map the filaments and run kinetics
+    set_cb_nearest_a_n();
+    set_pc_nearest_a_n();
+
+    // Some of the kinetics are faster than we need to update the positions,
+    // so we can speed up the calculations by updating the kinetics with
+    // small sub-steps
+    int kinetic_repeats = 10;
+    double local_time_step = time_step / (double)kinetic_repeats;
+
+    for (int i = 0; i < kinetic_repeats; i++)
+    {
+        thin_filament_kinetics(local_time_step, pow(10, -pCa));
+        thick_filament_kinetics(local_time_step);
+    }
+
+    // Hold state variables
+    calculate_a_pops();
+    calculate_m_pops();
+    calculate_c_pops();
+}
+
+size_t half_sarcomere::update_lattice(double time_step, double delta_hsl)
+{
+    //! Updates the positions of the nodes and the forces
+
+    // Variables
+    size_t x_solve_iterations;                  // The number of iterations to solve
+                                                // the lattice positions
+
+    // Code
+    if (fabs(delta_hsl) > 0.0)
+    {
+        hs_length = hs_length + delta_hsl;
+        update_f0_vector(delta_hsl);
+    }
+
+    // Calculate positions and deduce force
+    x_solve_iterations = calculate_x_positions();
+
+    unpack_x_vector();
+
+    hs_force = calculate_force(delta_hsl, time_step);
+
+    // Calculate mean filament lengths
+    calculate_mean_filament_lengths();
+
+    // Return
+    return x_solve_iterations;
+}
+
 size_t half_sarcomere::implement_time_step(double time_step,
     double delta_hsl, double sim_mode, double set_pCa)
 {
@@ -364,6 +424,9 @@ size_t half_sarcomere::implement_time_step(double time_step,
     set_cb_nearest_a_n();
     set_pc_nearest_a_n();
 
+    // Some of the kinetics are faster than we need to update the positions,
+    // so we can speed up the calculations by updating the kinetics with
+    // small sub-steps
     int kinetic_repeats = 10;
     double local_time_step = time_step / (double)kinetic_repeats;
 

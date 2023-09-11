@@ -407,6 +407,15 @@ public:
     size_t implement_time_step(double time_step, double delta_hsl, double sim_mode, double pCa);
 
     /**
+    * int update_lattice_positions(double time_step, double delta_hsl)
+    * Applies a length change to the lattice and calculates new forces
+    * @param time_step double defining the simulation time-step in s
+    * @param doubel delta_hsl the half-sarcomere length change in nm
+    * @return no_of_iterations size_t for calculate_x_positions
+    */
+    size_t update_lattice(double time_step, double delta_hsl);
+
+    /**
     * double calculate_force(double delta_hsl, double time_step)
     * @return double holding the average force in a thick filament
     */
@@ -512,6 +521,12 @@ public:
     */
     void set_pc_nearest_a_n(void);
 
+    /**
+    * void sarcomere_kinetics(double time_step, double Ca_conc)
+    * updates the status of each multi-state molecule in the lattice
+    * @return void
+    */
+    void sarcomere_kinetics(double time_step, double Ca_conc);
 
     /**
     * void thin_filament_kinetics(double time_step)

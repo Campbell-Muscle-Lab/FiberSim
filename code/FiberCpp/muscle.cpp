@@ -34,7 +34,7 @@ struct m_length_control_params
 	muscle* p_m;
 };
 
-int length_control_wrapper(const gsl_vector* x, void* params, gsl_vector* f);
+int wrapper_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* params, gsl_vector* f);
 
 struct force_control_params
 {
@@ -176,8 +176,10 @@ void muscle::implement_time_step(int protocol_index)
 	//! Code implements a time-step
 
 	// Variables
-	size_t calculate_x_iterations;			// number of iterations required to solve
-											// half-sarcomere force balance
+	int lattice_iterations;					// number of iterations required to solve
+											// x positions for lattice. If the code is
+											// simulating a myofibril, this is the largest
+											// number of iterations required
 
 	double sim_mode;						// value from protocol file
 
@@ -217,7 +219,7 @@ void muscle::implement_time_step(int protocol_index)
 			adjustment = new_length - p_hs[hs_counter]->hs_length;
 
 			// Make the adjustment
-			calculate_x_iterations =
+			lattice_iterations =
 				p_hs[hs_counter]->implement_time_step(
 					gsl_vector_get(p_fs_protocol->dt, protocol_index),
 					adjustment,
@@ -230,7 +232,7 @@ void muscle::implement_time_step(int protocol_index)
 			p_hs[hs_counter]->hs_slack_length = GSL_NAN;
 
 			// Normal operation
-			calculate_x_iterations =
+			lattice_iterations =
 				p_hs[hs_counter]->implement_time_step(
 					gsl_vector_get(p_fs_protocol->dt, protocol_index),
 					gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index),
@@ -262,14 +264,15 @@ void muscle::implement_time_step(int protocol_index)
 		else
 		{
 			// Length control
-			length_control_muscle_system(protocol_index);
+			lattice_iterations = length_control_myofibril_with_series_compliance(protocol_index);
 		}
 	}
-
 	if ((protocol_index % 100) == 0)
 	{
-		printf("muscle->hs[%i][%i] ->calculate_x_iterations: %i hsl: %.2f force: %g  a[0]: %g  m[0]: %g c[0]: %g\n",
-			hs_counter, protocol_index, (int)calculate_x_iterations,
+		hs_counter = 0;
+
+		printf("muscle->hs[%i][%i] ->lattice_iterations: %i hsl: %.2f force: %g  a[0]: %g  m[0]: %g c[0]: %g\n",
+			hs_counter, protocol_index, lattice_iterations,
 			p_hs[hs_counter]->hs_length,
 				p_hs[hs_counter]->hs_force,
 				gsl_vector_get(p_hs[hs_counter]->a_pops, 0),
@@ -378,6 +381,231 @@ void muscle::implement_time_step(int protocol_index)
 	}
 }
 
+int muscle::length_control_myofibril_with_series_compliance(int protocol_index)
+{
+	//! Tries to impose length control on a system with a series compliance
+	//! and/or 1 or more half-sarcomeres
+
+	// Try to find a vector x such that the forces in each half-sarcomere
+	// and the force in the series elastic element (which is the length
+	// of the muscle - the combined length of the half-sarcomeres)
+	// are all equal. x is filled with an initial guess.
+
+	// Variables
+
+	// Stuff to do with the root finding
+	int status;
+	int myofibril_iterations;
+	size_t x_length;
+	gsl_vector* x;
+
+	// Other stuff
+	double time_step_s;
+	double holder_hs_length;
+
+	int max_lattice_iterations;
+
+	// Code
+
+	printf("\n\nprotocol_index: %i\n", protocol_index);
+
+	// First run the kinetics on each half-sarcomere
+	time_step_s = gsl_vector_get(p_fs_protocol->dt, protocol_index);
+
+	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	{
+		p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
+		p_hs[hs_counter]->sarcomere_kinetics(time_step_s, gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+	}
+/*
+	// Now update the lattice positions to get a new force for each half-sarcomere
+	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	{
+		p_hs[hs_counter]->update_lattice(time_step_s, 0.0);
+	}
+*/
+
+	// Now deduce the length of x
+	x_length = p_fs_model->no_of_half_sarcomeres + 1;
+
+	// Allocate the vector
+	x = gsl_vector_alloc(x_length);
+
+	// The x-vector has all the half-sarcomere lengths followed by the force in the first_half_sarcomere
+	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	{
+		gsl_vector_set(x, hs_counter, p_hs[hs_counter]->hs_length);
+	}
+	gsl_vector_set(x, x_length - 1, p_hs[0]->hs_force);
+
+	// Do the root finding
+	const gsl_multiroot_fsolver_type* T;
+	gsl_multiroot_fsolver* s;
+	const size_t calculation_size = x_length;
+
+	m_length_control_params* par = new m_length_control_params;
+	par->p_m = this;
+	par->time_step = gsl_vector_get(p_fs_protocol->dt, protocol_index);
+
+	gsl_multiroot_function f = { &wrapper_length_control_myofibril_with_series_compliance, calculation_size, par };
+
+	T = gsl_multiroot_fsolver_hybrid;
+	s = gsl_multiroot_fsolver_alloc(T, calculation_size);
+	gsl_multiroot_fsolver_set(s, &f, x);
+
+	myofibril_iterations = 0;
+
+	do
+	{
+		myofibril_iterations++;
+		status = gsl_multiroot_fsolver_iterate(s);
+
+		if (status)
+		{
+			printf("Myofibril multiroot solver break\n");
+			break;
+		}
+
+		status = gsl_multiroot_test_residual(s->f, p_fs_options->myofibril_force_tolerance);
+
+	}
+	while ((status == GSL_CONTINUE) && (myofibril_iterations < p_fs_options->myofibril_max_iterations));
+
+	// Display
+	printf("Myofibril force-balance iterations: %i\n", myofibril_iterations);
+
+	// At this point, the s->x vector contains the lengths of the n half-sarcomeres
+	// followed by the force in the series element
+
+	// Implement the change
+	max_lattice_iterations = 0;
+
+	holder_hs_length = 0.0;
+	
+	for (int hs_counter = 0 ; hs_counter < p_fs_model->no_of_half_sarcomeres ; hs_counter++)
+	{
+		double new_hs_length = gsl_vector_get(s->x, hs_counter);
+		double delta_hsl = new_hs_length - p_hs[hs_counter]->hs_length;
+
+		int lattice_iterations;
+
+		lattice_iterations = p_hs[hs_counter]->update_lattice(time_step_s, delta_hsl);
+		max_lattice_iterations = GSL_MAX(lattice_iterations, max_lattice_iterations);
+
+		holder_hs_length = holder_hs_length + new_hs_length;
+	}
+
+	p_sc->sc_extension = (m_length - holder_hs_length);
+	p_sc->sc_force = p_sc->return_series_force(p_sc->sc_extension);
+
+	// Update muscle force
+	m_force = p_sc->sc_force;
+
+	// Now we have to implement the length changes
+
+
+	// Tidy up
+	gsl_multiroot_fsolver_free(s);
+	gsl_vector_free(x);
+
+	delete par;
+
+	// Return the max number of lattice iterations
+	return max_lattice_iterations;
+}
+
+int wrapper_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* p, gsl_vector* f)
+{
+	//! This is a wrapper around muscle::check_residuals_for_myofibril_length_control()
+	//! that handles the re-casting of pointers
+
+	// Variables
+	int f_return_value;
+
+	struct m_length_control_params* params =
+		(struct m_length_control_params*)p;
+
+	// Code
+
+	muscle* p_m = params->p_m;
+
+	f_return_value = p_m->worker_length_control_myofibril_with_series_compliance(x, params, f);
+
+	return f_return_value;
+}
+
+int muscle::worker_length_control_myofibril_with_series_compliance(
+	const gsl_vector* x, void* p, gsl_vector* f)
+{
+	//! 
+
+	// Variables
+	struct m_length_control_params* params =
+		(struct m_length_control_params*)p;
+
+	double delta_hsl;
+	double cum_hs_length;
+	double force_diff;
+
+	// Code
+
+	// The f-vector is the difference between the force in each half-sarcomere and
+	// the force in the series component
+	// The x vector has a series of lengths followed by a muscle force
+	// Calculate the force in each half-sarcomere and compare it to the force
+	// Store up the half-sarcomere lengths as you go, and use that to calculate the length
+	// of the series component
+
+	// We need the force-control params for the calculation
+	force_control_params* fp = new force_control_params;
+	fp->target_force = gsl_vector_get(x, x->size - 1);
+	fp->time_step = params->time_step;
+
+	printf("fp->target_force: %g\n", fp->target_force);
+
+	// And a series compoent length
+	double test_se_length;
+
+	cum_hs_length = 0.0;
+
+	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	{
+		cum_hs_length = cum_hs_length + gsl_vector_get(x, hs_counter);
+
+		delta_hsl = gsl_vector_get(x, hs_counter) - p_hs[hs_counter]->hs_length;
+
+		printf("delta_hsl[%i]: %g\n", hs_counter, delta_hsl);
+
+		fp->p_hs = p_hs[hs_counter];
+
+		force_diff = p_hs[hs_counter]->test_force_wrapper(delta_hsl, fp);
+
+		gsl_vector_set(f, hs_counter, force_diff);
+	}
+
+	// Now deduce the series elastic force
+	test_se_length = m_length - cum_hs_length;
+	force_diff = p_sc->return_series_force(test_se_length) - fp->target_force;
+
+	//printf("se_length: %g, force_diff: %g\n", test_se_length, force_diff);
+
+	gsl_vector_set(f, f->size - 1, force_diff);
+
+	/*
+	printf("After calcs\n");
+	for (int i = 0; i < x->size; i++)
+	{
+		printf("x[%i]: %g\tf[%i]: %g\t", i, gsl_vector_get(x, i), i, gsl_vector_get(f, i));
+	}
+	printf("\n");
+	*/
+
+	delete fp;
+
+	return GSL_SUCCESS;
+}
+
+
 void muscle::write_rates_file()
 {
 	//! Function writes the m and c rate functions to file in JSON format
@@ -484,231 +712,4 @@ void muscle::force_control_muscle_system(void)
 }
 
 
-void muscle::length_control_muscle_system(int protocol_index)
-{
-	//! Tries to impose length control on a system with a series compliance
-	//! and/or 1 or more half-sarcomeres
 
-	// Try to find a vector x such that the forces in each half-sarcomere
-	// and the force in the series elastic element (which is the length
-	// of the muscle - the combined length of the half-sarcomeres)
-	// are all equal. The initial guess is called x_init
-
-	// Variables
-	size_t x_length;
-
-	gsl_vector* x;
-
-	// Code
-
-	// Deduce length of x
-	x_length = p_fs_model->no_of_half_sarcomeres;
-
-	if (p_sc != NULL)
-		x_length = x_length + 1;
-
-	// Allocate the vectors
-	x = gsl_vector_alloc(x_length);
-	
-	// Now we have to initialize the s_vector, which depends on whether or not we have a series component
-	if (p_sc == NULL)
-	{
-		// The s-vector has (n-1) half-sarcomere lengths followed by the force in the last half-sarcomere
-		for (int hs_counter = 0; hs_counter < (p_fs_model->no_of_half_sarcomeres - 1); hs_counter++)
-		{
-			gsl_vector_set(x, hs_counter, p_hs[hs_counter]->hs_length);
-		}
-		gsl_vector_set(x, x_length - 1, p_hs[p_fs_model->no_of_half_sarcomeres - 1]->hs_force);
-	}
-	else
-	{
-		printf("In series_component branch\n");
-
-		// The s-vector has all the half-sarcomere lengths followed by the force in the series component
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
-		{
-			gsl_vector_set(x, hs_counter, p_hs[hs_counter]->hs_length);
-		}
-		gsl_vector_set(x, x_length - 1, p_sc->return_series_force(p_sc->sc_extension));
-	}
-
-	printf("aa\n");
-
-	// Do the root finding
-	const gsl_multiroot_fsolver_type* T;
-	gsl_multiroot_fsolver* s;
-
-	printf("bb\n");
-
-	int status;
-	size_t i, iter = 0;
-	const size_t n = x_length;
-
-	m_length_control_params* par = new m_length_control_params;
-	par->p_m = this;
-	par->time_step = gsl_vector_get(p_fs_protocol->dt, protocol_index);
-	
-	printf("cc\n");
-
-	gsl_multiroot_function f = { &length_control_wrapper, n, par };
-	
-	printf("dd\n");
-
-	T = gsl_multiroot_fsolver_hybrids;
-	s = gsl_multiroot_fsolver_alloc(T, n);
-
-	printf("ee\n");
-
-	int test = gsl_multiroot_fsolver_set(s, &f, x);
-
-	printf("\nbefore do loop\n");
-
-	do
-	{
-		printf("\nLoop begin\n");
-		for (int i = 0; i < x_length; i++)
-		{
-			printf("x[%i]: %g\n", i, gsl_vector_get(x, i));
-		}
-
-		iter++;
-		status = gsl_multiroot_fsolver_iterate(s);
-
-		printf("iter: %i  status: %i\n", iter, status);
-
-		if (status)
-		{
-			printf("Myofibril multiroot solver break\n");
-			break;
-		}
-
-		status = gsl_multiroot_test_residual(s->f, 1e-9);
-	} while ((status == GSL_CONTINUE) && (iter < 3));
-
-	printf("\nAfter do loop\n");
-	for (int i = 0; i < x_length; i++)
-	{
-		printf("x[%i]: %g\n", i, gsl_vector_get(x, i));
-	}
-
-	gsl_multiroot_fsolver_free(s);
-	gsl_vector_free(x);
-
-
-	
-
-	printf("ff\n");
-
-	printf("\nhello\n");
-	exit(1);
-
-
-	// Tidy up
-	gsl_vector_free(x);
-
-	delete par;
-}
-
-int length_control_wrapper(const gsl_vector* x, void* p, gsl_vector* f)
-{
-	//! This is a wrapper around muscle::check_residuals_for_myofibril_length_control()
-	//! that handles the re-casting of pointers
-
-	// Variables
-	int f_return_value;
-
-	struct m_length_control_params* params =
-		(struct m_length_control_params*)p;
-
-	// Code
-
-	muscle* p_m = params->p_m;
-
-	f_return_value = p_m->check_residuals_for_myofibril_length_control(x, params, f);
-
-	return f_return_value;
-}
-
-int muscle::check_residuals_for_myofibril_length_control(
-	const gsl_vector* x, void* p, gsl_vector* f)
-{
-	//! 
-	
-	// Variables
-	struct m_length_control_params* params =
-		(struct m_length_control_params*) p;
-
-	double delta_hsl;
-	double cum_hs_length;
-	double force_diff;
-	
-	// Code
-
-	// The f-vector is the difference between the force in each element and the last element
-	// The length of the last element depends on the length of the others
-	// The calculation depends on whether or not we have a series component
-	if (p_sc == NULL)
-	{
-		printf("not yet implemented\n");
-		exit(1);
-	}
-	else
-	{
-		// The x vector has a series of lengths followed by a muscle force
-		// Calculate the force in each half-sarcomere and compare it to the force
-		// Store up the half-sarcomere lengths as you go, and use that to calculate the length
-		// of the series component
-
-		printf("\nIn residuals\n");
-		for (int i = 0; i < x->size; i++)
-		{
-			printf("x[%i]: %g\t", i, gsl_vector_get(x, i));
-		}
-		printf("\n");
-
-		// We need the force-control params for the calculation
-		force_control_params* fp = new force_control_params;
-		fp->target_force = gsl_vector_get(x, x->size - 1);
-		fp->time_step = params->time_step;
-
-		printf("fp->target_force: %g\n", fp->target_force);
-
-		// And a series compoent length
-		double test_se_length;
-
-		cum_hs_length = 0.0;
-
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
-		{
-			cum_hs_length = cum_hs_length + gsl_vector_get(x, hs_counter);
-
-			delta_hsl = gsl_vector_get(x, hs_counter) - p_hs[hs_counter]->hs_length;
-
-			printf("delta_hsl[%i]: %g\n", hs_counter, delta_hsl);
-
-			fp->p_hs = p_hs[hs_counter];
-
-			force_diff = p_hs[hs_counter]->test_force_wrapper(delta_hsl, fp);
-
-			gsl_vector_set(f, hs_counter, force_diff);
-		}
-
-		// Now deduce the series elastic force
-		test_se_length = m_length - cum_hs_length;
-		force_diff = p_sc->return_series_force(test_se_length) - fp->target_force;
-
-		printf("se_length: %g, force_diff: %g\n", test_se_length, force_diff);
-
-		gsl_vector_set(f, f->size - 1, force_diff);
-
-		for (int i = 0; i < x->size; i++)
-		{
-			printf("f[%i]: %g\t", i, gsl_vector_get(f, i));
-		}
-		printf("\n");
-
-		delete fp;
-	}
-
-	return GSL_SUCCESS;
-}

@@ -48,7 +48,15 @@ public:
                                              https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1635681/
                                              for justification */
 
-   char rand_seed[_MAX_PATH];         /**< char array controlling seeding of the random number generator
+    double myofibril_force_tolerance;   /**< double defining the force tolerance for myofibril
+                                             multiroot calcuations. Lower values cause the force
+                                             to be balanced more accurately. Typical values are 1e-3 */
+
+    int myofibril_max_iterations;       /**< int defining the maximum number of iterations for
+                                             myofibril force balance. We are in trouble if the
+                                             code doesn't coverge in a few tens */
+
+    char rand_seed[_MAX_PATH];          /**< char array controlling seeding of the random number generator
                                              If string can be converted to a long int, the long int is
                                              included in the random seed
                                              If string == "random", the seed includes a component based
