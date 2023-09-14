@@ -250,7 +250,7 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
 
     if (JSON_functions::is_JSON_member(options, "hs_force_control_max_delta_hs_length"))
     {
-        JSON_functions::check_JSON_member_number(options, "hs_force_control_max_delta_hsl_length");
+        JSON_functions::check_JSON_member_number(options, "hs_force_control_max_delta_hs_length");
         hs_force_control_max_delta_hs_length = options["hs_force_control_max_delta_hs_length"].GetDouble();
     }
 
