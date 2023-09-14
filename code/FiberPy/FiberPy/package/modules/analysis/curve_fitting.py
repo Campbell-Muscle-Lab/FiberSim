@@ -17,8 +17,11 @@ def fit_pCa_data(x,y):
     """ Fits Hill-curve to x-y data """
 
     def y_pCa(x_data, pCa_50, n_H, y_min, y_amp):
+        
         y = np.zeros(len(x_data))
         for i,x in enumerate(x_data):
+           
+            x = float(x)
             y[i] = y_min + \
                 y_amp * (np.power(np.power(10, -x), n_H) /
                 (np.power(np.power(10, -x), n_H) + 
@@ -26,14 +29,14 @@ def fit_pCa_data(x,y):
         return y
 
     try:
-        min_bounds = [3.0, 0.01, 0.0, 0]
+        min_bounds = [3.0, 0.01, -np.inf, 0]
         max_bounds = [10.0, 100.0, np.inf, np.inf]
         popt, pcov = curve_fit(y_pCa, x, y,
                                [6.0, 2, np.amax([0, np.amin(y)]), np.amax([0, np.amax(y)])],
                                bounds=(min_bounds, max_bounds))
     except:
         print('fit_pCa_data failed')
-        popt = [6.0, 2.0, 0.0, 1.0]
+        popt = [6.1, 2.1, 0.1, 1.0]
 
     d = dict()
     d['pCa_50'] = popt[0]

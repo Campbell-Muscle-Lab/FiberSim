@@ -138,7 +138,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     data_file_string = \
                         os.path.join(curve_folder, file)
                     d = pd.read_csv(data_file_string, delimiter='\t')
-                    pCa_values[curve_counter-1].append(d['pCa'].iloc[-1])
+                    pCa_values[curve_counter-1].append(d['hs_1_pCa'].iloc[-1])
                     y = formatting['y_scaling_factor'] * \
                             d[fig_data['data_field']].iloc[-50:-1].mean() # take the mean force over last 50 points
                     y_values[curve_counter-1].append(y)
@@ -148,8 +148,8 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     # Store data for subsequent output
                     curve_index.append(curve_counter)
                     hs_force.append(y)
-                    hs_pCa.append(d['pCa'].iloc[-1])
-                    hs_length.append(d['hs_length'].iloc[-1])
+                    hs_pCa.append(d['hs_1_pCa'].iloc[-1])
+                    hs_length.append(d['hs_1_length'].iloc[-1])
 
             # Add in curve
             res=cv.fit_pCa_data(pCa_values[curve_counter-1],
@@ -1516,7 +1516,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                                        fig_data['results_folder'])
     else:
         top_data_folder = fig_data['results_folder']
-
+        
     # Loop through data folders
     model_counter = 1
     keep_going = True
@@ -1555,11 +1555,14 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
         for file in os.listdir(condition_folder):
             if ((file.endswith('.txt')) and not file.endswith('rates.txt')):
                 fs = os.path.join(condition_folder, file)
-                d = pd.read_csv(fs, sep='\t')
+                d = pd.read_csv(fs, sep='\t', na_values=['-nan(ind)'])
                 
-                if (file_counter == 1):
+                # Force to numeric
+                
+                if ((i==0) and (file_counter == 1)):
                     # Check for series compliance to determine how to
                     # make the figure
+                    print(d)
                     if (d['sc_extension'].max() > 0):
                         no_of_rows = 7
                         pCa_row = 1
@@ -1886,7 +1889,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                     # Pull off time offset
                     x = d_fit['time'].to_numpy()
                     x = x - x[0]
-                    y = d_fit['force'].to_numpy()
+                    y = d_fit['hs_1_force'].to_numpy()
                     try:
                         k_tr_data = cv.fit_exponential_recovery(x,y)
                     except:
@@ -1898,11 +1901,11 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
 
                     # Store some values
                     curve.append(curve_counter)
-                    force.append(d['force'].iloc[-1])
+                    force.append(d['hs_1_force'].iloc[-1])
                     k_tr.append(k_tr_data['k'])
                     k_tr_amp.append(k_tr_data['amp'])
-                    pCa.append(d['pCa'].iloc[-1])
-                    hs_length.append(d['hs_length'].iloc[-1])
+                    pCa.append(d['hs_1_pCa'].iloc[-1])
+                    hs_length.append(d['hs_1_length'].iloc[-1])
                     k_tr_r_squared.append(k_tr_data['r_squared'])
 
                     d_fit['x_fit'] = k_tr_data['x_fit'] + d_fit['time'].iloc[0]
@@ -1971,14 +1974,14 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                     (0.2 * (d_fit['time'].iloc[-1] - d_fit['time'].iloc[0]))
                 d_raw = d_raw[d_raw['time'] > t_draw_start_s]
 
-                ax_force.plot(d_raw['time'], d_raw['force'],
+                ax_force.plot(d_raw['time'], d_raw['hs_1_force'],
                               color = formatting['color_set'][c_ind])
                 ax_force.plot(d_fit['time'], d_fit['y_fit'], color='k')
 
                 # Now the lengths
-                ax_hsl.plot(d_raw['time'], d_raw['hs_command_length'],
+                ax_hsl.plot(d_raw['time'], d_raw['hs_1_command_length'],
                               color = 'k')
-                ax_hsl.plot(d_raw['time'], d_raw['hs_length'],
+                ax_hsl.plot(d_raw['time'], d_raw['hs_1_length'],
                               color = formatting['color_set'][c_ind])
 
             # Now draw the plots

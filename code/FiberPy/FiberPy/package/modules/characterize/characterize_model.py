@@ -37,8 +37,13 @@ def characterize_model(json_analysis_file_string):
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
         anal_struct = json_data['FiberSim_characterization']
+        
+    # If there is a manipulations section, use that to create the
+    # appropriate models
+    if ("manipulations" in anal_struct):
+        generate_model_files(anal_struct['manipulations'])
    
-    # Pull of the characterization tasks
+    # Pull off the characterization tasks
     char_struct = anal_struct['characterization']
     for ch in char_struct:
         if (ch['type'] == 'pCa_length_control'):
@@ -404,7 +409,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     fig = dict()
     fig['relative_to'] = "False"
     fig['results_folder'] = output_dir
-    fig['data_field'] = 'force'
+    fig['data_field'] = 'hs_1_force'
     fig['output_data_file_string'] = os.path.join(output_dir,
                                                   'pCa_analysis.xlsx')
     fig['output_image_file'] = os.path.join(output_dir,
@@ -420,21 +425,21 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
 
     func_output['pCa_analysis_file_string'] = fig['output_data_file_string']
 
-    # pCa curves - NORMALIZED
-    fig = dict()
-    fig['relative_to'] = "False"
-    fig['results_folder'] = os.path.join(output_dir)
-    fig['data_field'] = 'force'
-    fig['output_image_file'] = os.path.join(output_dir,
-                                            'force_pCa_normalized')
-    fig['output_image_formats'] = pCa_struct['output_image_formats']
+    # # pCa curves - NORMALIZED
+    # fig = dict()
+    # fig['relative_to'] = "False"
+    # fig['results_folder'] = os.path.join(output_dir)
+    # fig['data_field'] = 'force'
+    # fig['output_image_file'] = os.path.join(output_dir,
+    #                                         'force_pCa_normalized')
+    # fig['output_image_formats'] = pCa_struct['output_image_formats']
 
-    fig['formatting'] = dict()
-    fig['formatting']['y_axis_label'] = 'Normalized \n force'
-    fig['formatting']['y_normalized'] = 'True'
-    fig['formatting']['y_label_pad'] = 20
+    # fig['formatting'] = dict()
+    # fig['formatting']['y_axis_label'] = 'Normalized \n force'
+    # fig['formatting']['y_normalized'] = 'True'
+    # fig['formatting']['y_label_pad'] = 20
 
-    batch_figs['pCa_curves'].append(fig)
+    # batch_figs['pCa_curves'].append(fig)
 
     # Rates
     batch_figs['rates'] = []

@@ -74,11 +74,11 @@ public:
     */
     void force_control_muscle_system();
 
-    int length_control_myofibril_with_series_compliance(int protocol_index);
+    size_t length_control_myofibril_with_series_compliance(int protocol_index);
 
     //int wrapper_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* p, gsl_vector* f);
 
-    int worker_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* p, gsl_vector* f);
+    size_t worker_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* p, gsl_vector* f);
 
     //int length_control_wrapper(const gsl_vector* x, void* params, gsl_vector* f);
 

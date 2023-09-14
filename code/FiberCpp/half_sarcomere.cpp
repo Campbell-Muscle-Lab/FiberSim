@@ -495,7 +495,7 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force, double
     gsl_root_fsolver* s;
     double r = 0.0;
     double x_lo = -hs_length;
-    double x_hi = 1000.0;
+    double x_hi = p_fs_options->hs_force_control_max_delta_hs_length;
     struct force_control_params params = { target_force, time_step, this };
 
     gsl_function F;
