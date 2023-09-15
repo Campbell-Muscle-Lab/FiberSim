@@ -151,7 +151,17 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
 
     // Check if the series elastic component is specified
     if (JSON_functions::check_JSON_member_exists(mus, "sc_k_stiff"))
-        sc_k_stiff = mus["sc_k_stiff"].GetDouble();
+    {
+        // Is it a number
+        if (JSON_functions::valid_JSON_member_number(mus, "sc_k_stiff"))
+        {
+            sc_k_stiff = mus["sc_k_stiff"].GetDouble();
+        }
+        else
+        {
+            sc_k_stiff = GSL_NAN;
+        }
+    }
     else
         sc_k_stiff = GSL_NAN;
 

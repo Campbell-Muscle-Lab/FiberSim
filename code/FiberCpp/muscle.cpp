@@ -497,7 +497,7 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 
 		if (status)
 		{
-			printf("Myofibril multiroot solver break - Status: %i\n", status);
+			printf("Myofibril multiroot solver break - Status: %i\t", status);
 
 			if (status == GSL_EBADFUNC)
 			{

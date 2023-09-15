@@ -2442,6 +2442,7 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
 
                     if (gsl_isnan(prob))
                     {
+                        printf("node_force: %g\n", node_force);
                         printf("isnan, stopping\n");
                         exit(1);
                     }
