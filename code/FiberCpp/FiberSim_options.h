@@ -52,6 +52,11 @@ public:
                                              https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1635681/
                                              for justification */
 
+    int myofibril_multithreading;       /**< int defining whether to implement multi-threading
+                                             for myofibril calculations
+                                             1 means yes
+                                             0 means no */
+
     double myofibril_force_tolerance;   /**< double defining the force tolerance for myofibril
                                              multiroot calcuations. Lower values cause the force
                                              to be balanced more accurately. Typical values are 1e-3 */

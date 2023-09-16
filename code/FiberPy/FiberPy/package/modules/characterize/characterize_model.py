@@ -9,6 +9,7 @@ import json
 import shutil
 import copy
 import re
+import subprocess
 
 
 from natsort import natsorted
@@ -64,6 +65,23 @@ def characterize_model(json_analysis_file_string):
             characterize_fv_with_pCa_and_isometric_force(
                 json_analysis_file_string,
                 ch)
+            
+        # Run post-Python_function
+        if ('post_sim_Python_call' in ch):
+            post_sim_Python_call(json_analysis_file_string, ch)
+            
+def post_sim_Python_call(json_analysis_file_string, char_struct):
+    
+    if (char_struct['relative_to'] == 'this_file'):
+        working_dir = Path(json_analysis_file_string).parent.absolute()
+    
+    command_string = 'python %s' % (os.path.join(working_dir,
+                                                 char_struct['post_sim_Python_call']))
+    
+    subprocess.call(command_string)
+    
+    
+    
         
 def generate_model_files(json_analysis_file_string):
     """ Clones base model with modifications to facilitate comparisons """

@@ -292,6 +292,9 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
 
         JSON_functions::check_JSON_member_number(myofibrils, "max_delta_hs_length");
         myofibril_max_delta_hs_length = myofibrils["max_delta_hs_length"].GetDouble();
+
+        JSON_functions::check_JSON_member_int(myofibrils, "multithreading");
+        myofibril_multithreading = myofibrils["multithreading"].GetInt();
     }
 
     // Now check for logging

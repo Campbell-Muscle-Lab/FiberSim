@@ -41,8 +41,6 @@ series_component::series_component(
 // Destructor
 series_component::~series_component()
 {
-	printf("\n\nsc_k_stiff: %g\n\n", sc_k_stiff);
-
 	// Tidy up
 }
 
