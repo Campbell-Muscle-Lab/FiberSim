@@ -22,6 +22,8 @@
 #include "gsl_vector.h"
 #include "gsl_multiroots.h"
 
+#include <thread>
+
 #include "rapidjson\document.h"
 #include "rapidjson\istreamwrapper.h"
 
@@ -396,6 +398,11 @@ void muscle::implement_time_step(int protocol_index)
 	}
 }
 
+void thread_sarcomere_kinetics(half_sarcomere* p_hs, double time_step, double pCa_value)
+{
+	p_hs->sarcomere_kinetics(time_step, pCa_value);
+}
+
 size_t muscle::length_control_myofibril_with_series_compliance(int protocol_index)
 {
 	//! Tries to impose length control on a system with a series compliance
@@ -430,10 +437,30 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 	// Now run the kinetics on each half-sarcomere
 	time_step_s = gsl_vector_get(p_fs_protocol->dt, protocol_index);
 
+	std::thread p_threads[MAX_NO_OF_HALF_SARCOMERES];
+
 	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
 	{
 		p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
-		p_hs[hs_counter]->sarcomere_kinetics(time_step_s, gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+
+		if (1)
+		{
+			p_threads[hs_counter] = std::thread(thread_sarcomere_kinetics, p_hs[hs_counter], time_step_s,
+				gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+
+		}
+		else
+		{
+			p_hs[hs_counter]->sarcomere_kinetics(time_step_s, gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+		}
+	}
+
+	if (1)
+	{
+		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		{
+			p_threads[hs_counter].join();
+		}
 	}
 
 	// Now deduce the length of x
@@ -584,6 +611,11 @@ int wrapper_length_control_myofibril_with_series_compliance(const gsl_vector* x,
 	return f_return_value;
 }
 
+void thread_test_force_wrapper(half_sarcomere* p_hs, double delta_hsl, force_control_params* fp)
+{
+	p_hs->thread_return_value = p_hs->test_force_wrapper(delta_hsl, fp);
+}
+
 size_t muscle::worker_length_control_myofibril_with_series_compliance(
 	const gsl_vector* x, void* p, gsl_vector* f)
 {
@@ -607,14 +639,30 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 	// of the series component
 
 	// We need the force-control params for the calculation
+
 	force_control_params* fp = new force_control_params;
 	fp->target_force = gsl_vector_get(x, x->size - 1);
 	fp->time_step = params->time_step;
+
+	// Need an array of force-control points, one for each thread
+	force_control_params* f_p[MAX_NO_OF_HALF_SARCOMERES];
+
+	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	{
+		f_p[hs_counter] = new force_control_params();
+		f_p[hs_counter]->target_force = gsl_vector_get(x, x->size - 1);
+		f_p[hs_counter]->time_step = params->time_step;
+		f_p[hs_counter]->p_hs = p_hs[hs_counter];
+	}
 
 	// And a series compoent length
 	double test_se_length;
 
 	cum_hs_length = 0.0;
+
+	std::thread p_threads[MAX_NO_OF_HALF_SARCOMERES];
+
+	int mt = 1;
 
 	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
 	{
@@ -630,11 +678,27 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 
 		fp->p_hs = p_hs[hs_counter];
 
-		force_diff = p_hs[hs_counter]->test_force_wrapper(delta_hsl, fp);
+		if (mt)
+		{
+			p_threads[hs_counter] = std::thread(thread_test_force_wrapper, p_hs[hs_counter], delta_hsl, f_p[hs_counter]);
+		}
+		else
+		{
+			force_diff = p_hs[hs_counter]->test_force_wrapper(delta_hsl, fp);
 
-		//printf("dhsl: %g\t\tforce_diff: %g\n", delta_hsl, force_diff);
+			gsl_vector_set(f, hs_counter, force_diff);
+		}
+	}
 
-		gsl_vector_set(f, hs_counter, force_diff);
+	if (mt)
+	{
+		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		{
+			p_threads[hs_counter].join();
+			gsl_vector_set(f, hs_counter, p_hs[hs_counter]->thread_return_value);
+
+			delete f_p[hs_counter];
+		}
 	}
 
 	// Now deduce the series elastic force

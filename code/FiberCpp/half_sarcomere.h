@@ -280,6 +280,9 @@ public:
     // Random numbers
     gsl_rng* rand_generator;        /**< pointer to a random number generator */
 
+    // Thread return value
+    double thread_return_value;
+
     // Functions
 
      /**
