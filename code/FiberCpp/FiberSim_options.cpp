@@ -56,6 +56,8 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
                                                  iterations in myofibril multiroot
                                                  calculations */
 
+    worker_threads = 0;                     /**< default value for number of worker threads */
+
     // Update values from log file
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
 
@@ -277,6 +279,12 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     else
     {
         sprintf_s(rand_seed, _MAX_PATH, "");
+    }
+
+    if (JSON_functions::check_JSON_member_exists(options, "worker_threads"))
+    {
+        JSON_functions::check_JSON_member_int(options, "worker_threads");
+        worker_threads = options["worker_threads"].GetInt();
     }
 
     // Check for myofibrils

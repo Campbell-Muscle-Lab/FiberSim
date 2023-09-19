@@ -69,6 +69,8 @@ public:
                                         /**< double defininig the max hs length change permitted in
                                              the force-balance calculations */
 
+    int worker_threads;                 /**< integer defining the number of worker threads */
+
     char rand_seed[_MAX_PATH];          /**< char array controlling seeding of the random number generator
                                              If string can be converted to a long int, the long int is
                                              included in the random seed

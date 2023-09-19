@@ -15,6 +15,8 @@
 
 #include "global_definitions.h"
 
+#include "BS_thread_pool.hpp"
+
 class FiberSim_model;
 class FiberSim_protocol;
 class FiberSim_options;
@@ -118,6 +120,8 @@ public:
                                         /**< pointer to an array of half-sarcomere objects */
 
     series_component* p_sc;             /**< Pointer to a series elastic component */
+
+    BS::thread_pool pool;                /**< Pointer to a worker pool */
 
     // Functions
 };

@@ -181,6 +181,7 @@
     <ClCompile Include="transition.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BS_thread_pool.hpp" />
     <ClInclude Include="FiberSim_data.h" />
     <ClInclude Include="FiberSim_model.h" />
     <ClInclude Include="FiberSim_options.h" />
