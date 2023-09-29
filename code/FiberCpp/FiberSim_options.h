@@ -41,6 +41,10 @@ public:
     int x_vector_max_iterations;       /**< double defining the max number of iterations for
                                              the x_vector calculation */
 
+    double hs_force_control_max_delta_hs_length;
+                                        /**< double defining the bracket size for determing the length
+                                             change for force-control */
+
     double lambda_jitter;               /**< double defining lambda jitter. The first myosin crown on
                                              each thick filament will be at
                                              x = lambda + rand()*lambda_jitter
@@ -48,7 +52,26 @@ public:
                                              https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1635681/
                                              for justification */
 
-   char rand_seed[_MAX_PATH];         /**< char array controlling seeding of the random number generator
+    int myofibril_multithreading;       /**< int defining whether to implement multi-threading
+                                             for myofibril calculations
+                                             1 means yes
+                                             0 means no */
+
+    double myofibril_force_tolerance;   /**< double defining the force tolerance for myofibril
+                                             multiroot calcuations. Lower values cause the force
+                                             to be balanced more accurately. Typical values are 1e-3 */
+
+    int myofibril_max_iterations;       /**< int defining the maximum number of iterations for
+                                             myofibril force balance. We are in trouble if the
+                                             code doesn't coverge in a few tens */
+
+    double myofibril_max_delta_hs_length;
+                                        /**< double defininig the max hs length change permitted in
+                                             the force-balance calculations */
+
+    int no_of_worker_threads;           /**< integer defining the number of worker threads */
+
+    char rand_seed[_MAX_PATH];          /**< char array controlling seeding of the random number generator
                                              If string can be converted to a long int, the long int is
                                              included in the random seed
                                              If string == "random", the seed includes a component based

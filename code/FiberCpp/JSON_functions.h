@@ -71,6 +71,15 @@ namespace JSON_functions {
     int is_JSON_member(const rapidjson::Value& doc, const char mem_name[]);
 
     /**
+    * a function that checks whether an entry is a number
+    * @param doc a pointer to a rapidjson::Document
+    * @param memname[] a character array
+    * @return int, 0 not a number, 1 it's a number
+    */
+    int valid_JSON_member_number(const rapidjson::Value& doc,
+        const char mem_name[]);
+
+    /**
     * a function that adds a gsl_vector to a file as a line in JSON format
     * @param p_v a pointer to a gsl_vector
     * @param output_file a pointer to the file stream (which must be open)

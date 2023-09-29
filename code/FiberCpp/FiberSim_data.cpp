@@ -11,9 +11,12 @@
 #include "FiberSim_data.h"
 #include "FiberSim_options.h"
 #include "FiberSim_model.h"
+
+#include "hs_data.h"
 #include "kinetic_scheme.h"
 
 #include "gsl_vector.h"
+#include "gsl_math.h"
 
 using namespace std::filesystem;
 
@@ -30,39 +33,28 @@ FiberSim_data::FiberSim_data(int set_no_of_time_points,
 
 	// Allocate space for data vectors
 	fs_time = gsl_vector_alloc(no_of_time_points);
-	fs_pCa = gsl_vector_alloc(no_of_time_points);
-	fs_length = gsl_vector_alloc(no_of_time_points);
-	fs_command_length = gsl_vector_alloc(no_of_time_points);
-	fs_slack_length = gsl_vector_alloc(no_of_time_points);
-	fs_force = gsl_vector_alloc(no_of_time_points);
-	fs_titin_force = gsl_vector_alloc(no_of_time_points);
-	fs_viscous_force = gsl_vector_alloc(no_of_time_points);
-	fs_extracellular_force = gsl_vector_alloc(no_of_time_points);
-	fs_a_length = gsl_vector_alloc(no_of_time_points);
-	fs_m_length = gsl_vector_alloc(no_of_time_points);	
-	
-	// Allocate space for data matrices
-	fs_a_pops = gsl_matrix_alloc(no_of_time_points, p_fs_model->a_no_of_bs_states);
-	fs_m_pops = gsl_matrix_alloc(no_of_time_points, p_fs_model->p_m_scheme[0]->no_of_states);
-	fs_c_pops = gsl_matrix_alloc(no_of_time_points, p_fs_model->p_c_scheme[0]->no_of_states);
+	fs_m_length = gsl_vector_alloc(no_of_time_points);
+	fs_m_force = gsl_vector_alloc(no_of_time_points);
+
+	fs_sc_extension = gsl_vector_alloc(no_of_time_points);
+	fs_sc_force = gsl_vector_alloc(no_of_time_points);
 	
 	// Set to zero
 	gsl_vector_set_zero(fs_time);
-	gsl_vector_set_zero(fs_pCa);
-	gsl_vector_set_zero(fs_length);
-	gsl_vector_set_zero(fs_command_length);
-	gsl_vector_set_zero(fs_slack_length);
-	gsl_vector_set_zero(fs_force);
-	gsl_vector_set_zero(fs_titin_force);
-	gsl_vector_set_zero(fs_viscous_force);
-	gsl_vector_set_zero(fs_extracellular_force);
-
-	gsl_vector_set_zero(fs_a_length);
 	gsl_vector_set_zero(fs_m_length);
+	gsl_vector_set_zero(fs_m_force);
 
-	gsl_matrix_set_zero(fs_a_pops);
-	gsl_matrix_set_zero(fs_m_pops);
-	gsl_matrix_set_zero(fs_c_pops);
+	gsl_vector_set_all(fs_sc_extension, GSL_NAN);
+	gsl_vector_set_all(fs_sc_force, GSL_NAN);
+
+	// Now create the data objects for each half-sarcomere
+	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	{
+		p_hs_data[hs_counter] = new hs_data(no_of_time_points,
+			this,
+			p_fs_options,
+			p_fs_model);
+	}
 }
 
 // Destructor
@@ -72,22 +64,16 @@ FiberSim_data::~FiberSim_data(void)
 
 	// First the gsl_vectors
 	gsl_vector_free(fs_time);
-	gsl_vector_free(fs_pCa);
-	gsl_vector_free(fs_length);
-	gsl_vector_free(fs_command_length);
-	gsl_vector_free(fs_slack_length);
-	gsl_vector_free(fs_force);
-	gsl_vector_free(fs_titin_force);
-	gsl_vector_free(fs_viscous_force);
-	gsl_vector_free(fs_extracellular_force);
-
-	gsl_vector_free(fs_a_length);
 	gsl_vector_free(fs_m_length);
+	gsl_vector_free(fs_m_force);
+	gsl_vector_free(fs_sc_extension);
+	gsl_vector_free(fs_sc_force);
 
-	// Then the matrices
-	gsl_matrix_free(fs_a_pops);
-	gsl_matrix_free(fs_m_pops);
-	gsl_matrix_free(fs_c_pops);
+	// Now the half-sarcomere data structures
+	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	{
+		delete p_hs_data[hs_counter];
+	}
 }
 
 // Functions
@@ -134,73 +120,114 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 
 	// Write header
 	fprintf_s(output_file, "time%c", delimiter);
-	fprintf_s(output_file, "pCa%c", delimiter);
-	fprintf_s(output_file, "hs_length%c", delimiter);
-	fprintf_s(output_file, "hs_command_length%c", delimiter);
-	fprintf_s(output_file, "hs_slack_length%c", delimiter);
-	fprintf_s(output_file, "force%c", delimiter);
-	fprintf_s(output_file, "titin_force%c", delimiter);
-	fprintf_s(output_file, "viscous_force%c", delimiter);
-	fprintf_s(output_file, "extracellular_force%c", delimiter);
-	fprintf_s(output_file, "a_fil_length%c", delimiter);
-	fprintf_s(output_file, "m_fil_length%c", delimiter);
+	fprintf_s(output_file, "m_length%c", delimiter);
+	fprintf_s(output_file, "m_force%c", delimiter);
+	fprintf_s(output_file, "sc_extension%c", delimiter);
+	fprintf_s(output_file, "sc_force%c", delimiter);
 
-	// Build pops as loops
-	for (int i = 0; i < p_fs_model->a_no_of_bs_states; i++)
+	// Now add in the headers for each half-sarcomere
+	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
 	{
-		fprintf_s(output_file, "a_pop_%i%c", i, delimiter);
-	}
-	for (int i = 0; i < p_fs_model->p_m_scheme[0]->no_of_states; i++)
-	{
-		fprintf_s(output_file, "m_pop_%i%c", i, delimiter);
-	}
-	for (int i = 0; i < p_fs_model->p_c_scheme[0]->no_of_states; i++)
-	{
-		fprintf_s(output_file, "c_pop_%i", i);
-		if (i == (p_fs_model->p_c_scheme[0]->no_of_states - 1))
-			
-			fprintf_s(output_file, "\n");
-		else
-			fprintf_s(output_file, "%c", delimiter);
-	}
+		fprintf_s(output_file, "hs_%i_pCa%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_length%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_command_length%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_slack_length%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_a_length%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_m_length%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_force%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_titin_force%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_viscous_force%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_extracellular_force%c", hs_counter + 1, delimiter);
 
-
-	// Loop through points
-	for (int i = 0; i < no_of_time_points; i++)
-	{
-		fprintf_s(output_file, "%g%c%.3f%c%g%c%g%c%g%c%g%c%g%c%g%c%g%c%g%c%g%c",
-			gsl_vector_get(fs_time, i), delimiter,
-			gsl_vector_get(fs_pCa, i), delimiter,
-			gsl_vector_get(fs_length, i), delimiter,
-			gsl_vector_get(fs_command_length, i), delimiter,
-			gsl_vector_get(fs_slack_length, i), delimiter,
-			gsl_vector_get(fs_force, i), delimiter,
-			gsl_vector_get(fs_titin_force, i), delimiter,
-			gsl_vector_get(fs_viscous_force, i), delimiter,
-			gsl_vector_get(fs_extracellular_force, i), delimiter,
-			gsl_vector_get(fs_a_length, i), delimiter,
-			gsl_vector_get(fs_m_length, i), delimiter);
-
-		// Build a pops and m_pops as loops
+		// Build pops as loops
 		for (int j = 0; j < p_fs_model->a_no_of_bs_states; j++)
 		{
-			fprintf_s(output_file, "%g%c",
-				gsl_matrix_get(fs_a_pops, i, j), delimiter);
+			fprintf_s(output_file, "hs_%i_a_pop_%i%c", hs_counter + 1, j + 1, delimiter);
 		}
 
 		for (int j = 0; j < p_fs_model->p_m_scheme[0]->no_of_states; j++)
 		{
-			fprintf_s(output_file, "%g%c",
-				gsl_matrix_get(fs_m_pops, i, j), delimiter);
+			fprintf_s(output_file, "hs_%i_m_pop_%i%c", hs_counter + 1, j + 1, delimiter);
 		}
 
 		for (int j = 0; j < p_fs_model->p_c_scheme[0]->no_of_states; j++)
 		{
-			fprintf_s(output_file, "%g", gsl_matrix_get(fs_c_pops, i, j));
-			if (j == (p_fs_model->p_c_scheme[0]->no_of_states - 1))
+			fprintf_s(output_file, "hs_%i_c_pop_%i", hs_counter + 1, j + 1);
+
+			if ((j == (p_fs_model->p_c_scheme[0]->no_of_states - 1)) &&
+				(hs_counter == (p_fs_model->no_of_half_sarcomeres - 1)))
+			{
 				fprintf_s(output_file, "\n");
+			}
 			else
+			{
 				fprintf_s(output_file, "%c", delimiter);
+			}
+		}
+	}
+
+	// Loop through points
+	for (int i = 0; i < no_of_time_points; i++)
+	{
+		fprintf_s(output_file, "%g%c%.3f%c%g%c%g%c%g%c",
+			gsl_vector_get(fs_time, i), delimiter,
+			gsl_vector_get(fs_m_length, i), delimiter,
+			gsl_vector_get(fs_m_force, i), delimiter,
+			gsl_vector_get(fs_sc_extension, i), delimiter,
+			gsl_vector_get(fs_sc_force, i), delimiter);
+
+		// Now add in the data for each  half-sarcomere
+		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		{
+			fprintf_s(output_file, "%.3g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_pCa, i), delimiter);
+			fprintf_s(output_file, "%g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_length, i), delimiter);
+			fprintf_s(output_file, "%g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_command_length, i), delimiter);
+			fprintf_s(output_file, "%g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_slack_length, i), delimiter);
+			fprintf_s(output_file, "%g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_a_length, i), delimiter);
+			fprintf_s(output_file, "%g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_m_length, i), delimiter);
+			fprintf_s(output_file, "%g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_force, i), delimiter);
+			fprintf_s(output_file, "%g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_titin_force, i), delimiter);
+			fprintf_s(output_file, "%g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_viscous_force, i), delimiter);
+			fprintf_s(output_file, "%g%c",
+				gsl_vector_get(p_hs_data[hs_counter]->hs_extracellular_force, i), delimiter);
+
+			// Build pops as loops
+			for (int j = 0; j < p_fs_model->a_no_of_bs_states; j++)
+			{
+				fprintf_s(output_file, "%g%c",
+					gsl_matrix_get(p_hs_data[hs_counter]->hs_a_pops, i, j), delimiter);
+			}
+
+			for (int j = 0; j < p_fs_model->p_m_scheme[0]->no_of_states; j++)
+			{
+				fprintf_s(output_file, "%g%c",
+					gsl_matrix_get(p_hs_data[hs_counter]->hs_m_pops, i, j), delimiter);
+			}
+
+			for (int j = 0; j < p_fs_model->p_c_scheme[0]->no_of_states; j++)
+			{
+				fprintf_s(output_file, "%g",
+					gsl_matrix_get(p_hs_data[hs_counter]->hs_c_pops, i, j));
+
+				if ((j == (p_fs_model->p_c_scheme[0]->no_of_states - 1)) &&
+					(hs_counter == (p_fs_model->no_of_half_sarcomeres - 1)))
+				{
+					fprintf_s(output_file, "\n");
+				}
+				else
+				{
+					fprintf_s(output_file, "%c", delimiter);
+				}
+			}
 		}
 	}
 

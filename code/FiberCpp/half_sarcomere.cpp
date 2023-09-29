@@ -127,7 +127,7 @@ half_sarcomere::half_sarcomere(
         }
         else
         {
-            time_seed = std::stol(p_fs_options->rand_seed);
+            time_seed = atol(p_fs_options->rand_seed);
         }
     }
 
@@ -155,6 +155,29 @@ half_sarcomere::half_sarcomere(
 
     // There must be twice as many thin as thick filaments
     a_n = 2 * m_n;
+
+    // Now make vectors to hold the transition probabilities and the
+    // cumulative probabilities. We need them before initialising
+    // the thick filaments
+    // Work out the maximum number of transitions
+    max_transitions = 0;
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < p_fs_model->m_no_of_isotypes; j++)
+        {
+            if (i == 0)
+            {
+                max_transitions = GSL_MAX(max_transitions, p_m_scheme[j]->max_no_of_transitions);
+            }
+            else
+            {
+                max_transitions = GSL_MAX(max_transitions, p_c_scheme[j]->max_no_of_transitions);
+            }
+        }
+    }
+    // Now make the vectors
+    transition_probs = gsl_vector_alloc(max_transitions * m_attachment_span);
+    cum_prob = gsl_vector_alloc(max_transitions * m_attachment_span);
 
     // Make new thick filaments
     for (int m_counter = 0; m_counter < m_n; m_counter++)
@@ -267,6 +290,9 @@ half_sarcomere::half_sarcomere(
     // Allocate space for the x vector
     x_vector = gsl_vector_alloc(hs_total_nodes);
 
+    // This is used for force-balance
+    original_x_vector = gsl_vector_alloc(hs_total_nodes);
+
     // Calculate the x positions
     calculate_x_positions();
 
@@ -324,6 +350,8 @@ half_sarcomere::~half_sarcomere()
     // Delete gsl_vectors
     gsl_vector_free(x_vector);
 
+    gsl_vector_free(original_x_vector);
+
     // Delete gsl_vectors used for tridiagonal solve
     gsl_vector_free(f0_vector);
     gsl_vector_free(tri_d_vector);
@@ -339,9 +367,73 @@ half_sarcomere::~half_sarcomere()
 
     // Delete the random number generator
     gsl_rng_free(rand_generator);
+
+    // Delete the transition vectors
+    gsl_vector_free(transition_probs);
+    gsl_vector_free(cum_prob);
 }
 
 // Functions
+
+void half_sarcomere::sarcomere_kinetics(double time_step, double set_pCa)
+{
+    //! Code updates the status of the thin, thick, and mybp-c molecules
+
+    // Variables
+
+    // Update the pCa
+    pCa = set_pCa;
+
+    // Map the filaments and run kinetics
+    set_cb_nearest_a_n();
+    set_pc_nearest_a_n();
+
+    // Some of the kinetics are faster than we need to update the positions,
+    // so we can speed up the calculations by updating the kinetics with
+    // small sub-steps
+    int kinetic_repeats = 10;
+    double local_time_step = time_step / (double)kinetic_repeats;
+
+    for (int i = 0; i < kinetic_repeats; i++)
+    {
+        thin_filament_kinetics(local_time_step, pow(10, -pCa));
+        thick_filament_kinetics(local_time_step);
+    }
+
+    // Hold state variables
+    calculate_a_pops();
+    calculate_m_pops();
+    calculate_c_pops();
+}
+
+size_t half_sarcomere::update_lattice(double time_step, double delta_hsl)
+{
+    //! Updates the positions of the nodes and the forces
+
+    // Variables
+    size_t x_solve_iterations;                  // The number of iterations to solve
+                                                // the lattice positions
+
+    // Code
+    if (fabs(delta_hsl) > 0.0)
+    {
+        hs_length = hs_length + delta_hsl;
+        update_f0_vector(delta_hsl);
+    }
+
+    // Calculate positions and deduce force
+    x_solve_iterations = calculate_x_positions();
+
+    unpack_x_vector();
+
+    hs_force = calculate_force(delta_hsl, time_step);
+
+    // Calculate mean filament lengths
+    calculate_mean_filament_lengths();
+
+    // Return
+    return x_solve_iterations;
+}
 
 size_t half_sarcomere::implement_time_step(double time_step,
     double delta_hsl, double sim_mode, double set_pCa)
@@ -364,6 +456,9 @@ size_t half_sarcomere::implement_time_step(double time_step,
     set_cb_nearest_a_n();
     set_pc_nearest_a_n();
 
+    // Some of the kinetics are faster than we need to update the positions,
+    // so we can speed up the calculations by updating the kinetics with
+    // small sub-steps
     int kinetic_repeats = 10;
     double local_time_step = time_step / (double)kinetic_repeats;
 
@@ -432,7 +527,7 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force, double
     gsl_root_fsolver* s;
     double r = 0.0;
     double x_lo = -hs_length;
-    double x_hi = 1000.0;
+    double x_hi = p_fs_options->hs_force_control_max_delta_hs_length;
     struct force_control_params params = { target_force, time_step, this };
 
     gsl_function F;
@@ -486,7 +581,6 @@ double half_sarcomere::test_force_for_delta_hsl(double delta_hsl, void *params)
 
     // Current state - need to return to this at the end
     double original_hs_length = hs_length;
-    gsl_vector* original_x_vector = gsl_vector_alloc(hs_total_nodes);
 
     // Code
 
@@ -505,9 +599,6 @@ double half_sarcomere::test_force_for_delta_hsl(double delta_hsl, void *params)
     hs_length = original_hs_length;
     gsl_vector_memcpy(x_vector, original_x_vector);
     update_f0_vector(-delta_hsl);
-
-    // Recover memory
-    gsl_vector_free(original_x_vector);
 
     // Return the difference
     return (test_force - target_force);
@@ -1984,8 +2075,6 @@ void half_sarcomere::myosin_kinetics(double time_step)
     }
 }
 
-
-
 void half_sarcomere::mybpc_kinetics(double time_step)
 {
     //! Code implements mybpc kinetics
@@ -2071,15 +2160,11 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
 
     int new_state;                      // new cb_state after transition
 
-    int max_transitions;
-
     double x;                           // distance between cn and relevant bs
     double x_ext;                       // cb state extension
     double node_f;                      // node_force
 
     short active_neigh;                 // number of active neighbors
-
-    gsl_vector* transition_probs;
 
     double alignment_factor;            // double from 0 to 1 that adjusts
                                         // attachment probability based on angle
@@ -2100,14 +2185,13 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     cb_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, cb_counter);
     p_m_state = p_m_scheme[cb_isotype - 1]->p_m_states[cb_state - 1];
 
-    max_transitions = p_m_scheme[cb_isotype - 1]->max_no_of_transitions;
-
-    // Allocate and zero the transition vector
+    // Zero the transition vector
     // This vector is max_transitions * m_attachment_span
     // Binding events to different actin nodes are in different elements
     // Non-binding transitions are single elements
-    transition_probs = gsl_vector_alloc((size_t)max_transitions * (size_t)m_attachment_span);
 
+    gsl_vector_set_zero(transition_probs);
+    
     // Get the a_f and the a_n for the myosin head
     if (p_m_state->state_type == 'A')
     {
@@ -2249,7 +2333,6 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     event_index = return_event_index(transition_probs);
 
     // Tidy up
-    gsl_vector_free(transition_probs);
 
     // Return
     return event_index;
@@ -2269,8 +2352,6 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
     int bs_ind;                     // index of binding site
 
     int new_state;                  // state after transition
-
-    int max_transitions;            // max number of transitions
 
     int prob_index;                 // index in the probability vector
 
@@ -2295,8 +2376,6 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
     m_state* p_c_state;             // pointer to a state
     transition* p_trans;            // pointer to a transition
 
-    gsl_vector* transition_probs;   // vector of transition probabilities
-
     // Code
 
     // Set values
@@ -2305,13 +2384,10 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
     
     p_c_state = p_c_scheme[c_isotype - 1]->p_m_states[c_state - 1];
 
-    max_transitions = p_c_scheme[c_isotype - 1]->max_no_of_transitions;
-
-    // Allocate and zero the transition vector
+    // Zero the transition vector
     // This vector is max_transitions * m_attachment_span
     // Binding events to different actin nodes are in different elements
     // Non-binding transitions are single elements
-    transition_probs = gsl_vector_alloc((size_t)max_transitions * (size_t)m_attachment_span);
     gsl_vector_set_zero(transition_probs);
     
     // Get the a_f and the a_n for the mybpc
@@ -2381,6 +2457,7 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
 
                     if (gsl_isnan(prob))
                     {
+                        printf("node_force: %g\n", node_force);
                         printf("isnan, stopping\n");
                         exit(1);
                     }
@@ -2448,7 +2525,6 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
     event_index = return_event_index(transition_probs);
 
     // Tidy up
-    gsl_vector_free(transition_probs);
 
     // Return
     return event_index;
@@ -2718,12 +2794,7 @@ int half_sarcomere::return_event_index(gsl_vector* prob)
     double holder;                  // used for running total
     double rand_number;             // uniformly distributed between 0 and 1
 
-    gsl_vector* cum_prob;           // cumulative probabiity
-
     // Code
-
-    // Allocate the cum prob vector and fill the values
-    cum_prob = gsl_vector_alloc(n);
 
     holder = 0.0;
     for (int i = 0; i < n; i++)
@@ -2755,7 +2826,6 @@ printf("Probabilities are re-scaled\n");
     }
 
     // Tidy up
-    gsl_vector_free(cum_prob);
 
     // Return
     return event_index;
@@ -3161,4 +3231,22 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
 
     // Tidy up
     fclose(output_file);
+}
+
+void half_sarcomere::slow(void)
+{
+    gsl_vector* y = gsl_vector_alloc(10000000);
+
+    double s = 0;
+
+    for (int i = 0; i < 10; i++)
+    {
+        for (int j = 0; j < y->size; j++)
+        {
+            s = s + gsl_vector_get(y, i);
+        }
+    }
+
+    gsl_vector_free(y);
+
 }

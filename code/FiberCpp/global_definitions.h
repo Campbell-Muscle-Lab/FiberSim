@@ -6,7 +6,7 @@
  * @author  Ken Campbell
   */
 
-#define MAX_NO_OF_HALF_SARCOMERES 100
+#define MAX_NO_OF_HALF_SARCOMERES 500
 
 #define MAX_NO_OF_THICK_FILAMENTS 200
 

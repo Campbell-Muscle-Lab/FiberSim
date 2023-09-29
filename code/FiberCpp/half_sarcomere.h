@@ -196,6 +196,9 @@ public:
 
     gsl_vector* x_vector;           /**< gsl_vector holding node positions */
 
+    gsl_vector* original_x_vector;  /**< gsl_vector used for holding positions
+                                         temporarily */
+
     gsl_vector* f0_vector;           /**< gsl_vector holding right-hand side of kx=f
                                           with-out cross-bridges or titin */
 
@@ -279,6 +282,18 @@ public:
 
     // Random numbers
     gsl_rng* rand_generator;        /**< pointer to a random number generator */
+
+    // Thread return value
+    double thread_return_value;
+
+    // Kinetics
+    int max_transitions;            /**< integer with the maximum number of transitions */
+
+    gsl_vector* transition_probs;   /**< gsl_vector holding transition probabilities for
+                                         myosin or mybpc transitions */
+
+    gsl_vector* cum_prob;           /**< gsl_vector holding cumulative transition probabilties */
+
 
     // Functions
 
@@ -407,6 +422,15 @@ public:
     size_t implement_time_step(double time_step, double delta_hsl, double sim_mode, double pCa);
 
     /**
+    * int update_lattice_positions(double time_step, double delta_hsl)
+    * Applies a length change to the lattice and calculates new forces
+    * @param time_step double defining the simulation time-step in s
+    * @param doubel delta_hsl the half-sarcomere length change in nm
+    * @return no_of_iterations size_t for calculate_x_positions
+    */
+    size_t update_lattice(double time_step, double delta_hsl);
+
+    /**
     * double calculate_force(double delta_hsl, double time_step)
     * @return double holding the average force in a thick filament
     */
@@ -512,6 +536,12 @@ public:
     */
     void set_pc_nearest_a_n(void);
 
+    /**
+    * void sarcomere_kinetics(double time_step, double Ca_conc)
+    * updates the status of each multi-state molecule in the lattice
+    * @return void
+    */
+    void sarcomere_kinetics(double time_step, double Ca_conc);
 
     /**
     * void thin_filament_kinetics(double time_step)
@@ -591,4 +621,6 @@ public:
     * @return void
     */
     void write_gsl_vector_to_file(gsl_vector* p_vector, char output_file_string[]);
+
+    void slow();
 };

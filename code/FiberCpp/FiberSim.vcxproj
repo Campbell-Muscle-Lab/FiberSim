@@ -146,7 +146,11 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)include\gsl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <OpenMPSupport>
+      </OpenMPSupport>
+      <MultiProcessorCompilation>
+      </MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -170,15 +174,18 @@
     <ClCompile Include="FiberSim_options.cpp" />
     <ClCompile Include="FiberSim_protocol.cpp" />
     <ClCompile Include="half_sarcomere.cpp" />
+    <ClCompile Include="hs_data.cpp" />
     <ClCompile Include="JSON_functions.cpp" />
     <ClCompile Include="kinetic_scheme.cpp" />
     <ClCompile Include="muscle.cpp" />
     <ClCompile Include="m_state.cpp" />
+    <ClCompile Include="series_component.cpp" />
     <ClCompile Include="thick_filament.cpp" />
     <ClCompile Include="thin_filament.cpp" />
     <ClCompile Include="transition.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BS_thread_pool.hpp" />
     <ClInclude Include="FiberSim_data.h" />
     <ClInclude Include="FiberSim_model.h" />
     <ClInclude Include="FiberSim_options.h" />
@@ -186,10 +193,12 @@
     <ClInclude Include="FiberSim_version.h" />
     <ClInclude Include="global_definitions.h" />
     <ClInclude Include="half_sarcomere.h" />
+    <ClInclude Include="hs_data.h" />
     <ClInclude Include="JSON_functions.h" />
     <ClInclude Include="kinetic_scheme.h" />
     <ClInclude Include="muscle.h" />
     <ClInclude Include="m_state.h" />
+    <ClInclude Include="series_component.h" />
     <ClInclude Include="thick_filament.h" />
     <ClInclude Include="thin_filament.h" />
     <ClInclude Include="transition.h" />

@@ -28,6 +28,10 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     x_vector_max_iterations = 100;          /**< default value of max iterations for
                                                  x vector calculation */
 
+    hs_force_control_max_delta_hs_length = 100;
+                                            /**< default value of max_delta_hs_length for
+                                                 force-control for a lattice */
+
     adjacent_bs = 0;                        /**< default value of adjacent binding sites
                                                  available for myosin or mybpc attachment
                                                  0 restricts to nearest site */
@@ -45,6 +49,14 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     sprintf_s(rate_file_string, _MAX_PATH, "");
                                             /**< default value for rate file string */
 
+    myofibril_force_tolerance = 0.001;      /**< default value for the force tolerance
+                                                 for myofibril multiroot calculations */
+
+    myofibril_max_iterations = 100;         /**< default value for the maximum number of
+                                                 iterations in myofibril multiroot
+                                                 calculations */
+
+    no_of_worker_threads = 0;                     /**< default value for number of worker threads */
 
     // Update values from log file
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
@@ -238,6 +250,12 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
         x_vector_max_iterations = options["x_vector_max_iterations"].GetInt();
     }
 
+    if (JSON_functions::is_JSON_member(options, "hs_force_control_max_delta_hs_length"))
+    {
+        JSON_functions::check_JSON_member_number(options, "hs_force_control_max_delta_hs_length");
+        hs_force_control_max_delta_hs_length = options["hs_force_control_max_delta_hs_length"].GetDouble();
+    }
+
     // Check if the dump precision was specified.
     if (JSON_functions::is_JSON_member(options, "dump_precision"))
     {
@@ -261,6 +279,24 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     else
     {
         sprintf_s(rand_seed, _MAX_PATH, "");
+    }
+
+    // Check for myofibrils
+    if (JSON_functions::check_JSON_member_exists(options, "myofibrils"))
+    {
+        const rapidjson::Value& myofibrils = options["myofibrils"];
+
+        JSON_functions::check_JSON_member_number(myofibrils, "force_tolerance");
+        myofibril_force_tolerance = myofibrils["force_tolerance"].GetDouble();
+
+        JSON_functions::check_JSON_member_int(myofibrils, "max_iterations");
+        myofibril_max_iterations = myofibrils["max_iterations"].GetInt();
+
+        JSON_functions::check_JSON_member_number(myofibrils, "max_delta_hs_length");
+        myofibril_max_delta_hs_length = myofibrils["max_delta_hs_length"].GetDouble();
+
+        JSON_functions::check_JSON_member_int(myofibrils, "multithreading");
+        myofibril_multithreading = myofibrils["multithreading"].GetInt();
     }
 
     // Now check for logging

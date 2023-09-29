@@ -11,13 +11,21 @@
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
 
+#include "gsl_vector.h"
+
 #include "global_definitions.h"
+
+#include "BS_thread_pool.hpp"
+
+#include <chrono>
+#include <ctime>
 
 class FiberSim_model;
 class FiberSim_protocol;
 class FiberSim_options;
 class FiberSim_data;
 class half_sarcomere;
+class series_component;
 
 using namespace std::filesystem;
 
@@ -67,11 +75,25 @@ public:
     */
     void write_rates_file();
 
+    /**
+    */
+    void force_control_muscle_system();
+
+    void thread_test(int i);
+
+    size_t length_control_myofibril_with_series_compliance(int protocol_index);
+
+    size_t worker_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* p, gsl_vector* f);
+
     // Variables
 
     char model_version[_MAX_PATH];      /**< FiberSim version from the model file */
 
     int muscle_id;                      /**< integer labeling the muscle */
+
+    double m_length;                    /**< double defining the length of the muscle in nm */
+
+    double m_force;                     /**< double defining the stress in the muscle in N m^-2 */
 
     int dump_status_counter;            /**< Integer used to track which status files
                                              to dump */
@@ -98,5 +120,9 @@ public:
     half_sarcomere * p_hs [MAX_NO_OF_HALF_SARCOMERES];
                                         /**< pointer to an array of half-sarcomere objects */
 
-    // Functions
+    series_component* p_sc;             /**< Pointer to a series elastic component */
+
+    std::chrono::high_resolution_clock::time_point last_time;
+
+    BS::thread_pool * p_thread_pool;
 };

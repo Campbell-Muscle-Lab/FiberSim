@@ -88,6 +88,28 @@ namespace JSON_functions {
         }
     }
 
+    int valid_JSON_member_number(const rapidjson::Value& doc,
+        const char mem_name[])
+    {
+        char temp_string[_MAX_PATH];
+        try {
+            if (!doc.HasMember(mem_name)) {
+                sprintf_s(temp_string, "\"%s\" not specified.", mem_name);
+                throw std::runtime_error(temp_string);
+            }
+            else if (!doc[mem_name].IsNumber()) {
+                sprintf_s(temp_string, "\"%s\" must be a number.", mem_name);
+                throw std::runtime_error(temp_string);
+            }
+
+            return 1;
+        }
+        catch (std::exception& e) {
+            printf("%s is not a number\n", mem_name);
+            return 0;
+        }
+    }
+
     //! Verifies that JSON Value has member and it is a string.
     void check_JSON_member_string(const rapidjson::Value& doc,
         const char mem_name[])

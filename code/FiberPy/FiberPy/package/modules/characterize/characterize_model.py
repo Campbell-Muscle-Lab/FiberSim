@@ -9,6 +9,7 @@ import json
 import shutil
 import copy
 import re
+import subprocess
 
 
 from natsort import natsorted
@@ -37,8 +38,16 @@ def characterize_model(json_analysis_file_string):
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
         anal_struct = json_data['FiberSim_characterization']
+        
+    # If there is a manipulations section, use that to create the
+    # appropriate models
+    if ("manipulations" in anal_struct['model']):
+        json_analysis_file_string = \
+            generate_model_files(json_analysis_file_string)
+            
+    print(json_analysis_file_string)
    
-    # Pull of the characterization tasks
+    # Pull off the characterization tasks
     char_struct = anal_struct['characterization']
     for ch in char_struct:
         if (ch['type'] == 'pCa_length_control'):
@@ -56,6 +65,148 @@ def characterize_model(json_analysis_file_string):
             characterize_fv_with_pCa_and_isometric_force(
                 json_analysis_file_string,
                 ch)
+            
+        # Run post-Python_function
+        if ('post_sim_Python_call' in ch):
+            post_sim_Python_call(json_analysis_file_string, ch)
+            
+def post_sim_Python_call(json_analysis_file_string, char_struct):
+    
+    if (char_struct['relative_to'] == 'this_file'):
+        working_dir = Path(json_analysis_file_string).parent.absolute()
+    
+    command_string = 'python %s' % (os.path.join(working_dir,
+                                                 char_struct['post_sim_Python_call']))
+    
+    subprocess.call(command_string)
+    
+    
+    
+        
+def generate_model_files(json_analysis_file_string):
+    """ Clones base model with modifications to facilitate comparisons """
+    
+    # First load the file
+    with open(json_analysis_file_string, 'r') as f:
+        json_data = json.load(f)
+        model_struct = json_data['FiberSim_characterization']['model']
+    
+    # Deduce the base model file string
+    if (model_struct['relative_to'] == 'this_file'):
+        model_working_dir = Path(json_analysis_file_string).parent.absolute()
+        base_model_file_string = os.path.join(model_working_dir,
+                                              model_struct['manipulations']['base_model'])
+        base_model_file_string = str(Path(base_model_file_string).resolve())
+    else:
+        base_model_file_string = model_struct['manipulations']['base_model']
+
+    # Now deduce where to put the adjusted model files
+    if (model_struct['relative_to'] == 'this_file'):
+        generated_dir = os.path.join(Path(json_analysis_file_string).parent.absolute(),
+                                     model_struct['manipulations']['generated_folder'])
+        generated_dir = str(Path(generated_dir).resolve())
+    else:
+        generated_dir = model_struct['manipulations']['generated_folder']
+        
+    # Clean the generated dir
+    try:
+        print('Trying to remove %s' % generated_dir)
+        shutil.rmtree(generated_dir, ignore_errors = True)
+    except OSError as e:
+        print('Error: %s : %s' % (generated_dir, e.strerror))
+        
+    if not os.path.isdir(generated_dir):
+        os.makedirs(generated_dir)
+        
+    # Now copy the sim_options file across
+    if (model_struct['relative_to'] == 'this_file'):
+        temp_dir = Path(json_analysis_file_string).parent.absolute()
+        orig_options_file = os.path.join(temp_dir,
+                                         model_struct['options_file'])
+        new_options_file = os.path.join(generated_dir, model_struct['options_file'])
+    else:
+        orig_options_file = model_struct['options_file']
+        print('Needs more work on sim_options copying')
+        exit(1)
+    
+    shutil.copy(orig_options_file, new_options_file)
+
+    # Load up the base model
+    with open(base_model_file_string, 'r') as f:
+        base_model = json.load(f)
+
+    # Now work out how many adjustments you need to make
+    adjustments = model_struct['manipulations']['adjustments']
+    no_of_models = len(adjustments[0]['multipliers'])
+    
+    generated_models = []
+        
+    # Loop through them
+    for i in range(no_of_models):
+        
+        # Copy the base model
+        adj_model = copy.deepcopy(base_model)
+                
+        for (j,a) in enumerate(adjustments):
+            
+            value = a['base_value'] * a['multipliers'][i]
+            
+            if ((a['variable'] == 'm_kinetics') or
+                    (a['variable'] == 'c_kinetics')):
+
+                # Special case for kinetics
+                y = np.asarray(adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
+                          ['transition'][a['transition']-1]['rate_parameters'])
+                y[a['parameter_number']-1] = value
+                adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
+                          ['transition'][a['transition']-1]['rate_parameters'] = \
+                              y.tolist()
+                
+                continue
+            
+            if (a['output_type'] == 'int'):
+                adj_model[a['class']][a['variable']] = int(value)
+                
+            if (a['output_type'] == 'float'):
+                adj_model[a['class']][a['variable']] = float(value)
+                
+            # Check for NaN
+            if (np.isnan(value)):
+                adj_model[a['class']][a['variable']] = 'null'
+        
+    
+        # Now generate the model file string
+        model_file_string = 'model_%i.json' % (i+1)
+        
+        # We need the full path to write it to disk
+        adj_model_file_string = os.path.join(generated_dir,
+                                             model_file_string)
+
+        with open(adj_model_file_string, 'w') as f:
+            json.dump(adj_model, f, indent=4)
+
+        # Append the model files
+        generated_models.append(model_file_string)
+        
+    # Update the set up file
+    
+    # Add in the model files
+    json_data['FiberSim_characterization']['model']['model_files'] = generated_models
+    
+    # Delete the adjustments
+    del(json_data['FiberSim_characterization']['model']['manipulations'])
+    
+    # Generate a new setup file string
+    generated_setup_file_string = os.path.join(generated_dir,
+                                               'generated_setup.json')
+    
+    # Write to file
+    with open(generated_setup_file_string, 'w') as f:
+        json.dump(json_data, f, indent=4)
+        
+    # Return the new filename
+    return (generated_setup_file_string)
+            
             
 def deduce_pCa_length_control_properties(json_analysis_file_string,
                                          pCa_struct = []):
@@ -332,7 +483,27 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
                             mode_vector = np.hstack((pre_mode_vector,
                                                      k_tr_mode_vector,
                                                      post_mode_vector))
+                            
+                        # Now adjust the pCa_vector for step_up and step_down
+                        # if required
+                        t = np.cumsum(dt)
+                        if ('pCa_start' not in pCa_struct):
+                            pCa_start = 9.0
+                        else:
+                            pCa_start = pCa_struct['pCa_start']
                         
+                        if ('pCa_stop' not in pCa_struct):
+                            pCa_stop = 9.0
+                        else:
+                            pCa_stop = pCa_struct['pCa_stop']
+                            
+                        if ('pCa_step_up_s' in pCa_struct):
+                            pCa_vector[t < pCa_struct['pCa_step_up_s']] = pCa_start
+                        
+                        if ('pCa_step_down_s' in pCa_struct):
+                            pCa_vector[t > pCa_struct['pCa_step_down_s']] = pCa_stop
+                        
+                        # Now make the protocol
                         df = pd.DataFrame({'dt': dt,
                                            'pCa': pCa_vector,
                                            'delta_hsl': delta_hsl,
@@ -404,7 +575,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     fig = dict()
     fig['relative_to'] = "False"
     fig['results_folder'] = output_dir
-    fig['data_field'] = 'force'
+    fig['data_field'] = 'hs_1_force'
     fig['output_data_file_string'] = os.path.join(output_dir,
                                                   'pCa_analysis.xlsx')
     fig['output_image_file'] = os.path.join(output_dir,
@@ -420,21 +591,21 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
 
     func_output['pCa_analysis_file_string'] = fig['output_data_file_string']
 
-    # pCa curves - NORMALIZED
-    fig = dict()
-    fig['relative_to'] = "False"
-    fig['results_folder'] = os.path.join(output_dir)
-    fig['data_field'] = 'force'
-    fig['output_image_file'] = os.path.join(output_dir,
-                                            'force_pCa_normalized')
-    fig['output_image_formats'] = pCa_struct['output_image_formats']
+    # # pCa curves - NORMALIZED
+    # fig = dict()
+    # fig['relative_to'] = "False"
+    # fig['results_folder'] = os.path.join(output_dir)
+    # fig['data_field'] = 'force'
+    # fig['output_image_file'] = os.path.join(output_dir,
+    #                                         'force_pCa_normalized')
+    # fig['output_image_formats'] = pCa_struct['output_image_formats']
 
-    fig['formatting'] = dict()
-    fig['formatting']['y_axis_label'] = 'Normalized \n force'
-    fig['formatting']['y_normalized'] = 'True'
-    fig['formatting']['y_label_pad'] = 20
+    # fig['formatting'] = dict()
+    # fig['formatting']['y_axis_label'] = 'Normalized \n force'
+    # fig['formatting']['y_normalized'] = 'True'
+    # fig['formatting']['y_label_pad'] = 20
 
-    batch_figs['pCa_curves'].append(fig)
+    # batch_figs['pCa_curves'].append(fig)
 
     # Rates
     batch_figs['rates'] = []

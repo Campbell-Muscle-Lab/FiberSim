@@ -58,6 +58,8 @@ public:
     double m_filament_density;          /**< double defining the number of thick filaments
                                              per square meter of cross-section */
 
+    double sc_k_stiff;                  /**< double definiing the stiffness of the
+                                             series elastic component  in N m^-1 */
 
     double temperature;                 /**< double defining temperature in K */
         

@@ -138,7 +138,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     data_file_string = \
                         os.path.join(curve_folder, file)
                     d = pd.read_csv(data_file_string, delimiter='\t')
-                    pCa_values[curve_counter-1].append(d['pCa'].iloc[-1])
+                    pCa_values[curve_counter-1].append(d['hs_1_pCa'].iloc[-1])
                     y = formatting['y_scaling_factor'] * \
                             d[fig_data['data_field']].iloc[-50:-1].mean() # take the mean force over last 50 points
                     y_values[curve_counter-1].append(y)
@@ -148,8 +148,8 @@ def create_y_pCa_figure(fig_data, batch_file_string):
                     # Store data for subsequent output
                     curve_index.append(curve_counter)
                     hs_force.append(y)
-                    hs_pCa.append(d['pCa'].iloc[-1])
-                    hs_length.append(d['hs_length'].iloc[-1])
+                    hs_pCa.append(d['hs_1_pCa'].iloc[-1])
+                    hs_length.append(d['hs_1_length'].iloc[-1])
 
             # Add in curve
             res=cv.fit_pCa_data(pCa_values[curve_counter-1],
@@ -1516,7 +1516,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                                        fig_data['results_folder'])
     else:
         top_data_folder = fig_data['results_folder']
-
+        
     # Loop through data folders
     model_counter = 1
     keep_going = True
@@ -1532,18 +1532,6 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
 
     # Hold the no_of_conditions
     no_of_conditions = model_counter-1
-    no_of_rows = 6
-
-    # Set-up the figure
-    fig = plt.figure(constrained_layout = False)
-    spec = gridspec.GridSpec(nrows=no_of_rows,
-                             ncols=no_of_conditions,
-                             figure=fig,
-                             wspace = layout['grid_wspace'],
-                             hspace = layout['grid_hspace'])
-    fig.set_size_inches([3 * no_of_conditions, 2 * no_of_rows])
-
-    ax=[]
 
     # Keep track of max and mins
     min_hsl = []
@@ -1567,7 +1555,42 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
         for file in os.listdir(condition_folder):
             if ((file.endswith('.txt')) and not file.endswith('rates.txt')):
                 fs = os.path.join(condition_folder, file)
-                d = pd.read_csv(fs, sep='\t')
+                d = pd.read_csv(fs, sep='\t', na_values=['-nan(ind)'])
+                
+                # Force to numeric
+                
+                if ((i==0) and (file_counter == 1)):
+                    # Check for series compliance to determine how to
+                    # make the figure
+                    print(d)
+                    if (d['sc_extension'].max() > 0):
+                        no_of_rows = 7
+                        pCa_row = 1
+                        hs_length_row = 2
+                        sc_length_row = 3
+                        force_row = 4
+                        thin_filament_row = 5
+                        thick_filament_row = 6
+                        mybpc_row = 7
+                    else:
+                        no_of_rows = 6
+                        pCa_row = 1
+                        hs_length_row = 2
+                        force_row = 3
+                        thin_filament_row = 4
+                        thick_filament_row = 5
+                        mybpc_row = 6
+                    
+                    # Set-up the figure
+                    fig = plt.figure(constrained_layout = False)
+                    spec = gridspec.GridSpec(nrows=no_of_rows,
+                                             ncols=no_of_conditions,
+                                             figure=fig,
+                                             wspace = layout['grid_wspace'],
+                                             hspace = layout['grid_hspace'])
+                    fig.set_size_inches([3 * no_of_conditions, 2 * no_of_rows])
+
+                    ax=[]
                 
                 if ('x_ticks' in formatting):
                     d = d[(d['time'] > formatting['x_ticks'][0]) &
@@ -1575,15 +1598,16 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
 
                 # Keep track of max and mins
                 if ((i==0) and (file_counter==1)):
-                    min_hsl = d['hs_length'].min()
-                    max_hsl = d['hs_length'].max()
-                    min_force = d['force'].min()
-                    max_force = d['force'].max()
+                    min_hsl = d['hs_1_length'].min()
+                    max_hsl = d['hs_1_length'].max()
+                    min_force = d['hs_1_force'].min()
+                    max_force = d['hs_1_force'].max()
+
                 # Other files
-                min_hsl = np.amin([min_hsl, np.amin(d['hs_length'])])
-                max_hsl = np.amax([max_hsl, np.amax(d['hs_length'])])
-                min_force = np.amin([min_force, np.amin(d['force'])])
-                max_force = np.amax([max_force, np.amax(d['force'])])
+                min_hsl = np.amin([min_hsl, np.amin(d['hs_1_length'])])
+                max_hsl = np.amax([max_hsl, np.amax(d['hs_1_length'])])
+                min_force = np.amin([min_force, np.amin(d['hs_1_force'])])
+                max_force = np.amax([max_force, np.amax(d['hs_1_force'])])
 
                 if (file_counter==1):
                     # Make the plots
@@ -1591,41 +1615,47 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                         ax.append(fig.add_subplot(spec[j,i]))
 
                 # Now plot
-                plot_index = (i*no_of_rows)
-                ax[plot_index].plot(d['time'], d['pCa'], '-',
+                plot_index = (i*no_of_rows) + (pCa_row - 1)
+                ax[plot_index].plot(d['time'], d['hs_1_pCa'], '-',
                                     color = color_map[i],
                                     linewidth = formatting['data_linewidth'])
                 if ('column_titles' in formatting):
                     ax[plot_index].title.set_text(formatting['column_titles'][i])
                     
-                plot_index = plot_index + 1
-                ax[plot_index].plot(d['time'], d['hs_length'], '-',
+                plot_index = (i*no_of_rows) + (hs_length_row - 1)
+                ax[plot_index].plot(d['time'], d['hs_1_length'], '-',
                                     color = color_map[i],
                                     linewidth = formatting['data_linewidth'])
-                ax[plot_index].plot(d['time'], d['hs_command_length'], '--',
-                                    color = color_map[i],
-                                    linewidth = formatting['data_linewidth'])
+                # ax[plot_index].plot(d['time'], d['hs_1_command_length'], '--',
+                #                     color = color_map[i],
+                #                     linewidth = formatting['data_linewidth'])
+                
+                if (no_of_rows == 7):
+                    plot_index = (i * no_of_rows) + (sc_length_row - 1)
+                    ax[plot_index].plot(d['time'], d['sc_extension'], '-',
+                                        color = color_map[i],
+                                        linewidth = formatting['data_linewidth'])
 
-                plot_index = plot_index + 1
-                ax[plot_index].plot(d['time'], d['force'], '-',
+                plot_index = (i * no_of_rows) + (force_row - 1)
+                ax[plot_index].plot(d['time'], d['hs_1_force'], '-',
                                     color = color_map[i],
                                     linewidth = formatting['data_linewidth'],
                                     label='Total')
-                ax[plot_index].plot(d['time'], d['titin_force'], ':',
+                ax[plot_index].plot(d['time'], d['hs_1_titin_force'], ':',
                                     color = color_map[i],
                                     linewidth = formatting['data_linewidth'],
                                     label='Titin')
-                ax[plot_index].plot(d['time'], d['viscous_force'], '--',
+                ax[plot_index].plot(d['time'], d['hs_1_viscous_force'], '--',
                                     color = color_map[i],
                                     linewidth = formatting['data_linewidth'],
                                     label='Viscous')
 
-                plot_index = plot_index + 1
+                plot_index = (i * no_of_rows) + (thin_filament_row - 1)
                 if (file_counter==1):
                     label = 'Inactive'
                 else:
                     label = None
-                ax[plot_index].plot(d['time'], d['a_pop_0'], '-',
+                ax[plot_index].plot(d['time'], d['hs_1_a_pop_1'], '-',
                                     linewidth = formatting['data_linewidth'],
                                     color = 'r',
                                     label=label)
@@ -1633,16 +1663,16 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                     label = 'Active'
                 else:
                     label = None
-                ax[plot_index].plot(d['time'], d['a_pop_1'], '-',
+                ax[plot_index].plot(d['time'], d['hs_1_a_pop_2'], '-',
                                     linewidth = formatting['data_linewidth'],
                                     color = 'g',
                                     label=label)
 
-                plot_index = plot_index + 1
+                plot_index = (i * no_of_rows) + (thick_filament_row - 1)
                 keep_going = True
                 m_state_counter = 0
                 while (keep_going):
-                    m_pop_string = ('m_pop_%i' % m_state_counter)
+                    m_pop_string = ('hs_1_m_pop_%i' % (m_state_counter+1))
                     if (m_pop_string in d):
                         if (file_counter == 1):
                             label = m_pop_string
@@ -1657,11 +1687,11 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                     else:
                         keep_going = False
 
-                plot_index = plot_index + 1
+                plot_index = (i * no_of_rows) + (mybpc_row - 1)
                 keep_going = True
                 c_state_counter = 0
                 while (keep_going):
-                    c_pop_string = ('c_pop_%i' % c_state_counter)
+                    c_pop_string = ('hs_1_c_pop_%i' % (c_state_counter+1))
                     if (c_pop_string in d.columns):
                         if (file_counter == 1):
                             label = c_pop_string
@@ -1681,28 +1711,33 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
 
         # Handle formatting
         if (i==0):
-            plot_index = (i*no_of_rows)
+            plot_index = (i * no_of_rows) + (pCa_row - 1)
             ax[plot_index].set_ylabel('pCa')
 
-            plot_index = plot_index + 1
+            plot_index = (i * no_of_rows) + (hs_length_row - 1)
             ax[plot_index].set_ylabel('HS length\n(nm)')
+            
+            if (no_of_rows == 7):
+                plot_index = (i * no_of_rows) + (sc_length_row - 1)
+                ax[plot_index].set_ylabel('Series\nextension\n(nm)')
 
-            plot_index = plot_index + 1
+            plot_index = (i * no_of_rows) + (force_row - 1)
             ax[plot_index].set_ylabel('Force\n(N m$^{-2}$)')
 
-            plot_index = plot_index + 1
+            plot_index = (i * no_of_rows) + (thin_filament_row - 1)
             ax[plot_index].set_ylabel('Thin\nfilament')
 
-            plot_index = plot_index + 1
+            plot_index = (i * no_of_rows) + (thick_filament_row - 1)
             ax[plot_index].set_ylabel('Thick\nfilament')
 
-            plot_index = plot_index + 1
+            plot_index = (i * no_of_rows) + (mybpc_row - 1)
             ax[plot_index].set_ylabel('MyBP-C')
 
 
     # Set limits
     for i in range(no_of_conditions):
-        plot_index = (i*no_of_rows)
+
+        plot_index = (i * no_of_rows) + (pCa_row - 1)
         y_ticks = [4, 9]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].invert_yaxis()
@@ -1719,8 +1754,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
         #     ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
         #     ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
-
-        plot_index = plot_index + 1
+        plot_index = (i * no_of_rows) + (force_row - 1)
         y_ticks = np.asarray([min_force, 0, max_force])
         ax[plot_index].set_ylim(y_ticks[[0, -1]])
         ax[plot_index].set_yticks(y_ticks)
@@ -1729,7 +1763,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
             ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
-        plot_index = plot_index + 1
+        plot_index = (i * no_of_rows) + (thin_filament_row - 1)
         y_ticks = [0, 1]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].set_yticks(y_ticks)
@@ -1739,14 +1773,14 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                           formatting['legend_bbox_to_anchor'][0],
                           formatting['legend_bbox_to_anchor'][1]),
                       prop={'family': formatting['fontname'],
-                       'size': formatting['legend_fontsize']})
+                        'size': formatting['legend_fontsize']})
         
         if ('superposed_x_ticks' in fig_data):
             ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
 
-        plot_index = plot_index + 1
+        plot_index = (i * no_of_rows) + (thick_filament_row - 1)
         y_ticks = [0, 1]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].set_yticks(y_ticks)
@@ -1756,13 +1790,13 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                           formatting['legend_bbox_to_anchor'][0],
                           formatting['legend_bbox_to_anchor'][1]),
                       prop={'family': formatting['fontname'],
-                       'size': formatting['legend_fontsize']})
+                        'size': formatting['legend_fontsize']})
         
         if ('superposed_x_ticks' in fig_data):
             ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
-        plot_index = plot_index + 1
+        plot_index = (i * no_of_rows) + (mybpc_row - 1)
         y_ticks = [0, 1]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].set_yticks(y_ticks)
@@ -1772,7 +1806,7 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                                   formatting['legend_bbox_to_anchor'][0],
                                   formatting['legend_bbox_to_anchor'][1]),
                               prop={'family': formatting['fontname'],
-                               'size': formatting['legend_fontsize']})
+                                'size': formatting['legend_fontsize']})
         
         if ('superposed_x_ticks' in fig_data):
             ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
@@ -1855,7 +1889,7 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                     # Pull off time offset
                     x = d_fit['time'].to_numpy()
                     x = x - x[0]
-                    y = d_fit['force'].to_numpy()
+                    y = d_fit['hs_1_force'].to_numpy()
                     try:
                         k_tr_data = cv.fit_exponential_recovery(x,y)
                     except:
@@ -1867,11 +1901,11 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
 
                     # Store some values
                     curve.append(curve_counter)
-                    force.append(d['force'].iloc[-1])
+                    force.append(d['hs_1_force'].iloc[-1])
                     k_tr.append(k_tr_data['k'])
                     k_tr_amp.append(k_tr_data['amp'])
-                    pCa.append(d['pCa'].iloc[-1])
-                    hs_length.append(d['hs_length'].iloc[-1])
+                    pCa.append(d['hs_1_pCa'].iloc[-1])
+                    hs_length.append(d['hs_1_length'].iloc[-1])
                     k_tr_r_squared.append(k_tr_data['r_squared'])
 
                     d_fit['x_fit'] = k_tr_data['x_fit'] + d_fit['time'].iloc[0]
@@ -1940,14 +1974,14 @@ def create_k_tr_analysis_figure(fig_data, batch_file_string):
                     (0.2 * (d_fit['time'].iloc[-1] - d_fit['time'].iloc[0]))
                 d_raw = d_raw[d_raw['time'] > t_draw_start_s]
 
-                ax_force.plot(d_raw['time'], d_raw['force'],
+                ax_force.plot(d_raw['time'], d_raw['hs_1_force'],
                               color = formatting['color_set'][c_ind])
                 ax_force.plot(d_fit['time'], d_fit['y_fit'], color='k')
 
                 # Now the lengths
-                ax_hsl.plot(d_raw['time'], d_raw['hs_command_length'],
+                ax_hsl.plot(d_raw['time'], d_raw['hs_1_command_length'],
                               color = 'k')
-                ax_hsl.plot(d_raw['time'], d_raw['hs_length'],
+                ax_hsl.plot(d_raw['time'], d_raw['hs_1_length'],
                               color = formatting['color_set'][c_ind])
 
             # Now draw the plots

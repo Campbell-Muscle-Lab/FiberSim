@@ -252,12 +252,6 @@ void thin_filament::calculate_node_forces(void)
                 (gsl_vector_get(bs_x, bs_index) -
                     gsl_vector_get(bs_x, bs_index - a_bs_per_node) -
                     a_inter_bs_rest_length);
-            if (fabs(node_force) > 10)
-            {
-                printf("node_force: %f  a: %i  b: %i  bs_x(a): %g bs_x(b): %g a_bs_per_node: %i a_inter_bs_rest_length: %g\n",
-                    node_force, a, b, gsl_vector_get(bs_x, a), gsl_vector_get(bs_x, b), a_bs_per_node, a_inter_bs_rest_length);
-                exit(1);
-            }
         }
 
         // Set
