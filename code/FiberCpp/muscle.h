@@ -17,6 +17,9 @@
 
 #include "BS_thread_pool.hpp"
 
+#include <chrono>
+#include <ctime>
+
 class FiberSim_model;
 class FiberSim_protocol;
 class FiberSim_options;
@@ -76,13 +79,11 @@ public:
     */
     void force_control_muscle_system();
 
+    void thread_test(int i);
+
     size_t length_control_myofibril_with_series_compliance(int protocol_index);
 
-    //int wrapper_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* p, gsl_vector* f);
-
     size_t worker_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* p, gsl_vector* f);
-
-    //int length_control_wrapper(const gsl_vector* x, void* params, gsl_vector* f);
 
     // Variables
 
@@ -121,7 +122,7 @@ public:
 
     series_component* p_sc;             /**< Pointer to a series elastic component */
 
-    BS::thread_pool pool;                /**< Pointer to a worker pool */
+    std::chrono::high_resolution_clock::time_point last_time;
 
-    // Functions
+    BS::thread_pool * p_thread_pool;
 };

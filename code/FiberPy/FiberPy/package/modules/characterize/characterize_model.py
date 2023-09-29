@@ -151,6 +151,19 @@ def generate_model_files(json_analysis_file_string):
             
             value = a['base_value'] * a['multipliers'][i]
             
+            if ((a['variable'] == 'm_kinetics') or
+                    (a['variable'] == 'c_kinetics')):
+
+                # Special case for kinetics
+                y = np.asarray(adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
+                          ['transition'][a['transition']-1]['rate_parameters'])
+                y[a['parameter_number']-1] = value
+                adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
+                          ['transition'][a['transition']-1]['rate_parameters'] = \
+                              y.tolist()
+                
+                continue
+            
             if (a['output_type'] == 'int'):
                 adj_model[a['class']][a['variable']] = int(value)
                 

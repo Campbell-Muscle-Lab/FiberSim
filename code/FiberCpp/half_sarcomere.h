@@ -196,6 +196,9 @@ public:
 
     gsl_vector* x_vector;           /**< gsl_vector holding node positions */
 
+    gsl_vector* original_x_vector;  /**< gsl_vector used for holding positions
+                                         temporarily */
+
     gsl_vector* f0_vector;           /**< gsl_vector holding right-hand side of kx=f
                                           with-out cross-bridges or titin */
 
@@ -282,6 +285,15 @@ public:
 
     // Thread return value
     double thread_return_value;
+
+    // Kinetics
+    int max_transitions;            /**< integer with the maximum number of transitions */
+
+    gsl_vector* transition_probs;   /**< gsl_vector holding transition probabilities for
+                                         myosin or mybpc transitions */
+
+    gsl_vector* cum_prob;           /**< gsl_vector holding cumulative transition probabilties */
+
 
     // Functions
 
@@ -609,4 +621,6 @@ public:
     * @return void
     */
     void write_gsl_vector_to_file(gsl_vector* p_vector, char output_file_string[]);
+
+    void slow();
 };

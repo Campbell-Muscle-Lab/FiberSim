@@ -40,6 +40,7 @@ struct m_length_control_params
 	muscle* p_m;
 };
 
+// This is a function used by the root finding algorithm that handles the recasting of pointers
 int wrapper_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* params, gsl_vector* f);
 
 struct force_control_params
@@ -47,6 +48,7 @@ struct force_control_params
 	double target_force;
 	double time_step;
 	half_sarcomere* p_hs;
+	double delta_hsl;
 };
 
 // Constructor
@@ -103,16 +105,24 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 	// Initialise_status_counter
 	dump_status_counter = 1;
 
-	// Activate pool of threads
-	if (p_fs_options->worker_threads > 0)
-	{
-		// Making threads
-		printf("Making worker threads\n");
-		BS::thread_pool pool(p_fs_options->worker_threads);
-		printf("threads_made\n");
-	}
+	printf("Muscle created %i half-sarcomeres\n", p_fs_model->no_of_half_sarcomeres);
 
-	printf("Muscle created half-sarcomeres\n");
+	// Initialized the clock
+	last_time = std::chrono::high_resolution_clock::now();
+
+	// Activate a worker pool if required
+	if (p_fs_options->myofibril_multithreading > 0)
+	{
+		p_fs_options->no_of_worker_threads = p_fs_model->no_of_half_sarcomeres;
+
+		p_thread_pool = new BS::thread_pool(p_fs_options->no_of_worker_threads);
+		printf("FiberSim has launched: %i threads\n", p_thread_pool->get_thread_count());
+	}
+	else
+	{
+		p_thread_pool = NULL;
+		printf("FiberSim is running on a single thread\n");
+	}
 }
 
 // Destructor
@@ -191,6 +201,9 @@ void muscle::implement_protocol(char set_protocol_file_string[], char set_result
 
 	// Delete the FiberSim_protocol object
 	delete p_fs_protocol;
+
+	// Delete the thread_pool
+	delete p_thread_pool;
 }
 
 void muscle::implement_time_step(int protocol_index)
@@ -308,6 +321,13 @@ void muscle::implement_time_step(int protocol_index)
 				gsl_vector_get(p_hs[hs_counter]->a_pops, 0),
 				gsl_vector_get(p_hs[hs_counter]->m_pops, 0),
 				gsl_vector_get(p_hs[hs_counter]->c_pops, 0));
+
+		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> fp_ms = t2 - last_time;
+
+		std::cout << "Section took: " << fp_ms << "\n";
+
+		last_time = std::chrono::high_resolution_clock::now();
 	}
 
 	// Update FiberSim_data
@@ -419,6 +439,12 @@ void thread_sarcomere_kinetics(half_sarcomere* p_hs, double time_step, double pC
 	p_hs->sarcomere_kinetics(time_step, pCa_value);
 }
 
+void muscle::thread_test(int hs_counter)
+{
+	p_hs[hs_counter]->sarcomere_kinetics(0.001, 4.5);
+	//p_hs[hs_counter]->slow();
+}
+
 size_t muscle::length_control_myofibril_with_series_compliance(int protocol_index)
 {
 	//! Tries to impose length control on a system with a series compliance
@@ -455,42 +481,20 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 
 	const auto t1 = std::chrono::high_resolution_clock::now();
 
-	if (p_fs_options->worker_threads > 0)
+	if (p_thread_pool != NULL)
 	{
 		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
 		{
 			p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
-			
-			pool.push_task(thread_sarcomere_kinetics, std::ref(p_hs[hs_counter]), time_step_s,
-				gsl_vector_get(p_fs_protocol->pCa, protocol_index));
-		}
-		pool.wait_for_tasks();
 
-		//printf("AA finished waiting\n");
+			double pCa_temp = gsl_vector_get(p_fs_protocol->pCa, protocol_index);
+
+			p_thread_pool->push_task(&half_sarcomere::sarcomere_kinetics, p_hs[hs_counter],
+				time_step_s, gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+
+		}
+		p_thread_pool->wait_for_tasks();
 	}
-
-	/*
-	if (p_fs_options->myofibril_multithreading)
-	{
-
-		// Multithreaded
-
-		std::thread p_threads[MAX_NO_OF_HALF_SARCOMERES];
-
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
-		{
-			p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
-
-			p_threads[hs_counter] = std::thread(thread_sarcomere_kinetics, p_hs[hs_counter], time_step_s,
-				gsl_vector_get(p_fs_protocol->pCa, protocol_index));
-		}
-
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
-		{
-			p_threads[hs_counter].join();
-		}
-	}
-	*/
 	else
 	{
 		// Serial processing
@@ -501,6 +505,12 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 			p_hs[hs_counter]->sarcomere_kinetics(time_step_s, gsl_vector_get(p_fs_protocol->pCa, protocol_index));
 		}
 	}
+
+	auto t_kinetics = std::chrono::high_resolution_clock::now();
+	
+	const std::chrono::duration<double, std::milli> dur_kinetics = t_kinetics - t1;
+
+	//std::cout << "Kinetics took " << dur_kinetics << "\n";
 
 	// Now deduce the length of x
 	x_length = p_fs_model->no_of_half_sarcomeres + 1;
@@ -600,11 +610,7 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 
 	delete par;
 
-	// Performance
-	auto t2 = std::chrono::high_resolution_clock::now();
-	const std::chrono::duration<double, std::milli> fp_ms = t2 - t1;
-
-	//std::cout << "Time_step took " << fp_ms << "\n";
+	//std::cout << "Force balance took: " << fp_ms << "\n";
 
 	// Return the max number of lattice iterations
 	return max_lattice_iterations;
@@ -630,12 +636,15 @@ int wrapper_length_control_myofibril_with_series_compliance(const gsl_vector* x,
 	return f_return_value;
 }
 
-void thread_test_force_wrapper(half_sarcomere* p_hs, double delta_hsl, force_control_params* fp)
+void thread_test_force_wrapper(half_sarcomere* p_hs, force_control_params* fp, gsl_vector* f, int i)
 {
 	//! This is a helper function that can be launched as a seperate thread to calculate
 	//! the residual for force balance
 
-	p_hs->thread_return_value = p_hs->test_force_wrapper(delta_hsl, fp);
+	double y;
+	y= p_hs->test_force_wrapper(fp->delta_hsl, fp);
+
+	gsl_vector_set(f, i, y);
 }
 
 size_t muscle::worker_length_control_myofibril_with_series_compliance(
@@ -664,8 +673,11 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 
 	// We need the force-control params for the calculation
 
-	if (p_fs_options->worker_threads > 0)
+	// Decide whether we are doing this in parallel with threads
+	if (p_thread_pool != NULL)
 	{
+		auto t_start = std::chrono::high_resolution_clock::now();
+
 		// We need an array of force-control points, one for each thread
 		force_control_params* f_p[MAX_NO_OF_HALF_SARCOMERES];
 
@@ -677,65 +689,12 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 			f_p[hs_counter]->p_hs = p_hs[hs_counter];
 		}
 
-		// Now cycle through the half-sarcomeres, checking the residual for each
-		// half sarcomere in a separate thread
-
-		cum_hs_length = 0;
-
-		auto t1 = std::chrono::high_resolution_clock::now();
-
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
-		{
-			cum_hs_length = cum_hs_length + gsl_vector_get(x, hs_counter);
-
-			delta_hsl = gsl_vector_get(x, hs_counter) - p_hs[hs_counter]->hs_length;
-
-			// Constrain delta_hsl to a plausible range
-			if (delta_hsl > p_fs_options->myofibril_max_delta_hs_length)
-				delta_hsl = p_fs_options->myofibril_max_delta_hs_length;
-			if (delta_hsl < -p_fs_options->myofibril_max_delta_hs_length)
-				delta_hsl = -p_fs_options->myofibril_max_delta_hs_length;
-
-			pool.push_task(thread_test_force_wrapper, p_hs[hs_counter], delta_hsl, f_p[hs_counter]);
-		}
-
-		pool.wait_for_tasks();
-
-		auto t2 = std::chrono::high_resolution_clock::now();
-		const std::chrono::duration<double, std::milli> fp_ms = t2 - t1;
-
-	//	std::cout << "Took parallel " << fp_ms << "\n";
-
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
-		{
-			force_diff = p_hs[hs_counter]->thread_return_value;
-
-			gsl_vector_set(f, hs_counter, force_diff);
-
-			delete f_p[hs_counter];
-		}
-
-
-	}
-
-	/*
-	if (p_fs_options->myofibril_multithreading)
-	{
-		// We need an array of force-control points, one for each thread
-		force_control_params* f_p[MAX_NO_OF_HALF_SARCOMERES];
-
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
-		{
-			f_p[hs_counter] = new force_control_params();
-			f_p[hs_counter]->target_force = gsl_vector_get(x, x->size - 1);
-			f_p[hs_counter]->time_step = params->time_step;
-			f_p[hs_counter]->p_hs = p_hs[hs_counter];
-		}
+		//auto t2 = std::chrono::high_resolution_clock::now();
+		//const std::chrono::duration<double, std::milli> make_fp = t2 - t1;
+		//printf("make_f_p: %f\n", make_fp);
 
 		// Now cycle through the half-sarcomeres, checking the residual for each
 		// half sarcomere in a separate thread
-
-		std::thread p_threads[MAX_NO_OF_HALF_SARCOMERES];
 
 		cum_hs_length = 0;
 
@@ -751,21 +710,25 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 			if (delta_hsl < -p_fs_options->myofibril_max_delta_hs_length)
 				delta_hsl = -p_fs_options->myofibril_max_delta_hs_length;
 
-			p_threads[hs_counter] = std::thread(thread_test_force_wrapper, p_hs[hs_counter], delta_hsl, f_p[hs_counter]);
+			f_p[hs_counter]->delta_hsl = delta_hsl;
+
+			p_thread_pool->push_task(thread_test_force_wrapper, p_hs[hs_counter], f_p[hs_counter], f, hs_counter);
 		}
+		p_thread_pool->wait_for_tasks();
+
+		//t2 = std::chrono::high_resolution_clock::now();
+		//const std::chrono::duration<double, std::milli> adjust_fp = t2 - t1;
+		//printf("adjust_f_p: %f\n", adjust_fp);
 
 		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
-		{
-			p_threads[hs_counter].join();
-
-			force_diff = p_hs[hs_counter]->thread_return_value;
-
-			gsl_vector_set(f, hs_counter, force_diff);
-
 			delete f_p[hs_counter];
-		}
+
+		const std::chrono::high_resolution_clock::time_point t2 =
+			std::chrono::high_resolution_clock::now();
+
+		const std::chrono::duration<double, std::milli> total = t2 - t_start;
+//		printf("total_parallel: %f\n", total);
 	}
-	*/
 	else
 	{
 		// Serial operation
@@ -804,8 +767,6 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 
 		auto t2 = std::chrono::high_resolution_clock::now();
 		const std::chrono::duration<double, std::milli> fp_ms = t2 - t1;
-
-		//std::cout << "Took serial " << fp_ms << "\n";
 	}
 
 	// Now deduce the series elastic force
