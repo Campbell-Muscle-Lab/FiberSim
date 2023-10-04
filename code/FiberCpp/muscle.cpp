@@ -244,53 +244,58 @@ void muscle::implement_time_step(int protocol_index)
 		p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
 		p_hs[hs_counter]->sarcomere_kinetics(time_step_s, pCa);
 
-		// Branch on control mode
-		sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
-
-		// Semi-clever check for comparing sim_mode to -1.0
-		if (gsl_fcmp(sim_mode, -1.0, 1e-3) == 0)
+		if (p_hs[hs_counter]->hs_length > p_fs_options->min_hs_length)
 		{
-			// Check slack length mode for ktr
-			p_hs[hs_counter]->hs_slack_length =
-				p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
+			// We are safe to continue
 
-			// The hs_length cannot be shorter than its slack length
-			new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
-				p_hs[hs_counter]->hs_command_length);
+			// Branch on control mode
+			sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
 
-			adjustment = new_length - p_hs[hs_counter]->hs_length;
-		}
-		else
-		{
-			// Over-write slack length
-			p_hs[hs_counter]->hs_slack_length = GSL_NAN;
-
-			// Are we in force control
-			if (sim_mode > 0.0)
+			// Semi-clever check for comparing sim_mode to -1.0
+			if (gsl_fcmp(sim_mode, -1.0, 1e-3) == 0)
 			{
-				// Force control
-				new_length = p_hs[hs_counter]->return_hs_length_for_force(sim_mode, time_step_s);
+				// Check slack length mode for ktr
+				p_hs[hs_counter]->hs_slack_length =
+					p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
+
+				// The hs_length cannot be shorter than its slack length
+				new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
+					p_hs[hs_counter]->hs_command_length);
 
 				adjustment = new_length - p_hs[hs_counter]->hs_length;
-
-				// Update the command length which changes depending on force control
-				p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_length;
 			}
 			else
 			{
-				// Length control
-				adjustment = gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
+				// Over-write slack length
+				p_hs[hs_counter]->hs_slack_length = GSL_NAN;
+
+				// Are we in force control
+				if (sim_mode >= 0.0)
+				{
+					// Force control
+					new_length = p_hs[hs_counter]->return_hs_length_for_force(sim_mode, time_step_s);
+
+					adjustment = new_length - p_hs[hs_counter]->hs_length;
+
+					// Update the command length which changes depending on force control
+					p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_length;
+				}
+				else
+				{
+					// Length control
+					adjustment = gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
+				}
 			}
+
+			// Apply the adjustment
+			lattice_iterations = p_hs[hs_counter]->update_lattice(time_step_s, adjustment);
+
+			// Update the muscle length
+			m_length = p_hs[hs_counter]->hs_command_length;
+
+			// Update the muscle force
+			m_force = p_hs[hs_counter]->hs_force;
 		}
-
-		// Apply the adjustment
-		lattice_iterations = p_hs[hs_counter]->update_lattice(time_step_s, adjustment);
-
-		// Update the muscle length
-		m_length = p_hs[hs_counter]->hs_command_length;
-
-		// Update the muscle force
-		m_force = p_hs[hs_counter]->hs_force;
 	}
 	else
 	{
@@ -310,6 +315,7 @@ void muscle::implement_time_step(int protocol_index)
 			lattice_iterations = length_control_myofibril_with_series_compliance(protocol_index);
 		}
 	}
+
 	if ((protocol_index % 100) == 0)
 	{
 		hs_counter = 0;

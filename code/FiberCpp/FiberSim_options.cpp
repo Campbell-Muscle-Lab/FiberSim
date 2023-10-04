@@ -56,7 +56,11 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
                                                  iterations in myofibril multiroot
                                                  calculations */
 
-    no_of_worker_threads = 0;                     /**< default value for number of worker threads */
+    min_hs_length = 500.0;                  /**< default value for the half-sarcomere length
+                                                 at which the simulation collapses and gives
+                                                 up trying to keep the calculations going */
+
+    no_of_worker_threads = 0;               /**< default value for number of worker threads */
 
     // Update values from log file
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
@@ -254,6 +258,12 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     {
         JSON_functions::check_JSON_member_number(options, "hs_force_control_max_delta_hs_length");
         hs_force_control_max_delta_hs_length = options["hs_force_control_max_delta_hs_length"].GetDouble();
+    }
+
+    if (JSON_functions::is_JSON_member(options, "min_hs_length"))
+    {
+        JSON_functions::check_JSON_member_number(options, "min_hs_length");
+        min_hs_length = options["min_hs_length"].GetDouble();
     }
 
     // Check if the dump precision was specified.

@@ -80,7 +80,7 @@ class movie_with_data():
         if (render_data['relative_to'] == 'this_file'):
             parent_path = os.path.dirname(self.render_file_string)
             frames_file = os.path.join(parent_path,
-                                       render_data['frames_file'])
+                                        render_data['frames_file'])
         
         # Load frames data
         with open(frames_file, 'r') as f:
@@ -108,14 +108,14 @@ class movie_with_data():
 
         # Sort the top and bot
         zipped = zip(self.top_indices,
-                     self.top_files, self.top_c_x)
+                      self.top_files, self.top_c_x)
         s = sorted(zipped)
         t = zip(*s)
         self.top_indices, self.top_files, self.top_c_x = \
             [list(t1) for t1 in t]
 
         zipped = zip(self.bot_indices,
-                     self.bot_files, self.bot_c_x)
+                      self.bot_files, self.bot_c_x)
         s = sorted(zipped)
         t = zip(*s)
         self.bot_indices, self.bot_files, self.bot_c_x = \
@@ -130,9 +130,9 @@ class movie_with_data():
             
             # Generate top image
             top_file = os.path.join(self.parent_path,
-                                   'renders/hs_c_zone_%i.png' % fi)
+                                    'renders/hs_c_zone_%i.png' % fi)
             bot_file = os.path.join(self.parent_path,
-                                   'renders/hs_i_band_%i.png' % fi)
+                                    'renders/hs_i_band_%i.png' % fi)
             
             # self.create_figure()
             
@@ -141,8 +141,8 @@ class movie_with_data():
             # self.add_cameras(fi, i)
             
             temp_file = os.path.join(self.parent_path,
-                                     'temp',
-                                     'f_%i.png' % fi)
+                                      'temp',
+                                      'f_%i.png' % fi)
             
             self.movie_frames.append(temp_file)
             
@@ -222,26 +222,26 @@ class movie_with_data():
         m_length = self.d['m_fil_length'].iloc[fi]
         
         self.ax_cam_top.plot([0, a_end],[0.25, 0.25], 'k-',
-                             linewidth=3)
+                              linewidth=3)
         self.ax_cam_top.plot([hsl-m_length, hsl],[1, 1], 'k-',
-                             linewidth=10)
+                              linewidth=10)
         self.ax_cam_top.plot([0,0],[0,2],'k-',
-                             linewidth=3)
+                              linewidth=3)
         self.ax_cam_top.plot([hsl,hsl],[0,2],'k-',
-                             linewidth=10)
+                              linewidth=10)
         self.ax_cam_top.set_xlim([0, 1300])
         self.ax_cam_top.set_ylim([0, 2])
         self.ax_cam_top.text(self.top_c_x[ci], 1.5, 'Cam->')
         self.ax_cam_top.axis('off')
 
         self.ax_cam_bot.plot([0, a_end],[0.25, 0.25], 'k-',
-                             linewidth=3)
+                              linewidth=3)
         self.ax_cam_bot.plot([hsl-m_length, hsl],[1, 1], 'k-',
-                             linewidth=10)
+                              linewidth=10)
         self.ax_cam_bot.plot([0,0],[0,2],'k-',
-                             linewidth=3)
+                              linewidth=3)
         self.ax_cam_bot.plot([hsl,hsl],[0,2],'k-',
-                             linewidth=10)
+                              linewidth=10)
         self.ax_cam_bot.set_xlim([0, 1300])
         self.ax_cam_bot.set_ylim([0, 2])
         self.ax_cam_bot.text(self.bot_c_x[ci], 1.5, 'Cam->')
