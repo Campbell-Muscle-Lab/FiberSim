@@ -52,6 +52,10 @@ public:
                                              https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1635681/
                                              for justification */
 
+    double min_hs_length;              /**< double for the half-sarcomere length below which the
+                                             simulation 'collapses' and gives up trying to
+                                             keep the calculations going */
+
     int myofibril_multithreading;       /**< int defining whether to implement multi-threading
                                              for myofibril calculations
                                              1 means yes

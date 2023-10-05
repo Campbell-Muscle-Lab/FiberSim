@@ -31,7 +31,7 @@ def characterize_model(json_analysis_file_string):
         
     # Check for the analysis file
     if (not json_analysis_file_string):
-        print('deduce_fv_properties: no analysis file specified')
+        print('characterize_model: no analysis file specified')
         exit(1)
     
     # Load it
@@ -124,10 +124,13 @@ def generate_model_files(json_analysis_file_string):
         orig_options_file = os.path.join(temp_dir,
                                          model_struct['options_file'])
         new_options_file = os.path.join(generated_dir, model_struct['options_file'])
-    else:
+    elif (model_struct['relative_to'] == 'false'):
         orig_options_file = model_struct['options_file']
-        print('Needs more work on sim_options copying')
-        exit(1)
+        
+        temp, file_name = os.path.split(orig_options_file)
+        new_options_file = os.path.join(generated_dir, file_name)
+    else:
+        print('characterize_model - need more work on sim options copying')
     
     shutil.copy(orig_options_file, new_options_file)
 
@@ -186,6 +189,9 @@ def generate_model_files(json_analysis_file_string):
             json.dump(adj_model, f, indent=4)
 
         # Append the model files
+        if not (model_struct['relative_to'] == 'this_file'):
+            model_file_string = adj_model_file_string
+            
         generated_models.append(model_file_string)
         
     # Update the set up file

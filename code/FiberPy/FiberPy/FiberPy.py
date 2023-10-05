@@ -12,6 +12,7 @@ from package.modules.fitting import fitting as fit
 from package.modules.visualization import render as viz
 from package.modules.visualization.create_movie import create_hs_movie as cm
 from package.modules.characterize import characterize_model as characterize
+from package.modules.sample import sample_model as sample
 
 
 def parse_inputs():
@@ -48,6 +49,9 @@ def parse_inputs():
 
     if (sys.argv[1] == "run_all_demos"):
         run_multiple_batch(sys.argv[2])
+        
+    if (sys.argv[1] == "sample"):
+        sample.sample_model(sys.argv[2])
 
 
 if __name__ == "__main__":

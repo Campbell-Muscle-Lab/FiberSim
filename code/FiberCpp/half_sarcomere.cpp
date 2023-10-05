@@ -526,7 +526,7 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force, double
     const gsl_root_fsolver_type* T;
     gsl_root_fsolver* s;
     double r = 0.0;
-    double x_lo = -hs_length;
+    double x_lo = GSL_MAX(-(hs_length - 10.0), -p_fs_options->hs_force_control_max_delta_hs_length);
     double x_hi = p_fs_options->hs_force_control_max_delta_hs_length;
     struct force_control_params params = { target_force, time_step, this };
 
@@ -535,7 +535,14 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force, double
     F.params = &params;
 
     // Test
+    
+    double test_value;
+    test_value = test_force_wrapper(x_lo, &params);
+    //printf("x_lo: %g\t\ttest_value: %g\n", x_lo, test_value);
 
+    test_value = test_force_wrapper(x_hi, &params);
+    //printf("x_hi: %g\t\ttest_value: %g\n", x_hi, test_value);
+    
     // Code
     T = gsl_root_fsolver_brent;
     s = gsl_root_fsolver_alloc(T);
@@ -548,7 +555,7 @@ double half_sarcomere::calculate_delta_hsl_for_force(double target_force, double
         r = gsl_root_fsolver_root(s);
         x_lo = gsl_root_fsolver_x_lower(s);
         x_hi = gsl_root_fsolver_x_upper(s);
-        status = gsl_root_test_interval(x_lo, x_hi, 0, 0.01);
+        status = gsl_root_test_interval(x_lo, x_hi, 0.01, 0);
     } while (status == GSL_CONTINUE && iter < max_iter);
 
     gsl_root_fsolver_free(s);
@@ -562,9 +569,22 @@ double half_sarcomere::test_force_wrapper(double delta_hsl, void* params)
         (struct force_control_params*) params;
     half_sarcomere* p_hs = p->p_hs;
 
-    // Code
+    double test_value;
 
-    return p_hs->test_force_for_delta_hsl(delta_hsl, params);
+    // Code
+    test_value = p_hs->test_force_for_delta_hsl(delta_hsl, params);
+
+    //printf("Wrapper: hs_l: %g\tdelta_hsl: %g\ttest_value: %g\n", p_hs->hs_length, delta_hsl, test_value);
+
+    if (!gsl_finite(test_value))
+    {
+        if (delta_hsl > 0)
+            test_value = DBL_MAX;
+        else
+            test_value = -DBL_MAX;
+    }
+
+    return test_value;
 }
 
 double half_sarcomere::test_force_for_delta_hsl(double delta_hsl, void *params)
