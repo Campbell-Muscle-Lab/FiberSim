@@ -2,6 +2,7 @@ var classthin__filament =
 [
     [ "thin_filament", "classthin__filament.html#ae7fa33a3a8da4497d29c260c19c8e63f", null ],
     [ "~thin_filament", "classthin__filament.html#a488b1fdf702dbda6247dbd240177a3bb", null ],
+    [ "calculate_node_forces", "classthin__filament.html#a728e681ad2f8b432009448ab2bc07014", null ],
     [ "initialise_bs_x_bs_angle_bs_unit", "classthin__filament.html#a2fee622e70ef2312ab3d3321ca7d4141", null ],
     [ "set_regulatory_unit_indices", "classthin__filament.html#a97b303b1564d3bbc5529172ba538853e", null ],
     [ "set_unit_status", "classthin__filament.html#a8e8f5499f915f9640b2eef4cb759dbec", null ],
@@ -14,6 +15,7 @@ var classthin__filament =
     [ "a_strands_per_filament", "classthin__filament.html#ad7eaee140fe0633308b62d3555516c62", null ],
     [ "a_y", "classthin__filament.html#a621c433bca8cc27c5dd790777c786e82", null ],
     [ "a_z", "classthin__filament.html#a19650deefd2c4e5de7b0a96894ce1d2d", null ],
+    [ "active_neighbors", "classthin__filament.html#a05ca00f3fabfa666da3f65705fdec9ab", null ],
     [ "bound_to_m_f", "classthin__filament.html#a5f0b13f4779124193abf87d1ee344fb4", null ],
     [ "bound_to_m_n", "classthin__filament.html#abd96bea14c425864bd05c9fd3ea5f6b7", null ],
     [ "bound_to_m_type", "classthin__filament.html#af0542b401abb4f4f2520a7d01244c7dc", null ],
@@ -22,6 +24,7 @@ var classthin__filament =
     [ "bs_state", "classthin__filament.html#ac059202d79fbe0cb493b01d744a95c57", null ],
     [ "bs_unit", "classthin__filament.html#a8ebedd36d150d59871c34248370c4f62", null ],
     [ "bs_x", "classthin__filament.html#a588a5acd909cc3c214e13ae19fc1a9c8", null ],
+    [ "node_forces", "classthin__filament.html#af0c93013b168dc69a2188d35cc54704d", null ],
     [ "p_fs_model", "classthin__filament.html#a8f503241f7ef29562bbab04483331294", null ],
     [ "p_fs_options", "classthin__filament.html#a20d64e8952d57256c50117782558232a", null ],
     [ "p_parent_hs", "classthin__filament.html#a748cd601297c9e72488e4a975c5b64b9", null ],

@@ -1,14 +1,11 @@
 var searchData=
 [
-  ['_7efibersim_5fdata_411',['~FiberSim_data',['../class_fiber_sim__data.html#ab18177929614f4de837bf2843d2c1504',1,'FiberSim_data']]],
-  ['_7efibersim_5fmodel_412',['~FiberSim_model',['../class_fiber_sim__model.html#a9a0a488384bd48f07a2c52671950b1df',1,'FiberSim_model']]],
-  ['_7efibersim_5foptions_413',['~FiberSim_options',['../class_fiber_sim__options.html#a66b07009a09cbb2246f6cce859ebb9c8',1,'FiberSim_options']]],
-  ['_7efibersim_5fprotocol_414',['~FiberSim_protocol',['../class_fiber_sim__protocol.html#acd0a33a42c6967bcbfba843eccdbe39c',1,'FiberSim_protocol']]],
-  ['_7ehalf_5fsarcomere_415',['~half_sarcomere',['../classhalf__sarcomere.html#aac38f127ff24c39bea1a50a2d57de398',1,'half_sarcomere']]],
-  ['_7ekinetic_5fscheme_416',['~kinetic_scheme',['../classkinetic__scheme.html#ae8417ea39e3ebd4783f1f6f65b8d63c1',1,'kinetic_scheme']]],
-  ['_7em_5fstate_417',['~m_state',['../classm__state.html#a78317949534b81b3c9dc4779935bca7e',1,'m_state']]],
-  ['_7emuscle_418',['~muscle',['../classmuscle.html#a9952efba683394b9a2a69d30b3ca0fa6',1,'muscle']]],
-  ['_7ethick_5ffilament_419',['~thick_filament',['../classthick__filament.html#a7655a9fea18f9e85f4007359a0f01bec',1,'thick_filament']]],
-  ['_7ethin_5ffilament_420',['~thin_filament',['../classthin__filament.html#a488b1fdf702dbda6247dbd240177a3bb',1,'thin_filament']]],
-  ['_7etransition_421',['~transition',['../classtransition.html#ad1bce4a17a69565131bbd1fb26faa995',1,'transition']]]
+  ['parallelize_5floop_0',['parallelize_loop',['../class_b_s_1_1thread__pool.html#ab63b1085ad48295d7f653cbb36a286be',1,'BS::thread_pool::parallelize_loop(const T1 first_index, const T2 index_after_last, F &amp;&amp;loop, const size_t num_blocks=0)'],['../class_b_s_1_1thread__pool.html#a2f4e0c7b8e0ac08d9cdad40defd36f30',1,'BS::thread_pool::parallelize_loop(const T index_after_last, F &amp;&amp;loop, const size_t num_blocks=0)']]],
+  ['pause_1',['pause',['../class_b_s_1_1thread__pool.html#aefb5f1e179eb97f6458d4f77fbb331fd',1,'BS::thread_pool']]],
+  ['print_2',['print',['../class_b_s_1_1synced__stream.html#a98e63ce25c8de5cf4bb58966236adef1',1,'BS::synced_stream']]],
+  ['println_3',['println',['../class_b_s_1_1synced__stream.html#a5fc273e58ed3cad6d939dc0eceddb8a4',1,'BS::synced_stream']]],
+  ['purge_4',['purge',['../class_b_s_1_1thread__pool.html#ab7b0b929324dad46b60a0321477ca352',1,'BS::thread_pool']]],
+  ['push_5fback_5',['push_back',['../class_b_s_1_1multi__future.html#a6af9fb74e856f779a1722d2018afebee',1,'BS::multi_future']]],
+  ['push_5floop_6',['push_loop',['../class_b_s_1_1thread__pool.html#ae7cec549d4a8729beac50f5eba3ec63f',1,'BS::thread_pool::push_loop(const T1 first_index, const T2 index_after_last, F &amp;&amp;loop, const size_t num_blocks=0)'],['../class_b_s_1_1thread__pool.html#a2ffca1428e1f111220b5f9aed9ff9eac',1,'BS::thread_pool::push_loop(const T index_after_last, F &amp;&amp;loop, const size_t num_blocks=0)']]],
+  ['push_5ftask_7',['push_task',['../class_b_s_1_1thread__pool.html#a016a2a6a7a9c844c94c606aaf517b21c',1,'BS::thread_pool']]]
 ];

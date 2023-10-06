@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Single curve
 has_children: false
 parent: pCa curves
@@ -6,186 +7,81 @@ grand_parent: Demos
 nav_order: 1
 ---
 
-# Single pCa curve
+# Single curve
 
 ## Overview
 
-This demo shows how to use a batch structure to calculate a tension-pCa curve.
+This demo shows how to simulate a pCa curve with information about  k_tr.
 
 ## What this demo does
 
 This demo:
 
-+ Runs a series of simulations in which a half-sarcomere is activated in solutions with pCa values ranging from 8.0 to 4.8
-
-+ Calculates the steady-state force produced at each pCa and plots the results as a tension-pCa curve
++ Builds on the [single k_tr trial](../../single_trials/k_tr/k_tr.html) demo and runs simulations in which a half-sarcomere is subjected to a k<sub>tr</sub> maneuver at a range of pCa values
++ Plots summaries of the simulation
 
 ## Instructions
 
-Before proceeding, make sure that you have followed the [installation instructions](../../../installation/installation.html). You need the FiberSim folder, an Anaconda distribution of Python, and an active FiberSim environment to run this demo.
+If you need help with these step, check the [installation instructions](../../../installation/installation.html).
 
-### Getting ready
-
-+ Open an Anaconda Prompt
-
-+ Activate the FiberSim Anaconda Environment by executing:
++ Open an Anaconda prompt
++ Activate the FiberSim environment
++ Change directory to `<FiberSim_repo>/code/FiberPy/FiberPy`
++ Run the command
 ```
-conda activate fibersim
-```
-+ Change directory to `<FiberSim_dir>/code/FiberPy/FiberPy`, where `<FiberSim_dir>` is the directory where you installed FiberSim.
-
-### Run a simulation
-
-+ Type:
+ python FiberPy.py characterize "../../../demo_files/pCa_curves/single_curve/base/setup.json"
  ```
- python FiberPy.py run_batch "../../../demo_files/pCa_curves/single_curve/batch_single_curve.json"
- ```
-
-+ You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take several minutes), you should see something similar to the image below.
-
-![command window](command_window.png)
 
 ### Viewing the results
 
-All of the results from the simulation are written to files in `<FiberSim_dir>/demo_files/tension_pCa/single_curve/sim_output`
+**Important note - some of these traces, particularly at lower activation levels, are noisy. This is because the code is only simulating 9 thick filaments and there are not enough cross-bridge events at low levels of activation to obtain smooth averages. You can increase the `m_n` parameter in the set-up file to get smoother records but the simulations take longer to run and might be frustrating for a demo. Note that `m_n` must be a integer squared [4, 9, 16, 25, 36 ... with a maximum value of 196].** 
 
-<img src='folder.PNG' width="100%">
+All of the results from the simulation are written to files in `<FiberSim_repo>/demo_files/pCa_curves/single_curve/sim_data/sim_output`
 
-+ The file `force_pCa_curve.png` in the main `sim_output` folder shows the steady-state force values and a fitted Hill curve.
+The file `superposed_traces.png` shows pCa, length, force per cross-sectional area (stress), and thick and thin filamnt properties plotted against time.
 
-<html>
-<img src="force_pCa_curve.png" width="50%">
-</html>
+<img src="images/superposed_traces.png" width="50%">
 
-+ The underlying data are stored in `analysis.xlsx`
+Since the simulations included more than 1 pCa value, FiberPy created a pCa curve `force_pCa.png`
 
-<img src='analysis.PNG' width="50%">
+<img src="images/force_pCa.png" width="50%">
 
-+ Simulations for each pCa value are stored in the sub-folder named `1`.
+and wrote summary data to `pCa_analysis.xlsx`
 
-![sim_output_folder](sim_output_folder.png)
+<img src="images/excel_pCa.png" width="50%">
 
-For each pCa value, there is:
+Since the code simulated a k<sub>tr</sub> maneuver, FiberPy also created a figure showing the analyis of the tension recovery.
 
-+ a `*.txt` file with the main simulation results
-+ a `*.png` file with a summary figure
+<img src="images/k_tr_analysis.png" width="50%">
 
-![results text file](results.PNG)
+and wrote summary data to `k_tr_analysis.xlsx`.
 
-<html>
-<img src="sim_summary_figure.png" width="50%">
-</html>
+<img src="images/excel_k_tr.png" width="50%">
 
-## How this worked
+### How this worked
 
-The tension-pCa curve was calculated by running a sequence of simulations, each of which corresponded to a half-sarcomere activated in a different pCa solution.
-
-Each simulation was defined by a job, with the different jobs being grouped together as an array. All of this information is stored in the `batch_single_curve.json` file that was passed to FiberPy and which is displayed below.
-
-Looking at the first job, you can see that FiberSim will run a simulation using:
-+ `model_file: sim_input/1/model_1.json`
-+ `options_file: sim_input/sim_options.json`
-+ `protocol_file: sim_input/1/pCa_800/prot_pCa_800.txt`
-
-with the results being written to `sim_output/1/pCa_800_results.txt` and summary figures being created based on `sim_input/1/pCa_800/output_handler_800.json`
-
-The other jobs in the array use a similar structure.
-
-The final section of the batch file, labeled `batch_figures`, tells FiberPy to collate the results in the `sim_output` folder, plot a tension-pCa curve, and save the image to a specified file-name. The code underlying this part of the process assumes that all of the `*.txt` files in `sim_output\1` are the results files for a single curve. 
+The only difference between this simulation and the [single k_tr trial](../../single_trials/k_tr/k_tr.html) is that the additional pCa values have been added between the brackets.
 
 ````
-{
-   "FiberSim_batch":
-   {
-        "FiberCpp_exe":
+"characterization": [
         {
+            "type": "pCa_length_control",
             "relative_to": "this_file",
-            "exe_file": "../../../bin/fibercpp.exe"
-        },
-        "job": [
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input\\1\\model_1.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input\\1\\pCa_800\\prot_pCa_800.txt",
-                "results_file": "sim_output\\1\\pCa_800_results.txt",
-                "output_handler_file": "sim_input\\1\\pCa_800\\output_handler_800.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input\\1\\model_1.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input\\1\\pCa_640\\prot_pCa_640.txt",
-                "results_file": "sim_output\\1\\pCa_640_results.txt",
-                "output_handler_file": "sim_input\\1\\pCa_640\\output_handler_640.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input\\1\\model_1.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input\\1\\pCa_620\\prot_pCa_620.txt",
-                "results_file": "sim_output\\1\\pCa_620_results.txt",
-                "output_handler_file": "sim_input\\1\\pCa_620\\output_handler_620.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input\\1\\model_1.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input\\1\\pCa_600\\prot_pCa_600.txt",
-                "results_file": "sim_output\\1\\pCa_600_results.txt",
-                "output_handler_file": "sim_input\\1\\pCa_600\\output_handler_600.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input\\1\\model_1.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input\\1\\pCa_580\\prot_pCa_580.txt",
-                "results_file": "sim_output\\1\\pCa_580_results.txt",
-                "output_handler_file": "sim_input\\1\\pCa_580\\output_handler_580.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input\\1\\model_1.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input\\1\\pCa_560\\prot_pCa_560.txt",
-                "results_file": "sim_output\\1\\pCa_560_results.txt",
-                "output_handler_file": "sim_input\\1\\pCa_560\\output_handler_560.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input\\1\\model_1.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input\\1\\pCa_540\\prot_pCa_540.txt",
-                "results_file": "sim_output\\1\\pCa_540_results.txt",
-                "output_handler_file": "sim_input\\1\\pCa_540\\output_handler_540.json"
-            },
-            {
-                "relative_to": "this_file",
-                "model_file": "sim_input\\1\\model_1.json",
-                "options_file": "sim_input/sim_options.json",
-                "protocol_file": "sim_input\\1\\pCa_480\\prot_pCa_480.txt",
-                "results_file": "sim_output\\1\\pCa_480_results.txt",
-                "output_handler_file": "sim_input\\1\\pCa_480\\output_handler_480.json"
-            }
-        ],
-        "batch_figures":
-        {
-            "pCa_curves":
-            [
-              {
-                "relative_to": "this_file",
-                "results_folder": "sim_output",
-                "data_field": "force",
-                "output_image_file": "sim_output/force_pCa_curve",
-                "output_image_formats": [ "png" ],
-                "output_data_file_string": "sim_output/analysis.xlsx",
-                "formatting": {
-                  "y_scaling_factor": 0.001,
-                  "y_axis_label": "Force\n(kN m$\\mathregular{^{-2}}$)"
-                }
-              }
-            ]
+            "sim_folder": "../sim_data",
+            "m_n": 9,
+            "pCa_values": [9, 6.5, 6.3, 6.1, 6.0, 5.9, 5.8, 5.7, 5.5, 4.5],
+            "sim_duration_s": 2.5,
+            "time_step_s": 0.001,
+            "pCa_step_up_s": 0.1,
+            "k_tr_start_s": 1.5,
+            "k_tr_duration_s": 0.02,
+            "k_tr_ramp_s": 0.001,
+            "k_tr_magnitude_nm": 100,
+            "k_tr_fit_time_s": [1.525, 2.45],
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False"
         }
-    }
-}
+    ]
 ````
+

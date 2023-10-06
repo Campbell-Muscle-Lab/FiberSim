@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Sarcomere lattice
 parent: FiberCpp
 has_children: false

@@ -1,4 +1,5 @@
 ---
+layout: default
 title: FiberPy
 has_children: true
 nav_order: 4

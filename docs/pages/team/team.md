@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Team
 has_children: false
 nav_order: 30
@@ -18,14 +19,15 @@ Key contributors to the FiberSim team include:
   + many of the demos
 
 
-+ [Sarah Kosta](https://sites.google.com/g.uky.edu/campbellmusclelab/people)
+
+## Alumni
+
++ [Sarah Kosta](https://be.linkedin.com/in/sarah-kosta-27b284251)
   + Post-doc, University of Kentucky Department of Physiology
   + optimized algorithms for the FiberCpp code
   + validated the calculations
   + helped develop the website and demonstrations
 
-
-## Alumni
 
 + [Dylan Colli](https://www.linkedin.com/in/dylan-colli/)
   + Post-bac student

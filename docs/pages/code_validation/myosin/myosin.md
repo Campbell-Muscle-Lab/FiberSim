@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Myosin
 parent: Code Validation
 has_children: false

@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Research Presentations
 has_children: False
 parent: Videos

@@ -1,9 +1,0 @@
-{
-    "render_job": {
-        "relative_to": "this_file",
-        "job_number": 0,
-        "frame_file": "frame_0.json",
-        "template_file": "..\\render_template/render_template.json",
-        "options_file": "..\\render_options/render_options.json"
-    }
-}

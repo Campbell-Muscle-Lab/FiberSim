@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Manuscripts
 has_children: True
 nav_order: 15

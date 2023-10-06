@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Calculations
 parent: FiberCpp
 has_children: false
