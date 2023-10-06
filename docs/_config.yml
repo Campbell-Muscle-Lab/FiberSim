@@ -1,14 +1,8 @@
-title: FiberSim
-description: Software for simulating half-sarcomeres
+title: Just the Docs Template
+description: A starter template for a Jeykll site using the Just the Docs theme!
 theme: just-the-docs
 
-url: https://campbell-muscle-lab.github.io/FiberSim/
+url: https://just-the-docs.github.io
 
 aux_links:
-  FiberSim repo: https://github.com/campbell-muscle-lab/FiberSim
-  Campbell lab: https://www.campbellmusclelab.org
-
-mermaid:
-  # Version of mermaid library
-  # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
-  version: "9.1.3"
+  Template Repository: https://github.com/just-the-docs/just-the-docs-template
