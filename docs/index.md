@@ -3,26 +3,33 @@ title: Home
 layout: home
 ---
 
-# FiberSim
+This is a *bare-minimum* template to create a Jekyll site that uses the [Just the Docs] theme. You can easily set the created site to be published on [GitHub Pages] – the [README] file explains how to do that, along with other details.
 
-FiberSim is software for spatially-explicit modeling of half-sarcomes. The code tracks the position and status of each myosin head, each binding site on actin, and each molecule of myosin binding protein-C.
+If [Jekyll] is installed on your computer, you can also build and preview the created site *locally*. This lets you test changes before committing them, and avoids waiting for GitHub Pages.[^1] And you will be able to deploy your local build to a different platform than GitHub Pages.
 
-![](img/FiberSim_render.png)
+More specifically, the created site:
 
-You need a Windows PC to run a simulation but you can analyze output from the model on any computer that has an Anaconda-based installation of Python.
+- uses a gem-based approach, i.e. uses a `Gemfile` and loads the `just-the-docs` gem
+- uses the [GitHub Pages / Actions workflow] to build and publish the site on GitHub Pages
 
-##  Organization
-The main components of the software are:
+Other than that, you're free to customize sites that you create with this template, however you like. You can easily change the versions of `just-the-docs` and Jekyll it uses, as well as adding further plugins.
 
-+ FiberCpp - the core model that implements the calculations underlying the simulations.<br>
-This software is written in C++ but is currently only compiled for Windows PCs.
-+ FiberPy - accessory code that makes it easier to run different types of simulations and analyze output.<br>
-This component is written in Python.
+[Browse our documentation][Just the Docs] to learn more about how to use this theme.
 
-![](img/code_structure.png)
+To get started with creating a site, simply:
 
-## Getting started
-Quick tutorial videos are provided here to help you install FiberSim. Then you can check the demos to see how to:
+1. click "[use this template]" to create a GitHub repository
+2. go to Settings > Pages > Build and deployment > Source, and select GitHub Actions
 
-Run simulations
-Create videos and snap-shots of the model
+If you want to maintain your docs in the `docs` directory of an existing project repo, see [Hosting your docs from an existing project repo](https://github.com/just-the-docs/just-the-docs-template/blob/main/README.md#hosting-your-docs-from-an-existing-project-repo) in the template README.
+
+----
+
+[^1]: [It can take up to 10 minutes for changes to your site to publish after you push the changes to GitHub](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/creating-a-github-pages-site-with-jekyll#creating-your-site).
+
+[Just the Docs]: https://just-the-docs.github.io/just-the-docs/
+[GitHub Pages]: https://docs.github.com/en/pages
+[README]: https://github.com/just-the-docs/just-the-docs-template/blob/main/README.md
+[Jekyll]: https://jekyllrb.com
+[GitHub Pages / Actions workflow]: https://github.blog/changelog/2022-07-27-github-pages-custom-github-actions-workflows-beta/
+[use this template]: https://github.com/just-the-docs/just-the-docs-template/generate

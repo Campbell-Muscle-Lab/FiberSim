@@ -8,9 +8,10 @@ name: Deploy Jekyll site to Pages
 
 on:
   push:
-    branches: ["master"]
-  paths:
-   - "docs/**"
+    branches:
+      - "master"
+    paths:
+      - "docs/**"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -32,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: docs
+        working_directory: docs
     steps:
       - name: Checkout
         uses: actions/checkout@v3
