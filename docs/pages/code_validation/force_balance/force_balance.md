@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Force-balance
 parent: Code Validation
 has_children: false

@@ -37,7 +37,7 @@ def characterize_model(json_analysis_file_string):
     # Load it
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        anal_struct = json_data['FiberSim_characterization']
+        anal_struct = json_data['FiberSim_setup']
         
     # If there is a manipulations section, use that to create the
     # appropriate models
@@ -89,7 +89,7 @@ def generate_model_files(json_analysis_file_string):
     # First load the file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        model_struct = json_data['FiberSim_characterization']['model']
+        model_struct = json_data['FiberSim_setup']['model']
     
     # Deduce the base model file string
     if (model_struct['relative_to'] == 'this_file'):
@@ -197,10 +197,10 @@ def generate_model_files(json_analysis_file_string):
     # Update the set up file
     
     # Add in the model files
-    json_data['FiberSim_characterization']['model']['model_files'] = generated_models
+    json_data['FiberSim_setup']['model']['model_files'] = generated_models
     
     # Delete the adjustments
-    del(json_data['FiberSim_characterization']['model']['manipulations'])
+    del(json_data['FiberSim_setup']['model']['manipulations'])
     
     # Generate a new setup file string
     generated_setup_file_string = os.path.join(generated_dir,
@@ -232,7 +232,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        char_struct = json_data['FiberSim_characterization']
+        char_struct = json_data['FiberSim_setup']
     
     # Pull off the components
     FiberCpp_exe_struct = char_struct['FiberCpp_exe']
@@ -577,41 +577,27 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     func_output = dict()
 
     # pCa curves
-    batch_figs['pCa_curves'] = []
-    fig = dict()
-    fig['relative_to'] = "False"
-    fig['results_folder'] = output_dir
-    fig['data_field'] = 'hs_1_force'
-    fig['output_data_file_string'] = os.path.join(output_dir,
-                                                  'pCa_analysis.xlsx')
-    fig['output_image_file'] = os.path.join(output_dir,
-                                            'force_pCa')
-    fig['output_image_formats'] = pCa_struct['output_image_formats']
-
-    if ('formatting' in pCa_struct):
-        fig['formatting'] = pCa_struct['formatting']
-    else:
-        fig['formatting'] = dict()
-        fig['formatting']['y_axis_label'] = 'Force (N m$^{\\mathregular{-2}}$)'
-    batch_figs['pCa_curves'].append(fig)
-
-    func_output['pCa_analysis_file_string'] = fig['output_data_file_string']
-
-    # # pCa curves - NORMALIZED
-    # fig = dict()
-    # fig['relative_to'] = "False"
-    # fig['results_folder'] = os.path.join(output_dir)
-    # fig['data_field'] = 'force'
-    # fig['output_image_file'] = os.path.join(output_dir,
-    #                                         'force_pCa_normalized')
-    # fig['output_image_formats'] = pCa_struct['output_image_formats']
-
-    # fig['formatting'] = dict()
-    # fig['formatting']['y_axis_label'] = 'Normalized \n force'
-    # fig['formatting']['y_normalized'] = 'True'
-    # fig['formatting']['y_label_pad'] = 20
-
-    # batch_figs['pCa_curves'].append(fig)
+    if (len(pCa_struct['pCa_values']) > 1):
+        batch_figs['pCa_curves'] = []
+        fig = dict()
+        fig['relative_to'] = "False"
+        fig['results_folder'] = output_dir
+        fig['data_field'] = 'hs_1_force'
+        fig['output_data_file_string'] = os.path.join(output_dir,
+                                                      'pCa_analysis.xlsx')
+        fig['output_image_file'] = os.path.join(output_dir,
+                                                'force_pCa')
+        fig['output_image_formats'] = pCa_struct['output_image_formats']
+    
+        if ('formatting' in pCa_struct):
+            fig['formatting'] = pCa_struct['formatting']
+        else:
+            fig['formatting'] = dict()
+            fig['formatting']['y_axis_label'] = 'Force (N m$^{\\mathregular{-2}}$)'
+            fig['formatting']['high_pCa_tick'] = np.amax(pCa_struct['pCa_values'])
+        batch_figs['pCa_curves'].append(fig)
+    
+        func_output['pCa_analysis_file_string'] = fig['output_data_file_string']
 
     # Rates
     batch_figs['rates'] = []
@@ -700,7 +686,7 @@ def deduce_fv_properties(json_analysis_file_string,
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        anal_struct = json_data['FiberSim_characterization']
+        anal_struct = json_data['FiberSim_setup']
     
     # Pull off the components
     FiberCpp_exe_struct = anal_struct['FiberCpp_exe']
@@ -1252,7 +1238,7 @@ def deduce_freeform_properties(json_analysis_file_string,
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        char_struct = json_data['FiberSim_characterization']
+        char_struct = json_data['FiberSim_setup']
     
     # Pull off the components
     FiberCpp_exe_struct = char_struct['FiberCpp_exe']
@@ -1546,7 +1532,7 @@ def characterize_fv_with_pCa_and_isometric_force(json_analysis_file_string,
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        char_struct = json_data['FiberSim_characterization']
+        char_struct = json_data['FiberSim_setup']
         
     # Create a dict for the force_velocity batch, and fill it in bit by bit
     fv_dict = dict()

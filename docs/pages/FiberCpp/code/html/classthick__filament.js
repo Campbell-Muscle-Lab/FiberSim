@@ -6,6 +6,7 @@ var classthick__filament =
     [ "initalise_cb_x_and_cb_angle", "classthick__filament.html#adcb4e1b40da67cfa96a88093336b0f41", null ],
     [ "initalise_pc_node_index_and_pc_angle", "classthick__filament.html#ab50696c3d13cb6300d4af5dfe6e4d445", null ],
     [ "initialise_cb_controlling_pc_index", "classthick__filament.html#a230d9eb52492b53785fceb643211058a", null ],
+    [ "c_inter_stripe_twist", "classthick__filament.html#a82e7f6492733ed3a5814cdb094ebf3ef", null ],
     [ "c_mols_per_node", "classthick__filament.html#a55daae1f2e7cffb1f8b8742246bb347b", null ],
     [ "c_no_of_pcs", "classthick__filament.html#a7e88b67151df5ae7a51ea0d0836fed50", null ],
     [ "c_starting_angle", "classthick__filament.html#a96ddb86304533351eb99b3af35dc9f0e", null ],

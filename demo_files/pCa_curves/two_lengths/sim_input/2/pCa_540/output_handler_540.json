@@ -1,9 +1,0 @@
-{
-    "templated_images": [
-        {
-            "relative_to": "this_file",
-            "template_file_string": "../../../template/template_summary.json",
-            "output_file_string": "../../../sim_output\\2\\summary_540"
-        }
-    ]
-}

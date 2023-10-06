@@ -1,11 +1,10 @@
 ---
-title: pCa curves 
+layout: default
+title: pCa curves
 has_children: true
 parent: Demos
-nav_order: 2
+nav_order: 1
 ---
 
 # pCa curves
-
-
 

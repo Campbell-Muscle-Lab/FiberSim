@@ -4,8 +4,14 @@ var classmuscle =
     [ "~muscle", "classmuscle.html#a9952efba683394b9a2a69d30b3ca0fa6", null ],
     [ "implement_protocol", "classmuscle.html#a58f96be62cc8f3d82f82830ac66de35b", null ],
     [ "implement_time_step", "classmuscle.html#a31c7995c851bd6be43e4371727be24d6", null ],
+    [ "length_control_myofibril_with_series_compliance", "classmuscle.html#a5ae5417fee9b234f9664403a40f3221c", null ],
+    [ "worker_length_control_myofibril_with_series_compliance", "classmuscle.html#a3a6214482b94c570e990a19a7168d956", null ],
+    [ "write_rates_file", "classmuscle.html#a1156ec15476fc24135239520b05f390d", null ],
     [ "dump_status_counter", "classmuscle.html#aa3fd7631d50569d1dbca517b5a8efe15", null ],
+    [ "m_force", "classmuscle.html#a5a08b212e301d7d805546cbf322bdf74", null ],
+    [ "m_length", "classmuscle.html#aa8178c2ba97b850a83b418b1e8d70e88", null ],
     [ "model_file_string", "classmuscle.html#a745f58cf4a8dc334f54b638f05f6d948", null ],
+    [ "model_version", "classmuscle.html#a3b21ea64bb586ec9d84703a6347a0115", null ],
     [ "muscle_id", "classmuscle.html#a3fa99b0802446c80aeb4ee504c493201", null ],
     [ "options_file_string", "classmuscle.html#a745e093644b7340ff741588112580db8", null ],
     [ "p_fs_data", "classmuscle.html#af3a5539ce1b35992d376b1f9a9b4933a", null ],
@@ -13,6 +19,7 @@ var classmuscle =
     [ "p_fs_options", "classmuscle.html#affce953f8e197db2b3afb3668a40b120", null ],
     [ "p_fs_protocol", "classmuscle.html#aa3e0b562a88cdb512554dbe2095f233e", null ],
     [ "p_hs", "classmuscle.html#abb0853ea1f54af213c8647c36b5be745", null ],
+    [ "p_sc", "classmuscle.html#a8a7918c26c67e92af0b4725945680937", null ],
     [ "protocol_file_string", "classmuscle.html#a1ae6daf22c1a3cc99f9e5ab13d400a0e", null ],
     [ "results_file_string", "classmuscle.html#a07ac74096ff0d609b06269dd96e6a70e", null ]
 ];

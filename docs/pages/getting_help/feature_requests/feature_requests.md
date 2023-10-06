@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Feature requests
 parent: Getting help
 has_children: false

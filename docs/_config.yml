@@ -1,13 +1,14 @@
-remote_theme: pmarsceill/just-the-docs
+title: FiberSim
+description: Software for simulating half-sarcomeres
+theme: just-the-docs
 
-footer_content: "Written by the Campbell Muscle Lab"
+url: https://campbell-muscle-lab.github.io/FiberSim/
 
 aux_links:
-  "Campbell Muscle Lab":
-    - "http://www.campbellmusclelab.org"
-  "Lab GitHub":
-    - "http://campbell-muscle-lab.github.io"
-  "FiberSim Repo":
-    - "//github.com/campbell-muscle-lab/FiberSim/"
+  FiberSim repo: https://github.com/campbell-muscle-lab/FiberSim
+  Campbell lab: https://www.campbellmusclelab.org
 
-title: "FiberSim"
+mermaid:
+  # Version of mermaid library
+  # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
+  version: "9.1.3"

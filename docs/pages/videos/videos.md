@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Videos
 has_children: True
 nav_order: 20

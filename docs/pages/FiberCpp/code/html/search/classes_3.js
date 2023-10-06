@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['lattice_5fevent_306',['lattice_event',['../structlattice__event.html',1,'']]]
+  ['kinetic_5fscheme_0',['kinetic_scheme',['../classkinetic__scheme.html',1,'']]]
 ];

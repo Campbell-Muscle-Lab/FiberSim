@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['x_5fpos_5frel_5ftol_607',['x_pos_rel_tol',['../class_fiber_sim__options.html#ad0c80a26d46de39f1172d16701ebda88',1,'FiberSim_options']]],
-  ['x_5fvector_608',['x_vector',['../classhalf__sarcomere.html#a68198e6c768f37f97c1a4f98313b2fd8',1,'half_sarcomere']]]
+  ['version_0',['version',['../class_fiber_sim__model.html#a124d64f4701b7cc9c78a4a13d64d6f02',1,'FiberSim_model']]],
+  ['viscosity_1',['viscosity',['../class_fiber_sim__model.html#a50ecf7bffe17fa2cbbb1a58f132e0e71',1,'FiberSim_model::viscosity'],['../classhalf__sarcomere.html#a5baeec43213131cf76f00e8ead20dee2',1,'half_sarcomere::viscosity']]]
 ];

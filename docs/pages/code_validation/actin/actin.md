@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Actin
 parent: Code Validation
 has_children: false

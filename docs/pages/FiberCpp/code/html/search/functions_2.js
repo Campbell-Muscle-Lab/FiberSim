@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['half_5fsarcomere_359',['half_sarcomere',['../classhalf__sarcomere.html#acfce57324c0577826d12de3dbeb78b87',1,'half_sarcomere']]],
-  ['handle_5flattice_5fevent_360',['handle_lattice_event',['../classhalf__sarcomere.html#a398281f8959b16385e4a5fea436f621a',1,'half_sarcomere']]]
+  ['end_0',['end',['../class_b_s_1_1blocks.html#a0f0e08f9eff06a0d8e3b05bf59833c7b',1,'BS::blocks']]]
 ];

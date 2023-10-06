@@ -1,4 +1,5 @@
 ---
+layout: default
 title: MyBPC
 parent: Code Validation
 has_children: false

@@ -1747,12 +1747,12 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
         plot_index = plot_index + 1
-        # y_ticks = [min_hsl, max_hsl]
-        # ax[plot_index].set_ylim(y_ticks)
-        # ax[plot_index].set_yticks(y_ticks)
-        # if ('superposed_x_ticks' in fig_data):
-        #     ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
-        #     ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+        y_ticks = [min_hsl, max_hsl]
+        ax[plot_index].set_ylim(y_ticks)
+        ax[plot_index].set_yticks(y_ticks)
+        if ('superposed_x_ticks' in fig_data):
+            ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
+            ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
         plot_index = (i * no_of_rows) + (force_row - 1)
         y_ticks = np.asarray([min_force, 0, max_force])
