@@ -5,4 +5,5 @@ theme: just-the-docs
 url: https://campbell-muscle-lab.github.io/FiberSim
 
 aux_links:
-  Template Repository: https://github.com/just-the-docs/just-the-docs-template
+  FiberSim repo: https://github.com/Campbell-Muscle-Lab/FiberSim
+  Campbell lab: http://www.campbellmusclelab.org/
