@@ -6,15 +6,21 @@ nav_order: 2
 
 # Installation
 
-This page discusses how to install FiberSim and the necessary support software.
+**Important note** - the Campbell lab uses Windows PCs exclusively.
+
+FiberCpp is written in C++ and the binary included in this repo will only work on Windows machines. Thus, you will need a Windows PC to run simmulations.
+
+FiberPy is written in Python and *might* run on non-Windows machines. This means that you *might* be able to analyze simulations run somewhere else but we haven't tried this ourselves and don't have the resources to support non-Windows use.
+
+With that caveat, this page discusses how to install FiberSim.
 
 ## Downloading the FiberSim software
 
 The FiberSim project is [hosted on GitHub](https://github.com/campbell-muscle-lab/FiberSim).
 
-If you are used to GitHub, you will probably want to clone the respository. [This page](https://campbell-muscle-lab.github.io/howtos_GitHub/pages/github_repos/github_repos.html) provides some help.
+If you are comfortably using GitHub and/or GitHub desktop, you will probably want to clone the respository. [This page](https://campbell-muscle-lab.github.io/howtos_GitHub/pages/github_repos/github_repos.html) provides some basic help.
 
-If you are new to GitHub, it is probably easier to download a zip file of the repository. Once you have done that, un-zip the archive in a folder where you have write access, for example, `c:/users/your_name/documents/FiberSim`.
+If you are new to Git, it is probably easier to download a zip file of the repository. Once you have done that, un-zip the archive in a folder where you have write access, for example, `c:/users/your_name/documents/FiberSim`.
 
 <img src = "github_zip.png">
 
