@@ -4,7 +4,7 @@ title: k_tr trial
 has_children: false
 parent: Single trials
 grand_parent: Demos
-nav_order: 1
+nav_order: 2
 ---
 
 # Activation with a k_tr maneuver
