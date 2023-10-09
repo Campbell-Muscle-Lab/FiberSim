@@ -152,31 +152,36 @@ def generate_model_files(json_analysis_file_string):
                 
         for (j,a) in enumerate(adjustments):
             
-            value = a['base_value'] * a['multipliers'][i]
-            
             if ((a['variable'] == 'm_kinetics') or
                     (a['variable'] == 'c_kinetics')):
 
                 # Special case for kinetics
                 y = np.asarray(adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
-                          ['transition'][a['transition']-1]['rate_parameters'])
+                          ['transition'][a['transition']-1]['rate_parameters'],
+                          dtype = np.float32)
+                
+                base_value = y[a['parameter_number'] - 1]
+                value = base_value * a['multipliers'][i]
+                    
                 y[a['parameter_number']-1] = value
                 adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
                           ['transition'][a['transition']-1]['rate_parameters'] = \
                               y.tolist()
                 
-                continue
-            
-            if (a['output_type'] == 'int'):
-                adj_model[a['class']][a['variable']] = int(value)
+            else:
+                base_value = adj_model[a['class']][a['variable']]
                 
-            if (a['output_type'] == 'float'):
-                adj_model[a['class']][a['variable']] = float(value)
+                value = base_value * a['multipliers'][i]
                 
-            # Check for NaN
-            if (np.isnan(value)):
-                adj_model[a['class']][a['variable']] = 'null'
-        
+                if (a['output_type'] == 'int'):
+                    adj_model[a['class']][a['variable']] = int(value)
+                    
+                if (a['output_type'] == 'float'):
+                    adj_model[a['class']][a['variable']] = float(value)
+                    
+                # Check for NaN
+                if (np.isnan(value)):
+                    adj_model[a['class']][a['variable']] = 'null'
     
         # Now generate the model file string
         model_file_string = 'model_%i.json' % (i+1)
