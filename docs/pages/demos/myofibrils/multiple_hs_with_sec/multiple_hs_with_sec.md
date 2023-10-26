@@ -7,7 +7,7 @@ grand_parent: Demos
 nav_order: 2
 ---
 
-# Single half-sarcomere wtih series compliance
+# Multiple half-sarcomere wtih series compliance
 
 ## Overview
 
