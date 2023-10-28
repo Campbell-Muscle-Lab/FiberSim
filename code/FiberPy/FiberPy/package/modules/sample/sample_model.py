@@ -37,7 +37,7 @@ def sample_model(json_analysis_file_string):
     # Load the analysis file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        anal_struct = json_data['FiberSim_characterization']
+        anal_struct = json_data['FiberSim_setup']
         
     # Clean the generated folder. This has to happen here before we
     # launch threads that will compete with each other
@@ -67,7 +67,7 @@ def generate_characterization_files(json_analysis_file_string):
     # First load the sampling file
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
-        model_struct = json_data['FiberSim_characterization']['model']
+        model_struct = json_data['FiberSim_setup']['model']
         sampling_struct = model_struct['sampling']
     
     # Deduce the base model file string
@@ -139,13 +139,13 @@ def generate_characterization_files(json_analysis_file_string):
             os.makedirs(sample_gen_dir)
         
         # Update the model section
-        sample_characterize['FiberSim_characterization']['model']['relative_to'] = \
+        sample_characterize['FiberSim_setup']['model']['relative_to'] = \
             'false';
         
         # Set and copy the options file
         temp, options_file_end = os.path.split(base_options_file_string)
         new_options_file_string = os.path.join(sample_gen_dir, options_file_end)
-        sample_characterize['FiberSim_characterization']['model']['options_file'] = \
+        sample_characterize['FiberSim_setup']['model']['options_file'] = \
             new_options_file_string
             
         shutil.copy(base_options_file_string,
@@ -153,17 +153,17 @@ def generate_characterization_files(json_analysis_file_string):
         
         
         # Delete the sampling and replace with manipulations
-        del sample_characterize['FiberSim_characterization']['model']['sampling']
+        del sample_characterize['FiberSim_setup']['model']['sampling']
 
         # Create the manipulations
-        sample_characterize['FiberSim_characterization']['model'] \
+        sample_characterize['FiberSim_setup']['model'] \
             ['manipulations'] = dict()
         
         # Create and copy the model file
         temp, model_file_end = os.path.split(base_model_file_string)
         new_model_file_string = os.path.join(sample_gen_dir,
                                              model_file_end)
-        sample_characterize['FiberSim_characterization']['model'] \
+        sample_characterize['FiberSim_setup']['model'] \
             ['manipulations']['base_model'] = new_model_file_string
             
         shutil.copy(base_model_file_string, new_model_file_string)
@@ -176,13 +176,13 @@ def generate_characterization_files(json_analysis_file_string):
         temp_generated_dir = os.path.join(('%s_char' % temp),
                                           last_bit)
         
-        sample_characterize['FiberSim_characterization']['model'] \
+        sample_characterize['FiberSim_setup']['model'] \
             ['manipulations']['generated_folder'] = temp_generated_dir
             
         # Pull off the twitch protocol. We need the characterize struct
         # for that, but also later
         characterize_struct = \
-            sample_characterize['FiberSim_characterization']['characterization'][0]
+            sample_characterize['FiberSim_setup']['characterization'][0]
             
         if ('twitch_protocol' in characterize_struct):
             tw_protocol = characterize_struct['twitch_protocol']
@@ -274,7 +274,9 @@ def generate_characterization_files(json_analysis_file_string):
             characterize_adj['multipliers'] = []
             characterize_adj['multipliers'].append(characterize_m)
             characterize_adj['output_type'] = 'float'
-            
+
+             # Add it in
+            adjusts.append(characterize_adj)
                 
         # Make a dataframe from the par_values
         par_df = pd.DataFrame([par_values])
@@ -286,7 +288,7 @@ def generate_characterization_files(json_analysis_file_string):
                                             ignore_index = True)
         
         # Add the adjustments into sample_characterize
-        sample_characterize['FiberSim_characterization'] \
+        sample_characterize['FiberSim_setup'] \
             ['model']['manipulations']['adjustments'] = adjusts
                 
            
@@ -297,14 +299,22 @@ def generate_characterization_files(json_analysis_file_string):
                                                   tw_protocol)
             
             # Repack
-            sample_characterize['FiberSim_characterization']['characterization'][0] = ch
+            sample_characterize['FiberSim_setup']['characterization'][0] = ch
            
         # Check the relative dir
-        if (json_data['FiberSim_characterization']['model']['relative_to'] == 'this_file'):
+        if (json_data['FiberSim_setup']['model']['relative_to'] == 'this_file'):
             parent_dir = Path(json_analysis_file_string).parent.absolute()
         else:
             print('More work required')
             exit(1)
+
+        # Adjust the post-sim Python call
+        if ('post_sim_Python_call' in sample_characterize['FiberSim_setup']['characterization'][0]):
+            temp_string = sample_characterize['FiberSim_setup']['characterization'][0]['post_sim_Python_call']
+            temp_string = os.path.join(parent_dir, temp_string)
+            temp_string = str(Path(temp_string).resolve())
+            sample_characterize['FiberSim_setup']['characterization'][0]['post_sim_Python_call'] = \
+                temp_string
         
         # Create a file name for the characterization file
         characterization_file_string = \
@@ -339,10 +349,10 @@ def characterize_unloaded_shortening(json_analysis_file_string,
         json_data = json.load(f)
         
     # Replace the twitch protocol
-    json_data['FiberSim_characterization']['characterization'][0]['twitch_protocol'] = tw_protocol
+    json_data['FiberSim_setup']['characterization'][0]['twitch_protocol'] = tw_protocol
     
     # Pull off the characterization component
-    orig_struct = json_data['FiberSim_characterization']['characterization'][0]
+    orig_struct = json_data['FiberSim_setup']['characterization'][0]
     
     # Copy it
     new_struct = copy.deepcopy(orig_struct)

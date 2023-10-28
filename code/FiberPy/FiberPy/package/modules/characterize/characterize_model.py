@@ -74,7 +74,9 @@ def post_sim_Python_call(json_analysis_file_string, char_struct):
     
     if (char_struct['relative_to'] == 'this_file'):
         working_dir = Path(json_analysis_file_string).parent.absolute()
-    
+    else:
+        working_dir = ''
+           
     command_string = 'python %s' % (os.path.join(working_dir,
                                                  char_struct['post_sim_Python_call']))
     
@@ -140,7 +142,10 @@ def generate_model_files(json_analysis_file_string):
 
     # Now work out how many adjustments you need to make
     adjustments = model_struct['manipulations']['adjustments']
-    no_of_models = len(adjustments[0]['multipliers'])
+    if ('multipliers' in adjustments[0]):
+        no_of_models = len(adjustments[0]['multipliers'])
+    else:
+        no_of_models = 1
     
     generated_models = []
         

@@ -1,0 +1,22 @@
+{
+  "options": {
+    "max_rate": 5e4,
+    "x_pos_rel_tol": 1e-1,
+    "hs_force_control_max_delta_hs_length": 300,
+    "adjacent_bs": 1,
+    "lambda_jitter" : 0,
+    "min_hs_length": 600,
+    "myofibrils":
+    {
+        "force_tolerance": 1,
+        "max_iterations": 100,
+        "max_delta_hs_length": 300,
+        "multithreading": 0
+    },
+    "xstatus_files": {
+      "relative_to": "sim_output_dir",
+      "status_folder": "status_dumps",
+      "time_steps": "480:1:590"
+    }
+  }
+}

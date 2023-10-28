@@ -1,0 +1,62 @@
+{
+  "FiberSim_setup":
+  {
+    "FiberCpp_exe": {
+      "relative_to": "this_file`",
+      "exe_file": "../../../../bin/FiberCpp.exe"
+    },
+    "model": {
+      "relative_to": "this_file",
+      "options_file": "sim_options.json",
+      "sampling":
+      {
+        "no_of_samples": 4,
+        "base_model": "model.json",
+        "generated_folder": "../generated",
+        "adjustments":
+        [
+          {
+            "variable": "Ca_transient_k_serca",
+            "factor_bounds": [0.5, 2],
+            "factor_mode": "lin"
+          },
+          {
+            "class": "titin_parameters",
+            "variable": "t_k_stiff",
+            "factor_bounds": [0.5, 2],
+            "factor_mode": "lin"
+          },
+          {
+            "class": "thin_parameters",
+            "variable": "a_k_off",
+            "factor_bounds": [0.5, 2],
+            "factor_mode": "lin"
+          }
+        ]
+      }
+    },
+    "characterization": [
+        {
+            "type": "unloaded_shortening",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data",
+            "m_n": 9,
+            "twitch_protocol":
+            {
+                "time_step_s": 0.001,
+                "n_points": 400,
+                "stimulus_time_s": [0.3],
+                "Ca_content": 1e-3,
+                "stimulus_duration_s": 0.01,
+                "k_leak": 6e-4,
+                "k_act": 8.2e-2,
+                "k_serca": 20
+            },
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False",
+            "post_sim_Python_call": "../Python_code/analyze_simulations.py"
+        }
+    ]
+  }
+}
