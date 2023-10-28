@@ -51,6 +51,9 @@ def analyze_simulations(top_data_folder, sim_file_string, analysis_folder):
         dfs = os.path.join(os.path.abspath(str(d)),
                        sim_file_string)
         
+        if not os.path.isfile(dfs):
+            continue
+        
         sample_results = analyze_simulation(dfs, i)
         
         # Store the data
@@ -75,14 +78,13 @@ def analyze_simulation(data_file_string,
     
     # Make a figure
     # Set up a figure
-    no_of_rows = 5
+    no_of_rows = 3
     no_of_cols = 1
         
     Ca_row = 1
     dCadt_row = 2
     hsl_row = 3
     dhsldt_row = 4
-    d2Cadt2_row = 5
     
     fig = plt.figure(constrained_layout = False)
     spec = gridspec.GridSpec(nrows = no_of_rows,
@@ -102,10 +104,10 @@ def analyze_simulation(data_file_string,
     d['dCadt'] = np.gradient(d['Ca'], d['time'])
     d['dCadt'] = d['dCadt'].rolling(rolling_n).sum(). \
         fillna(method='bfill').fillna(method='ffill')
-    d['d2Cadt2'] = np.gradient(d['dCadt'], d['time'])
     
     # Get some values
     res = dict()
+    res['sim_number'] = sim_index + 1
     res['Ca_max'] = d['Ca'].max()
     res['Ca_max_time_s'] = d['time'].iloc[d['Ca'].argmax()]
     res['dCadt_max'] = d['dCadt'].max()
@@ -238,10 +240,7 @@ def analyze_simulation(data_file_string,
         y_lab = ('hs_length_up_%.0f' % (100 * t))
         x_lab = '%s_time_s' % y_lab
         ax[hsl_row-1].plot(res[x_lab], res[y_lab], 'rs', fillstyle='none')        
-
-    # Finally plot dhsldt
-    ax[d2Cadt2_row - 1].plot(d['time'], d['d2Cadt2'], '-')
-    
+   
     # Create an image file string
     output_image_file_string = os.path.join(analysis_folder,
                                        'images',
@@ -309,6 +308,9 @@ def summary_figure(top_data_folder, sim_file_string, analysis_folder):
         dfs = os.path.join(os.path.abspath(str(d)),
                            sim_file_string)
         
+        if not os.path.isfile(dfs):
+            continue
+        
         d = pd.read_csv(dfs, sep='\t', na_values=['-nan(ind'])
         
         d['Ca2+'] = np.power(10, -d['hs_1_pCa'])
@@ -334,7 +336,7 @@ if __name__ == "__main__":
     excel_data_file_string = '../generated/parameter_values.xlsx'
     analysis_folder = '../analysis'
 
-    base_folder = str(Path(sys.argv[0]).parent.absolute())
+    base_folder = str(Path(str(sys.argv[0])).parent.absolute().resolve())
     analysis_folder = os.path.join(base_folder, analysis_folder)
     excel_data_file_string = os.path.join(base_folder, excel_data_file_string)
     top_data_folder = os.path.join(base_folder, top_data_folder)

@@ -1,24 +1,26 @@
 ---
 layout: default
-title: Half-sarcomere with series compliance
+title: Latin hypercube
 has_children: false
-parent: Myofibrils
+parent: Sampling
 grand_parent: Demos
 nav_order: 1
 ---
 
-# Single half-sarcomere wtih series compliance
+# Latin hypercube sampling of unloaded shortening
 
 ## Overview
 
-This demo shows how to simulate a single half-sarcomere that is connected in series with a linear spring.
+This demo shows how to run repeated simulations where each trial uses a different combination of parameter values. The user defines which parameters to vary and over what range. Each trial simulates a half-sarcomere activated by a Ca<sup>2+</sup> transient and shortening / re-lengthenging without an external load.
 
 ## What this demo does
 
 This demo:
 
-+ Runs a single simulation in which a single half-sarcomere connected in series with a linear spring is activated and deactivated by step changes in the Ca<sup>2+</sup> concentration
-+ Plots a summary of the simulation
++ Samples a base model by running 30 free-form simulations, each of which is based on a different model and simulates a protocol with a slightly different Ca<sup>2+</sup> transient
++ After the simulations are complete, calls a custom-written Python function that
+  + Deduces summary statistics for each simulation
+  + Creates figures summarizing the results
 
 ## Instructions
 
@@ -29,68 +31,100 @@ If you need help with these step, check the [installation instructions](../../..
 + Change directory to `<FiberSim_repo>/code/FiberPy/FiberPy`
 + Run the command
 ```
- python FiberPy.py characterize "../../../demo_files/myofibrils/hs_with_sec/base/setup.json"
+ python FiberPy.py sample "../../../demo_files/sampling/latin_hypercube/base/setup.json"
  ```
 
-+ You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take a few minutes), you should see something similar to the image below.
++ You should see text appearing in the terminal window, showing that the simulations are running. Since there are 30 simulations, it may take several minutes for the calculations to finish.
 
 ### Viewing the results
 
-All of the results from the simulation are written to files in `<FiberSim_repo>/demo_files/myofibrils/hs_with_sec/sim_data/sim_output`
+The model values that were used to run the simulations are saved to
+`<FiberSim_repo>/demo_files/sampling/latin_hypercube/generated/parameter_values.xlsx`
 
-The file `superposed_traces.png` shows pCa, length, force per cross-sectional area (stress), and thick and thin filament properties plotted against time. Note the complex time-course of relaxation.
+<img src = "images/excel_model_values.png">
 
-<img src="images/superposed_traces.png" width="50%">
+The post-simulation Python code is at `<FiberSim_repo>/demo_files/sampling/latin_hypercube/python_code/analyze_simulations.py`
+
+It saves analysis results in `<FiberSim_repo>/demo_files/sampling/latin_hypercube/analysis`. These include:
+
+`summary.png` which superposes the Ca<sup>2+</sup> transients and unloaded shortening profiles for the 30 simulations
+
+<img src = "images/summary.png">
+
+`pair_plot.png` which shows the pair-wise correlations for the parameter values. Note that the frequency distributions and the profiles of the histograms on the leading diagonal reflect plotting parameter values that are selected from a log-scale on linear axes.
+
+<img src = "images/pair_plot.png">
+
+`sim_x.png` where x ranges from 1 to 30 in the `images` subfolder. These show the analysis of each simulation.
+
+<img src = "images/sim_1.png">
+
+`analysis.xlsx` which summarizes the simulations.
+
+<img src = "images/excel_analysis.png">
+
 
 ### How this worked
 
-The myofibril was defined by adding a series elastic stiffness `sc_k_stiff` to the `muscle` section of `<FiberSim_repo>/demo_files/myofibrils/hs_with_sec/base/model.json`.
+The hypercube sampling was defined in the model section of the setup file
 
-````
-  "muscle": {
-    "no_of_half_sarcomeres": 1,
-    "no_of_myofibrils": 1,
-    "sc_k_stiff": 3000,
-    "initial_hs_length": 1100,
-    "prop_fibrosis": 0.0,
-    "prop_myofilaments": 0.5,
-    "m_filament_density": 0.407e15
-  }
-````
-
-If the `sc_k_stiffness` is not provided, FiberCpp assumes that it is infinite (that is, there is no series compliance).
-
-The `characterization` defined in the `setup.json` is similar to those defined for the [single trials](../../single_trials/single_trials.html) except that `pCa_step_up_s` and `pCa_step_down_s` were added to set the time intervals for the change in Ca<sup>2+</sup> concentration.
-
-````
-{
-  "FiberSim_setup":
-  {
-    "FiberCpp_exe": {
-      "relative_to": "this_file",
-      "exe_file": "../../../../bin/FiberCpp.exe"
-    },
-    "model": {
+```
+ "model": {
       "relative_to": "this_file",
       "options_file": "sim_options.json",
-      "model_files": ["model.json"]
-    },
-     "characterization": [
+      "sampling":
+      {
+        "no_of_samples": 30,
+        "base_model": "model.json",
+        "generated_folder": "../generated",
+        "adjustments":
+        [
+          {
+            "variable": "Ca_transient_k_serca",
+            "factor_bounds": [-0.5, 0.5],
+            "factor_mode": "log"
+          },{
+            "class": "titin_parameters",
+            "variable": "t_k_stiff",
+            "factor_bounds": [-0.5, 0.5],
+            "factor_mode": "log"
+          },
+          <SNIP>
+```
+
+`sampling: no_of_samples = 30` told FiberPy to run 30 simulations
+
+The parameters to vary where defined by the adjustment array. Each entry defined the parameter and the range over which to sample. As an example, the second entry varies `t_k_stiff` between 10<sup>-0.5</sup> and 10<sup>0.5</sup> of the value in `base_model`.
+
+The post-Python analysis call was defined by:
+
+```
+"post_sim_Python_call": "../Python_code/analyze_simulations.py"
+```
+
+Finally, the unloaded shortening experiment was defined by the characterization struction
+
+```
+ "characterization": [
         {
-            "type": "pCa_length_control",
+            "type": "unloaded_shortening",
             "relative_to": "this_file",
             "sim_folder": "../sim_data",
             "m_n": 9,
-            "pCa_values": [4.5],
-            "sim_duration_s": 1.0,
-            "time_step_s": 0.001,
-            "pCa_step_up_s": 0.1,
-            "pCa_step_down_s": 0.7,
+            "twitch_protocol":
+            {
+                "time_step_s": 0.0001,
+                "n_points": 10000,
+                "stimulus_time_s": [0.3],
+                "Ca_content": 1e-3,
+                "stimulus_duration_s": 0.01,
+                "k_leak": 6e-4,
+                "k_act": 8.2e-2,
+                "k_serca": 20
+            },
             "output_image_formats": [ "png" ],
             "figures_only": "False",
             "trace_figures_on": "False"
         }
     ]
-  }
-}
-````
+```

@@ -78,7 +78,7 @@
             {
               "new_state": 2,
               "rate_type": "force_and_mybpc_dependent",
-              "rate_parameters": [ 20, 200, 1, 1, 0.01, 0.01, 1, 1]
+              "rate_parameters": [ 20, 200, 1, 1, 0.0, 0.0, 1, 1]
             }
           ]
         },
@@ -157,12 +157,12 @@
             {
               "new_state": 2,
               "rate_type": "constant",
-              "rate_parameters": [ 0 ]
+              "rate_parameters": [ 10 ]
             },
             {
                 "new_state": 3,
                 "rate_type": "gaussian_pc",
-                "rate_parameters": [ 0, 0.001]
+                "rate_parameters": [ 10, 0.001]
             }
           ]
         },
@@ -174,7 +174,7 @@
             {
               "new_state": 1,
               "rate_type": "constant",
-              "rate_parameters": [ 10 ]
+              "rate_parameters": [ 100 ]
             }            
           ]
         },
@@ -186,7 +186,7 @@
                 {
                     "new_state": 1,
                     "rate_type": "poly",
-                    "rate_parameters": [10, 0.01, 2]
+                    "rate_parameters": [100, 0.01, 2]
                 }
             ]
         }

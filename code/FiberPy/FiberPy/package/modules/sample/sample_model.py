@@ -38,26 +38,41 @@ def sample_model(json_analysis_file_string):
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
         anal_struct = json_data['FiberSim_setup']
-        
-    # Clean the generated folder. This has to happen here before we
-    # launch threads that will compete with each other
+      
+    # Check whether we can skip simulations
+    ch = anal_struct['characterization'][0]
+    if not (ch['figures_only'] == 'True'):
+        # If there is a sampling section, use that to create the
+        # appropriate models
        
-    # If there is a sampling section, use that to create the
-    # appropriate models
-    if ("sampling" in anal_struct['model']):
-        characterization_files = \
-            generate_characterization_files(json_analysis_file_string)
+        if ("sampling" in anal_struct['model']):
+            characterization_files = \
+                generate_characterization_files(json_analysis_file_string)
+                
+        # Generate a sequence of command strings
+        command_strings = []
+        
+        for cf in characterization_files:
+            cs = 'python FiberPy.py characterize %s' % cf
+            command_strings.append(cs)
+    
+        # Now run them        
+        batch_command_strings(command_strings)
+    
+    # Run post-Python_function
+    if ('sampling' in anal_struct['model']):
+        if ('post_sim_Python_call' in anal_struct['model']['sampling']):
+            python_file = anal_struct['model']['sampling']['post_sim_Python_call']
             
-    # Generate a sequence of command strings
-    command_strings = []
-    
-    for cf in characterization_files:
-        cs = 'python FiberPy.py characterize %s' % cf
-        command_strings.append(cs)
+            if (anal_struct['model']['relative_to'] == 'this_file'):
+                working_dir = Path(json_analysis_file_string).parent.absolute()
+            else:
+                working_dir = ''
+                
+            command_string = 'python %s' % \
+                os.path.join(working_dir, python_file)
 
-    # Now run them        
-    batch_command_strings(command_strings)
-    
+            subprocess.call(command_string)   
 
 
 def generate_characterization_files(json_analysis_file_string):
@@ -105,6 +120,36 @@ def generate_characterization_files(json_analysis_file_string):
         
     if not os.path.isdir(top_generated_dir):
         os.makedirs(top_generated_dir)
+        
+    # We also need to wipe the char folder
+    generated_char_dir = '%s_char' % top_generated_dir
+    try:
+        print('Trying to remove %s' % generated_char_dir)
+        shutil.rmtree(generated_char_dir, ignore_errors = True)
+    except OSError as e:
+        print('Error: %s : %s' % (generated_char_dir, e.strerror))
+        
+    if not os.path.isdir(generated_char_dir):
+        os.makedirs(generated_char_dir)
+        
+    # Finally, we need to clean out the sim directory
+    char_struct = json_data['FiberSim_setup']['characterization']
+    for ch in char_struct:
+        if (ch['relative_to'] == 'this_file'):
+            working_dir = Path(json_analysis_file_string).parent.absolute()
+        else:
+            working_dir = ch['relative_to']
+        
+        sim_output_dir = str(Path(os.path.join(working_dir, ch['sim_folder'])).resolve())
+        
+        try:
+            print('Trying to remove %s' % sim_output_dir)
+            shutil.rmtree(sim_output_dir, ignore_errors = True)
+        except OSError as e:
+            print('Error: %s : %s' % (sim_output_dir, e.strerror))
+        
+        if not os.path.isdir(sim_output_dir):
+            os.makedirs(sim_output_dir)
     
     # Now deduce parameters for the sampling
     adjustments = sampling_struct['adjustments']
@@ -214,7 +259,7 @@ def generate_characterization_files(json_analysis_file_string):
                     (sample_m * span)
                     
                 if (sample_adj['factor_mode'] == 'log'):
-                    characterize_m = np.power(characterize_m, 10)
+                    characterize_m = np.power(10, characterize_m)
                     
                 tw_protocol[twitch_key] = characterize_m * base_value
                 
@@ -243,7 +288,7 @@ def generate_characterization_files(json_analysis_file_string):
                     (sample_m * span)
                     
                 if (sample_adj['factor_mode'] == 'log'):
-                    characterize_m = np.power(characterize_m, 10)
+                    characterize_m = np.power(10, characterize_m)
 
                 characterize_adj['multipliers'] = []
                 characterize_adj['multipliers'].append(characterize_m)
@@ -270,13 +315,18 @@ def generate_characterization_files(json_analysis_file_string):
             characterize_m = sample_adj['factor_bounds'][0] + \
                 (sample_m * span)
             if (sample_adj['factor_mode'] == 'log'):
-                characterize_m = np.power(characterize_m, 10)
+                characterize_m = np.power(10, characterize_m)
             characterize_adj['multipliers'] = []
             characterize_adj['multipliers'].append(characterize_m)
             characterize_adj['output_type'] = 'float'
 
              # Add it in
             adjusts.append(characterize_adj)
+            
+            # Store the value
+            par_key = '%s_%s' % (sample_adj['class'], sample_adj['variable'])
+            par_values[par_key] = base_value * characterize_m
+            
                 
         # Make a dataframe from the par_values
         par_df = pd.DataFrame([par_values])

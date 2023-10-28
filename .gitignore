@@ -511,5 +511,7 @@ Gemfile.lock
 # Demo files
 **/demo_files/**/sim_data/**/*.*
 **/demo_files/**/generated/**/*.*
+**/demo_files/**/generated_char/**/*.*
+**/demo_files/**/analysis/**/*.*
 
 

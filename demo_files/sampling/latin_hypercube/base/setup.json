@@ -10,29 +10,48 @@
       "options_file": "sim_options.json",
       "sampling":
       {
-        "no_of_samples": 4,
+        "no_of_samples": 30,
         "base_model": "model.json",
         "generated_folder": "../generated",
         "adjustments":
         [
           {
             "variable": "Ca_transient_k_serca",
-            "factor_bounds": [0.5, 2],
-            "factor_mode": "lin"
+            "factor_bounds": [-0.5, 0.5],
+            "factor_mode": "log"
           },
           {
             "class": "titin_parameters",
             "variable": "t_k_stiff",
-            "factor_bounds": [0.5, 2],
-            "factor_mode": "lin"
+            "factor_bounds": [-0.5, 0.5],
+            "factor_mode": "log"
           },
           {
             "class": "thin_parameters",
-            "variable": "a_k_off",
-            "factor_bounds": [0.5, 2],
-            "factor_mode": "lin"
+            "variable": "a_k_on",
+            "factor_bounds": [-0.5, 0.5],
+            "factor_mode": "log"
+          },
+          {
+            "variable": "m_kinetics",
+            "isotype": 1,
+            "scheme": 2,
+            "transition": 2,
+            "parameter_number": 1,
+            "factor_bounds": [-0.5, 0.5],
+            "factor_mode": "log"
+          },
+          {
+            "variable": "c_kinetics",
+            "isotype": 1,
+            "scheme": 1,
+            "transition": 1,
+            "parameter_number": 1,
+            "factor_bounds": [-1, 1],
+            "factor_mode": "log"
           }
-        ]
+        ],
+        "post_sim_Python_call": "../Python_code/analyze_simulations.py"
       }
     },
     "characterization": [
@@ -43,8 +62,8 @@
             "m_n": 9,
             "twitch_protocol":
             {
-                "time_step_s": 0.001,
-                "n_points": 400,
+                "time_step_s": 0.0001,
+                "n_points": 10000,
                 "stimulus_time_s": [0.3],
                 "Ca_content": 1e-3,
                 "stimulus_duration_s": 0.01,
@@ -54,8 +73,7 @@
             },
             "output_image_formats": [ "png" ],
             "figures_only": "False",
-            "trace_figures_on": "False",
-            "post_sim_Python_call": "../Python_code/analyze_simulations.py"
+            "trace_figures_on": "False"
         }
     ]
   }
