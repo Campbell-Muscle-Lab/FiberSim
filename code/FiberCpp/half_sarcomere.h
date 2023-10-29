@@ -17,6 +17,7 @@
 #include "gsl_rng.h"
 
 class FiberSim_model;
+class model_hs_variation;
 class FiberSim_options;
 class FiberSim_data;
 class FiberSim_protocol;
@@ -29,6 +30,8 @@ class thick_filament;
 class thin_filament;
 
 struct lattice_event;
+
+using namespace::std;
 
 class half_sarcomere
 {
@@ -334,6 +337,14 @@ public:
     void initialise_nearest_actin_matrix(void);
 
     /**
+    * handle_hs_variation(model_hs_variation * p_model_hs_variation)
+    * adjusts the model parameters for the half-sarcomere
+    * param p_model_hs_variation pointer to a half-sarcomere variation object
+    * @return void
+    */
+    void handle_hs_variation(model_hs_variation* p_model_hs_variation);
+
+    /**
      * + writes a file in JSON format summarizing the half_sarcomere status
      *   + for each thick filament
      *     + cb_x
@@ -622,5 +633,5 @@ public:
     */
     void write_gsl_vector_to_file(gsl_vector* p_vector, char output_file_string[]);
 
-    void slow();
+    void extract_digits(string test_string, int digits[], int no_of_digits);
 };

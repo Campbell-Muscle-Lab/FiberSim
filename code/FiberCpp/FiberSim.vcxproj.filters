@@ -60,6 +60,9 @@
     <ClCompile Include="hs_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="model_hs_variation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FiberSim_model.h">
@@ -111,6 +114,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BS_thread_pool.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model_hs_variation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

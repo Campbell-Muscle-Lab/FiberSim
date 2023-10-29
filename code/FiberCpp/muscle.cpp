@@ -64,36 +64,44 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 	// Load the options
 	p_fs_options = new FiberSim_options(options_file_string);
 
-	// Load the model
-	p_fs_model = new FiberSim_model(model_file_string, p_fs_options);
-
-	// Get the model version
-
-	sprintf_s(model_version, _MAX_PATH, p_fs_model->version);
-
 	// Initialize the muscle length, and build it from the half-sarcomeres
 	m_length = 0.0;
 
+	// Load an initial copy of the model - we need this to deduce the number
+	// of half-sarcomeres
+	p_fs_model[0] = new FiberSim_model(model_file_string, p_fs_options);
+
 	// Now create the half_sarcomeres
-	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 	{
-		p_hs[hs_counter] = new half_sarcomere(p_fs_model, p_fs_options, p_fs_protocol, this, hs_counter);
+		// Load another model if required
+		if (hs_counter > 0)
+		{
+			p_fs_model[hs_counter] = new FiberSim_model(model_file_string, p_fs_options);
+		}
+
+		// Create the half-sarcomere
+		p_hs[hs_counter] = new half_sarcomere(p_fs_model[hs_counter],
+												p_fs_options, p_fs_protocol, this, hs_counter);
 
 		m_length = m_length + p_hs[hs_counter]->hs_length;
 	}
+
+	// Get the model version
+	sprintf_s(model_version, _MAX_PATH, p_fs_model[0]->version);
 
 	// Set the muscle force to the force in the last half-sarcomere
 	m_force = p_hs[0]->hs_force;
 
 	// Make a series component if you need one
-	if (!gsl_isnan(p_fs_model->sc_k_stiff))
+	if (!gsl_isnan(p_fs_model[0]->sc_k_stiff))
 	{
 		// Correct the series stiffness for different numbers of half-sarcomeres
 		// This ensures that in myofibrils with different numbers of half-sarcomeres,
 		// each half-sarcomere will shorten by the same amount
-		p_fs_model->sc_k_stiff = p_fs_model->sc_k_stiff / (double)p_fs_model->no_of_half_sarcomeres;
+		p_fs_model[0]->sc_k_stiff = p_fs_model[0]->sc_k_stiff / (double)p_fs_model[0]->no_of_half_sarcomeres;
 
-		p_sc = new series_component(p_fs_model, p_fs_options, this);
+		p_sc = new series_component(p_fs_model[0], p_fs_options, this);
 	}
 	else
 		p_sc = NULL;
@@ -105,7 +113,7 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 	// Initialise_status_counter
 	dump_status_counter = 1;
 
-	printf("Muscle created %i half-sarcomeres\n", p_fs_model->no_of_half_sarcomeres);
+	printf("Muscle created %i half-sarcomeres\n", p_fs_model[0]->no_of_half_sarcomeres);
 
 	// Initialized the clock
 	last_time = std::chrono::high_resolution_clock::now();
@@ -113,7 +121,7 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 	// Activate a worker pool if required
 	if (p_fs_options->myofibril_multithreading > 0)
 	{
-		p_fs_options->no_of_worker_threads = p_fs_model->no_of_half_sarcomeres;
+		p_fs_options->no_of_worker_threads = p_fs_model[0]->no_of_half_sarcomeres;
 
 		p_thread_pool = new BS::thread_pool(p_fs_options->no_of_worker_threads);
 		printf("FiberSim has launched: %i threads\n", p_thread_pool->get_thread_count());
@@ -130,18 +138,16 @@ muscle::~muscle()
 {
     // Tidy up
 
-	// Delete the half-sarcomeres
-	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	// Delete the instances of the model and the half-sarcomeres
+	for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 	{
+		delete p_fs_model[hs_counter];
 		delete p_hs[hs_counter];
 	}
 
 	// Delete the series component if it was created
 	if (p_sc != NULL)
 		delete p_sc;
-
-	// Delete the FiberSim_model object
-	delete p_fs_model;
 
 	// Delete the FiberSim_options object
 	delete p_fs_options;
@@ -168,13 +174,14 @@ void muscle::implement_protocol(char set_protocol_file_string[], char set_result
 	p_fs_protocol = new FiberSim_protocol(protocol_file_string);
 
 	// Create a FiberSim_data object for the muscle
-	p_fs_data = new FiberSim_data(p_fs_protocol->no_of_time_points, p_fs_options, p_fs_model);
+	p_fs_data = new FiberSim_data(p_fs_protocol->no_of_time_points,
+										p_fs_options, p_fs_model[0]);
 
 	// And also for the half-sarcomeres
-	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 	{
 		p_hs[hs_counter]->p_fs_data = new FiberSim_data(p_fs_protocol->no_of_time_points,
-										p_fs_options, p_fs_model);
+										p_fs_options, p_fs_model[hs_counter]);
 	}
 
 	// Implement the protocol
@@ -191,7 +198,7 @@ void muscle::implement_protocol(char set_protocol_file_string[], char set_result
 	}
 
 	// Delete the FiberSim_data object for the half-sarcomeres
-	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 	{
 		delete p_hs[hs_counter]->p_fs_data;
 	}
@@ -228,7 +235,7 @@ void muscle::implement_time_step(int protocol_index)
 
 	// Code
 
-	if ((p_fs_model->no_of_half_sarcomeres == 1) && (p_sc == NULL))
+	if ((p_fs_model[0]->no_of_half_sarcomeres == 1) && (p_sc == NULL))
 	{
 		// Simplest case of 1 half-sarcomere and no compliance
 		hs_counter = 0;
@@ -350,7 +357,7 @@ void muscle::implement_time_step(int protocol_index)
 	}
 
 	// Now the half-sarcomeres
-	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 	{
 		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_pCa,
 			protocol_index,
@@ -393,17 +400,17 @@ void muscle::implement_time_step(int protocol_index)
 			p_hs[hs_counter]->m_mean_fil_length);
 
 		// Update pops
-		for (int i = 0; i < p_fs_model->a_no_of_bs_states; i++)
+		for (int i = 0; i < p_fs_model[hs_counter]->a_no_of_bs_states; i++)
 		{
 			gsl_matrix_set(p_fs_data->p_hs_data[hs_counter]->hs_a_pops,
 				protocol_index, i, gsl_vector_get(p_hs[hs_counter]->a_pops, i));
 		}
-		for (int i = 0; i < p_fs_model->p_m_scheme[0]->no_of_states; i++)
+		for (int i = 0; i < p_fs_model[hs_counter]->p_m_scheme[0]->no_of_states; i++)
 		{
 			gsl_matrix_set(p_fs_data->p_hs_data[hs_counter]->hs_m_pops,
 				protocol_index, i, gsl_vector_get(p_hs[0]->m_pops, i));
 		}
-		for (int i = 0; i < p_fs_model->p_c_scheme[0]->no_of_states; i++)
+		for (int i = 0; i < p_fs_model[hs_counter]->p_c_scheme[0]->no_of_states; i++)
 		{
 			gsl_matrix_set(p_fs_data->p_hs_data[hs_counter]->hs_c_pops,
 				protocol_index, i, gsl_vector_get(p_hs[0]->c_pops, i));
@@ -418,7 +425,7 @@ void muscle::implement_time_step(int protocol_index)
 			if (dump_status_counter == 1)
 			{
 				// Dump status files for each half-sarcomere
-				for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres;
+				for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres;
 					hs_counter++)
 				{
 					char hs_status_file_string[_MAX_PATH];
@@ -443,12 +450,6 @@ void thread_sarcomere_kinetics(half_sarcomere* p_hs, double time_step, double pC
 	// This is an easy way to handle the pointers to half-sarcomeres
 
 	p_hs->sarcomere_kinetics(time_step, pCa_value);
-}
-
-void muscle::thread_test(int hs_counter)
-{
-	p_hs[hs_counter]->sarcomere_kinetics(0.001, 4.5);
-	//p_hs[hs_counter]->slow();
 }
 
 size_t muscle::length_control_myofibril_with_series_compliance(int protocol_index)
@@ -478,7 +479,7 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 	// Code
 
 	// First adjust the muscle length
-	m_length = m_length + ((double)p_fs_model->no_of_half_sarcomeres *
+	m_length = m_length + ((double)p_fs_model[0]->no_of_half_sarcomeres *
 		gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index));
 
 
@@ -489,7 +490,7 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 
 	if (p_thread_pool != NULL)
 	{
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 		{
 			p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
 
@@ -504,7 +505,7 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 	else
 	{
 		// Serial processing
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 		{
 			p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
 
@@ -519,13 +520,13 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 	//std::cout << "Kinetics took " << dur_kinetics << "\n";
 
 	// Now deduce the length of x
-	x_length = p_fs_model->no_of_half_sarcomeres + 1;
+	x_length = p_fs_model[0]->no_of_half_sarcomeres + 1;
 
 	// Allocate the vector
 	x = gsl_vector_alloc(x_length);
 
 	// The x-vector has all the half-sarcomere lengths followed by the force in the first_half_sarcomere
-	for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+	for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 	{
 		gsl_vector_set(x, hs_counter, p_hs[hs_counter]->hs_length);
 	}
@@ -591,7 +592,7 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 
 	holder_hs_length = 0.0;
 	
-	for (int hs_counter = 0 ; hs_counter < p_fs_model->no_of_half_sarcomeres ; hs_counter++)
+	for (int hs_counter = 0 ; hs_counter < p_fs_model[0]->no_of_half_sarcomeres ; hs_counter++)
 	{
 		double new_hs_length = gsl_vector_get(s->x, hs_counter);
 		double delta_hsl = new_hs_length - p_hs[hs_counter]->hs_length;
@@ -615,8 +616,6 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 	gsl_vector_free(x);
 
 	delete par;
-
-	//std::cout << "Force balance took: " << fp_ms << "\n";
 
 	// Return the max number of lattice iterations
 	return max_lattice_iterations;
@@ -687,7 +686,7 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 		// We need an array of force-control points, one for each thread
 		force_control_params* f_p[MAX_NO_OF_HALF_SARCOMERES];
 
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 		{
 			f_p[hs_counter] = new force_control_params();
 			f_p[hs_counter]->target_force = gsl_vector_get(x, x->size - 1);
@@ -704,7 +703,7 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 
 		cum_hs_length = 0;
 
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 		{
 			cum_hs_length = cum_hs_length + gsl_vector_get(x, hs_counter);
 
@@ -726,7 +725,7 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 		//const std::chrono::duration<double, std::milli> adjust_fp = t2 - t1;
 		//printf("adjust_f_p: %f\n", adjust_fp);
 
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 			delete f_p[hs_counter];
 
 		const std::chrono::high_resolution_clock::time_point t2 =
@@ -748,7 +747,7 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 
 		auto t1 = std::chrono::high_resolution_clock::now();
 
-		for (int hs_counter = 0; hs_counter < p_fs_model->no_of_half_sarcomeres; hs_counter++)
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
 		{
 			// Update the pointer
 			fp->p_hs = p_hs[hs_counter];
@@ -837,10 +836,10 @@ void muscle::write_rates_file()
 	sprintf_s(file_write_mode, _MAX_PATH, "a");
 
 	// Now cycle through the m isotypes
-	for (isotype_counter = 0; isotype_counter < p_fs_model->m_no_of_isotypes; isotype_counter++)
+	for (isotype_counter = 0; isotype_counter < p_fs_model[0]->m_no_of_isotypes; isotype_counter++)
 	{
 		// Set the append string
-		if (isotype_counter < (p_fs_model->m_no_of_isotypes - 1))
+		if (isotype_counter < (p_fs_model[0]->m_no_of_isotypes - 1))
 		{
 			sprintf_s(JSON_append_string, _MAX_PATH, ",");
 		}
@@ -861,10 +860,10 @@ void muscle::write_rates_file()
 	fclose(output_file);
 
 	// Now through the c_isotypes
-	for (isotype_counter = 0; isotype_counter < p_fs_model->c_no_of_isotypes; isotype_counter++)
+	for (isotype_counter = 0; isotype_counter < p_fs_model[0]->c_no_of_isotypes; isotype_counter++)
 	{
 		// Set the append string
-		if (isotype_counter < (p_fs_model->c_no_of_isotypes - 1))
+		if (isotype_counter < (p_fs_model[0]->c_no_of_isotypes - 1))
 		{
 			sprintf_s(JSON_append_string, _MAX_PATH, ",");
 		}
