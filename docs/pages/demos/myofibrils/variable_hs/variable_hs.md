@@ -147,43 +147,10 @@ The m_kinetic scheme is defined further down the model file. The keys above corr
         }
     ]
 ```
-The `characterization` was the same as for the [single half-sarcomere simulation](../hs_with_sec/hs_with_sec.html) except that a `post_sim_Python_call` was added. This points to a a standard Python file that is called after the simulation has finished. In this case, the Python made the `summary.png` figure showing the responses of the different half-sarcomeres.
 
-```
-{
-  "FiberSim_setup":
-  {
-    "FiberCpp_exe": {
-      "relative_to": "this_file",
-      "exe_file": "../../../../bin/FiberCpp.exe"
-    },
-    "model": {
-      "relative_to": "this_file",
-      "options_file": "sim_options.json",
-      "model_files": ["model.json"]
-    },
-     "characterization": [
-        {
-            "type": "pCa_length_control",
-            "relative_to": "this_file",
-            "sim_folder": "../sim_data",
-            "m_n": 9,
-            "pCa_values": [4.5],
-            "sim_duration_s": 1.0,
-            "time_step_s": 0.001,
-            "pCa_step_up_s": 0.1,
-            "pCa_step_down_s": 0.7,
-            "output_image_formats": [ "png" ],
-            "figures_only": "False",
-            "trace_figures_on": "False",
-            "post_sim_Python_call": "../Python_code/multiple_hs_summary.py"
-        }
-    ]
-  }
-}
-```
 
 FiberCpp sets the value of this parameter in each half-sarcomere to the base value (200) multiplied by the corresponding value in the `multiplier` array. Thus:
+
 + half-sarcomere 1, 1 * 200
 + half-sarcomere 2, 1 * 200 = 200
 + half-sarcomere 3, 0.6 * 200 = 120
