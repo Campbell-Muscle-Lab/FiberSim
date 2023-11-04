@@ -16,6 +16,8 @@
 #include "kinetic_scheme.h"
 #include "JSON_functions.h"
 
+#include "model_hs_variation.h"
+
 #include "rapidjson\document.h"
 #include "rapidjson\filereadstream.h"
 
@@ -77,6 +79,11 @@ FiberSim_model::~FiberSim_model()
     for (int i = 0; i < c_no_of_isotypes; i++)
     {
         delete p_c_scheme[i];
+    }
+
+    for (int i = 0; i < no_of_model_hs_variations; i++)
+    {
+        delete p_model_hs_variation[i];
     }
 
     // Delete gsl_vector
@@ -416,7 +423,7 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
 
     // Kinetic scheme for myosin - this is complicated so it's done in a different file
     JSON_functions::check_JSON_member_array(doc, "m_kinetics");
-    const rapidjson::Value& m_ks = doc["m_kinetics"].GetArray();  
+    const rapidjson::Value& m_ks = doc["m_kinetics"].GetArray();
 
     for (rapidjson::SizeType i = 0; i < m_ks.Size(); i++)
     {
@@ -432,7 +439,19 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         p_c_scheme[i] = create_kinetic_scheme(c_ks[i]);
     }
 
+    // Try to load the half-sarcomere variation
+    if (JSON_functions::check_JSON_member_exists(doc, "half_sarcomere_variation"))
+    {
+        JSON_functions::check_JSON_member_array(doc, "half_sarcomere_variation");
+        const rapidjson::Value& hsv = doc["half_sarcomere_variation"].GetArray();
 
+        no_of_model_hs_variations = hsv.Size();
+
+        for (rapidjson::SizeType i = 0; i < hsv.Size(); i++)
+        {
+            p_model_hs_variation[i] = new model_hs_variation(this, hsv[i]);
+        }
+    }
 
     if (p_fs_options->log_mode > 0)
     {

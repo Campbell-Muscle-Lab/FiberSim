@@ -177,6 +177,7 @@
     <ClCompile Include="hs_data.cpp" />
     <ClCompile Include="JSON_functions.cpp" />
     <ClCompile Include="kinetic_scheme.cpp" />
+    <ClCompile Include="model_hs_variation.cpp" />
     <ClCompile Include="muscle.cpp" />
     <ClCompile Include="m_state.cpp" />
     <ClCompile Include="series_component.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="hs_data.h" />
     <ClInclude Include="JSON_functions.h" />
     <ClInclude Include="kinetic_scheme.h" />
+    <ClInclude Include="model_hs_variation.h" />
     <ClInclude Include="muscle.h" />
     <ClInclude Include="m_state.h" />
     <ClInclude Include="series_component.h" />

@@ -17,6 +17,7 @@
 
 class FiberSim_options;
 class kinetic_scheme;
+class model_hs_variation;
 
 class FiberSim_model
 {
@@ -212,8 +213,14 @@ public:
 
     gsl_vector* c_isotype_props;	    /**< gsl_vector holding the C-protein isotypes proportions */
 
-    kinetic_scheme* p_c_scheme[MAX_NO_OF_ISOTYPES];        /**< pointer to a kinetic scheme array for MyBPC */
+    kinetic_scheme* p_c_scheme[MAX_NO_OF_ISOTYPES];
+                                        /**< pointer to a kinetic scheme array for MyBPC */
 
+    int no_of_model_hs_variations;      /**< integer with the number of half-sarcomere
+                                                variations */
+
+    model_hs_variation* p_model_hs_variation[MAX_NO_OF_MODEL_HS_VARIATION];
+                                        /**< pointer to an array of model_hs_variation objects */
 
     // Functions
 

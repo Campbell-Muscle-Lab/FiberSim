@@ -22,3 +22,5 @@
 
 #define MAX_NO_OF_ISOTYPES 5
 
+#define MAX_NO_OF_MODEL_HS_VARIATION 20
+

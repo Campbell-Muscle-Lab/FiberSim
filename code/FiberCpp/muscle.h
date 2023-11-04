@@ -109,7 +109,9 @@ public:
     char results_file_string[_MAX_PATH];
                                         /**< character array for the simulation results file string */
 
-    FiberSim_model* p_fs_model;         /**< pointer to FiberSim_model */
+    FiberSim_model* p_fs_model [MAX_NO_OF_HALF_SARCOMERES];
+                                        /**< array of pointers to FiberSim_model,
+                                                one for each half-sarcomere in the myofibril */
 
     FiberSim_options* p_fs_options;     /**< pointer to FiberSim_options */
 

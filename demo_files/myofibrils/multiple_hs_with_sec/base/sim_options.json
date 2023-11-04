@@ -10,7 +10,7 @@
         "force_tolerance": 1,
         "max_iterations": 100,
         "max_delta_hs_length": 300,
-        "multithreading": 0
+        "multithreading": 1
     }
   }
 }

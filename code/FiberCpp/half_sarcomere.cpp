@@ -6,6 +6,8 @@
 
 #include <cstdio>
 #include <chrono>
+#include <iostream>
+#include <regex>
 
 #include "half_sarcomere.h"
 #include "thick_filament.h"
@@ -15,6 +17,7 @@
 #include "thin_filament.h"
 #include "muscle.h"
 #include "FiberSim_model.h"
+#include "model_hs_variation.h"
 #include "FiberSim_options.h"
 #include "FiberSim_protocol.h"
 #include "FiberSim_data.h"
@@ -29,6 +32,8 @@
 #include "gsl_rng.h"
 #include "gsl_randist.h"
 #include "gsl_roots.h"
+
+using namespace::std;
 
 // Structure used for root finding for force control mode
 struct force_control_params
@@ -67,6 +72,12 @@ half_sarcomere::half_sarcomere(
     
     // Set the id
     hs_id = set_hs_id;
+
+    // Loop through potential variations, changing the half-sarcomere's model
+    for (int i = 0; i < p_fs_model->no_of_model_hs_variations; i++)
+    {
+        handle_hs_variation(p_fs_model->p_model_hs_variation[i]);
+    }
 
     // Set the class pointers to the kinetic scheme for myosin
     for (int i = 0; i < p_fs_model->m_no_of_isotypes; i++) {
@@ -374,6 +385,60 @@ half_sarcomere::~half_sarcomere()
 }
 
 // Functions
+
+void half_sarcomere::handle_hs_variation(model_hs_variation* p_hs_variation)
+{
+    //! Code updates the model for this half-sarcomere
+
+    // Variables
+    string variable = p_hs_variation->model_variable;
+
+    // Code
+    if (variable == "m_filament_density")
+    {
+        p_fs_model->m_filament_density = p_fs_model->m_filament_density *
+            gsl_vector_get(p_hs_variation->hs_multiplier, hs_id);
+    }
+
+    if (variable.rfind("m_kinetics", 0) == 0)
+    {
+        // Starts with m_kinetics
+        int isotype;
+        int state;
+        int transition;
+        int parameter_index;
+        int no_of_digits = 4;
+        int digits[4];
+
+        double y;
+        double new_y;
+
+        for (int i = 0; i < no_of_digits; i++)
+        {
+            digits[i] = 0;
+        }
+
+        extract_digits(variable, digits, no_of_digits);
+
+        isotype = digits[0] - 1;
+        state = digits[1] - 1;
+        transition = digits[2] - 1;
+        parameter_index = digits[3] - 1;
+
+        // Pull off value
+        y = gsl_vector_get(
+            p_fs_model->p_m_scheme[isotype]->p_m_states[state]->p_transitions[transition]->rate_parameters,
+            parameter_index);
+
+        new_y = y * gsl_vector_get(p_hs_variation->hs_multiplier, hs_id);
+
+        // Set it
+        gsl_vector_set(
+            p_fs_model->p_m_scheme[isotype]->p_m_states[state]->p_transitions[transition]->rate_parameters,
+            parameter_index,
+            new_y);
+    }
+}
 
 void half_sarcomere::sarcomere_kinetics(double time_step, double set_pCa)
 {
@@ -3253,20 +3318,25 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     fclose(output_file);
 }
 
-void half_sarcomere::slow(void)
+void half_sarcomere::extract_digits(string test_string, int digits[], int no_of_digits)
 {
-    gsl_vector* y = gsl_vector_alloc(10000000);
+    //! Function fills digits array with [0-9] extracted from string
+    //! See https://en.cppreference.com/w/cpp/regex/regex_iterator
 
-    double s = 0;
+    // Variables
+    int counter;
 
-    for (int i = 0; i < 10; i++)
+    // Code
+    regex ex("[0-9]");
+
+    auto digits_begin = sregex_iterator(test_string.begin(), test_string.end(), ex);
+    auto digits_end = sregex_iterator();
+
+    counter = 0;
+    for (regex_iterator i = digits_begin; i != digits_end; i++)
     {
-        for (int j = 0; j < y->size; j++)
-        {
-            s = s + gsl_vector_get(y, i);
-        }
+        smatch match = *i;
+        digits[counter] = atoi((match.str().c_str()));
+        counter = counter + 1;
     }
-
-    gsl_vector_free(y);
-
 }
