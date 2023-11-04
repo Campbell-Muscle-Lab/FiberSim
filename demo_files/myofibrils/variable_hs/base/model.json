@@ -15,7 +15,7 @@
   [
     {
       "variable": "m_kinetics_isotype_1_state_2_transition_2_parameter_1",
-      "multiplier": [1, 1, 0.6, 1, 1]
+      "multiplier": [0.6, 1, 1, 1, 1]
     }
   ],
   "lattice_parameters": {

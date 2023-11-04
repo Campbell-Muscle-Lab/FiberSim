@@ -12,6 +12,7 @@ import re
 import numpy as np
 import pandas as pd
 
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
@@ -45,12 +46,13 @@ def summary_figure():
     no_of_conditions = no_of_conditions - 1
 
     # Now we can make a figure with one column per condition
-    no_of_rows = 3
+    no_of_rows = 4
     no_of_cols = no_of_conditions
     
     pCa_row = 1
     hs_force_row = 2
-    hs_length_row = 3
+    hs_titin_row = 3
+    hs_length_row = 4
     
     fig = plt.figure(constrained_layout = False)
     spec = gridspec.GridSpec(nrows = no_of_rows,
@@ -66,10 +68,16 @@ def summary_figure():
             ax.append(fig.add_subplot(spec[i,j]))
     
     min_force = np.inf
-    max_force = -np.inf        
+    max_force = -np.inf
+    
+    min_titin = np.inf
+    max_titin = -np.inf
     
     min_hsl = np.inf
     max_hsl = -np.inf
+    
+    # Get a color map
+    cmap = matplotlib.colormaps['viridis']
     
             
     # Loop through the simulations
@@ -94,6 +102,9 @@ def summary_figure():
                     if (n[0] > no_of_hs):
                         no_of_hs = int(n[0])
                         
+            # Set indices for colormap
+            cmap_values = np.linspace(0, 1, no_of_hs)
+                        
             # pCa
             plot_index = ((pCa_row - 1) * no_of_cols) + i
             ax[plot_index].plot(d['time'], d['hs_1_pCa'], '-')
@@ -102,18 +113,30 @@ def summary_figure():
             plot_index = ((hs_force_row-1) * no_of_cols) + i
             for j in range(no_of_hs):
                 col_string = 'hs_%i_force' % (j+1);
-                ax[plot_index].plot(d['time'], d[col_string], '-')
+                ax[plot_index].plot(d['time'], d[col_string], '-',
+                                    color=cmap(cmap_values[j]))
                 if (d[col_string].max() > max_force):
                     max_force = d[col_string].max()
                 if (d[col_string].min() < min_force):
                     min_force = d[col_string].min()
-            
-            
+                    
+            # hs_titin
+            plot_index = ((hs_titin_row -1) * no_of_cols) + i
+            for j in range(no_of_hs):
+                col_string = 'hs_%i_titin' % (j+1)
+                ax[plot_index].plot(d['time'], d[col_string], '-',
+                                    color=cmap(cmap_values[j]))
+                if (d[col_string].max() > max_titin):
+                    max_titin = d[col_string].max()
+                if (d[col_string].min() < min_titin):
+                    min_titin = d[col_string].min()
+                        
             # hs_length
             plot_index = ((hs_length_row-1) * no_of_cols) + i
             for j in range(no_of_hs):
                 col_string = 'hs_%i_length' % (j+1);
-                ax[plot_index].plot(d['time'], d[col_string], '-')
+                ax[plot_index].plot(d['time'], d[col_string], '-',
+                                    color=cmap(cmap_values[j]))
                 if (d[col_string].max() > max_hsl):
                     max_hsl = d[col_string].max()
                 if (d[col_string].max() < min_hsl):
@@ -129,6 +152,10 @@ def summary_figure():
         # Force
         plot_index = ((hs_force_row - 1) * no_of_cols) + i
         ax[plot_index].set_ylim([0, max_force + 5000])
+        
+        # Force
+        plot_index = ((hs_titin_row - 1) * no_of_cols) + i
+        ax[plot_index].set_ylim([min_titin - 5000, max_titin + 5000])
         
         # HSL
         plot_index = ((hs_length_row - 1) * no_of_cols) + i

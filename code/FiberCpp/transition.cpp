@@ -12,6 +12,7 @@
 #include "kinetic_scheme.h"
 #include "FiberSim_model.h"
 #include "half_sarcomere.h"
+#include "muscle.h"
 #include "global_definitions.h"
 #include "JSON_functions.h"
 
@@ -107,6 +108,80 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 	{
 		rate = gsl_vector_get(rate_parameters, 0) *
 			(1.0 + (gsl_max(node_force, 0.0) * gsl_vector_get(rate_parameters, 1)));
+	}
+
+	// Force and adjacent hs dependent
+	if (!strcmp(rate_type, "force_and_adjacent_hs_dependent"))
+	{
+		// Assume that first half-sarcomere starts with it's Z-line on the left hand side
+
+		int hs_ind;
+		int hs_across_Z;
+		int hs_across_M;
+
+		half_sarcomere* p_hs_across_Z = NULL;
+		half_sarcomere* p_hs_across_M = NULL;
+
+		muscle* p_parent_m;
+
+		FiberSim_model* p_fs_model;
+
+		double factor_across_Z = 0;
+		double factor_across_M = 0;
+
+		// Calculate node_force factor
+		double node_force_factor = gsl_max(node_force, 0.0) * gsl_vector_get(rate_parameters, 1);
+
+		// Set the pointers
+		hs_ind = p_hs->hs_id;
+		p_parent_m = p_hs->p_parent_m;
+		p_fs_model = p_hs->p_fs_model;
+
+		// Need to decide if this is a half-sarcomere with Z-disk or M-line on left
+		if (GSL_IS_EVEN(hs_ind))
+		{
+			// Half-sarcomere has Z-disk on low (left) side
+			if (hs_ind > 1)
+			{
+				hs_across_Z = hs_ind - 1;
+				p_hs_across_Z = p_parent_m->p_hs[hs_across_Z];
+				factor_across_Z = gsl_vector_get(rate_parameters, 2) *
+					(p_hs->hs_titin_force - p_hs_across_Z->hs_titin_force);
+			}
+
+			if (hs_ind < (p_fs_model->no_of_half_sarcomeres - 1))
+			{
+				hs_across_M = hs_ind + 1;
+				p_hs_across_M = p_parent_m->p_hs[hs_across_M];
+				factor_across_M = gsl_vector_get(rate_parameters, 3) *
+					(p_hs->hs_titin_force - p_hs_across_M->hs_titin_force);
+			}
+		}
+		else
+		{
+			// Half-sarcomere has M-line on low (left) side
+			if (hs_ind > 0)
+			{
+				hs_across_M = hs_ind - 1;
+				p_hs_across_M = p_parent_m->p_hs[hs_across_M];
+				factor_across_M = gsl_vector_get(rate_parameters, 3) *
+					(p_hs->hs_titin_force - p_hs_across_M->hs_titin_force);
+			}
+
+			if (hs_ind < (p_fs_model->no_of_half_sarcomeres - 1))
+			{
+				hs_across_Z = hs_ind + 1;
+				p_hs_across_Z = p_parent_m->p_hs[hs_across_Z];
+				factor_across_Z = gsl_vector_get(rate_parameters, 2) *
+					(p_hs->hs_titin_force - p_hs_across_Z->hs_titin_force);
+			}
+		}
+
+		rate = gsl_vector_get(rate_parameters, 0) *
+			(1.0 + (node_force_factor + gsl_max(factor_across_Z, 0.0) + gsl_max(factor_across_M, 0.0)));
+
+		//printf("hs_index: %i  titin_f: %g\t\tnode_f: %g\t\tf_across_Z: %g\t\tf_across_M: %g\n",
+			//hs_ind, p_hs->hs_titin_force, node_force_factor, factor_across_Z, factor_across_M);
 	}
 
 	// Force and MyBPC-dependent

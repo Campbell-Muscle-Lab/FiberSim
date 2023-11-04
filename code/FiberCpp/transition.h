@@ -62,6 +62,6 @@ public:
 	*/
 	double calculate_rate(double x, double x_ext, double node_force,
 							int mybpc_state, int mybpc_iso,
-							short int active_neigh = 0,
-							half_sarcomere* p_hs = NULL);
+							short int active_neigh,
+							half_sarcomere* p_hs);
 };
