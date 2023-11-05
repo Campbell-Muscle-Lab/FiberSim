@@ -500,6 +500,27 @@ size_t half_sarcomere::update_lattice(double time_step, double delta_hsl)
     return x_solve_iterations;
 }
 
+size_t half_sarcomere::update_lattice_for_force(double time_step, double target_force)
+{
+    //! Updates the hs_length for a target force
+    
+    // Variables
+    size_t lattice_iterations;
+
+    double delta_hsl;
+
+    // Code
+    delta_hsl = calculate_delta_hsl_for_force(target_force, time_step);
+
+    lattice_iterations = update_lattice(time_step, delta_hsl);
+
+    // Set the return value for use with threads
+    thread_return_value = (double)lattice_iterations;
+
+    // And the main return value
+    return lattice_iterations;
+}
+
 size_t half_sarcomere::implement_time_step(double time_step,
     double delta_hsl, double sim_mode, double set_pCa)
 {

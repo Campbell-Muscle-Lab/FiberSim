@@ -445,7 +445,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
                 # Load up the results file
                 d = pd.read_csv(data_file_string, delimiter='\t')
-                initial_hsl = d['hs_length'].iloc[0] # muscle length at t = 0
+                initial_hsl = d['hs_1_length'].iloc[0] # muscle length at t = 0
 
                 # Filter to fit time_interval
                 d_fit = d.loc[(d['time'] >= fig_data['fit_time_interval_s'][0]) &
@@ -456,8 +456,8 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                                                  (5 * (fig_data['fit_time_interval_s'][-1] -
                                                        fig_data['fit_time_interval_s'][0]))))]
                 
-                ax_for.plot(d_display['time'], d_display['force'], 'b-')
-                ax_len.plot(d_display['time'], d_display['hs_length'], 'b-')
+                ax_for.plot(d_display['time'], d_display['hs_1_force'], 'b-')
+                ax_len.plot(d_display['time'], d_display['hs_1_length'], 'b-')
 
                 # Now do the fit
                 if length_fit_mode == 'exponential':
@@ -473,7 +473,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                         time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]                            
 
                     vel_data = cv.fit_exponential(time_offset.to_numpy(),
-                                            d_fit['hs_length'].to_numpy())
+                                            d_fit['hs_1_length'].to_numpy())
 
                     # Shortening velocity in ML s-1:
 
@@ -484,7 +484,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                 elif length_fit_mode == 'linear':
 
                     vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
-                                            d_fit['hs_length'].to_numpy())
+                                            d_fit['hs_1_length'].to_numpy())
 
                     # Calculate velocity
                     hs_vel = -1e-9*vel_data['slope'] # velocity in m s^-1
@@ -495,9 +495,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
           
                 # Get force and power
 
-                hs_for = d_fit['force'].mean()
-                hs_for_isometric = d['force'].max()
-                hs_for_passive = d['force'][0]
+                hs_for = d_fit['hs_1_force'].mean()
+                hs_for_isometric = d['hs_1_force'].max()
+                hs_for_passive = d['hs_1_force'][0]
                 hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
                 hs_pow_passive_corrected = \
                     hs_vel * (hs_for - hs_for_passive) / \

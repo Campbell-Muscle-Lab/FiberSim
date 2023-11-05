@@ -436,10 +436,19 @@ public:
     * int update_lattice_positions(double time_step, double delta_hsl)
     * Applies a length change to the lattice and calculates new forces
     * @param time_step double defining the simulation time-step in s
-    * @param doubel delta_hsl the half-sarcomere length change in nm
+    * @param double delta_hsl the half-sarcomere length change in nm
     * @return no_of_iterations size_t for calculate_x_positions
     */
     size_t update_lattice(double time_step, double delta_hsl);
+
+    /**
+    * size_t update_lattice_for_force(double time_step, double target_force)
+    * Deduces the delta_hsl for a target force and then applies it
+    * @param time_step double defining the simulation time-step in s
+    * @param target_force double defining the target force
+    * @return no_of_iterations size_t for calculate_x positions
+    */
+    size_t update_lattice_for_force(double time_step, double target_force);
 
     /**
     * double calculate_force(double delta_hsl, double time_step)

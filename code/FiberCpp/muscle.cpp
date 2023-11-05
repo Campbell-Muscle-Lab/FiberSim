@@ -33,11 +33,12 @@
 
 namespace fs = std::filesystem;
 
-// Structure used for root-finding for myofibril in length-control mode
-struct m_length_control_params
+// Structure used for root-finding for myofibril in length-or force control mode
+struct m_control_params
 {
 	double time_step;
 	muscle* p_m;
+	double target_force;
 };
 
 // This is a function used by the root finding algorithm that handles the recasting of pointers
@@ -314,7 +315,7 @@ void muscle::implement_time_step(int protocol_index)
 		if (sim_mode >= 0.0)
 		{
 			// Force control
-			force_control_muscle_system();
+			lattice_iterations = force_control_myofibril_with_series_compliance(protocol_index);
 		}
 		else
 		{
@@ -537,7 +538,7 @@ size_t muscle::length_control_myofibril_with_series_compliance(int protocol_inde
 	gsl_multiroot_fsolver* s;
 	const size_t calculation_size = x_length;
 
-	m_length_control_params* par = new m_length_control_params;
+	m_control_params* par = new m_control_params;
 	par->p_m = this;
 	par->time_step = gsl_vector_get(p_fs_protocol->dt, protocol_index);
 
@@ -629,8 +630,8 @@ int wrapper_length_control_myofibril_with_series_compliance(const gsl_vector* x,
 	// Variables
 	int f_return_value;
 
-	struct m_length_control_params* params =
-		(struct m_length_control_params*)p;
+	struct m_control_params* params =
+		(struct m_control_params*)p;
 
 	// Code
 
@@ -659,8 +660,8 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 	//! ensure that the force in the myofibril and its length are constrained
 
 	// Variables
-	struct m_length_control_params* params =
-		(struct m_length_control_params*)p;
+	struct m_control_params* params =
+		(struct m_control_params*)p;
 
 	double delta_hsl;
 	double cum_hs_length;
@@ -783,6 +784,108 @@ size_t muscle::worker_length_control_myofibril_with_series_compliance(
 	return GSL_SUCCESS;
 }
 
+size_t muscle::force_control_myofibril_with_series_compliance(int protocol_index)
+{
+	//! Impose force control on a system with a series compliance
+	//! and/or 1 or more half-sarcomeres
+
+	// Variables
+
+	// Other stuff
+	double time_step_s;
+	double target_force;
+
+	size_t lattice_iterations;
+	size_t max_lattice_iterations = 0;
+
+	// Run the kinetics on each half-sarcomere
+	time_step_s = gsl_vector_get(p_fs_protocol->dt, protocol_index);
+
+	const auto t1 = std::chrono::high_resolution_clock::now();
+
+	if (p_thread_pool != NULL)
+	{
+		// We are using multi-threading
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
+		{
+			p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
+
+			double pCa_temp = gsl_vector_get(p_fs_protocol->pCa, protocol_index);
+
+			p_thread_pool->push_task(&half_sarcomere::sarcomere_kinetics, p_hs[hs_counter],
+				time_step_s, gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+		}
+		p_thread_pool->wait_for_tasks();
+	}
+	else
+	{
+		// Serial processing
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
+		{
+			p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
+
+			p_hs[hs_counter]->sarcomere_kinetics(time_step_s, gsl_vector_get(p_fs_protocol->pCa, protocol_index));
+		}
+	}
+
+	auto t_kinetics = std::chrono::high_resolution_clock::now();
+	
+	const std::chrono::duration<double, std::milli> dur_kinetics = t_kinetics - t1;
+
+	//std::cout << "Kinetics took: " << dur_kinetics << "\n";
+
+	// Now implement the force control on each half-sarcomere
+
+	// Get the target_force
+	target_force = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
+
+	if (p_thread_pool != NULL)
+	{
+		// We are using multi-threading
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
+		{
+			p_thread_pool->push_task(&half_sarcomere::update_lattice_for_force, p_hs[hs_counter],
+				time_step_s, target_force);
+		}
+		p_thread_pool->wait_for_tasks();
+
+		max_lattice_iterations = 0;
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
+		{
+			if ((size_t)(p_hs[hs_counter]->thread_return_value) > max_lattice_iterations)
+				max_lattice_iterations = (size_t)(p_hs[hs_counter]->thread_return_value);
+		}
+	}
+	else
+	{
+		// Serial processing
+		max_lattice_iterations = 0;
+		
+		for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
+		{
+			lattice_iterations = p_hs[hs_counter]->update_lattice_for_force(time_step_s, target_force);
+
+			if (lattice_iterations > max_lattice_iterations)
+				max_lattice_iterations = lattice_iterations;
+		}
+	}
+
+	// Update the series component
+	p_sc->sc_extension = p_sc->return_series_extension(target_force);
+
+	// Update the muscle length
+	m_length = p_sc->sc_extension;
+	for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
+	{
+		m_length = m_length + p_hs[hs_counter]->hs_length;
+	}
+
+	// Update muscle force
+	m_force = p_sc->sc_force;
+	
+	// Return the max number of lattice iterations
+	return max_lattice_iterations;
+}
 
 void muscle::write_rates_file()
 {
@@ -882,11 +985,6 @@ void muscle::write_rates_file()
 	fopen_s(&output_file, p_fs_options->rate_file_string, "a");
 	fprintf_s(output_file, "\t\t]\n\t}\n}\n");
 	fclose(output_file);
-}
-
-void muscle::force_control_muscle_system(void)
-{
-
 }
 
 

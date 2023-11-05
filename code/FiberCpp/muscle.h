@@ -77,7 +77,7 @@ public:
 
     /**
     */
-    void force_control_muscle_system();
+    size_t force_control_myofibril_with_series_compliance(int protocol_index);
 
     void thread_test(int i);
 

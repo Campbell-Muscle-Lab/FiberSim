@@ -5,7 +5,7 @@
   "muscle": {
     "no_of_half_sarcomeres": 15,
     "no_of_myofibrils": 1,
-    "sc_k_stiff": 1000,
+    "sc_k_stiff": 10000,
     "initial_hs_length": 1100,
     "prop_fibrosis": 0.0,
     "prop_myofilaments": 0.5,
@@ -15,7 +15,7 @@
   [
     {
       "variable": "m_kinetics_isotype_1_state_2_transition_2_parameter_1",
-      "multiplier": [0.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+      "multiplier": [0.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
   ],
   "lattice_parameters": {

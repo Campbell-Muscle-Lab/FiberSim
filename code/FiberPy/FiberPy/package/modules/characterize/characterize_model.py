@@ -996,7 +996,7 @@ def deduce_fv_properties(json_analysis_file_string,
                 results_file_string = isometric_jobs[isometric_job_index]['results_file']
                 sim_data = pd.read_csv(results_file_string, sep='\t')
                  # take the mean force over last 50 points
-                isometric_force = sim_data['force'].iloc[-50:-1].mean()
+                isometric_force = sim_data['m_force'].iloc[-50:-1].mean()
     
             # Create folders for the isotonic sim_input and sim_output
             sim_input_dir = os.path.join(base_dir,
