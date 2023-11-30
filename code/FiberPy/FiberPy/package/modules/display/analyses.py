@@ -403,14 +403,14 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     # Create lists to hold data
     curve = []
     release_index = []
-    hs_force = []
-    hs_force_isometric = []
-    hs_force_passive = []
-    hs_force_passive_corrected = []
-    hs_velocity = []
-    hs_velocity_l0_per_s = []
-    hs_power = []
-    hs_power_passive_corrected = []
+    m_force = []
+    m_force_isometric = []
+    m_force_passive = []
+    m_force_passive_corrected = []
+    m_velocity = []
+    m_velocity_l0_per_s = []
+    m_power = []
+    m_power_passive_corrected = []
 
     while keep_going:
         curve_folder = os.path.join(top_data_folder,
@@ -445,7 +445,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
 
                 # Load up the results file
                 d = pd.read_csv(data_file_string, delimiter='\t')
-                initial_hsl = d['hs_1_length'].iloc[0] # muscle length at t = 0
+                initial_ml = d['m_length'].iloc[0] # muscle length at t = 0
 
                 # Filter to fit time_interval
                 d_fit = d.loc[(d['time'] >= fig_data['fit_time_interval_s'][0]) &
@@ -453,11 +453,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                 
                 # Filter for display
                 d_display = d.loc[(d['time'] >= (fig_data['fit_time_interval_s'][0] -
-                                                 (5 * (fig_data['fit_time_interval_s'][-1] -
+                                                 (0.5 * (fig_data['fit_time_interval_s'][-1] -
                                                        fig_data['fit_time_interval_s'][0]))))]
                 
-                ax_for.plot(d_display['time'], d_display['hs_1_force'], 'b-')
-                ax_len.plot(d_display['time'], d_display['hs_1_length'], 'b-')
+                ax_for.plot(d_display['time'], d_display['m_force'], 'b-')
+                ax_len.plot(d_display['time'], d_display['m_length'], 'b-')
 
                 # Now do the fit
                 if length_fit_mode == 'exponential':
@@ -472,49 +472,57 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                     else: 
                         time_offset = d_fit['time'] - fig_data['fit_time_interval_s'][0]                            
 
-                    vel_data = cv.fit_exponential(time_offset.to_numpy(),
-                                            d_fit['hs_1_length'].to_numpy())
-
+                    # vel_data = cv.fit_exponential_decay(time_offset.to_numpy(),
+                    #                         d_fit['hs_1_length'].to_numpy())
+                    
+                    vel_data = cv.fit_shortening_length_trace(time_offset.to_numpy(),
+                                                              d_fit['m_length'].to_numpy())
+                    
                     # Shortening velocity in ML s-1:
+                    dydt = -(vel_data['b'] * vel_data['c'])
+                    
+                    m_vel = -1e-9 * dydt
+                    m_vel_l0_per_s = -dydt / initial_ml
+                        
 
-                    hs_vel = 1e-9* vel_data['amp'] * vel_data['k']  # velocity in m s^-1
-                    hs_vel_l0_per_s = vel_data['amp'] * vel_data['k']/initial_hsl # velocity in ML s^-1
+                    # hs_vel = -1e-9* vel_data['amp'] * vel_data['k']  # velocity in m s^-1
+                    # hs_vel_l0_per_s = -vel_data['amp'] * vel_data['k']/initial_hsl # velocity in ML s^-1
 
                     
                 elif length_fit_mode == 'linear':
 
                     vel_data = cv.fit_straight_line(d_fit['time'].to_numpy(),
-                                            d_fit['hs_1_length'].to_numpy())
+                                            d_fit['m_length'].to_numpy())
 
                     # Calculate velocity
-                    hs_vel = -1e-9*vel_data['slope'] # velocity in m s^-1
-                    hs_vel_l0_per_s = 1e9 * hs_vel / initial_hsl # velocity in ML s^-1
+                    m_vel = -1e-9*vel_data['slope'] # velocity in m s^-1
+                    m_vel_l0_per_s = 1e9 * m_vel / initial_ml # velocity in ML s^-1
                    
                 # Plot
                 ax_len.plot(d_fit['time'], vel_data['y_fit'], 'r-')
           
                 # Get force and power
 
-                hs_for = d_fit['hs_1_force'].mean()
-                hs_for_isometric = d['hs_1_force'].max()
-                hs_for_passive = d['hs_1_force'][0]
-                hs_pow = hs_vel * hs_for / (1e-9 * initial_hsl)
-                hs_pow_passive_corrected = \
-                    hs_vel * (hs_for - hs_for_passive) / \
-                        (1e-9 * initial_hsl)
+                m_for = d_fit['m_force'].mean()
+                m_for_isometric = d['m_force'].max()
+                m_for_passive = d['m_force'][0]
+                m_pow = m_vel * m_for / (1e-9 * initial_ml)
+                m_pow_passive_corrected = \
+                    m_vel * (m_for - m_for_passive) / \
+                        (1e-9 * initial_ml)
 
                 # Store data
                 curve.append(curve_counter)
                 release_index.append((os.path.basename(data_file_string)).split('_')[1])
-                hs_velocity.append(hs_vel)
-                hs_velocity_l0_per_s.append(hs_vel_l0_per_s)
-                hs_force.append(hs_for)
-                hs_force_isometric.append(hs_for_isometric)
-                hs_force_passive.append(hs_for_passive)
-                hs_force_passive_corrected.append(
-                    hs_for - hs_for_passive)
-                hs_power.append(hs_pow)
-                hs_power_passive_corrected.append(hs_pow_passive_corrected)
+                m_velocity.append(m_vel)
+                m_velocity_l0_per_s.append(m_vel_l0_per_s)
+                m_force.append(m_for)
+                m_force_isometric.append(m_for_isometric)
+                m_force_passive.append(m_for_passive)
+                m_force_passive_corrected.append(
+                    m_for - m_for_passive)
+                m_power.append(m_pow)
+                m_power_passive_corrected.append(m_pow_passive_corrected)
            
             
             fit_traces_string = ('fv_traces_%i' % curve_counter)
@@ -545,14 +553,14 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     # Take lists and create a data frame
     r = pd.DataFrame({'curve': curve,
                       'release_index': release_index,
-                      'hs_velocity': hs_velocity,
-                      'hs_velocity_l0_per_s': hs_velocity_l0_per_s,
-                      'hs_force': hs_force,
-                      'hs_force_isometric': hs_force_isometric,
-                      'hs_force_passive': hs_force_passive,
-                      'hs_force_passive_corrected': hs_force_passive_corrected,
-                      'hs_power': hs_power,
-                      'hs_power_passive_corrected': hs_power_passive_corrected})
+                      'm_velocity': m_velocity,
+                      'm_velocity_l0_per_s': m_velocity_l0_per_s,
+                      'm_force': m_force,
+                      'm_force_isometric': m_force_isometric,
+                      'm_force_passive': m_force_passive,
+                      'm_force_passive_corrected': m_force_passive_corrected,
+                      'm_power': m_power,
+                      'm_power_passive_corrected': m_power_passive_corrected})
     
     # Drop rows with NaNs, first replace empty with nan
     r.replace('', np.nan, inplace=True)
@@ -570,25 +578,25 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         rc = r[r['curve'] == c].copy()
         
         # Fit the hyperbola 
-        fv_curve = cv.fit_hyperbola(rc['hs_force'], rc['hs_velocity'])
+        fv_curve = cv.fit_hyperbola(rc['m_force'], rc['m_velocity'])
 
         # Deduce v_max
         fv_curve['v_max'] = ((fv_curve['x_0'] + fv_curve['a']) * 
                                 (fv_curve['b'] / fv_curve['a'])) - fv_curve['b']
 
         # Now calculate the relative force, relative velocity, and relative power            
-        rc['hs_f_to_f_max'] = rc['hs_force'] / rc['hs_force_isometric']
-        rc['hs_rel_power'] = rc['hs_f_to_f_max'] * rc['hs_velocity_l0_per_s']
+        rc['m_f_to_f_max'] = rc['m_force'] / rc['m_force_isometric']
+        rc['m_rel_power'] = rc['m_f_to_f_max'] * rc['m_velocity_l0_per_s']
         
-        rc['hs_f_to_f_max_pas_corrected'] = \
-            (rc['hs_force'] - rc['hs_force_passive']) / \
-                (rc['hs_force_isometric'] - rc['hs_force_passive'])
+        rc['m_f_to_f_max_pas_corrected'] = \
+            (rc['m_force'] - rc['m_force_passive']) / \
+                (rc['m_force_isometric'] - rc['m_force_passive'])
         
         # Now add these values back into the main frame
-        r.loc[vi, 'hs_f_to_f_max'] = rc['hs_f_to_f_max']
-        r.loc[vi, 'hs_rel_power'] = rc['hs_rel_power']
-        r.loc[vi, 'hs_f_to_f_max_pas_corrected'] = \
-            rc['hs_f_to_f_max_pas_corrected']
+        r.loc[vi, 'm_f_to_f_max'] = rc['m_f_to_f_max']
+        r.loc[vi, 'm_rel_power'] = rc['m_rel_power']
+        r.loc[vi, 'm_f_to_f_max_pas_corrected'] = \
+            rc['m_f_to_f_max_pas_corrected']
     
 
     # Create a figure
@@ -597,9 +605,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         # Make a figure
         fig = plt.figure(constrained_layout=True)
         gs = fig.add_gridspec(nrows=2, ncols=2,
-                              wspace = 0.5,
+                              wspace = 0.3,
                               hspace=0.1)
-        fig.set_size_inches([7, 5])
+        fig.set_size_inches([5, 5])
         ax_fv = fig.add_subplot(gs[0,0])
         ax_pow = fig.add_subplot(gs[1, 0])
         ax_rel_fv = fig.add_subplot(gs[0,1])
@@ -626,12 +634,12 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             c_ind = (c-1) % len(formatting['marker_symbols'])
             
             # Plot the force velocity curve
-            ax_fv.plot(rc['hs_force'], rc['hs_velocity'],
+            ax_fv.plot(rc['m_force'], rc['m_velocity'],
                        formatting['marker_symbols'][c_ind],
                        formatting['marker_size'],
                        fillstyle=formatting['fill_styles'][c_ind],
                        color = formatting['color_set'][c_ind])
-            fv_curve = cv.fit_hyperbola(rc['hs_force'], rc['hs_velocity'])
+            fv_curve = cv.fit_hyperbola(rc['m_force'], rc['m_velocity'])
 
             if formatting['labels'] != []:
 
@@ -644,43 +652,43 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                     color=ax_fv.lines[-1].get_color(),
                     linestyle = formatting['line_styles'][c_ind])
 
-            ax_pow.plot(rc['hs_force'], rc['hs_power'],
+            ax_pow.plot(rc['m_force'], rc['m_power'],
                        formatting['marker_symbols'][c_ind],
                        formatting['marker_size'],
                        fillstyle=formatting['fill_styles'][c_ind],
                         color = formatting['color_set'][c_ind])
-            pow_curve = cv.fit_power_curve(rc['hs_force'], rc['hs_power'])
+            pow_curve = cv.fit_power_curve(rc['m_force'], rc['m_power'])
             ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c_ind])
 
-            ax_rel_fv.plot(rc['hs_f_to_f_max'], rc['hs_velocity_l0_per_s'],
+            ax_rel_fv.plot(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'],
                            formatting['marker_symbols'][c_ind],
                            formatting['marker_size'],
                            fillstyle=formatting['fill_styles'][c_ind],
                            color = formatting['color_set'][c_ind])
-            rel_fv_curve = cv.fit_hyperbola(rc['hs_f_to_f_max'], rc['hs_velocity_l0_per_s'])
+            rel_fv_curve = cv.fit_hyperbola(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'])
             ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'],
                            color=ax_rel_fv.lines[-1].get_color(),
                            linestyle = formatting['line_styles'][c_ind])
 
-            ax_rel_pow.plot(rc['hs_f_to_f_max'], rc['hs_rel_power'],
+            ax_rel_pow.plot(rc['m_f_to_f_max'], rc['m_rel_power'],
                             formatting['marker_symbols'][c_ind],
                             formatting['marker_size'],
                             fillstyle=formatting['fill_styles'][c_ind],
                             color = formatting['color_set'][c_ind])
-            rel_pow_curve = cv.fit_power_curve(rc['hs_f_to_f_max'], rc['hs_rel_power'])
+            rel_pow_curve = cv.fit_power_curve(rc['m_f_to_f_max'], rc['m_rel_power'])
             ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'], '-',
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c_ind])
 
             # Store data to work out ticks later on
-            f_ticks = np.concatenate((f_ticks, rc['hs_force']))
-            rel_f_ticks = np.concatenate((rel_f_ticks, rc['hs_f_to_f_max']))
-            v_ticks = np.concatenate((v_ticks, rc['hs_velocity']))
-            rel_v_ticks = np.concatenate((rel_v_ticks, rc['hs_velocity_l0_per_s']))
-            p_ticks = np.concatenate((p_ticks, rc['hs_power']))
-            rel_p_ticks = np.concatenate((rel_p_ticks, rc['hs_rel_power']))
+            f_ticks = np.concatenate((f_ticks, rc['m_force']))
+            rel_f_ticks = np.concatenate((rel_f_ticks, rc['m_f_to_f_max']))
+            v_ticks = np.concatenate((v_ticks, rc['m_velocity']))
+            rel_v_ticks = np.concatenate((rel_v_ticks, rc['m_velocity_l0_per_s']))
+            p_ticks = np.concatenate((p_ticks, rc['m_power']))
+            rel_p_ticks = np.concatenate((rel_p_ticks, rc['m_rel_power']))
             
             # Store the curve data
             d_parameters = pd.DataFrame({'fv_x_0': fv_curve['x_0'],
@@ -1377,6 +1385,8 @@ def create_rates_figure(fig_data, batch_file_string):
     c_schemes = []
     
     max_no_of_rates = 0
+    
+    
 
     # Loop through data folders
     while (keep_going):

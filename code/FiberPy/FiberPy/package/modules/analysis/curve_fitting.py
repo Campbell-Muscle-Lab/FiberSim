@@ -134,7 +134,7 @@ def fit_power_curve(x, y):
     
     try:
         popt, pcov = curve_fit(y_power, x, y,
-                           [np.amax(x), 0.2*np.amax(x), 0.1])
+                           [np.amax(x), 0.2*np.amax(x), np.amax(y) / 0.1 * np.amax(x)])
     except:
         print('fit_power_curve failed')
         popt = [np.amax(x), 0.2*np.amax(x), 0.1]
@@ -173,11 +173,11 @@ def fit_exponential(x, y, n=1):
     k = -np.log(0.5) / (x[guess_half_index] - x[0])
     p.append(k)
     
-    def y_func(x_data, offset, amp, k):
-        y = np.zeros(len(x_data))
+    def y_func(x_data, offset, amp, k2):
+        y_guess = np.zeros(len(x_data))
         for i,x in enumerate(x_data):
-            y[i] = offset + amp*(-abs(k) * x)
-        return y
+            y_guess[i] = offset + amp*(-abs(k2) * x)
+        return y_guess
     
     min_bounds = [-np.inf, -np.inf, 0.0]
     max_bounds = [np.inf, np.inf, np.inf]
@@ -194,6 +194,12 @@ def fit_exponential(x, y, n=1):
     d['x_fit'] = x
     d['y_fit'] = y_func(d['x_fit'], *popt)
     d['r_squared'] = r2_score(y, d['y_fit'])
+    
+    d['ken'] = y_func(np.linspace(0, 1, 10), 1, 3,-0.1)
+
+    print(d)
+    print(*popt)
+    exit(1)
     
     return d
     
@@ -229,43 +235,77 @@ def fit_exponential_recovery(x, y, n=1):
         d['r_squared'] = r2_score(y, d['y_fit'])
         
         return d
+    
+def fit_shortening_length_trace(x, y):
+    """ Fits shortening length trace """
+    
+    def y_function(x, a, b, c):
+        y_data = np.zeros(len(x))
+        for i, x_point in enumerate(x):
+            y_data[i] = a + (b * np.exp(-c*x_point))
+        return y_data
+            
+    s = [1000, 100, 10]
+    min_bounds = [0, 0, 0]
+    max_bounds = [np.inf, np.inf, 100]
+    
+    popt, pcov = curve_fit(y_function, x, y, s,
+                           bounds = (min_bounds, max_bounds),
+                           max_nfev=5000)
+    
+    d = dict()
+    d['a'] = popt[0]
+    d['b'] = popt[1]
+    d['c'] = popt[2]
+    d['x_fit'] = x
+    d['y_fit'] = y_function(x, *popt)
+    d['r_squared'] = r2_score(y, d['y_fit'])
+    
+    print('popt: %g  %g  %g' % (d['a'], d['b'], d['c']))
+    
+    return d
+            
+        
+    
 
 def fit_exponential_decay(x, y):
     """ Fits exponential decay with a single exponential of form y = offset + amp*exp(-k*x) to y data """    
 
     def y_single_exp(x_data, offset, amp, k):
-        y = np.zeros(len(x_data))
-        for i,x in enumerate(x_data):
-            y[i] = offset + amp*np.exp(-k*(x))
-        return y   
+        print('%g   %g   %g' % (offset, amp, k))
+        y_data = offset + np.abs(amp) * (1 - np.exp(-np.abs(k) * x_data))
+        return y_data
 
-    min_bounds = [-np.inf, -np.inf, 0.0]
+    min_bounds = [-np.inf, 0, 0.0]
     max_bounds = [np.inf, np.inf, np.inf]
     
-    st = [y[0], y[-1] - y[0], -np.log(0.5)/0.5*(np.amax(x)+np.amin(x))]
-    st = [1091, 40.24, 0.3]
+    st = [y[-1], y[0] - y[-1], 1.0 / (x[-1] - x[0])]
+    st = [1000, 100, 10]
     print(st)
     
-    print(x[0])
+    min_bounds = [0, 0, 0]
+    max_bounds = [10000, 10000, 10000]
     
     try:
+        print('hello')
         
-        popt, pcov, info, mesg = curve_fit(y_single_exp, x, y, [y[-1], y[0]-y[-1], -np.log(0.5)/0.5*(np.amax(x)+np.amin(x))],
-                               maxfev=1000,
-                               bounds=(min_bounds, max_bounds))
+        popt, pcov, a, b, c = curve_fit(y_single_exp, x, y, st,
+                                        bounds=(min_bounds, max_bounds),
+                                        full_output=True)
         
-        print(info)
-        print(mesg)
+        print('popt')
+        print(popt)
         
     except:
         print('fit exponential decay failed - setting decay rate to NaN')
         popt = [y[-1], y[0]-y[-1], np.nan]
+        exit(1)
 
     d = dict()
     d['offset'] = popt[0]
     d['amp'] = popt[1]
     d['k'] = popt[2]
-    d['x_fit'] = np.linspace(x[0], x[-1], 1000)
+    d['x_fit'] = x
     d['y_fit'] = y_single_exp(d['x_fit'], *popt)
         
     return d
@@ -283,9 +323,11 @@ def fit_straight_line(x, y):
 
     # Create a dictionary for the results
     d = dict()
-    d['x'] = x
+    d['x'] = x[:,1]
     d['y'] = y
     d['intercept'] = results.params[0]
     d['slope'] = results.params[1]
-
+    d['x_fit'] = d['x']
+    d['y_fit'] = d['intercept'] + d['slope'] * d['x']
+    
     return d

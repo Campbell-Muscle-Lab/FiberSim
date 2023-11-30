@@ -872,6 +872,7 @@ size_t muscle::force_control_myofibril_with_series_compliance(int protocol_index
 
 	// Update the series component
 	p_sc->sc_extension = p_sc->return_series_extension(target_force);
+	p_sc->sc_force = target_force;
 
 	// Update the muscle length
 	m_length = p_sc->sc_extension;

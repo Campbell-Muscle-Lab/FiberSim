@@ -161,17 +161,26 @@ def generate_model_files(json_analysis_file_string):
                     (a['variable'] == 'c_kinetics')):
 
                 # Special case for kinetics
-                y = np.asarray(adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
-                          ['transition'][a['transition']-1]['rate_parameters'],
-                          dtype = np.float32)
-                
-                base_value = y[a['parameter_number'] - 1]
-                value = base_value * a['multipliers'][i]
+                if ('extension' in a):
+                    base_value = adj_model[a['variable']][a['isotype']-1]['scheme'][a['extension']-1]['extension']
                     
-                y[a['parameter_number']-1] = value
-                adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
-                          ['transition'][a['transition']-1]['rate_parameters'] = \
-                              y.tolist()
+                    value = base_value * a['multipliers'][i]
+                    
+                    adj_model[a['variable']][a['isotype']-1]['scheme'][a['extension']-1]['extension'] = \
+                        value
+                else:
+                    # Transition parameters
+                    y = np.asarray(adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
+                              ['transition'][a['transition']-1]['rate_parameters'],
+                              dtype = np.float32)
+                    
+                    base_value = y[a['parameter_number'] - 1]
+                    value = base_value * a['multipliers'][i]
+                        
+                    y[a['parameter_number']-1] = value
+                    adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
+                              ['transition'][a['transition']-1]['rate_parameters'] = \
+                                  y.tolist()
                 
             else:
                 base_value = adj_model[a['class']][a['variable']]
@@ -1165,7 +1174,7 @@ def deduce_fv_properties(json_analysis_file_string,
     fig = dict()
     fig['relative_to'] = "false"
     fig['results_folder'] = batch_output_dir
-    fig['time_release_s'] = fv_struct['sim_release_s']
+    fig['sim_release_s'] = fv_struct['sim_release_s']
     fig['fit_time_interval_s'] = fv_struct['fit_time_s']
 
     if (not 'length_fit_mode' in fv_struct): # fit mode for length traces is not specified, exponential is default
