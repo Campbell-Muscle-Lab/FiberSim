@@ -123,7 +123,7 @@ def summary_figure():
             # hs_titin
             plot_index = ((hs_titin_row -1) * no_of_cols) + i
             for j in range(no_of_hs):
-                col_string = 'hs_%i_titin' % (j+1)
+                col_string = 'hs_%i_titin_force' % (j+1)
                 ax[plot_index].plot(d['time'], d[col_string], '-',
                                     color=cmap(cmap_values[j]))
                 if (d[col_string].max() > max_titin):
