@@ -6,7 +6,7 @@ nav_order: 1
 
 # FiberSim
 
-FiberSim is software for spatially-explicit modeling of half-sarcomes. The code tracks the position and status of each myosin head, each binding site on actin, and each molecule of myosin binding protein-C.
+FiberSim is software for spatially-explicit modeling of half-sarcomeres. The code tracks the position and status of each myosin head, each binding site on actin, and each molecule of myosin binding protein-C.
 
 ![](img/FiberSim_render.png)
 
