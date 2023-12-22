@@ -171,21 +171,21 @@ half_sarcomere::half_sarcomere(
     // cumulative probabilities. We need them before initialising
     // the thick filaments
     // Work out the maximum number of transitions
-    max_transitions = 0;
-    for (int i = 0; i < 2; i++)
+
+    max_m_transitions = 0;
+    for (int i = 0; i < p_fs_model->m_no_of_isotypes; i++)
     {
-        for (int j = 0; j < p_fs_model->m_no_of_isotypes; j++)
-        {
-            if (i == 0)
-            {
-                max_transitions = GSL_MAX(max_transitions, p_m_scheme[j]->max_no_of_transitions);
-            }
-            else
-            {
-                max_transitions = GSL_MAX(max_transitions, p_c_scheme[j]->max_no_of_transitions);
-            }
-        }
+        max_m_transitions = GSL_MAX(max_m_transitions, p_fs_model->p_m_scheme[i]->max_no_of_transitions);
     }
+
+    max_c_transitions = 0;
+    for (int i = 0; i < p_fs_model->c_no_of_isotypes; i++)
+    {
+        max_c_transitions = GSL_MAX(max_c_transitions, p_fs_model->p_c_scheme[i]->max_no_of_transitions);
+    }
+
+    max_transitions = GSL_MAX(max_m_transitions, max_c_transitions);
+
     // Now make the vectors
     transition_probs = gsl_vector_alloc(max_transitions * m_attachment_span);
     cum_prob = gsl_vector_alloc(max_transitions * m_attachment_span);
@@ -2333,7 +2333,7 @@ int half_sarcomere::return_m_transition(double time_step, int m_counter, int cb_
     gsl_vector_set_zero(transition_probs);
 
     // Cycle through transitions
-    for (int t_counter = 0; t_counter < max_transitions; t_counter++)
+    for (int t_counter = 0; t_counter < max_m_transitions; t_counter++)
     {
         p_trans = p_m_state->p_transitions[t_counter];
         new_state = p_trans->new_state;
@@ -2512,7 +2512,7 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
         gsl_vector_short_get(p_mf[m_counter]->pc_node_index, pc_counter));
 
     // Cycle through transitions
-    for (int t_counter = 0; t_counter < max_transitions; t_counter++)
+    for (int t_counter = 0; t_counter < max_c_transitions; t_counter++)
     {
         p_trans = p_c_state->p_transitions[t_counter];
         new_state = p_trans->new_state;

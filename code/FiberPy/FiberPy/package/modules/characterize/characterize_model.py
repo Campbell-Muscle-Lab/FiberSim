@@ -998,7 +998,7 @@ def deduce_fv_properties(json_analysis_file_string,
                 isometric_job_index = (dir_counter - 1) * \
                                         len(fv_struct['pCa_values']) * \
                                         fv_struct['randomized_repeats']
-
+                                        
             else:
                 # Pull off the isoric force for the preceding job
                 isometric_job_index = dir_counter - 1

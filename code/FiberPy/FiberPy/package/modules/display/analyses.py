@@ -501,10 +501,14 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                 # Plot
                 ax_len.plot(d_fit['time'], vel_data['y_fit'], 'r-')
           
+                # Deduce isometric time
+                d_isometric = d[(d['time'] > (fig_data['sim_release_s'] - 0.1)) &
+                                (d['time'] < (fig_data['sim_release_s'] - 0.001))]
+                m_for_isometric = d_isometric['m_force'].mean()
+            
                 # Get force and power
 
                 m_for = d_fit['m_force'].mean()
-                m_for_isometric = d['m_force'].max()
                 m_for_passive = d['m_force'][0]
                 m_pow = m_vel * m_for / (1e-9 * initial_ml)
                 m_pow_passive_corrected = \
@@ -605,9 +609,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         # Make a figure
         fig = plt.figure(constrained_layout=True)
         gs = fig.add_gridspec(nrows=2, ncols=2,
-                              wspace = 0.3,
+                              wspace = 0.1,
                               hspace=0.1)
-        fig.set_size_inches([5, 5])
+        fig.set_size_inches([7, 5])
         ax_fv = fig.add_subplot(gs[0,0])
         ax_pow = fig.add_subplot(gs[1, 0])
         ax_rel_fv = fig.add_subplot(gs[0,1])
@@ -650,7 +654,8 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             else:
                 ax_fv.plot(fv_curve['x_fit'], fv_curve['y_fit'],
                     color=ax_fv.lines[-1].get_color(),
-                    linestyle = formatting['line_styles'][c_ind])
+                    linestyle = formatting['line_styles'][c_ind],
+                    label='Curve %i' % c)
 
             ax_pow.plot(rc['m_force'], rc['m_power'],
                        formatting['marker_symbols'][c_ind],
@@ -678,7 +683,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                             fillstyle=formatting['fill_styles'][c_ind],
                             color = formatting['color_set'][c_ind])
             rel_pow_curve = cv.fit_power_curve(rc['m_f_to_f_max'], rc['m_rel_power'])
-            ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'], '-',
+            ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c_ind])
 
@@ -738,6 +743,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                           loc='center',
                           verticalalignment='center',
                           rotation=formatting['y_label_rotation'])
+        ax_fv.legend()
 
         # Add legend on first panel if required
 

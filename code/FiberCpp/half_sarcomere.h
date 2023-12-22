@@ -292,6 +292,10 @@ public:
     // Kinetics
     int max_transitions;            /**< integer with the maximum number of transitions */
 
+    int max_m_transitions;          /**< integer with the maximum number of myosin transitions */
+
+    int max_c_transitions;          /**< integer with the maximum number of MyBPC transitions */
+
     gsl_vector* transition_probs;   /**< gsl_vector holding transition probabilities for
                                          myosin or mybpc transitions */
 
