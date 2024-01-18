@@ -1391,8 +1391,6 @@ def create_rates_figure(fig_data, batch_file_string):
     c_schemes = []
     
     max_no_of_rates = 0
-    
-    
 
     # Loop through data folders
     while (keep_going):
@@ -1431,19 +1429,13 @@ def create_rates_figure(fig_data, batch_file_string):
             model_counter = model_counter + 1
         else:
             keep_going = False
-            
-    print('max_rates: %i' % max_no_of_rates)
-    print('m_schemes')
-    print(m_schemes)
-    print('c_schemes')
-    print(c_schemes)
 
     # Set-up the figure
     no_of_cols = 2
     fig = plt.figure(constrained_layout = False)
     spec = gridspec.GridSpec(nrows = max_no_of_rates, ncols = no_of_cols,
                              wspace = 1, hspace = 0.5)
-    fig.set_size_inches([2 * no_of_cols, 2 * no_of_rates])
+    fig.set_size_inches([2 * no_of_cols, 1.5 * no_of_rates])
 
     ax = []
 
@@ -1475,7 +1467,7 @@ def create_rates_figure(fig_data, batch_file_string):
                 r_string = 'r_%i' % (j+1)
                 if (r_string in d.columns):
                     ax[plot_index].plot(d['x'], np.log10(d[r_string]), '-',
-                               color = color_map[i])
+                               color = color_map[k])
                     
                 # Add title
                 if (j==0):
@@ -1488,8 +1480,8 @@ def create_rates_figure(fig_data, batch_file_string):
                 if (k == (len(s)-1)):
                     # Tidy up
                     ax[plot_index].set_ylabel('log10 %s' % r_string)
-                    ax[plot_index].set_ylim([-1, 4])
-                    ax[plot_index].set_yticks(np.arange(-1,5,1))
+                    ax[plot_index].set_ylim([0, 3])
+                    ax[plot_index].set_yticks(np.arange(0,4,1))
 
     if (fig_data['output_image_file']):
         if (fig_data['relative_to'] == 'this_file'):

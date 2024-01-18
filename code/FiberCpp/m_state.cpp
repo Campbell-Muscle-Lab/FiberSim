@@ -39,6 +39,7 @@ m_state::m_state(const rapidjson::Value& m_st, kinetic_scheme* set_p_parent_sche
 	{
 		p_transitions[i] = new transition(trans[i],this);
 	}
+
 	// Fill in gaps if not all transitions are set
 	if (trans.Size() < (size_t)(p_parent_scheme->max_no_of_transitions))
 	{
@@ -47,6 +48,8 @@ m_state::m_state(const rapidjson::Value& m_st, kinetic_scheme* set_p_parent_sche
 			p_transitions[i] = new transition();
 		}
 	}
+
+	no_of_transitions = trans.Size();
 }
 
 // Destructor

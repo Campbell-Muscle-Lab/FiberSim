@@ -162,15 +162,15 @@ def generate_model_files(json_analysis_file_string):
 
                 # Special case for kinetics
                 if ('extension' in a):
-                    base_value = adj_model[a['variable']][a['isotype']-1]['scheme'][a['extension']-1]['extension']
+                    base_value = adj_model[a['variable']][a['isotype']-1]['state'][a['extension']-1]['extension']
                     
                     value = base_value * a['multipliers'][i]
                     
-                    adj_model[a['variable']][a['isotype']-1]['scheme'][a['extension']-1]['extension'] = \
+                    adj_model[a['variable']][a['isotype']-1]['state'][a['extension']-1]['extension'] = \
                         value
                 else:
                     # Transition parameters
-                    y = np.asarray(adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
+                    y = np.asarray(adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1] \
                               ['transition'][a['transition']-1]['rate_parameters'],
                               dtype = np.float32)
                     
@@ -178,7 +178,7 @@ def generate_model_files(json_analysis_file_string):
                     value = base_value * a['multipliers'][i]
                         
                     y[a['parameter_number']-1] = value
-                    adj_model[a['variable']][a['isotype']-1]['scheme'][a['scheme']-1] \
+                    adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1] \
                               ['transition'][a['transition']-1]['rate_parameters'] = \
                                   y.tolist()
                 
