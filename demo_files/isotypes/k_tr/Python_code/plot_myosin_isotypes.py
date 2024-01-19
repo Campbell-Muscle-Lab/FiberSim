@@ -11,9 +11,7 @@ Created on Sat Sep 16 15:16:23 2023
 @author: Campbell
 """
 import os
-import json
-import copy
-import re
+import sys
 
 import numpy as np
 import pandas as pd
@@ -24,6 +22,10 @@ import matplotlib.gridspec as gridspec
 from natsort import natsorted
 
 from pathlib import Path
+
+# Add FiberSim code to path
+sys.path.append('../../../code/fiberpy/fiberpy/package/modules/analysis')
+import dump_file_analysis as dump_analysis
 
 def plot_myosin_isotypes():
     
@@ -101,6 +103,9 @@ def plot_myosin_isotypes():
                 
         # Sort the files in pCa order
         sim_data_files = natsorted(sim_data_files, reverse=True)
+        
+        # Get the default colors
+        color_map = [p['color'] for p in plt.rcParams['axes.prop_cycle']]
 
         # Now open up the sim_data_file
         for (j,sdf) in enumerate(sim_data_files):
@@ -108,11 +113,35 @@ def plot_myosin_isotypes():
             
             # Plot pCa
             plot_index = i + ((pCa_row-1) * no_of_cols)
-            ax[plot_index].plot(d['time'], d['hs_1_pCa'], '-')
+            ax[plot_index].plot(d['time'], d['hs_1_pCa'], '-',
+                                color = color_map[i])
+            
+            # Plot force
+            plot_index = i + ((hs_force_row-1) * no_of_cols)
+            ax[plot_index].plot(d['time'], d['hs_1_force'], '-',
+                                color = color_map[i])
+            
+            # Now work out the dump files, there is 1 for every time-point
+            dump_files = []
+            for file in os.listdir(status_folders[i]):
+                dump_files.append(file)
+            # Sort them
+            dump_files = natsorted(dump_files)
+            
+            # Loop through them
+            for (k, file) in enumerate(dump_files):
+                file = os.path.join(status_folders[i], file)
+                dump_analysis.extract_dump_data(file)
+                
+                break
     
     # Save fig
     output_file_string = os.path.join(top_data_folder, 'myosin_isotypes.png')
     fig.savefig(output_file_string, bbox_inches='tight')
+    
+    a = dump_analysis.parse_dump_file_string('ken')
+    
+    print(a)
     
 if __name__ == "__main__":
     plot_myosin_isotypes()

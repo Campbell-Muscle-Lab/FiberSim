@@ -131,6 +131,9 @@ public:
     int a_no_of_bs_states;              /**< integer defining the number of states that
                                              a binding site can tranisiton between */
 
+    int a_no_of_bs_isotypes;            /**< integer defining the number of isotypes of
+                                             binding sites */
+
     double a_k_stiff;                   /**< double defining the stiffness of an
                                              actin spring in N m^-1 */
 
@@ -210,6 +213,8 @@ public:
     double c_k_stiff;                   /**< double defining the stiffness of a MyBPC link */
 
     int c_no_of_isotypes;               /**< Number of C-protein isotypes */
+
+    int c_no_of_pc_states;              /**< max number of MyBPC states */
 
     gsl_vector* c_isotype_props;	    /**< gsl_vector holding the C-protein isotypes proportions */
 
