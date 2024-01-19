@@ -26,7 +26,7 @@
             "k_tr_magnitude_nm": 100,
             "k_tr_fit_time_s": [1.225, 1.95],
             "output_image_formats": [ "png" ],
-            "figures_only": "True",
+            "figures_only": "False",
             "trace_figures_on": "False",
             "post_sim_Python_call": "../Python_code/plot_myosin_isotypes.py"
         }
