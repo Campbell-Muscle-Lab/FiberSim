@@ -32,8 +32,8 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     // Set the pointer
     p_fs_options = set_p_fs_options;
 
-    // Set pointer to kinetic scheme to NULL
-    // p_m_scheme[MAX_NO_OF_ISOTYPES] = {NULL};
+    // Set some things that haven't been implemented yet
+    a_no_of_bs_isotypes = 1;
 
     // Log
     if (p_fs_options->log_mode > 0)
@@ -425,18 +425,23 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_array(doc, "m_kinetics");
     const rapidjson::Value& m_ks = doc["m_kinetics"].GetArray();
 
+    // Set the kinetic scheme for each isotype
+    m_no_of_cb_states = 0;
     for (rapidjson::SizeType i = 0; i < m_ks.Size(); i++)
     {
         p_m_scheme[i] = create_kinetic_scheme(m_ks[i]);
+        m_no_of_cb_states = GSL_MAX(m_no_of_cb_states, p_m_scheme[i]->no_of_states);
     }
 
     // Kinetic scheme for MyBPC
     JSON_functions::check_JSON_member_array(doc, "c_kinetics");
     const rapidjson::Value& c_ks = doc["c_kinetics"].GetArray();
 
+    c_no_of_pc_states = 0;
     for (rapidjson::SizeType i = 0; i < c_ks.Size(); i++)
     {
         p_c_scheme[i] = create_kinetic_scheme(c_ks[i]);
+        c_no_of_pc_states = GSL_MAX(c_no_of_pc_states, p_c_scheme[i]->no_of_states);
     }
 
     // Try to load the half-sarcomere variation

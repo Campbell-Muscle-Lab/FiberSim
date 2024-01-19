@@ -63,7 +63,7 @@
   },
   "m_parameters": {
     "m_k_cb": 0.001,
-    "m_isotype_proportions": [ 1, 0 ]
+    "m_isotype_proportions": [ 0.3, 0.7 ]
   },
   "m_kinetics": [
     {

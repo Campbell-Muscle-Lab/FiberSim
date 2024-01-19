@@ -3071,6 +3071,8 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         fprintf_s(output_file, "\t\"m_z\": %.*F,\n", p_fs_options->dump_precision,
             p_mf[thick_counter]->m_z);
         fprintf_s(output_file, "\t\"m_no_of_cbs\": %i,\n", p_mf[thick_counter]->m_no_of_cbs);
+        fprintf_s(output_file, "\t\"m_no_of_isotypes\": %i,\n", p_fs_model->m_no_of_isotypes);
+        fprintf_s(output_file, "\t\"m_no_of_states\": %i,\n", p_fs_model->m_no_of_cb_states);
         fprintf_s(output_file, "\t\"m_k_stiff\": %.*F,\n", p_fs_options->dump_precision,
             m_k_stiff);
         fprintf_s(output_file, "\t\"m_k_cb\": %.*F, \n", p_fs_options->dump_precision, m_k_cb);
@@ -3081,6 +3083,8 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         fprintf_s(output_file, "\t\"m_lambda\": %.*F,\n", p_fs_options->dump_precision,
             p_mf[thick_counter]->m_lambda);
         fprintf_s(output_file, "\t\"c_no_of_pcs\": %i,\n", c_no_of_pcs);
+        fprintf_s(output_file, "\t\"c_no_of_isotypes\": %i,\n", p_fs_model->c_no_of_isotypes);
+        fprintf_s(output_file, "\t\"c_no_of_states\": %i,\n", p_fs_model->c_no_of_pc_states);
 
         /** Whole "nearest actin filaments" matrix is now dumped in the log file 
         
@@ -3257,6 +3261,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         fprintf_s(output_file, "\t\"a_z\": %.*F,\n", p_fs_options->dump_precision,
             p_af[thin_counter]->a_z);
         fprintf_s(output_file, "\t\"a_no_of_bs\": %i,\n", p_af[thin_counter]->a_no_of_bs);
+        fprintf_s(output_file, "\t\"m_no_of_isotypes\": %i,\n", p_fs_model->a_no_of_bs_isotypes);
         fprintf_s(output_file, "\t\"a_bs_per_node\": %i,\n", a_bs_per_node);
         fprintf_s(output_file, "\t\"a_k_stiff\": %.*F,\n", p_fs_options->dump_precision,
             a_k_stiff);
@@ -3287,7 +3292,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
 
         sprintf_s(temp_string, _MAX_PATH, "bs_isoform");
         JSON_functions::write_gsl_vector_short_as_JSON_array(
-            p_af[thin_counter]->bs_isoform,
+            p_af[thin_counter]->bs_isotype,
             output_file,
             temp_string, false);
 
