@@ -63,7 +63,7 @@
   },
   "m_parameters": {
     "m_k_cb": 0.001,
-    "m_isotype_proportions": [ 0.3, 0.7 ]
+    "m_isotype_proportions": [ 0.7, 0.3 ]
   },
   "m_kinetics": [
     {
@@ -94,7 +94,7 @@
             {
               "new_state": 3,
               "rate_type": "gaussian_hsl",
-              "rate_parameters": [ 20 ]
+              "rate_parameters": [ 50 ]
             }
           ]
         },
@@ -106,7 +106,7 @@
               {
                 "new_state": 2,
                 "rate_type": "exp_wall",
-                "rate_parameters": [ 75, 1, 4, 7]
+                "rate_parameters": [ 150, 2, 4, 7]
               }
             ]
           }
@@ -135,12 +135,12 @@
               {
                 "new_state": 1,
                 "rate_type": "constant",
-                "rate_parameters": [ 200 ]
+                "rate_parameters": [ 100 ]
               },
               {
                 "new_state": 3,
                 "rate_type": "gaussian_hsl",
-                "rate_parameters": [ 400 ]
+                "rate_parameters": [ 100 ]
               }
             ]
           },
@@ -152,7 +152,7 @@
                 {
                   "new_state": 2,
                   "rate_type": "exp_wall",
-                  "rate_parameters": [ 150, 2, 4, 7]
+                  "rate_parameters": [ 300, 2, 4, 7]
                 }
               ]
             }

@@ -15,14 +15,19 @@ def extract_dump_data(dump_file_string):
     with open(dump_file_string, 'r') as f:
         d = json.load(f)
         
+    # Get hs_data
+    hs = dict()
+    hs['time'] = d['hs_data']['time']
+    hs['pCa'] = d['hs_data']['pCa']
+        
     # Get the thick filaments
     d_thick = d['thick']
     
     # Make a dict to hold data
     thick = dict()
     for (i, f) in enumerate(d_thick):
-        print(i)
         if (i==0):
+            thick['m_no_of_cbs'] = f['m_no_of_cbs']
             thick['m_no_of_states'] = f['m_no_of_states']
             thick['m_no_of_isotypes'] = f['m_no_of_isotypes']
             thick['states'] = np.zeros([thick['m_no_of_states'],
@@ -32,8 +37,6 @@ def extract_dump_data(dump_file_string):
         cbs = np.asarray(f['cb_state'], dtype=int)
         cbi = np.asarray(f['cb_iso'], dtype=int)
         
-        print(cbi)
-        
         for iso in range(thick['m_no_of_isotypes']):
             for state in range(thick['m_no_of_states']):
                 
@@ -42,7 +45,12 @@ def extract_dump_data(dump_file_string):
                 
                 thick['states'][state, iso] = thick['states'][state, iso] + \
                         len(matches)
+                        
+    # Now normalize
+    for iso in range(thick['m_no_of_isotypes']):
+        for state in range(thick['m_no_of_states']):
+            thick['states'][state, iso] = thick['states'][state, iso] / \
+                (thick['m_no_of_cbs'] * len(d_thick))
+
     
-    print(thick)
-    
-    return thick
+    return (hs, thick)
