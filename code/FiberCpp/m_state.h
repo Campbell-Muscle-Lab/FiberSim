@@ -27,6 +27,9 @@ public:
 
 	int state_number;				/**< integer defining the state number */
 
+	int no_of_transitions;			/**< integer defining the number of transitions
+										 from the state */
+
 	char state_type;				/**< char defining the state type
 										 'S', super-relaxed
 										 'D', disorded-relaxed

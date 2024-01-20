@@ -68,9 +68,7 @@
   },
   "m_kinetics": [
     {
-      "no_of_states": 4,
-      "max_no_of_transitions": 2,
-      "scheme": [
+      "state": [
         {
           "number": 1,
           "type": "S",
@@ -147,9 +145,7 @@
   },
   "c_kinetics": [
     {
-      "no_of_states": 3,
-      "max_no_of_transitions": 2,
-      "scheme": [
+      "state": [
         {
           "number": 1,
           "type": "D",

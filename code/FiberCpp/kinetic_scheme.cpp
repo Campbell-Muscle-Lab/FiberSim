@@ -32,21 +32,25 @@ kinetic_scheme::kinetic_scheme(const rapidjson::Value& m_ks,
 	// Set the pointer to the options
 	p_fs_options = set_p_fs_options;
 
-	// Pull no_of_states
-	JSON_functions::check_JSON_member_int(m_ks, "no_of_states");
-	no_of_states = m_ks["no_of_states"].GetInt();
-
-	JSON_functions::check_JSON_member_int(m_ks, "max_no_of_transitions");
-	max_no_of_transitions = m_ks["max_no_of_transitions"].GetInt();
-
 	// Pull array
-	JSON_functions::check_JSON_member_array(m_ks, "scheme");
-	const rapidjson::Value& scheme = m_ks["scheme"];
+	JSON_functions::check_JSON_member_array(m_ks, "state");
+	const rapidjson::Value& state = m_ks["state"];
 
-	for (rapidjson::SizeType i = 0; i < scheme.Size(); i++)
+	// Deduce the max number of transitions - we need this to make the states
+	max_no_of_transitions = 0;
+	for (rapidjson::SizeType i = 0; i < state.Size(); i++)
 	{
-		p_m_states[i] = new m_state(scheme[i], this);
+		const rapidjson::Value& trans = state[i]["transition"];
+		max_no_of_transitions = GSL_MAX(max_no_of_transitions, (int)trans.Size());
 	}
+
+	// Now cycle through making states
+	for (rapidjson::SizeType i = 0; i < state.Size(); i++)
+	{
+		p_m_states[i] = new m_state(state[i], this);
+	}
+
+	no_of_states = state.Size();
 
 	// Now that we know the state properties, set the transition types
 	set_transition_types();

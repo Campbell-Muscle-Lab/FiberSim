@@ -239,8 +239,16 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
 		double k_cb = p_model->m_k_cb;
 
-		rate = gsl_vector_get(rate_parameters, 0) *
-			exp(-(0.5 * k_cb * gsl_pow_int(x, 2)) /
+		// Set parameters
+		double amp = gsl_vector_get(rate_parameters, 0);
+		double k_modifier = 1.0;
+
+		if (!gsl_isnan(gsl_vector_get(rate_parameters, 1)))
+			k_modifier = gsl_vector_get(rate_parameters, 1);
+
+		// Calculate
+		rate = amp *
+			exp(-(0.5 * k_modifier * k_cb * gsl_pow_int(x, 2)) /
 				(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
 	}
 
@@ -266,6 +274,14 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 		double r_thick = 7.5;
 		double r_thin = 5.5;
 
+		// Set parameters
+		double amp = gsl_vector_get(rate_parameters, 0);
+		double k_modifier = 1.0;
+
+		if (!gsl_isnan(gsl_vector_get(rate_parameters, 1)))
+			k_modifier = gsl_vector_get(rate_parameters, 1);
+
+		// Deduce filament separation
 		y_ref = ((2.0 / 3.0) * 37.0) - r_thick - r_thin;
 
 		if (p_hs == NULL)
@@ -275,8 +291,8 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 
 		y_actual = (2.0 / 3.0) * (37.0 / sqrt(hs_length / 1100.0)) - r_thick - r_thin;
 
-		rate = gsl_vector_get(rate_parameters, 0) *
-			exp(-(0.5 * k_cb * gsl_pow_int(x, 2)) /
+		rate = amp *
+			exp(-(0.5 * k_modifier * k_cb * gsl_pow_int(x, 2)) /
 				(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
 
 		rate = rate * gsl_pow_2(y_ref / y_actual);
