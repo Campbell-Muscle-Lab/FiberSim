@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Isotypes and k_tr
+title: k_tr
 has_children: false
 parent: Isotypes
 grand_parent: Demos
@@ -48,7 +48,7 @@ All of the results from the simulation are written to files in `<FiberSim_repo>/
 
 The file `superposed_traces.png` shows pCa, length, force per cross-sectional area (stress), and thick and thin filament properties plotted against time. In this figure, the thick filament state populations are the total number of heads in each state. This figure does not break these profiles out by isotype.
 
-<img src="images/superposed_traces.png" width="50%">
+<img src="images/superposed_traces.png" width="100%">
 
 The file `rates.png` shows the rates for the different isotypes.
 
