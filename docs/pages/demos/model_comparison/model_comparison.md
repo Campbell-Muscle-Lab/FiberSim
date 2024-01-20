@@ -3,7 +3,7 @@ layout: default
 title: Model comparison
 has_children: true
 parent: Demos
-nav_order: 8
+nav_order: 3
 ---
 
 # Model comparison
