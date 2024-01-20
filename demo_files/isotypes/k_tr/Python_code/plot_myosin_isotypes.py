@@ -67,7 +67,7 @@ def plot_myosin_isotypes():
                              figure = fig,
                              wspace = 1,
                              hspace = 1)
-    fig.set_size_inches([no_of_conditions * 3, 10])
+    fig.set_size_inches([no_of_conditions * 4, 7])
     
     ax = []
     for i in range(no_of_rows):
@@ -117,7 +117,7 @@ def plot_myosin_isotypes():
             max_force = np.amax([max_force, d['hs_1_force'].max()])
             
             min_hsl = np.amin([min_hsl, d['hs_1_length'].min()])
-            max_hsl = np.amin([min_hsl, d['hs_1_length'].min()])
+            max_hsl = np.amax([max_hsl, d['hs_1_length'].max()])
             
             # Plot pCa
             plot_index = i + ((pCa_row-1) * no_of_cols)
@@ -211,7 +211,7 @@ def plot_myosin_isotypes():
         ax[plot_index].set_ylabel('Force\n(kN m^-2)')
         
         plot_index = plot_index + 1
-        y_ticks = [min_hsl, max_hsl]
+        y_ticks = [min_hsl-10, max_hsl+10]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].set_yticks(y_ticks)
         ax[plot_index].set_ylabel('HSL\n(nm)')
