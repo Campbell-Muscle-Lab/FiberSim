@@ -139,19 +139,18 @@ If you are used to looking at JSON files, you will realize that the next section
 
 ```text
 "m_kinetics: [
-  {
-    <SNIP>
-  }
- ]
- ```
+ {
+   <SNIP>
+ }
+]
+```
 
- is defining an array. Each element of the array (there are two) is a complete scheme, containing different states (in this case 3) and different transitions.
+is defining an array. Each element of the array (there are two) is a complete scheme, containing different states (in this case 3) and different transitions.
+The structure might be easier to understand if you look at the image rendered by [JSON Crack](https://www.jsoncrack.com).
 
- The structure might be easier to understand if you look at the image rendered by [JSON Crack](www.jsoncrack.com).
+![myosin isotypes](images/myosin_isotypes.png)
 
- ![myosin isotypes](images/myosin_isotypes.png)
-
-The first scheme corresponds to the first isotype, the second scheme to the second isotype.
+The first scheme (top group) corresponds to the first isotype, the second scheme to the second isotype.
 
 If you run a simulation based on this model file, 70% of the myosins will follow the first kinetic scheme, and 30% will follow the second.
 
