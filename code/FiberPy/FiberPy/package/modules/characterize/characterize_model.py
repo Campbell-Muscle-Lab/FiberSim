@@ -57,7 +57,7 @@ def characterize_model(json_analysis_file_string):
             deduce_fv_properties(json_analysis_file_string,
                                  fv_struct =ch)
         
-        if (ch['type'] == 'freeform'):
+        if ((ch['type'] == 'freeform') or (ch['type'] == 'twitch')):
             deduce_freeform_properties(json_analysis_file_string,
                                        freeform_struct = ch)
         
@@ -144,6 +144,8 @@ def generate_model_files(json_analysis_file_string):
     adjustments = model_struct['manipulations']['adjustments']
     if ('multipliers' in adjustments[0]):
         no_of_models = len(adjustments[0]['multipliers'])
+    elif (adjustments[0]['variable'].endswith('isotype_proportions')):
+        no_of_models = len(adjustments[0]['proportions'])        
     else:
         no_of_models = 1
     
@@ -182,6 +184,13 @@ def generate_model_files(json_analysis_file_string):
                               ['transition'][a['transition']-1]['rate_parameters'] = \
                                   y.tolist()
                 
+            elif (a['variable'].endswith('isotype_proportions')):
+                
+                prefix = a['variable'][0]
+                class_string = '%s_parameters' % prefix
+                adj_model[class_string][a['variable']] = \
+                    a['proportions'][i]['isotype_proportions']
+            
             else:
                 base_value = adj_model[a['class']][a['variable']]
                 
@@ -1293,6 +1302,53 @@ def deduce_freeform_properties(json_analysis_file_string,
         with open(model_file, 'r') as f:
             m = json.load(f)
             hs_lengths = np.array([m['muscle']['initial_hs_length']])
+            
+    # If we are running in twitch mode, generate the protocol files
+    if (freeform_struct['type'] == 'twitch'):
+        
+        # Create an array for the protocol files that will be
+        # generated
+        freeform_struct['protocol_files'] = []
+        
+        # Deduce a directory for the protocols
+        base_dir = freeform_struct['relative_to']
+        if (freeform_struct['relative_to'] == 'this_file'):
+            base_dir = Path(json_analysis_file_string).parent.absolute()
+            
+        # Generate a folder for the protocols
+        prot_dir = os.path.join(base_dir,
+                                freeform_struct['protocol']['protocol_folder'])
+        
+        # Clear it and then check it is there
+        try:
+            print('Trying to remove %s' % prot_dir)
+            shutil.rmtree(prot_dir, ignore_errors = True)
+        except OSError as e:
+            print('Error: %s : %s' % (prot_dir, e.strerror))
+            
+        if not os.path.isdir(prot_dir):
+            os.makedirs(prot_dir)
+            
+        for (i, ps) in enumerate(freeform_struct['protocol']['data']):
+            prot_file_string = os.path.join(prot_dir,
+                                            'protocol_%i.txt' % (i+1))
+            
+            p = prot.create_twitch_protocol(
+                    time_step = ps['time_step_s'],
+                    n_points = ps['n_points'],
+                    stimulus_times_s = ps['stimulus_times_s'],
+                    Ca_content = ps['Ca_content'],
+                    stimulus_duration_s = ps['stimulus_duration_s'],
+                    k_leak = ps['k_leak'],
+                    k_act = ps['k_act'],
+                    k_serca = ps['k_serca'])
+            
+            # Create the job
+            if not figures_only:
+                prot.write_protocol_to_file(p, prot_file_string)
+                
+            # Add to protocol list
+            freeform_struct['protocol_files'].append(prot_file_string)
  
     # Set up dir_counter
     dir_counter = 0
@@ -1305,13 +1361,13 @@ def deduce_freeform_properties(json_analysis_file_string,
 
             # Update dir_counter
             dir_counter = dir_counter + 1
-        
-            # Create a folder for the sim_input
+
+            # Set the base dir
+            base_dir = freeform_struct['relative_to']
             if (freeform_struct['relative_to'] == 'this_file'):
                 base_dir = Path(json_analysis_file_string).parent.absolute()
-            else:
-                base_dir = ''
-            
+        
+            # Create a folder for the sim_input
             sim_input_dir = os.path.join(base_dir,
                                          freeform_struct['sim_folder'],
                                          'sim_input',
@@ -1324,11 +1380,7 @@ def deduce_freeform_properties(json_analysis_file_string,
             # adjusting half-sarcomere lengths as appropriate
 
             orig_model_file = mod_f
-            
-            if (model_struct['relative_to'] == 'this_file'):
-                base_dir = Path(json_analysis_file_string).parent.absolute()
-            else:
-                base_dir = ''
+
             orig_model_file = os.path.join(base_dir, mod_f)
             
             # Adjust hsl by loading model, adjusting hsl and re-writing
@@ -1348,7 +1400,7 @@ def deduce_freeform_properties(json_analysis_file_string,
            
             # Work out the path for the base options file
             orig_options_file = os.path.join(base_dir,
-                                                 model_struct['options_file'])
+                                             model_struct['options_file'])
 
             # Load the options data
             with open(orig_options_file, 'r') as f:

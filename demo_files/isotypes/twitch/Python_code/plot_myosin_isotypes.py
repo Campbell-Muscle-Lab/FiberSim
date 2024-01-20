@@ -65,9 +65,9 @@ def plot_myosin_isotypes():
     spec = gridspec.GridSpec(nrows = no_of_rows,
                              ncols = no_of_cols,
                              figure = fig,
-                             wspace = 1,
+                             wspace = 2,
                              hspace = 1)
-    fig.set_size_inches([no_of_conditions * 4, 7])
+    fig.set_size_inches([no_of_conditions * 3, 7])
     
     ax = []
     for i in range(no_of_rows):
@@ -121,7 +121,7 @@ def plot_myosin_isotypes():
             
             # Plot pCa
             plot_index = i + ((pCa_row-1) * no_of_cols)
-            ax[plot_index].plot(d['time'], d['hs_1_pCa'], '-',
+            ax[plot_index].plot(d['time'], np.power(10, -d['hs_1_pCa']), '-',
                                 color = color_map[i])
             
             # Plot force
@@ -198,11 +198,10 @@ def plot_myosin_isotypes():
     # Tidy up the formatting
     for i in range(no_of_conditions):
         plot_index = i + ((pCa_row-1) * no_of_cols)
-        y_ticks = [4, 9]
+        y_ticks = [0, 1e-6]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].set_yticks(y_ticks)
-        ax[plot_index].invert_yaxis()
-        ax[plot_index].set_ylabel('pCa')
+        ax[plot_index].set_ylabel('[Ca2+]/n(M)')
         
         plot_index = plot_index + no_of_cols
         y_ticks = [0, max_force]
@@ -223,7 +222,8 @@ def plot_myosin_isotypes():
             ax[plot_index].set_yticks(y_ticks)
             ax[plot_index].set_ylabel('Isotype %i\nMyosin' % (iso+1))
             ax[plot_index].legend(loc='upper left', bbox_to_anchor=(1.0, 1.05),
-                                  fontsize='x-small')
+                                  fontsize='xx-small',
+                                  handlelength=1)
         
             
             

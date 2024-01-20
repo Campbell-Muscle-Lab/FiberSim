@@ -50,6 +50,10 @@ The file `superposed_traces.png` shows pCa, length, force per cross-sectional ar
 
 <img src="images/superposed_traces.png" width="50%">
 
+The file `rates.png` shows the rates for the different isotypes.
+
+<img src="images/rates.png" width="50%">
+
 You will also see the usual analysis figures for force-pCa and k<sub>tr</sub>.
 
 <img src="images/force_pCa.png" width="50%">
