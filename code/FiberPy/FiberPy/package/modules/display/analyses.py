@@ -1542,10 +1542,12 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
     no_of_conditions = model_counter-1
 
     # Keep track of max and mins
-    min_hsl = []
-    max_hsl = []
-    min_force = []
-    max_force = []
+    min_hsl = np.inf
+    max_hsl = -np.inf
+    min_force = np.inf
+    max_force = -np.inf
+    min_sc_length = np.inf
+    max_sc_length = -np.inf
     
     # Create the color_map
     color_map = formatting['color_set']
@@ -1563,9 +1565,12 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
         for file in os.listdir(condition_folder):
             if ((file.endswith('.txt')) and not file.endswith('rates.txt')):
                 fs = os.path.join(condition_folder, file)
+                # Force to numeric
                 d = pd.read_csv(fs, sep='\t', na_values=['-nan(ind)'])
                 
-                # Force to numeric
+                # Deduce the number of half-sarcomeres
+                pCa_names = [col for col in d if col.endswith('pCa')]
+                no_of_half_sarcomeres = len(pCa_names)
                 
                 if ((i==0) and (file_counter == 1)):
                     # Check for series compliance to determine how to
@@ -1605,17 +1610,16 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                           (d['time'] <= formatting['x_ticks'][-1])]
 
                 # Keep track of max and mins
-                if ((i==0) and (file_counter==1)):
-                    min_hsl = d['hs_1_length'].min()
-                    max_hsl = d['hs_1_length'].max()
-                    min_force = d['hs_1_force'].min()
-                    max_force = d['hs_1_force'].max()
+                for hs in range(no_of_half_sarcomeres):
+                    hs_label = 'hs_%i_length' % (hs+1)
+                    min_hsl = np.amin([min_hsl, d[hs_label].min()])
+                    max_hsl = np.amax([max_hsl, d[hs_label].max()])
+                    
+                min_force = np.amin([min_force, d['hs_1_force'].min()])
+                max_force = np.amax([max_force, d['hs_1_force'].max()])
 
-                # Other files
-                min_hsl = np.amin([min_hsl, np.amin(d['hs_1_length'])])
-                max_hsl = np.amax([max_hsl, np.amax(d['hs_1_length'])])
-                min_force = np.amin([min_force, np.amin(d['hs_1_force'])])
-                max_force = np.amax([max_force, np.amax(d['hs_1_force'])])
+                min_sc_length = np.amin([min_sc_length, d['sc_extension'].min()])
+                max_sc_length = np.amax([max_sc_length, d['sc_extension'].max()])
 
                 if (file_counter==1):
                     # Make the plots
@@ -1631,7 +1635,9 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                     ax[plot_index].title.set_text(formatting['column_titles'][i])
                     
                 plot_index = (i*no_of_rows) + (hs_length_row - 1)
-                ax[plot_index].plot(d['time'], d['hs_1_length'], '-',
+                for hs in range(no_of_half_sarcomeres):
+                    hs_label = 'hs_%i_length' % (hs+1)
+                    ax[plot_index].plot(d['time'], d[hs_label], '-',
                                     color = color_map[i],
                                     linewidth = formatting['data_linewidth'])
                 # ax[plot_index].plot(d['time'], d['hs_1_command_length'], '--',
@@ -1677,23 +1683,27 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                                     label=label)
 
                 plot_index = (i * no_of_rows) + (thick_filament_row - 1)
-                keep_going = True
-                m_state_counter = 0
-                while (keep_going):
-                    m_pop_string = ('hs_1_m_pop_%i' % (m_state_counter+1))
-                    if (m_pop_string in d):
-                        if (file_counter == 1):
-                            label = m_pop_string
+                for hs in range(no_of_half_sarcomeres):
+                    m_state_counter = 0
+                    keep_going = True
+                    while (keep_going):
+                        m_pop_string = ('hs_%i_m_pop_%i' %
+                                        (hs+1, m_state_counter+1))
+                        
+                        if (m_pop_string in d):
+                            if ((file_counter== 1) and (hs==0)):
+                                label = m_pop_string
+                            else:
+                                label = None
+                            
+                            ax[plot_index].plot(d['time'], d[m_pop_string],
+                                                '-',
+                                                color = color_map[m_state_counter],
+                                                linewidth = formatting['data_linewidth'],
+                                                label=label)
+                            m_state_counter = m_state_counter + 1
                         else:
-                            label = None
-                        ax[plot_index].plot(d['time'], d[m_pop_string],
-                                            '-',
-                                            color = color_map[m_state_counter],
-                                            linewidth = formatting['data_linewidth'],
-                                            label=label)
-                        m_state_counter = m_state_counter + 1
-                    else:
-                        keep_going = False
+                            keep_going = False
 
                 plot_index = (i * no_of_rows) + (mybpc_row - 1)
                 keep_going = True
@@ -1755,12 +1765,19 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
 
         plot_index = plot_index + 1
-        y_ticks = [min_hsl, max_hsl]
+        y_ticks = [min_hsl-10, max_hsl+10]
         ax[plot_index].set_ylim(y_ticks)
         ax[plot_index].set_yticks(y_ticks)
         if ('superposed_x_ticks' in fig_data):
             ax[plot_index].set_xlim(fig_data['superposed_x_ticks'])
             ax[plot_index].set_xticks(fig_data['superposed_x_ticks'])
+            
+        if (no_of_rows == 7):
+            plot_index = (i * no_of_rows) + (sc_length_row - 1)
+            y_ticks = [min_sc_length-10, max_sc_length+10]
+            ax[plot_index].set_ylim(y_ticks)
+            ax[plot_index].set_yticks([y_ticks[0], 0, y_ticks[-1]])
+            ax[plot_index].set_ylabel('Series\nextension\n(nm)')
 
         plot_index = (i * no_of_rows) + (force_row - 1)
         y_ticks = np.asarray([min_force, 0, max_force])
