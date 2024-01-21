@@ -15,7 +15,7 @@
               "type": "pCa_length_control",
               "relative_to": "this_file",
               "sim_folder": "../sim_data",
-              "m_n": 9,
+              "m_n": 4,
               "pCa_values": [4.5],
               "sim_duration_s": 1.0,
               "time_step_s": 0.001,

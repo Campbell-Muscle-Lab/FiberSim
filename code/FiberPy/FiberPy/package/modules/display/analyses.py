@@ -1655,74 +1655,90 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                                     color = color_map[i],
                                     linewidth = formatting['data_linewidth'],
                                     label='Total')
-                ax[plot_index].plot(d['time'], d['hs_1_titin_force'], ':',
-                                    color = color_map[i],
-                                    linewidth = formatting['data_linewidth'],
-                                    label='Titin')
-                ax[plot_index].plot(d['time'], d['hs_1_viscous_force'], '--',
-                                    color = color_map[i],
-                                    linewidth = formatting['data_linewidth'],
-                                    label='Viscous')
+                
+                for hs in range(no_of_half_sarcomeres):
+                    titin_label = 'hs_%i_titin_force' % (hs+1)
+                    plot_label = titin_label
+                    if (hs>0):
+                        plot_label = 'None'
+                
+                    ax[plot_index].plot(d['time'], d[titin_label], ':',
+                                        color = color_map[i],
+                                        linewidth = formatting['data_linewidth'],
+                                        label=plot_label)
 
+                    viscous_label = 'hs_%i_viscous_force' % (hs+1)
+                    plot_label = viscous_label
+                    if (hs>0):
+                        plot_label = 'None'
+                    
+                    ax[plot_index].plot(d['time'], d[viscous_label], '--',
+                                    color = color_map[i],
+                                    linewidth = formatting['data_linewidth'],
+                                    label=plot_label)
+
+                # Now the a_states
+                # Deduce the number of states
+                a_pop_names = [col for col in d if ('_a_pop_' in col)]
+                no_of_a_states = int(len(a_pop_names) / no_of_half_sarcomeres)
+                
                 plot_index = (i * no_of_rows) + (thin_filament_row - 1)
-                if (file_counter==1):
-                    label = 'Inactive'
-                else:
-                    label = None
-                ax[plot_index].plot(d['time'], d['hs_1_a_pop_1'], '-',
-                                    linewidth = formatting['data_linewidth'],
-                                    color = 'r',
-                                    label=label)
-                if (file_counter==1):
-                    label = 'Active'
-                else:
-                    label = None
-                ax[plot_index].plot(d['time'], d['hs_1_a_pop_2'], '-',
-                                    linewidth = formatting['data_linewidth'],
-                                    color = 'g',
-                                    label=label)
+                for hs in range(no_of_half_sarcomeres):
+                    for a_counter in range(no_of_a_states):
+                        a_pop_string = ('hs_%i_a_pop_%i' %
+                                        (hs+1, a_counter+1))
+                        if ((file_counter == 1) and (hs==0)):
+                            label = a_pop_string
+                        else:
+                            label = None
+            
+                        ax[plot_index].plot(d['time'], d[a_pop_string],
+                                '-',
+                                color = color_map[a_counter],
+                                linewidth = formatting['data_linewidth'],
+                                label=label)
+
+                # Now the m_states
+                # Deduce the number of states
+                m_pop_names = [col for col in d if ('_m_pop_' in col)]
+                no_of_m_states = int(len(m_pop_names) / no_of_half_sarcomeres)
 
                 plot_index = (i * no_of_rows) + (thick_filament_row - 1)
                 for hs in range(no_of_half_sarcomeres):
-                    m_state_counter = 0
-                    keep_going = True
-                    while (keep_going):
+                    for m_counter in range(no_of_m_states):
                         m_pop_string = ('hs_%i_m_pop_%i' %
-                                        (hs+1, m_state_counter+1))
-                        
-                        if (m_pop_string in d):
-                            if ((file_counter== 1) and (hs==0)):
-                                label = m_pop_string
-                            else:
-                                label = None
-                            
-                            ax[plot_index].plot(d['time'], d[m_pop_string],
-                                                '-',
-                                                color = color_map[m_state_counter],
-                                                linewidth = formatting['data_linewidth'],
-                                                label=label)
-                            m_state_counter = m_state_counter + 1
+                                        (hs+1, m_counter+1))
+                        if ((file_counter== 1) and (hs==0)):
+                            label = m_pop_string
                         else:
-                            keep_going = False
+                            label = None
+                            
+                        ax[plot_index].plot(d['time'], d[m_pop_string],
+                                            '-',
+                                            color = color_map[m_counter],
+                                            linewidth = formatting['data_linewidth'],
+                                            label=label)
+                        
+                # Now the c_states
+                # Deduce the number of states
+                c_pop_names = [col for col in d if ('_c_pop_' in col)]
+                no_of_m_states = int(len(c_pop_names) / no_of_half_sarcomeres)
 
                 plot_index = (i * no_of_rows) + (mybpc_row - 1)
-                keep_going = True
-                c_state_counter = 0
-                while (keep_going):
-                    c_pop_string = ('hs_1_c_pop_%i' % (c_state_counter+1))
-                    if (c_pop_string in d.columns):
-                        if (file_counter == 1):
+                for hs in range(no_of_half_sarcomeres):
+                    for c_counter in range(no_of_m_states):
+                        c_pop_string = ('hs_%i_c_pop_%i' %
+                                        (hs+1, c_counter+1))
+                        if ((file_counter== 1) and (hs==0)):
                             label = c_pop_string
                         else:
                             label = None
+                            
                         ax[plot_index].plot(d['time'], d[c_pop_string],
                                             '-',
-                                            color = color_map[c_state_counter],
+                                            color = color_map[c_counter],
                                             linewidth = formatting['data_linewidth'],
                                             label=label)
-                        c_state_counter = c_state_counter + 1
-                    else:
-                        keep_going = False
 
                 # Update counter
                 file_counter = file_counter + 1
