@@ -180,7 +180,7 @@ This state is:
 States 3 and 4 are defined in a similar way. Linking everything together produces this scheme.
 
 ```mermaid
-flowchart LR
+graph LR
     1[1\nSRX] -->|Force_dependent\n20, 200| 2[2\nDRX]
     2 -->|Constant\n200| 1
     2-->|Gaussian_hsl\n200| 3[3\nPre PS]
