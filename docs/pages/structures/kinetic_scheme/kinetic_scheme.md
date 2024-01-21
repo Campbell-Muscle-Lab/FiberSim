@@ -179,23 +179,17 @@ This state is:
 
 States 3 and 4 are defined in a similar way. Linking everything together produces this scheme.
 
-```mermaid
-  graph TD;
-      A-->B;
-      A-->C;
-      B-->D;
-      C-->D;
-```
+<!---
+flowchart LR
+    1[1\nSRX] -.->|Force_dependent\n20, 200| 2[2\nDRX]
+    2 -.->|Constant\n200| 1
+    2-.->|Gaussian_hsl\n200| 3[3\nPre PS]
+    3-.->|Poly\n500, 10, 4| 2
+    3-.->|Constant\n75| 4[4\nPost PS]
+    4-.->|Exp_wall\n75, 1, 8, 7| 2
+--->
 
-```mermaid
-  graph LR;
-    1[1\nSRX] -->|Force_dependent\n20, 200| 2[2\nDRX]
-    2 -->|Constant\n200| 1
-    2-->|Gaussian_hsl\n200| 3[3\nPre PS]
-    3-->|Poly\n500, 10, 4| 2
-    3-->|Constant\n75| 4[4\nPost PS]
-    4-->|Exp_wall\n75, 1, 8, 7| 2
-```
+![kinetic scheme](images/kinetic_scheme.png)
 
 ## Options
 
