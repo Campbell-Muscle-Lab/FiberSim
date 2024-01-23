@@ -8,7 +8,7 @@ import sys
 from package.modules.batch.batch import run_batch
 from package.modules.batch.batch import run_multiple_batch
 from package.modules.output_handler import output_handler as oh
-from package.modules.fitting import fitting as fit
+from package.modules.fitting.fit_model import fit_model
 from package.modules.visualization import render as viz
 from package.modules.visualization.create_movie import create_hs_movie as cm
 from package.modules.characterize import characterize_model as characterize
@@ -28,7 +28,7 @@ def parse_inputs():
                           sim_results_file_string=sys.argv[3])
 
     if (sys.argv[1] == "fit_model"):
-        fit.fitting(sys.argv[2])
+        fit_model(sys.argv[2])
 
     if (sys.argv[1] == "render_model"):
         viz.generate_images(sys.argv[2])

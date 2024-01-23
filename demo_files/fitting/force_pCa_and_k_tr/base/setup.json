@@ -8,7 +8,32 @@
     "model": {
       "relative_to": "this_file",
       "options_file": "sim_options.json",
-      "model_files": ["model.json"]
+      "fitting":
+      {
+        "base_model": "model.json",
+        "generated_folder": "../generated",
+        "working_folder": "../working",
+        "progress_folder": "../progress",
+        "Python_objective_call": "../Python_code/return_fit.py",
+        "adjustments":
+        [
+            {
+                "variable": "m_kinetics",
+                "isotype": 1,
+                "state": 1,
+                "transition": 1,
+                "parameter_number": 1,
+                "factor_bounds": [-1, 1],
+                "factor_mode": "log"
+            },
+            {
+                "class": "thin_parameters",
+                "variable": "a_k_on",
+                "output_type": "float",
+                "factor_bounds": [0.5, 2]
+            }
+        ]
+      }
     },
     "characterization": [
         {
@@ -27,8 +52,7 @@
             "k_tr_fit_time_s": [0.822, 1.39],
             "output_image_formats": [ "png" ],
             "figures_only": "False",
-            "trace_figures_on": "False",
-            "post_sim_Python_call": "../Python_code/return_fit.py"
+            "trace_figures_on": "False"            
         }
     ]
   }

@@ -1,0 +1,99 @@
+{
+  "FiberSim_setup":
+  {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../../bin/FiberCpp.exe"
+    },
+    "model":
+    {
+      "relative_to": "this_file",
+      "options_file": "sim_options.json",
+      "manipulations":
+      {
+        "base_model": "model.json",
+        "generated_folder": "../generated",
+        "adjustments":
+        [
+            {
+                "variable": "c_kinetics",
+                "isotype": 1,
+                "state": 1,
+                "transition": 1,
+                "parameter_number": 1,
+                "multipliers": [0, 0, 0]
+            },
+            {
+                "variable": "c_kinetics",
+                "isotype": 1,
+                "state": 1,
+                "transition": 2,
+                "parameter_number": 1,
+                "multipliers": [0, 1, 1]
+            },
+            {
+                "class": "mybpc_parameters",
+                "variable": "c_k_stiff",
+                "multipliers": [1, 0, 1],
+                "output_type": "float"
+            }
+        ],
+        "xadjustments":
+        [
+            {
+                "variable": "c_kinetics",
+                "isotype": 1,
+                "state": 1,
+                "transition": 1,
+                "parameter_number": 1,
+                "multipliers": [0, 0, 0, 1, 1, 1]
+            },
+            {
+                "variable": "c_kinetics",
+                "isotype": 1,
+                "state": 1,
+                "transition": 2,
+                "parameter_number": 1,
+                "multipliers": [0, 1, 1, 0, 1, 1]
+            },
+            {
+                "class": "mybpc_parameters",
+                "variable": "c_k_stiff",
+                "multipliers": [1, 0, 1, 1, 0, 1],
+                "output_type": "float"
+            },
+            {
+                "variable": "m_kinetics",
+                "isotype": 1,
+                "state": 1,
+                "transition": 1,
+                "parameter_number": 5,
+                "multipliers": [0, 1, 1, 0.1, 0.1, 0.1]
+            },
+            {
+                "variable": "m_kinetics",
+                "isotype": 1,
+                "state": 1,
+                "transition": 1,
+                "parameter_number": 6,
+                "multipliers": [0, 1, 1, 0.1, 0.1, 0.1]
+            }
+        ]
+      }
+    },
+    "characterization":
+    [
+        {
+            "type": "freeform",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data",
+            "hs_lengths": [1625],
+            "protocol_files": ["../protocol/prot_5_1.txt"],
+            "m_n": 144,
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False"
+        }
+    ]
+  }
+}
