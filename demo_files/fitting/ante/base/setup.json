@@ -17,8 +17,7 @@
         "progress_folder": "../progress",
         "Python_objective_call": "../Python_code/return_fit.py",
         "optimizer": "Nelder-Mead",
-        "xinitial_guess": [0.65, 0.35, 0.56],
-        "single_run": "False",
+        "single_run": "True",
         "adjustments":
         [
             {
@@ -54,16 +53,17 @@
             "type": "pCa_length_control",
             "relative_to": "this_file",
             "sim_folder": "../sim_data",
-            "m_n": 16,
-            "pCa_values": [9, 6.1, 5.9, 5.7, 4.5],
-            "sim_duration_s": 1.4,
+            "hs_lengths": [1150],
+            "m_n": 4,
+            "pCa_values": [9, 6.1, 5.74, 5.54, 4.14],
+            "sim_duration_s": 4,
             "time_step_s": 0.001,
             "pCa_step_up_s": 0.05,
-            "k_tr_start_s": 0.8,
+            "k_tr_start_s": 2.3,
             "k_tr_duration_s": 0.02,
             "k_tr_ramp_s": 0.001,
             "k_tr_magnitude_nm": 100,
-            "k_tr_fit_time_s": [0.822, 1.39],
+            "k_tr_fit_time_s": [2.33, 3.9],
             "output_image_formats": [ "png" ],
             "figures_only": "False",
             "trace_figures_on": "False"            

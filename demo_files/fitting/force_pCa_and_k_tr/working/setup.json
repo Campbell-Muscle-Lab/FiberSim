@@ -10,26 +10,40 @@
             "manipulations": {
                 "base_model": "model.json",
                 "generated_folder": "../generated",
+                "optimizer": "Nelder-Mead",
+                "xinitial_guess": [
+                    0.65,
+                    0.35,
+                    0.56
+                ],
+                "single_run": "False",
                 "adjustments": [
                     {
                         "variable": "m_kinetics",
                         "isotype": 1,
-                        "state": 1,
+                        "state": 2,
                         "transition": 1,
                         "parameter_number": 1,
-                        "factor_bounds": [
-                            -1,
-                            1
-                        ],
-                        "factor_mode": "log"
+                        "multipliers": [
+                            1.0
+                        ]
+                    },
+                    {
+                        "variable": "m_kinetics",
+                        "isotype": 1,
+                        "state": 3,
+                        "transition": 1,
+                        "parameter_number": 1,
+                        "multipliers": [
+                            1.1220184543019636
+                        ]
                     },
                     {
                         "class": "thin_parameters",
                         "variable": "a_k_on",
                         "output_type": "float",
-                        "factor_bounds": [
-                            0.5,
-                            2
+                        "multipliers": [
+                            1.25
                         ]
                     }
                 ]
@@ -40,7 +54,7 @@
                 "type": "pCa_length_control",
                 "relative_to": "this_file",
                 "sim_folder": "../sim_data",
-                "m_n": 4,
+                "m_n": 16,
                 "pCa_values": [
                     9,
                     6.1,

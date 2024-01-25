@@ -514,5 +514,7 @@ Gemfile.lock
 **/demo_files/**/generated_char/**/*.*
 **/demo_files/**/analysis/**/*.*
 **/demo_files/**/protocols/**/*.*
+**/demo_files/**/fitting/**/progress/**/*.*
+**/demo_files/**/fitting/**/working/**/*.*
 
 
