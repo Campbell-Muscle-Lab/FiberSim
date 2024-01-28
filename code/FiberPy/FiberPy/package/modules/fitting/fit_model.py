@@ -21,6 +21,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
+import pyswarms as psw
+
 from ..batch import batch
 
 from ..characterize import characterize_model
@@ -91,7 +93,26 @@ def fit_model(json_analysis_file_string):
     
     # Set up the optimizer
     if (fitting_struct['optimizer'] == 'particle_swarm'):
-        print('Not yet implemented')
+        
+        pso(worker, p, json_analysis_file_string, progress_data)
+        
+       # options = {'c1': 0.5, 'c2': 0.5, 'w': 0.7}
+       # min_bounds = np.zeros(no_of_parameters)
+       # max_bounds = np.ones(no_of_parameters)
+       # bnds = (min_bounds, max_bounds)
+       # optimizer = psw.single.GlobalBestPSO(
+       #     n_particles = round(1.5 * len(p)),
+       #     dimensions = len(p),
+       #     options = options,
+       #     bounds = bnds,
+       #     velocity_clamp = (-0.3, 0.3))
+       
+       # # Initialise
+       # kwargs = {'json_analysis_file_string': json_analysis_file_string,
+       #           'progress_data': progress_data}
+       # cost, pos = optimizer.optimize(psw_wrapper,
+       #                                iters = np.round(100*len(p)),
+       #                                **kwargs) 
         
     else:
         
@@ -105,10 +126,99 @@ def fit_model(json_analysis_file_string):
                        args=(json_analysis_file_string, progress_data),
                        method=fitting_struct['optimizer'],
                        bounds=bnds)
+        
+def pso(worker, p_vector, json_analysis_file_string, progress_data,
+        f_particles = 2, bounds = [0, 1],
+        inertia = 1, w_self = 0.5, w_family = 0.5,
+        initial_vel = 0.0,
+        vel_bounds = [0.0, 0.1],
+        jitter = 0.1):
+    
+    # Set the number of particles
+    n_particles = bounds[0] + (bounds[1]-bounds[0]) * \
+                    round(f_particles * len(p_vector))
+    
+    # Set the initial values
+    rng = np.random.default_rng()
+    x = rng.random([n_particles, len(p_vector)])
+    x[0,:] = p_vector
+
+    # Set the initial values
+    global_best_value = np.Inf
+    global_best_x = np.NaN * np.ones(len(p_vector))
+    particle_best_value = np.Inf * np.ones(n_particles)
+    particle_best_x = np.NaN * np.ones([n_particles, len(p_vector)])
+    v = initial_vel * np.ones([n_particles, len(p_vector)])
+    
+    for iter in range(100):
+        for i in range(n_particles):
+
+            particle_value = worker(x[i,:],
+                                      json_analysis_file_string,
+                                      progress_data)
+            
+            if (particle_value < particle_best_value[i]):
+                particle_best_value[i] = particle_value
+                particle_best_x[i,:] = x[i,:]
+            
+            if (particle_best_value[i] < global_best_value):
+                global_best_value = particle_best_value[i]
+                global_best_x = x[i,:]
+                
+        # Update
+        for i in range(n_particles):
+            for j in range(len(p_vector)):
+                if ((x[i,j] == bounds[0]) and (v[i,j] < 0)):
+                    v[i,j] = 0
+                if ((x[i,j] == bounds[-1]) and (v[i,j] > 0)):
+                    v[i,j] = 0
+                
+                v[i,j] = inertia*v[i,j] + \
+                    w_self * (particle_best_x[i,j] - x[i,j]) + \
+                    w_family * (global_best_x[j] - x[i,j])
+                    
+                v[i,j] = v[i,j] + jitter * (rng.random() - 0.5)
+                
+                if (v[i,j] > vel_bounds[-1]):
+                    v[i,j] = vel_bounds[-1]
+                if (v[i,j] < -vel_bounds[-1]):
+                    v[i,j]  = -vel_bounds[-1]
+                
+                x[i,j] = x[i,j] + v[i,j]
+                
+                if (x[i,j] < bounds[0]):
+                    x[i,j] = bounds[0]
+                if (x[i,j] > bounds[-1]):
+                    x[i,j] = bounds[-1]
+    
+    
+    
+    
+    
+    
+    # worker(p_vector, json_analysis_file_string, progress_data)
+    
+    print('Done')
+
+            
+  
+def psw_wrapper(p_array, json_analysis_file_string=[], progress_data=[]):
+    """ Runs an interation from PySwarms """
+    
+    fit_error = []
+    for row in p_array:
+        e = worker(row, json_analysis_file_string, progress_data)
+        fit_error.append(e)
+        
+    # Return
+    return fit_error 
+    
+    
     
 def worker(p_vector, json_analysis_file_string, progress_data):
     """ Code launches a simulation with parameter multipliers set
         by p_vector and returns a single error value """
+        
     
     # Open the analysis file
     with open(json_analysis_file_string, 'r') as f:
@@ -218,6 +328,8 @@ def worker(p_vector, json_analysis_file_string, progress_data):
     # Now characeterize
     characterize_model.characterize_model(new_setup_file_string)
     
+    #test_function(p_vector)
+
     # At this point, error components should be in ../worker/trial_errors.xlsx
     trial_errors_file = os.path.join(working_dir, 'trial_errors.xlsx')
     trial_errors = pd.read_excel(trial_errors_file)
@@ -347,28 +459,63 @@ def plot_progress(progress_data):
     # Plot component values
     best_row_ind = df['error_total'].idxmin()
     x = 1
+    cur_label = []
+    best_label = []
     for (i,col_lab) in enumerate(df.columns):
         if ('error_cpt' in col_lab):
-            ax[1].plot(x, np.log10(df[col_lab].iloc[-1]), 'bs')
-            ax[1].plot(x, np.log10(df[col_lab].iloc[best_row_ind]), 'ro')
+            # Set the label
+            if not (cur_label):
+                cur_label = 'Current'
+                best_label = 'Best'
+            else:
+                cur_label = '_Current'
+                best_label = '_best'
+            ax[1].plot(x, np.log10(df[col_lab].iloc[-1]), 'bs',
+                       markerfacecolor='none',
+                       label=cur_label)
+            ax[1].plot(x, np.log10(df[col_lab].iloc[best_row_ind]), 'ro',
+                       markerfacecolor='none',
+                       label=best_label)
             x = x + 1
     ax[1].set_xlabel('Components')
-    ax[1].set_ylabel('Error components')
+    ax[1].set_ylabel('log_{10} (Component errors)')
     x_ticks = np.arange(x+1)
     ax[1].set_xticks(x_ticks)
+    ax[1].legend(loc='upper left',
+                 bbox_to_anchor=(1.0, 1.05),
+                 fontsize='xx-small',
+                 handlelength=1)
     
     # Plot parameter values
     x = 1
+    cur_label = []
+    best_label = []
     for (i,col_lab) in enumerate(df.columns):
         if ('p_' in col_lab):
-            ax[2].plot(x, df[col_lab].iloc[-1], 'bs')
-            ax[2].plot(x, df[col_lab].iloc[best_row_ind], 'ro')
+            # Set the label
+            if not (cur_label):
+                cur_label = 'Current'
+                best_label = 'Best'
+            else:
+                cur_label = '_Current'
+                best_label = '_best'
+                
+            ax[2].plot(x, df[col_lab].iloc[-1], 'bs',
+                       markerfacecolor = 'none',
+                       label = cur_label)
+            ax[2].plot(x, df[col_lab].iloc[best_row_ind], 'ro',
+                       markerfacecolor = 'none',
+                       label = best_label)
             x = x + 1
-    ax[2].set_xlabel('Components')
+    ax[2].set_xlabel('Parameters')
     ax[2].set_ylabel('p value')
     y_ticks = [0, 1]
     ax[2].set_yticks(y_ticks)
-    
+    ax[2].legend(loc='upper left',
+                 bbox_to_anchor=(1.0, 1.05),
+                 fontsize='xx-small',
+                 handlelength=1)
+           
     
     # Save fig
     fig.savefig(os.path.join(progress_data['progress_folder'],
@@ -376,6 +523,33 @@ def plot_progress(progress_data):
                 bbox_inches='tight',
                 dpi=200)
 
+def test_function(p_vector):
+
+    trial_errors_file = 'c:/ken/github/campbellmusclelab/models/fibersim/demo_files/fitting/force_pCa_and_k_tr/working/trial_errors.xlsx'
+    
+    g = np.asarray([0.65, 0.35, 0.56])
+    
+    
+    d = dict()
+    
+    ev = np.NaN * np.ones(len(p_vector))
+    
+    rng = np.random.default_rng()
+    
+    for i in range(len(p_vector)):
+        ev[i]= np.power(p_vector[i] - g[i], 2.0) + \
+            (0.1 * (1+np.sin(100*p_vector[i]/3.14159))) + \
+                (0.1*rng.random())
+            
+        d['error_cpt_%i' % (i+1)] = ev[i]
+    d['error_total'] = np.sum(ev)
+    
+    print(d)
+    
+    df = pd.DataFrame(data=d, index=[0])
+    
+    df.to_excel(trial_errors_file, index=False)
+    
             
     
     

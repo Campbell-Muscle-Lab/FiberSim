@@ -68,9 +68,9 @@ def characterize_model(json_analysis_file_string):
             
         # Run post-Python_function
         if ('post_sim_Python_call' in ch):
-            post_sim_return_value = post_sim_Python_call(json_analysis_file_string, ch)
+             post_sim_Python_call(json_analysis_file_string, ch)
             
-    return post_sim_return_value
+    
             
 def post_sim_Python_call(json_analysis_file_string, char_struct):
     

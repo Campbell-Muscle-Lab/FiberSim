@@ -16,11 +16,11 @@
         "working_folder": "../working",
         "progress_folder": "../progress",
         "Python_objective_call": "../Python_code/return_fit.py",
-        "optimizer": "Nelder-Mead",
-        "single_run": "True",
+        "optimizer": "particle_swarm",
+        "single_run": "False",
         "adjustments":
         [
-            {
+          {
                 "variable": "m_kinetics",
                 "isotype": 1,
                 "state": 2,
@@ -32,19 +32,35 @@
             {
               "variable": "m_kinetics",
               "isotype": 1,
+              "state": 2,
+              "transition": 2,
+              "parameter_number": 1,
+              "factor_bounds": [-1, 1],
+              "factor_mode": "log"
+            },
+            {
+              "variable": "m_kinetics",
+              "isotype": 1,
               "state": 3,
               "transition": 1,
               "parameter_number": 1,
               "factor_bounds": [-1, 1],
               "factor_mode": "log"
-          },
-          {
-                "class": "thin_parameters",
-                "variable": "a_k_on",
-                "output_type": "float",
-                "factor_bounds": [0.5, 2]
-          }
-      ]
+            },
+            {
+              "class": "thin_parameters",
+              "variable": "a_k_on",
+              "output_type": "float",
+              "factor_bounds": [0.5, 1.5]
+            },
+            {
+              "class": "thin_parameters",
+              "variable": "a_k_coop",
+              "output_type": "float",
+              "factor_bounds": [-2, 0],
+              "factor_mode": "log"              
+            }
+        ]
     }
   },
   "characterization":
@@ -55,15 +71,15 @@
             "sim_folder": "../sim_data",
             "hs_lengths": [1150],
             "m_n": 4,
-            "pCa_values": [9, 6.1, 5.74, 5.54, 4.14],
+            "pCa_values": [9, 5.9, 5.74, 5.54, 4.14],
             "sim_duration_s": 4,
             "time_step_s": 0.001,
             "pCa_step_up_s": 0.05,
             "k_tr_start_s": 2.3,
-            "k_tr_duration_s": 0.02,
+            "k_tr_duration_s": 0.2,
             "k_tr_ramp_s": 0.001,
             "k_tr_magnitude_nm": 100,
-            "k_tr_fit_time_s": [2.33, 3.9],
+            "k_tr_fit_time_s": [2.53, 3.9],
             "output_image_formats": [ "png" ],
             "figures_only": "False",
             "trace_figures_on": "False"            

@@ -36,7 +36,7 @@ def fit_pCa_data(x,y):
                                bounds=(min_bounds, max_bounds))
     except:
         print('fit_pCa_data failed')
-        popt = [6.1, 2.1, 0.1, 1.0]
+        popt = [10.0, 100.0, -1e3, 1e5]
 
     d = dict()
     d['pCa_50'] = popt[0]
@@ -220,11 +220,15 @@ def fit_exponential_recovery(x, y, n=1):
         max_bounds = [np.inf, np.inf, np.inf]
         
         
-
-        popt, pcov = curve_fit(y_single_exp, x, y,
+        try:
+            popt, pcov = curve_fit(y_single_exp, x, y,
                                [y[0], y[-1]-y[0], (1/(0.2*np.amax(x)))],
                                bounds=(min_bounds, max_bounds),
                                maxfev=5000)
+        except:
+            print('fit exponential decay failed - setting decay rate to bad values')
+            popt = [1e5, 1e5, 10000]
+
         
         d = dict()
         d['offset'] = popt[0]

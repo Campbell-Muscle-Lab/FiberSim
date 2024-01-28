@@ -10,11 +10,11 @@
             "manipulations": {
                 "base_model": "model.json",
                 "generated_folder": "../generated",
-                "optimizer": "Nelder-Mead",
-                "xinitial_guess": [
-                    0.65,
-                    0.35,
-                    0.56
+                "optimizer": "particle_swarm",
+                "initial_guess": [
+                    0.5,
+                    0.5,
+                    0.5
                 ],
                 "single_run": "False",
                 "adjustments": [
@@ -25,7 +25,7 @@
                         "transition": 1,
                         "parameter_number": 1,
                         "multipliers": [
-                            1.0
+                            0.5545546686426271
                         ]
                     },
                     {
@@ -35,7 +35,7 @@
                         "transition": 1,
                         "parameter_number": 1,
                         "multipliers": [
-                            1.1220184543019636
+                            0.4826059021479363
                         ]
                     },
                     {
@@ -43,7 +43,7 @@
                         "variable": "a_k_on",
                         "output_type": "float",
                         "multipliers": [
-                            1.25
+                            1.0409834545573977
                         ]
                     }
                 ]
@@ -54,12 +54,12 @@
                 "type": "pCa_length_control",
                 "relative_to": "this_file",
                 "sim_folder": "../sim_data",
-                "m_n": 16,
+                "m_n": 4,
                 "pCa_values": [
                     9,
                     6.1,
-                    5.9,
-                    5.7,
+                    5.8,
+                    5.6,
                     4.5
                 ],
                 "sim_duration_s": 1.4,

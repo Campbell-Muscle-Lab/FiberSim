@@ -16,8 +16,8 @@
         "working_folder": "../working",
         "progress_folder": "../progress",
         "Python_objective_call": "../Python_code/return_fit.py",
-        "optimizer": "Nelder-Mead",
-        "xinitial_guess": [0.65, 0.35, 0.56],
+        "optimizer": "particle_swarm",
+        "initial_guess": [0.5, 0.5, 0.5],
         "single_run": "False",
         "adjustments":
         [
@@ -43,7 +43,7 @@
                 "class": "thin_parameters",
                 "variable": "a_k_on",
                 "output_type": "float",
-                "factor_bounds": [0.5, 2]
+                "factor_bounds": [0.5, 1.5]
           }
       ]
     }
@@ -54,8 +54,8 @@
             "type": "pCa_length_control",
             "relative_to": "this_file",
             "sim_folder": "../sim_data",
-            "m_n": 16,
-            "pCa_values": [9, 6.1, 5.9, 5.7, 4.5],
+            "m_n": 4,
+            "pCa_values": [9, 6.1, 5.8, 5.6, 4.5],
             "sim_duration_s": 1.4,
             "time_step_s": 0.001,
             "pCa_step_up_s": 0.05,

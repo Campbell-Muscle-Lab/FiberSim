@@ -79,11 +79,12 @@ def return_fit():
             w = target_data['Weight'].iloc[1]
             
         if (i==2):
-            test_value = pCa_data['pCa_50'].iloc[0]
-            
+            test_pCa = pCa_data['pCa_50'].iloc[0]
+            test_value = np.power(10, -float(test_pCa))
+        
         if (i==3):
             test_value = pCa_data['n_H'].iloc[0]
-            
+                            
         if (i==4):
             test_value = k_tr_data['k_tr'].iloc[0]
             
@@ -115,6 +116,9 @@ def return_fit():
     
     # Make a dataframe    
     df = pd.DataFrame(data=d, index=[0])
+    
+    print(target_data)
+    print(df)
     
     # Check the dir exists
     worker_parent_dir = Path(trial_errors_file).parent
