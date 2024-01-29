@@ -433,7 +433,7 @@ docs/_build/
 
 # PyBuilder
 .pybuilder/
-target/
+# target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -516,6 +516,7 @@ Gemfile.lock
 **/demo_files/**/protocols/**/*.*
 **/demo_files/**/fitting/**/progress/**/*.*
 **/demo_files/**/fitting/**/working/**/*.*
+
 
 
 
