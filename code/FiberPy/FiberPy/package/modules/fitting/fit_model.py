@@ -21,8 +21,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-import pyswarms as psw
-
 from ..batch import batch
 
 from ..characterize import characterize_model
@@ -95,25 +93,7 @@ def fit_model(json_analysis_file_string):
     if (fitting_struct['optimizer'] == 'particle_swarm'):
         
         pso(worker, p, json_analysis_file_string, progress_data)
-        
-       # options = {'c1': 0.5, 'c2': 0.5, 'w': 0.7}
-       # min_bounds = np.zeros(no_of_parameters)
-       # max_bounds = np.ones(no_of_parameters)
-       # bnds = (min_bounds, max_bounds)
-       # optimizer = psw.single.GlobalBestPSO(
-       #     n_particles = round(1.5 * len(p)),
-       #     dimensions = len(p),
-       #     options = options,
-       #     bounds = bnds,
-       #     velocity_clamp = (-0.3, 0.3))
-       
-       # # Initialise
-       # kwargs = {'json_analysis_file_string': json_analysis_file_string,
-       #           'progress_data': progress_data}
-       # cost, pos = optimizer.optimize(psw_wrapper,
-       #                                iters = np.round(100*len(p)),
-       #                                **kwargs) 
-        
+   
     else:
         
         # Create the bounds
@@ -200,20 +180,6 @@ def pso(worker, p_vector, json_analysis_file_string, progress_data,
     
     print('Done')
 
-            
-  
-def psw_wrapper(p_array, json_analysis_file_string=[], progress_data=[]):
-    """ Runs an interation from PySwarms """
-    
-    fit_error = []
-    for row in p_array:
-        e = worker(row, json_analysis_file_string, progress_data)
-        fit_error.append(e)
-        
-    # Return
-    return fit_error 
-    
-    
     
 def worker(p_vector, json_analysis_file_string, progress_data):
     """ Code launches a simulation with parameter multipliers set

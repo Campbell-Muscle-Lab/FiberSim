@@ -25,7 +25,7 @@
                         "transition": 1,
                         "parameter_number": 1,
                         "multipliers": [
-                            0.5545546686426271
+                            1.480385884242776
                         ]
                     },
                     {
@@ -35,7 +35,7 @@
                         "transition": 1,
                         "parameter_number": 1,
                         "multipliers": [
-                            0.4826059021479363
+                            0.5971171295429197
                         ]
                     },
                     {
@@ -43,7 +43,7 @@
                         "variable": "a_k_on",
                         "output_type": "float",
                         "multipliers": [
-                            1.0409834545573977
+                            1.1200246269614762
                         ]
                     }
                 ]
@@ -54,7 +54,7 @@
                 "type": "pCa_length_control",
                 "relative_to": "this_file",
                 "sim_folder": "../sim_data",
-                "m_n": 4,
+                "m_n": 25,
                 "pCa_values": [
                     9,
                     6.1,
