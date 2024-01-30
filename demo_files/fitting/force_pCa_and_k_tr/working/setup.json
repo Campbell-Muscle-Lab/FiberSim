@@ -25,7 +25,7 @@
                         "transition": 1,
                         "parameter_number": 1,
                         "multipliers": [
-                            2.2848521184726582
+                            1.677428134359978
                         ]
                     },
                     {
@@ -35,7 +35,7 @@
                         "transition": 1,
                         "parameter_number": 1,
                         "multipliers": [
-                            0.6602500288386226
+                            0.4568874709134573
                         ]
                     },
                     {
@@ -43,7 +43,7 @@
                         "variable": "a_k_on",
                         "output_type": "float",
                         "multipliers": [
-                            1.1354149688859048
+                            1.048584029897968
                         ]
                     }
                 ]

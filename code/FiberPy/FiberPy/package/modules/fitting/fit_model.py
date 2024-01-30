@@ -109,10 +109,11 @@ def fit_model(json_analysis_file_string):
         
 def pso(worker, p_vector, json_analysis_file_string, progress_data,
         f_particles = 2, bounds = [0, 1],
-        inertia = 1, w_self = 0.5, w_family = 0.5,
+        inertia = 0.5, w_self = 0.5, w_family = 0.5,
         initial_vel = 0.0,
         vel_bounds = [0.0, 0.1],
-        jitter = 0.1):
+        jitter = 0.03,
+        throw = 20):
     
     # Set the number of particles
     n_particles = bounds[0] + (bounds[1]-bounds[0]) * \
@@ -139,25 +140,27 @@ def pso(worker, p_vector, json_analysis_file_string, progress_data,
             
             if (particle_value < particle_best_value[i]):
                 particle_best_value[i] = particle_value
-                particle_best_x[i,:] = x[i,:]
+                particle_best_x[i,:] = copy.deepcopy(x[i,:])
             
             if (particle_best_value[i] < global_best_value):
                 global_best_value = particle_best_value[i]
-                global_best_x = x[i,:]
+                global_best_x = copy.deepcopy(x[i,:])
+                
+        for i in range(n_particles):
+            print("particle_best_value[%i]: %g" % (i, particle_best_value[i]))
+            print(particle_best_x[i,:])
                 
         # Update
         for i in range(n_particles):
             for j in range(len(p_vector)):
-                if ((x[i,j] == bounds[0]) and (v[i,j] < 0)):
+                if (x[i,j] == bounds[0]):
                     v[i,j] = 0
-                if ((x[i,j] == bounds[-1]) and (v[i,j] > 0)):
+                if (x[i,j] == bounds[-1]):
                     v[i,j] = 0
                 
                 v[i,j] = inertia*v[i,j] + \
-                    w_self * (particle_best_x[i,j] - x[i,j]) + \
-                    w_family * (global_best_x[j] - x[i,j])
-                    
-                v[i,j] = v[i,j] + jitter * (rng.random() - 0.5)
+                    w_self * rng.random() * (particle_best_x[i,j] - x[i,j]) + \
+                    w_family * rng.random() * (global_best_x[j] - x[i,j])
                 
                 if (v[i,j] > vel_bounds[-1]):
                     v[i,j] = vel_bounds[-1]
@@ -166,10 +169,23 @@ def pso(worker, p_vector, json_analysis_file_string, progress_data,
                 
                 x[i,j] = x[i,j] + v[i,j]
                 
+                # Add in some jitter
+                x[i,j] = x[i,j] + jitter * (rng.random() - 0.5)
+                
                 if (x[i,j] < bounds[0]):
                     x[i,j] = bounds[0]
                 if (x[i,j] > bounds[-1]):
                     x[i,j] = bounds[-1]
+                    
+        # Throw
+        if ((iter % throw) == 0):
+            # Throw out 1/3 of particles
+            for i in range(round(n_particles / 3)):
+                for j in range(len(p_vector)):
+                    x[i,j] = rng.random()
+                    v[i,j] = 0
+                particle_best_value[i] = np.Inf
+                particle_best_x[i,:] = x[i,:]
     
     
     
@@ -294,7 +310,7 @@ def worker(p_vector, json_analysis_file_string, progress_data):
     # Now characeterize
     characterize_model.characterize_model(new_setup_file_string)
     
-    #test_function(p_vector)
+    # test_function(p_vector)
 
     # At this point, error components should be in ../worker/trial_errors.xlsx
     trial_errors_file = os.path.join(working_dir, 'trial_errors.xlsx')
@@ -491,9 +507,9 @@ def plot_progress(progress_data):
 
 def test_function(p_vector):
 
-    trial_errors_file = 'c:/ken/github/campbellmusclelab/models/fibersim/demo_files/fitting/force_pCa_and_k_tr/working/trial_errors.xlsx'
+    trial_errors_file = 'd:/ken/github/campbellmusclelab/models/fibersim/demo_files/fitting/ante/working/trial_errors.xlsx'
     
-    g = np.asarray([0.65, 0.35, 0.56])
+    g = np.asarray([0.1, 0.2, 0.3, 0.4, 0.5])
     
     
     d = dict()
@@ -504,8 +520,8 @@ def test_function(p_vector):
     
     for i in range(len(p_vector)):
         ev[i]= np.power(p_vector[i] - g[i], 2.0) + \
-            (0.1 * (1+np.sin(100*p_vector[i]/3.14159))) + \
-                (0.1*rng.random())
+            (0.0 * (1+np.sin(100*p_vector[i]/3.14159))) + \
+                (0.0*rng.random())
             
         d['error_cpt_%i' % (i+1)] = ev[i]
     d['error_total'] = np.sum(ev)
