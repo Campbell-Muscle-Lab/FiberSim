@@ -3,7 +3,7 @@
     "version": "2.1.0"
   },
   "muscle": {
-    "no_of_half_sarcomeres": 10,
+    "no_of_half_sarcomeres": 1,
     "no_of_myofibrils": 1,
     "sc_k_stiff": 3000,
     "initial_hs_length": 1100,
@@ -12,7 +12,7 @@
     "m_filament_density": 0.407e15
   },
   "lattice_parameters": {
-    "viscosity": 1
+    "viscosity": 50.0
   },
   "thick_structure": {
     "m_n": 100,
