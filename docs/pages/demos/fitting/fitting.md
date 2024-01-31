@@ -46,7 +46,7 @@ sequenceDiagram
 
 ### Defining the fitting process
 
-Fitting procedures are defined and initialized by a `setup file`. An example is shown below. Several components are idential to those used for [parameter adjustments](../model_comparison/parameter_adjustments.html).
+Fitting procedures are defined and initialized by a `setup file`. An example is shown below. Several components are idential to those used for [parameter adjustments](../model_comparison/parameter_adjustments/parameter_adjustments.html).
 
 ```text
 "model":
@@ -129,7 +129,7 @@ The adjustment are best explained by example.
 }
 ```
 
-As described in [parameter adjustments](../model_comparison/parameter_adjustments.html), this section focuses on
+As described in [parameter adjustments](../model_comparison/parameter_adjustments/parameter_adjustments.html), this section focuses on
 
 + m_kinetics
 + isotpye = 1
