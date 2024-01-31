@@ -148,7 +148,7 @@ The script:
 
 The `target_data` file is shown here.
 
-<img src="images/target_data.png" width=50%>
+<img src="images/target_data.png" width="50%">
 
 ### Python script
 
