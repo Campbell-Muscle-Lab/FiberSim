@@ -16,7 +16,7 @@ FiberSim is a spatially-explicit model of a half-sarcomere. It describes a compl
 
 Thin filaments are composed of nodes joined by linear springs of stiffness $k_{a}$ with a resting length $a_{rl}$. If the position of the $i^{th}$ node along an x-axis is noted $a_i$, then the force-balance equations for the thin filament can be written as:
 
-$ 2 \, k_a \, a_1 - k_a \, a_2 = 0$
+$` 2 \, k_a \, a_1 - k_a \, a_2 = 0`$
 
 $ -  k_a \, a_{i-1} + 2 \, k_a \, a_i - k_a \, a_{i+1} = 0 \,\,\, \text{for} \, 1 \lt i \lt n$
 
