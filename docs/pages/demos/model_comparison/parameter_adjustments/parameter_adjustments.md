@@ -18,7 +18,7 @@ This demo predicts how modulating the Ca<sup>2+</sup> sensitivity of the thin fi
 This demo:
 
 + Builds on the [single pCa curve](../../pCa_curves/single_curve/single_curve.html) demo and runs simulations in which a half-sarcomere is subjected to a k<sub>tr</sub> maneuver at a range of pCa values
-+ Uses an `adjustments` structure to create 4 models with different parameter values
++ Uses a `manipulations` structure to create 4 models with different parameter values
 + Plots summaries of the simulation
 
 ## Instructions
@@ -63,7 +63,7 @@ The rate constants for the different simulations are shown superposed in
 
 ### How this worked
 
-The only difference between this simulation and the [single pCa curve](../../pCa_curves/single_curve/single_curve.html) demo is that the `model` section was updated to include an `adjustments` component.
+The only difference between this simulation and the [single pCa curve](../../pCa_curves/single_curve/single_curve.html) demo is that the `model` section was updated to include a `manipulations` component.
 
 ```
 "model":
