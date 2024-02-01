@@ -84,4 +84,4 @@ You will notice that "base" is now changed to "FiberSim" in the prompt command.
 <img src="conda_activate.PNG" width="900"/>
 </p>
 
-You are now ready to try the first [demo](../demos.html)!
+You are now ready to try the first [demo](../demos/demos.html)!

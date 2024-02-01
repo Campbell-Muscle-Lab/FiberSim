@@ -18,15 +18,15 @@ At each time step, all the binding sites from a regulatory unit can transition t
 
 + If no direct neighboring unit is activated, the activation rate is given by: 
 
-++ a_{k_{on}} [Ca^{2+}] ++  
+   $ a_{k_{on}} [Ca^{2+}] $  
 
 + If one direct neighboring unit is already activated, the activation rate is given by:
 
-++ a_{k_{on}} [Ca^{2+}] (1 + a_{k_{coop}})++  
+  $ a_{k_{on}} [Ca^{2+}] (1 + a_{k_{coop}})$ 
 
 + If the two direct neighboring units are already activated, the activation rate is given by:
 
-++ a_{k_{on}} [Ca^{2+}] (1 + 2 \, a_{k_{coop}})++   
+  $ a_{k_{on}} [Ca^{2+}] (1 + 2 \, a_{k_{coop}})$  
 
 The same reasoning goes for the inactivating rate constant $a_{k_{off}}$.
 
