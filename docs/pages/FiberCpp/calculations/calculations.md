@@ -14,14 +14,17 @@ FiberSim is a spatially-explicit model of a half-sarcomere. It describes a compl
 
 ## Actin filaments
 
-Thin filaments are composed of nodes joined by linear springs of stiffness $k_{a}$ with a resting length $a_{rl}$. If the position of the $i^{th}$ node along an x-axis is noted $a_i$, then the force-balance equations for the thin filament can be written as:
+Thin filaments are composed of nodes joined by linear springs of stiffness $`k_{a}`$ with a resting length $`a_{rl}`$. If the position of the $`i^{th}`$ node along an x-axis is noted $`a_i`$, then the force-balance equations for the thin filament can be written as:
 
-$` 2 \, k_a \, a_1 - k_a \, a_2 = 0`$
-
-$ -  k_a \, a_{i-1} + 2 \, k_a \, a_i - k_a \, a_{i+1} = 0 \,\,\, \text{for} \, 1 \lt i \lt n$
-
-$ -k_a \, a_{n-1} + k_a \, a_n = k_a \, a_{rl}$
-
+```math
+2 \, k_a \, a_1 - k_a \, a_2 = 0
+```
+```math
+- k_a \, a_{i-1} + 2 \, k_a \, a_i - k_a \, a_{i+1} = 0 \,\,\, \text{for} \, 1 \lt i \lt n
+```
+```math
+- k_a \, a_{n-1} + k_a \, a_n = k_a \, a_{rl}
+```
 ## Myosin filaments
 
 Thick filaments are composed of nodes joined by linear springs of stiffness $k_{m}$ with a resting length $m_{rl}$. A rigid link of length $\lambda$ connects the thick filament to the M-line. If the position of the $i^{th}$ node along an x-axis is noted $m_i$, and the half-sarcomere length is noted $l_{hs}$, then the force-balance equations for the thick filament can be written as:
