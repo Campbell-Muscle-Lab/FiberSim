@@ -14,21 +14,21 @@ Actin regulatory units are composed of binding sites that can transition from an
 <img src='actin_kinetics.png' width="50%">
 </p>
 
-At each time step, all the binding sites from a regulatory unit can transition together according to the rate constants `a_k_on` and `a_k_off` defined in the [model file](../../structures/model/model.html). The probabilty of a regulatory unit activating is calculated using $a_{k_{on}} [Ca^{2+}]$, and the probability of a regulatory unit deactivating is calculated using $a_{k_{off}}$. These probabilities are also modulated by `a_k_coop`, which is a parameter quantifiying the inter-regulatory unit cooperativity:
+At each time step, all the binding sites from a regulatory unit can transition together according to the rate constants `a_k_on` and `a_k_off` defined in the [model file](../../structures/model/model.html). The probabilty of a regulatory unit activating is calculated using $$a_{k_{on}} [Ca^{2+}]$$, and the probability of a regulatory unit deactivating is calculated using $$a_{k_{off}}$$. These probabilities are also modulated by `a_k_coop`, which is a parameter quantifiying the inter-regulatory unit cooperativity:
 
 + If no direct neighboring unit is activated, the activation rate is given by: 
 
-   $ a_{k_{on}} [Ca^{2+}] $  
+   $$ a_{k_{on}} [Ca^{2+}] $$  
 
 + If one direct neighboring unit is already activated, the activation rate is given by:
 
-  $ a_{k_{on}} [Ca^{2+}] (1 + a_{k_{coop}})$ 
+  $$ a_{k_{on}} [Ca^{2+}] (1 + a_{k_{coop}})$$ 
 
 + If the two direct neighboring units are already activated, the activation rate is given by:
 
-  $ a_{k_{on}} [Ca^{2+}] (1 + 2 \, a_{k_{coop}})$  
+  $$ a_{k_{on}} [Ca^{2+}] (1 + 2 \, a_{k_{coop}})$$  
 
-The same reasoning goes for the inactivating rate constant $a_{k_{off}}$.
+The same reasoning goes for the inactivating rate constant $$a_{k_{off}}$$.
 
 
 ## What this test does
