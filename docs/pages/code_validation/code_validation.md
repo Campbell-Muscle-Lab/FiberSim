@@ -12,7 +12,7 @@ At each time step, FiberCpp calculates the position of each thick and thin filam
 
 ## Force-balance Test
 
-As explained [here](../FiberCpp/calculations/calculations.html), FiberCpp solves a matrix equation of form $K x = F$, where $x$ is a vector containing the node positions, $K$ is the tridiagonal stiffness matrix, and $F$ is a vector containing the cross-bridges, titin, and myosin-binding protein C forces. The force-balance test is a Python code written to evaluate the accuracy of the algorithm calculations.
+As explained [here](../FiberCpp/calculations/calculations.html), FiberCpp solves a matrix equation of form $$K x = F$$, where $$x$$ is a vector containing the node positions, $$K$$ is the tridiagonal stiffness matrix, and $$F$$ is a vector containing the cross-bridges, titin, and myosin-binding protein C forces. The force-balance test is a Python code written to evaluate the accuracy of the algorithm calculations.
 
 ## Kinetics Test
 

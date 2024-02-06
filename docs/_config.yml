@@ -1,6 +1,6 @@
 title: FiberSim
 description: Spatially explicit modeling of half-sarcomeres
-theme: just-the-docs
+remote-theme: just-the-docs/just-the-docs
 math: mathjax
 url: https://campbell-muscle-lab.github.io/FiberSim
 
