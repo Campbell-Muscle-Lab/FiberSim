@@ -81,7 +81,7 @@ As explained above, this batch file consists in a single job. The block called `
 
 ## Instructions
 
-Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html) and that you already tried to run the [getting started demos](../../demos/getting_started/getting_started.html).
+Before proceeding, make sure that you have followed the [installation instructions](../../installation/installation.html) and that you already tried to run the [single trials demos](../../demos/single_trials/single_trials.html).
 
 ### Getting ready
 
