@@ -54,7 +54,10 @@ def default_formatting():
     formatting['table_y_spacing'] = 0.1
     formatting['table_x_spacing'] = 0.5
     formatting['table_fontsize'] = 11
-    formatting['color_set'] = ["tab:orange", "tab:blue", "tab:green", "tab:red", "tab:pink", "tab:purple", "tab:grey", "tab:olive", "tab:cyan", "black"]
+    formatting['color_set'] = ['tab:blue', 'tab:orange', 'tab:green',
+                               'tab:red', 'tab:purple', 'tab:brown',
+                               'tab:pink', 'tab:gray', 'tab:olive',
+                               'tab:cyan']
     formatting['labels'] = []
     formatting['legend_location'] = 'upper left'
     formatting['legend_bbox_to_anchor'] = [1.05, 1]

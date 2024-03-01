@@ -298,6 +298,75 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 		rate = rate * gsl_pow_2(y_ref / y_actual);
 	}
 
+	// Gaussian_hsl influenced by MyBPC
+	if (!strcmp(rate_type, "gaussian_hsl_mybpc_dependent"))
+	{
+		// Distance between surface of thick and thin filaments is
+		// (2/3)*d_1,0 - r_thin - r_thick
+		// Assume d_1_0 at hsl = 1100 nm is 37 nm, r_thin = 5.5 nm, t_thick = 7.5 nm
+		// d at hsl = x is (2/3) * (37 / sqrt(x/1100)) - 5/5 - 7.5
+		// first passage time to position y is t = y^2 / (2*D)
+		// rate is proportional to 1/t
+		// rate at hsl == x is ref_rate * (y_ref / y_x)^2
+		// See PMID 35450825 and first passage in
+		// Mechanics of motor proteins and the cytoskeleton, Joe Howard book
+
+		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+		double k_cb = p_model->m_k_cb;
+
+
+		double hs_length;
+		double y_ref;		// distance between filaments at 1100 nm
+		double y_actual;	// distance between filaments at current hsl
+		double r_thick = 7.5;
+		double r_thin = 5.5;
+
+		// Set parameters
+		double amp = gsl_vector_get(rate_parameters, 0);
+		double x_offset = gsl_vector_get(rate_parameters, 1);
+		
+		double amp_modifier = 1.0;
+		double k_modifier = 1.0;
+		double x_modifier = 0.0;
+
+		// Check whether we have c-protein influence
+		if (mybpc_state > 0)
+		{
+			int no_of_c_states = p_model->c_no_of_pc_states;
+			int no_of_c_mods = 3;
+
+			int amp_mod_index = 2 + ((mybpc_iso - 1) * no_of_c_states * no_of_c_mods) +
+									((mybpc_state - 1) * no_of_c_mods);
+			int k_mod_index = amp_mod_index + 1;
+			int x_mod_index = amp_mod_index + 2;
+
+			amp_modifier = gsl_vector_get(rate_parameters, amp_mod_index);
+			k_modifier = gsl_vector_get(rate_parameters, k_mod_index);
+			x_modifier = gsl_vector_get(rate_parameters, x_mod_index);
+		}
+
+		// Deduce filament separation
+		y_ref = ((2.0 / 3.0) * 37.0) - r_thick - r_thin;
+
+		if (p_hs == NULL)
+			hs_length = 1100.0;
+		else
+			hs_length = p_hs->hs_length;
+
+		y_actual = (2.0 / 3.0) * (37.0 / sqrt(hs_length / 1100.0)) - r_thick - r_thin;
+
+		// Apply the modifications
+		double new_amp = amp_modifier * amp;
+		double new_k = k_modifier * k_cb;
+		double new_offset = x_modifier * x_offset;
+
+		rate = new_amp *
+			exp(-(0.5 * new_k * gsl_pow_int((x - new_offset), 2)) /
+				(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
+
+		rate = rate * gsl_pow_2(y_ref / y_actual);
+	}
+
 	// Gaussian MyBP-C 
 
 	if (!strcmp(rate_type, "gaussian_pc"))
@@ -452,12 +521,21 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 		double modifier_k0;
 		double modifier_d;
 
-		int no_of_c_states = p_model->p_c_scheme[mybpc_iso]->no_of_states;
+		int no_of_c_isotypes = p_model->c_no_of_isotypes;
+		int no_of_c_states = p_model->c_no_of_pc_states;
 
-		if (mybpc_state > 0)
+		// Set an x value where the detachment is infuenced by c-protein
+		double x_break = GSL_POSINF;
+		int x_break_ind = 4 + (no_of_c_isotypes * no_of_c_states);
+		double temp = gsl_vector_get(rate_parameters, x_break_ind);
+		
+		if (!gsl_isnan(temp))
+			x_break = temp;
+
+		if ((mybpc_state > 0) && (x < x_break))
 		{
-			int mod_index = 4 + ((mybpc_iso - 1) * 0) + (mybpc_state - 1);
-
+			int mod_index = 4 + ((mybpc_iso - 1) * no_of_c_states) + (mybpc_state - 1);
+			
 			modifier_d = gsl_vector_get(rate_parameters, mod_index);
 
 			modifier_k0 = exp(-(p_model->m_k_cb * x_ext * d) /
@@ -468,6 +546,11 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 			d = d * modifier_d;
 
 			k0 = k0 * modifier_k0;
+
+			/*if (mybpc_state == 4)
+			{
+				printf("d: %g\t\tk0: %g\n", d, k0);
+			}*/
 		}
 		
 		// Code

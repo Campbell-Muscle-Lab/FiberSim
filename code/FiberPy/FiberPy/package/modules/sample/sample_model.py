@@ -258,7 +258,7 @@ def generate_characterization_files(json_analysis_file_string):
                 characterize_m = sample_adj['factor_bounds'][0] + \
                     (sample_m * span)
                     
-                if (sample_adj['factor_mode'] == 'log'):
+                if ('factor_mode' in sample_adj) and (sample_adj['factor_mode'] == 'log'):
                     characterize_m = np.power(10, characterize_m)
                     
                 tw_protocol[twitch_key] = characterize_m * base_value
@@ -269,15 +269,35 @@ def generate_characterization_files(json_analysis_file_string):
                 continue
             
             if ((sample_adj['variable'] == 'm_kinetics') or
-                (sample_adj['variable'] == 'c_kinetics')):
+                    (sample_adj['variable'] == 'c_kinetics')):
+
+                # Special case for kinetics
+                if ('extension' in sample_adj):
+                    base_value = base_model[sample_adj['variable']][sample_adj['isotype']-1]\
+                        ['state'][sample_adj['state']-1]['extension']
+                        
+                    # Store the key
+                    par_key = '%s_isotype_%i_state_%i_extension' % \
+                                (sample_adj['variable'], sample_adj['isotype'],
+                                 sample_adj['state'])
+                else:
+                    # Transition parameters
+                    y = np.asarray(base_model[sample_adj['variable']][sample_adj['isotype']-1] \
+                                       ['state'][sample_adj['state']-1] \
+                                       ['transition'][sample_adj['transition']-1]\
+                                       ['rate_parameters'],
+                              dtype = np.float32)
+                    
+                    base_value = y[sample_adj['parameter_number'] - 1]
+                    
+                    # Store the key
+                    par_key = '%s_isotype_%i_scheme_%i_transition_%i_parameter_%i' % \
+                                (sample_adj['variable'], sample_adj['isotype'],
+                                 sample_adj['state'], sample_adj['transition'],
+                                 sample_adj['parameter_number'])
                 
-                # Get the base value
-                base_value = base_model[sample_adj['variable']][sample_adj['isotype']-1]\
-                                        ['scheme'][sample_adj['scheme']-1]\
-                                        ['transition'][sample_adj['transition']-1]\
-                                        ['rate_parameters'][sample_adj['parameter_number']-1]
-                # Add it in
-                characterize_adj['base_value'] = base_value
+                # Now work out the values
+                characterize_adj['base_value'] = float(base_value)
                 
                 # Now deduce the multiplier
                 span = sample_adj['factor_bounds'][1] - sample_adj['factor_bounds'][0]
@@ -287,7 +307,7 @@ def generate_characterization_files(json_analysis_file_string):
                 characterize_m = sample_adj['factor_bounds'][0] + \
                     (sample_m * span)
                     
-                if (sample_adj['factor_mode'] == 'log'):
+                if ('factor_mode' in sample_adj) and (sample_adj['factor_mode'] == 'log'):
                     characterize_m = np.power(10, characterize_m)
 
                 characterize_adj['multipliers'] = []
@@ -297,16 +317,11 @@ def generate_characterization_files(json_analysis_file_string):
                 
                 # Add it in
                 adjusts.append(characterize_adj)
-                
-                # Store the value
-                par_key = '%s_isotype_%i_scheme_%i_transition_%i_parameter_%i' % \
-                            (sample_adj['variable'], sample_adj['isotype'],
-                             sample_adj['scheme'], sample_adj['transition'],
-                             sample_adj['parameter_number'])
-                            
+                               
                 par_values[par_key] = base_value * characterize_m
                 
                 continue
+            
             
             # Everything else
             base_value = base_model[sample_adj['class']][sample_adj['variable']]
@@ -314,7 +329,7 @@ def generate_characterization_files(json_analysis_file_string):
             sample_m = sample_values[sample_counter][par_counter]
             characterize_m = sample_adj['factor_bounds'][0] + \
                 (sample_m * span)
-            if (sample_adj['factor_mode'] == 'log'):
+            if ('factor_mode' in sample_adj) and (sample_adj['factor_mode'] == 'log'):
                 characterize_m = np.power(10, characterize_m)
             characterize_adj['multipliers'] = []
             characterize_adj['multipliers'].append(characterize_m)
@@ -326,7 +341,6 @@ def generate_characterization_files(json_analysis_file_string):
             # Store the value
             par_key = '%s_%s' % (sample_adj['class'], sample_adj['variable'])
             par_values[par_key] = base_value * characterize_m
-            
                 
         # Make a dataframe from the par_values
         par_df = pd.DataFrame([par_values])
@@ -341,15 +355,32 @@ def generate_characterization_files(json_analysis_file_string):
         sample_characterize['FiberSim_setup'] \
             ['model']['manipulations']['adjustments'] = adjusts
                 
-           
         if (characterize_struct['type'] == 'unloaded_shortening'):
             ch = characterize_unloaded_shortening(json_analysis_file_string,
                                                   sample_counter,
                                                   sample_gen_dir,
                                                   tw_protocol)
-            
             # Repack
             sample_characterize['FiberSim_setup']['characterization'][0] = ch
+        
+        else:
+            # Adjust the output dir
+            new_ch = copy.deepcopy(characterize_struct)
+            
+            if (new_ch['relative_to'] == 'this_file'):
+                parent_dir = Path(json_analysis_file_string).parent.absolute()
+
+                new_ch['relative_to'] = 'false'
+                new_ch['sim_folder'] = os.path.join(
+                                        str(parent_dir),
+                                        new_ch['sim_folder'],
+                                        ('sample_%i' % (sample_counter + 1)))
+            else:
+                print('More work on paths required')
+                exit(1)
+                            
+            sample_characterize['FiberSim_setup']['characterization'][0] = \
+                new_ch
            
         # Check the relative dir
         if (json_data['FiberSim_setup']['model']['relative_to'] == 'this_file'):
@@ -371,6 +402,8 @@ def generate_characterization_files(json_analysis_file_string):
             os.path.join(sample_gen_dir,
                          ('characterize_%i.json' % (sample_counter+1)))
                 
+        print(sample_characterize)
+            
         with open(characterization_file_string, 'w') as f:
             json.dump(sample_characterize, f, indent=4)
             

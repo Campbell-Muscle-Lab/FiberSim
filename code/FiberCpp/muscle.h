@@ -85,6 +85,8 @@ public:
 
     size_t worker_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* p, gsl_vector* f);
 
+    void afterload_time_step(int protocol_index);
+
     // Variables
 
     char model_version[_MAX_PATH];      /**< FiberSim version from the model file */
@@ -127,4 +129,9 @@ public:
     std::chrono::high_resolution_clock::time_point last_time;
 
     BS::thread_pool * p_thread_pool;
+
+    int afterload_flag = 0;
+    int afterload_mode = 0;
+
+    double afterload_min_hs_length;
 };
