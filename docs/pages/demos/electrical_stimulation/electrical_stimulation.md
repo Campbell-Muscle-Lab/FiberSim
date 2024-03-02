@@ -19,7 +19,7 @@ The model has two compartments representating the sarcoplasmic reticulum (Ca<sup
 The equations defining the model are as follows, where Ca<sub>x</sub> is the Calcium concentration in compartment x.
 
 $$
-Ca_{SR} + Ca_{myofil} = Ca_{total}
+Ca_{SR} + Ca_{myofil} = Ca_{content}
 $$
 
 $$
@@ -31,7 +31,7 @@ t > stimulus\_duration\_s & k_{SERCA} Ca_{myofil} - k_{leak} * Ca_{SR}
 $$
 
 $$
-\frac{\mathrm d Ca_{SR}}{\mathrm dt} = -\frac{\mathrm d Ca_{SR}}{\mathrm dt}
+\frac{\mathrm d Ca_{myofil}}{\mathrm dt} = -\frac{\mathrm d Ca_{SR}}{\mathrm dt}
 $$
 
 
