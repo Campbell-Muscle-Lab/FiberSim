@@ -15,7 +15,7 @@
             "type": "twitch",
             "relative_to": "this_file",
             "sim_folder": "../sim_data",
-            "m_n": 25,
+            "m_n": 9,
             "protocol":
             {
                 "protocol_folder": "../protocols",
@@ -31,8 +31,8 @@
                         "k_serca": 20,
                         "afterload":
                         {
-                            "load": [7000, 14000, 21000, 50000],
-                            "break_delta_hs_length": [2, 2, 2, 2]
+                            "load": [20000, 30000, 30000, 30000, 45000, 100000],
+                            "break_delta_hs_length": [1, 1, 4, 8, 1, 1]
                         }
                     }
                 ]

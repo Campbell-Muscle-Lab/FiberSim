@@ -254,9 +254,6 @@ void muscle::afterload_time_step(int protocol_index)
 	else
 	{
 		// We have a myofibril
-
-		printf("afterload_flag: %i\n", afterload_flag);
-
 		if (afterload_mode <= 0)
 		{
 			// Length control
@@ -280,9 +277,6 @@ void muscle::afterload_time_step(int protocol_index)
 				afterload_mode = -1;
 		}
 	}
-
-	printf("afterload_min_hs_length: %g\n", afterload_min_hs_length);
-
 }
 
 void muscle::implement_time_step(int protocol_index)

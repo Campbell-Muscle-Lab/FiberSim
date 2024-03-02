@@ -9,10 +9,10 @@
     "prop_fibrosis": 0.0,
     "prop_myofilaments": 0.5,
     "m_filament_density": 0.407e15,
-    "sc_k_stiff": 1e5
+    "sc_k_stiff": 1e4
   },
   "lattice_parameters": {
-    "viscosity": 0.01
+    "viscosity": 10
   },
   "thick_structure": {
     "m_n": 100,
@@ -95,7 +95,7 @@
             {
               "new_state": 3,
               "rate_type": "gaussian_hsl",
-              "rate_parameters": [ 25 ]
+              "rate_parameters": [ 75 ]
             }
           ]
         },
@@ -107,7 +107,7 @@
               {
                 "new_state": 2,
                 "rate_type": "exp_wall",
-                "rate_parameters": [ 75, 0.5, 4, 7]
+                "rate_parameters": [ 150, 0.5, 4, 7]
               }
             ]
           }
