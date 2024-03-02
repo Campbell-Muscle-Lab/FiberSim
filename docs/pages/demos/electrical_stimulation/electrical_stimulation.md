@@ -20,19 +20,18 @@ The equations defining the model are as follows, where Ca<sub>x</sub> is the Cal
 
 $$
 Ca_{SR} + Ca_{myofil} = Ca_{total}
+$$
 
-\\
-
+$$
 \frac{\mathrm d Ca_{SR}}{\mathrm dt} = 
 \begin{cases}
 t \leq stimulus\_duration\_s & k_{SERCA} Ca_{myofil} - (k_{leak} + k_{act}) * Ca_{SR} \\
 t > stimulus\_duration\_s & k_{SERCA} Ca_{myofil} - k_{leak} * Ca_{SR}
 \end{cases}
+$$
 
-\\
-
+$$
 \frac{\mathrm d Ca_{SR}}{\mathrm dt} = -\frac{\mathrm d Ca_{SR}}{\mathrm dt}
-
 $$
 
 
