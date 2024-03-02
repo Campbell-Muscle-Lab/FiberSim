@@ -21,6 +21,7 @@
 
 #include "gsl_vector.h"
 #include "gsl_multiroots.h"
+#include "gsl_math.h"
 
 #include <thread>
 
@@ -64,6 +65,18 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 
 	// Load the options
 	p_fs_options = new FiberSim_options(options_file_string);
+
+	// Check if we are doing an afterloaded contraction
+	if (gsl_isnan(p_fs_options->afterload_load) == 0)
+	{
+		afterload_flag = 1;
+		afterload_mode = 0;
+		afterload_min_hs_length = GSL_POSINF;
+	}
+	else
+	{
+		afterload_flag = -1;
+	}
 
 	// Initialize the muscle length, and build it from the half-sarcomeres
 	m_length = 0.0;
@@ -214,6 +227,58 @@ void muscle::implement_protocol(char set_protocol_file_string[], char set_result
 	delete p_thread_pool;
 }
 
+void muscle::afterload_time_step(int protocol_index)
+{
+	//! Code implements a time-step with afterload control
+
+	// Variables
+	size_t lattice_iterations;					// number of iterations required to solve
+	// x positions for lattice. If the code is
+	// simulating a myofibril, this is the largest
+	// number of iterations required
+
+	double sim_mode;						// value from protocol file
+
+	double time_step_s;
+	double pCa;
+
+	double new_length;						// hs_length if muscle is slack
+	double adjustment;						// length change to implose
+
+	int hs_counter;
+
+	if ((p_fs_model[0]->no_of_half_sarcomeres == 1) && (p_sc == NULL))
+	{
+
+	}
+	else
+	{
+		// We have a myofibril
+		if (afterload_mode <= 0)
+		{
+			// Length control
+			lattice_iterations = length_control_myofibril_with_series_compliance(protocol_index);
+
+			if ((afterload_mode == 0) && (m_force >= p_fs_options->afterload_load))
+				afterload_mode = 1;
+		}
+
+		if (afterload_mode == 1)
+		{
+			gsl_vector_set(p_fs_protocol->sim_mode, protocol_index, p_fs_options->afterload_load);
+
+			// Force control
+			lattice_iterations = force_control_myofibril_with_series_compliance(protocol_index);
+
+			afterload_min_hs_length = GSL_MIN(afterload_min_hs_length,
+				m_length / p_fs_model[0]->no_of_half_sarcomeres);
+
+			if ((m_length - afterload_min_hs_length) > p_fs_options->afterload_break_delta_hs_length)
+				afterload_mode = -1;
+		}
+	}
+}
+
 void muscle::implement_time_step(int protocol_index)
 {
 	//! Code implements a time-step
@@ -235,92 +300,98 @@ void muscle::implement_time_step(int protocol_index)
 	int hs_counter;
 
 	// Code
-
-	if ((p_fs_model[0]->no_of_half_sarcomeres == 1) && (p_sc == NULL))
+	if (afterload_flag == 1)
 	{
-		// Simplest case of 1 half-sarcomere and no compliance
-		hs_counter = 0;
-
-		// Update the hs_command_length
-		p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_command_length +
-			gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
-
-		// Update the kinetics
-		time_step_s = gsl_vector_get(p_fs_protocol->dt, protocol_index);
-		pCa = gsl_vector_get(p_fs_protocol->pCa, protocol_index);
-
-		p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
-		p_hs[hs_counter]->sarcomere_kinetics(time_step_s, pCa);
-
-		if (p_hs[hs_counter]->hs_length > p_fs_options->min_hs_length)
+		afterload_time_step(protocol_index);
+	}
+	else
+	{
+		if ((p_fs_model[0]->no_of_half_sarcomeres == 1) && (p_sc == NULL))
 		{
-			// We are safe to continue
+			// Simplest case of 1 half-sarcomere and no compliance
+			hs_counter = 0;
+
+			// Update the hs_command_length
+			p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_command_length +
+				gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
+
+			// Update the kinetics
+			time_step_s = gsl_vector_get(p_fs_protocol->dt, protocol_index);
+			pCa = gsl_vector_get(p_fs_protocol->pCa, protocol_index);
+
+			p_hs[hs_counter]->time_s = p_hs[hs_counter]->time_s + time_step_s;
+			p_hs[hs_counter]->sarcomere_kinetics(time_step_s, pCa);
+
+			if (p_hs[hs_counter]->hs_length > p_fs_options->min_hs_length)
+			{
+				// We are safe to continue
+
+				// Branch on control mode
+				sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
+
+				// Semi-clever check for comparing sim_mode to -1.0
+				if (gsl_fcmp(sim_mode, -1.0, 1e-3) == 0)
+				{
+					// Check slack length mode for ktr
+					p_hs[hs_counter]->hs_slack_length =
+						p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
+
+					// The hs_length cannot be shorter than its slack length
+					new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
+						p_hs[hs_counter]->hs_command_length);
+
+					adjustment = new_length - p_hs[hs_counter]->hs_length;
+				}
+				else
+				{
+					// Over-write slack length
+					p_hs[hs_counter]->hs_slack_length = GSL_NAN;
+
+					// Are we in force control
+					if (sim_mode >= 0.0)
+					{
+						// Force control
+						new_length = p_hs[hs_counter]->return_hs_length_for_force(sim_mode, time_step_s);
+
+						adjustment = new_length - p_hs[hs_counter]->hs_length;
+
+						// Update the command length which changes depending on force control
+						p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_length;
+					}
+					else
+					{
+						// Length control
+						adjustment = gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
+					}
+				}
+
+				// Apply the adjustment
+				lattice_iterations = p_hs[hs_counter]->update_lattice(time_step_s, adjustment);
+
+				// Update the muscle length
+				m_length = p_hs[hs_counter]->hs_command_length;
+
+				// Update the muscle force
+				m_force = p_hs[hs_counter]->hs_force;
+			}
+		}
+		else
+		{
+			// We have a myofibril
 
 			// Branch on control mode
 			sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
 
-			// Semi-clever check for comparing sim_mode to -1.0
-			if (gsl_fcmp(sim_mode, -1.0, 1e-3) == 0)
+			if (sim_mode >= 0.0)
 			{
-				// Check slack length mode for ktr
-				p_hs[hs_counter]->hs_slack_length =
-					p_hs[hs_counter]->return_hs_length_for_force(0.0, gsl_vector_get(p_fs_protocol->dt, protocol_index));
-
-				// The hs_length cannot be shorter than its slack length
-				new_length = GSL_MAX(p_hs[hs_counter]->hs_slack_length,
-					p_hs[hs_counter]->hs_command_length);
-
-				adjustment = new_length - p_hs[hs_counter]->hs_length;
+				// Force control
+				lattice_iterations = force_control_myofibril_with_series_compliance(protocol_index);
 			}
 			else
 			{
-				// Over-write slack length
-				p_hs[hs_counter]->hs_slack_length = GSL_NAN;
-
-				// Are we in force control
-				if (sim_mode >= 0.0)
-				{
-					// Force control
-					new_length = p_hs[hs_counter]->return_hs_length_for_force(sim_mode, time_step_s);
-
-					adjustment = new_length - p_hs[hs_counter]->hs_length;
-
-					// Update the command length which changes depending on force control
-					p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_length;
-				}
-				else
-				{
-					// Length control
-					adjustment = gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
-				}
+				// Length control
+				lattice_iterations = length_control_myofibril_with_series_compliance(protocol_index);
 			}
-
-			// Apply the adjustment
-			lattice_iterations = p_hs[hs_counter]->update_lattice(time_step_s, adjustment);
-
-			// Update the muscle length
-			m_length = p_hs[hs_counter]->hs_command_length;
-
-			// Update the muscle force
-			m_force = p_hs[hs_counter]->hs_force;
-		}
-	}
-	else
-	{
-		// We have a myofibril
-
-		// Branch on control mode
-		sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);
-
-		if (sim_mode >= 0.0)
-		{
-			// Force control
-			lattice_iterations = force_control_myofibril_with_series_compliance(protocol_index);
-		}
-		else
-		{
-			// Length control
-			lattice_iterations = length_control_myofibril_with_series_compliance(protocol_index);
 		}
 	}
 

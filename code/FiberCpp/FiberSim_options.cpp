@@ -14,6 +14,8 @@
 #include "rapidjson\document.h"
 #include "rapidjson\filereadstream.h"
 
+#include "gsl_math.h"
+
 namespace fs = std::filesystem;
 
 // Constructor
@@ -61,6 +63,10 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
                                                  up trying to keep the calculations going */
 
     no_of_worker_threads = 0;               /**< default value for number of worker threads */
+
+    afterload_load = GSL_NAN;               /**< default value for afterload load */
+    afterload_break_delta_hs_length = GSL_NAN;
+                                            /**< default value for breakout length */
 
     // Update values from log file
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
@@ -307,6 +313,18 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
 
         JSON_functions::check_JSON_member_int(myofibrils, "multithreading");
         myofibril_multithreading = myofibrils["multithreading"].GetInt();
+    }
+
+    // Check for afterload
+    if (JSON_functions::check_JSON_member_exists(options, "afterload"))
+    {
+        const rapidjson::Value& afterload = options["afterload"];
+
+        JSON_functions::check_JSON_member_number(afterload, "load");
+        afterload_load = afterload["load"].GetDouble();
+
+        JSON_functions::check_JSON_member_number(afterload, "break_delta_hs_length");
+        afterload_break_delta_hs_length = afterload["break_delta_hs_length"].GetDouble();
     }
 
     // Now check for logging

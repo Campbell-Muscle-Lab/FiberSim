@@ -124,6 +124,13 @@ public:
 
     int skip_status_time_step;          /**< Integer of skips between dump of status file */
 
+    double afterload_load;              /**< Double defining the afterload for loaded contractions */
+
+    double afterload_break_delta_hs_length;
+                                        /**< Double defining the change in hs_length at
+                                                which to break out of load control in
+                                                afterloaded contractions */
+
     // Functions
 
     /**

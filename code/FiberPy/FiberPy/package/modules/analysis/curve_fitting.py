@@ -8,6 +8,7 @@ Created on Wed Feb 12 17:20:25 2020
 import numpy as np
     
 from scipy.optimize import curve_fit
+from scipy.optimize import minimize_scalar
 from sklearn.metrics import r2_score
 
 import matplotlib.pyplot as plt
@@ -132,6 +133,10 @@ def fit_power_curve(x, y):
             y[i] = x*b*(((x_0+a)/(x+a))-1)
         return y
     
+    def neg_y_power(x, x_0, a, b):
+        y = -y_power(np.asarray([x]), x_0, a, b)
+        return y
+    
     try:
         popt, pcov = curve_fit(y_power, x, y,
                            [np.amax(x), 0.2*np.amax(x), np.amax(y) / 0.1 * np.amax(x)])
@@ -139,13 +144,19 @@ def fit_power_curve(x, y):
         print('fit_power_curve failed')
         popt = [np.amax(x), 0.2*np.amax(x), 0.1]
         
+    # Get max of curve
+    r = minimize_scalar(neg_y_power, bounds=[0, np.amax(x)],
+                       args=(popt[0],popt[1],popt[2]))
     
     d = dict()
     d['x_0'] = popt[0]
     d['a'] = popt[1]
     d['b'] = popt[2]
+    d['x_at_max_power'] = r['x'][0]
+    d['max_power'] = -r['fun'][0]
     d['x_fit'] = np.linspace(0, np.amax(x), 1000)
     d['y_fit'] = y_power(d['x_fit'], *popt)
+    d['y_predict'] = y_power(x, *popt)
     
     return d
 
