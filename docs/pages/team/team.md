@@ -12,10 +12,10 @@ nav_order: 30
 Key contributors to the FiberSim team include:
 
 + [Ken Campbell](http://www.campbellmusclelab.org)
-  + Principal Investigator, University of Kentucky Department of Physiology & Cardiovascular Medicine
+  + Principal Investigator, University of Kentucky, Division of Cardiovascular Medicine
   + manages the overall project
-  + wrote the first version of FiberCpp
-  + wrote the first version of FiberPy
+  + wrote most of FiberCpp
+  + wrote most of FiberPy
   + many of the demos
 
 
@@ -23,7 +23,7 @@ Key contributors to the FiberSim team include:
 ## Alumni
 
 + [Sarah Kosta](https://be.linkedin.com/in/sarah-kosta-27b284251)
-  + Post-doc, University of Kentucky Department of Physiology
+  + Post-doc, University of Kentucky Department of Physiology (2001 to 2002)
   + optimized algorithms for the FiberCpp code
   + validated the calculations
   + helped develop the website and demonstrations

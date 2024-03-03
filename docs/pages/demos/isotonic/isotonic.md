@@ -2,7 +2,7 @@
 layout: default
 title: Isotonic
 has_children: true
-parent: Isotonic
+parent: Demos
 nav_order: 4
 ---
 
