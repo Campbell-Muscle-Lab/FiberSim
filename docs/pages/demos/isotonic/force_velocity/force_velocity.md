@@ -2,7 +2,7 @@
 layout: default
 title: Force velocity
 has_children: false
-parent: isotonic
+parent: Isotonic
 grand_parent: Demos
 nav_order: 1
 ---
