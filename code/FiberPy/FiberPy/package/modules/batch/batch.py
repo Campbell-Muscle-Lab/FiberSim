@@ -98,7 +98,7 @@ def run_batch(json_batch_file_string=[],
         while threads or my_list:
             if (len(threads) < num_processes) and my_list:
                 t = threading.Thread(target=worker, args=[my_list.pop()])
-                t.setDaemon(True)
+                t.daemon = True
                 t.start()
                 threads.append(t)
             else:

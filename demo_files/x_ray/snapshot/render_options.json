@@ -1,0 +1,17 @@
+{
+  "render_options": {
+    "blender_exe_path": "c:/program files/Blender Foundation/Blender 4.0",
+    "render_level": 0,
+    "render_mode": 1,
+    "render_quality": "medium",
+    "no_render": false,
+    "filaments_to_include":
+    {
+        "thin":[0, 14, 28, 42, 56, 68]
+    },
+    "draw_mirrored_cb_connections": 0,
+    "max_render_distance": 10000,
+    "max_smooth_distance": 10,
+    "image_pixels": [5000, 5000]
+  }
+}

@@ -1,0 +1,10 @@
+{
+    "blender_data":
+    {
+        "blender_exe_path": "C:/Program Files/Blender Foundation/Blender 2.92",
+        "render_level": 0,
+        "render_mode": 1,
+        "render_quality": "medium",
+        "background_mode": 1
+    }
+}

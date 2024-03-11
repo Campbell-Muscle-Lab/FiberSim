@@ -1,0 +1,21 @@
+{
+    "frames":
+    [
+      {
+        "status_file": "snapshots/hs_1_time_step_401.json",
+        "image_file": "renders/hs_401.png",
+        "camera": {
+          "location": {
+            "x": 602.29,
+            "y": 51.964,
+            "z": 22.383
+          },
+          "rotation": {
+            "x": 88.8,
+            "y": 0.698,
+            "z": -91.5
+          }
+        }
+      }
+   ]
+}

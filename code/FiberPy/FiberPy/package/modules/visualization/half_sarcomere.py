@@ -25,7 +25,6 @@ class half_sarcomere():
            hs_data = json_data['hs_data']
            self.t_attach_a_node = json_data['titin']['t_attach_a_node']
            self.t_attach_m_node = json_data['titin']['t_attach_m_node']
-           self.t_slack_length = json_data['titin']['t_slack_length']
            self.t_k_stiff = json_data['titin']['t_k_stiff']
            self.cb_extensions = hs_data['cb_extensions']
            self.hs_id = hs_data['hs_id']

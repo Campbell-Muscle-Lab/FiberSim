@@ -26,7 +26,10 @@ def run_render_batch():
         last argument is render_job_file """
 
     # Unpack the arguments
-    render_job_file = sys.argv[-1]
+    for (i,a) in enumerate(sys.argv):
+        print('%i  %s' % (i,sys.argv[i]))
+    
+    render_job_file = sys.argv[5]
 
     # Open the render file and pull off the job
     with open(render_job_file, 'r') as f:
@@ -72,7 +75,7 @@ def run_render_job(frame_data, template_data, options_data):
     hs_blend = hs_b.hs_blender(h, frame_data, template_data, options_data,
                                output_image_file)
 
-    bpy.ops.wm.quit_blender()
+    # bpy.ops.wm.quit_blender()
 
     return
 

@@ -1,0 +1,26 @@
+{
+    "frames":
+    [
+      {
+        "status_file": "sim_data/sim_output/1/status_dumps_1_r1/hs_1_time_step_1.json",
+        "image_file": "renders/hs_1.png",
+        "style": "x_ray",
+        "camera": {
+          "location": {
+            "x": 600,
+            "y": -5000,
+            "z": 500
+          },
+          "rotation": {
+            "x": 90,
+            "y": 0.0,
+            "z": 0
+          },
+          "orthographic":
+          {
+            "ortho_scale": 1500
+          }
+        }
+      }
+   ]
+}

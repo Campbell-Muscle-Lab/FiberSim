@@ -3,26 +3,26 @@
     "version": "2.1.0"
   },
   "muscle": {
-    "no_of_half_sarcomeres": 15,
+    "no_of_half_sarcomeres": 20,
     "no_of_myofibrils": 1,
-    "sc_k_stiff": 10000,
     "initial_hs_length": 1100,
     "prop_fibrosis": 0.0,
     "prop_myofilaments": 0.5,
-    "m_filament_density": 0.407e15
+    "m_filament_density": 0.407e15,
+    "sc_k_stiff": 1000
   },
   "half_sarcomere_variation":
   [
     {
-      "variable": "m_kinetics_isotype_1_state_2_transition_2_parameter_1",
-      "multiplier": [0.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        "variable": "m_filament_density",
+        "multiplier": [0.9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
   ],
   "lattice_parameters": {
-    "viscosity": 0.1
+    "viscosity": 1
   },
   "thick_structure": {
-    "m_n": 100,
+    "m_n": 36,
     "m_crowns_per_filament": 54,
     "m_hubs_per_crown": 3,
     "m_myosins_per_hub": 2,
@@ -75,9 +75,7 @@
   },
   "m_kinetics": [
     {
-      "no_of_states": 4,
-      "max_no_of_transitions": 2,
-      "scheme": [
+      "state": [
         {
           "number": 1,
           "type": "S",
@@ -86,7 +84,7 @@
             {
               "new_state": 2,
               "rate_type": "force_and_adjacent_hs_dependent",
-              "rate_parameters": [ 20, 200, 1e-1, 1e-1]
+              "rate_parameters": [20, 200, 1e-1, 1e-1]
             }
           ]
         },
@@ -103,7 +101,7 @@
             {
               "new_state": 3,
               "rate_type": "gaussian_hsl",
-              "rate_parameters": [ 50 ]
+              "rate_parameters": [ 400 ]
             }
           ]
         },
@@ -115,12 +113,12 @@
             {
               "new_state": 2,
               "rate_type": "poly",
-              "rate_parameters": [ 125, 10, 4]
+              "rate_parameters": [ 100, 1, 4]
             },
             {
                 "new_state": 4,
                 "rate_type": "constant",
-                "rate_parameters": [ 75 ]
+                "rate_parameters": [ 10 ]
               }
           ]
         },
@@ -132,7 +130,7 @@
               {
                 "new_state": 2,
                 "rate_type": "exp_wall",
-                "rate_parameters": [ 75, 1, 8, 7]
+                "rate_parameters": [75, 0.75, 6, 7]
               }
             ]
           }
@@ -149,14 +147,12 @@
     "c_sd_angle_deviation": 30
   },
   "mybpc_parameters": {
-    "c_k_stiff": 0.0001,
+    "c_k_stiff": 0.001,
     "c_isotype_proportions": [ 1 ]
   },
   "c_kinetics": [
     {
-      "no_of_states": 3,
-      "max_no_of_transitions": 2,
-      "scheme": [
+      "state": [
         {
           "number": 1,
           "type": "D",
@@ -194,7 +190,7 @@
                 {
                     "new_state": 1,
                     "rate_type": "poly",
-                    "rate_parameters": [10, 0.01, 2]
+                    "rate_parameters": [10, 1, 2]
                 }
             ]
         }

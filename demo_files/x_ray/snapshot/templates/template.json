@@ -1,0 +1,170 @@
+{
+    "render_template":
+    {
+        "background":
+        {
+            "color": [1, 1, 1]
+        },
+        "lattice":
+        {
+            "inter_thick_nm": 40
+        },
+        "thick_filament":
+        {
+            "backbone":
+            {
+                "radius": 2,
+                "depth": 1,
+                "vertices": 150,
+                "color": [0, 0, 0, 0.2]
+            },
+            "crown":
+            {
+                "radius": 5,
+                "depth": 3,
+                "vertices": 150,
+              "color": [ 0.0, 0.0, 0.0, 0.2 ]
+            },
+            "myosin":
+            {
+                "stub_radius": 2,
+                "stub_height": 3,
+                "stub_vertices": 150,
+                "link_radius": 1.3,
+                "link_height": 5,
+                "link_vertices": 150,
+                "extension_radius": 1,
+                "extension_height": 2,
+                "extension_vertices": 150,
+                "lever_radius": 1,
+                "lever_height": 5,
+                "lever_vertices": 150,
+                "cat_height": 1.4,
+                "cat_radius": 1.4,
+                "cat_vertices": 150,
+                "isotypes":
+                [
+                    {
+                        "states":
+                        [
+                            {
+                                "type": "S",
+                                "color": [0.0, 0.0, 0.0, 0.2]
+                            },
+                            {
+                                "type": "D",
+                                "color": [0.0, 0.0, 0.0, 0.2]
+                            },
+                            {
+                                "type": "A",
+                                "extension": 3,
+                              "color": [ 0.0, 0.0, 0.0, 0.2 ]
+
+                            }
+                        ]
+                    }
+                ]
+            },
+            "mybpc":
+            {
+                "stub_radius": 1.5,
+                "stub_height": 3,
+                "stub_vertices": 150,
+                "link_radius": 0.8,
+                "link_height": 4,
+                "link_vertices": 150,
+                "extension_radius": 0.7,
+                "extension_height": 2,
+                "extension_vertices": 1,
+                "lever_radius": 0.6,
+                "lever_height": 3,
+                "lever_vertices": 150,
+                "cat_height": 1.4,
+                "cat_radius": 1.2,
+                "cat_vertices": 150,
+              "isotypes": [
+                {
+                  "states": [
+                    {
+                      "type": "D",
+                      "color": [0, 0, 0, 0.2]
+                    },
+                    {
+                      "type": "A",
+                      "extension": 3,
+                      "color": [0, 0, 0, 0.2]
+                    }
+                  ]
+                },
+                {
+                  "states": [
+                    {
+                      "type": "D",
+                      "color": [0, 0, 0, 0.2]
+                    },
+                    {
+                      "type": "A",
+                      "extension": 3,
+                      "color": [0, 0, 0, 0.2]
+                    }
+                  ]
+                }
+              ]
+            }
+        },
+        "thin_filament":
+        {
+            "backbone":
+            {
+                "radius": 1.5,
+                "depth": 1,
+                "vertices": 150,
+                "color": [0, 0, 0, 0.2]
+            },
+            "node":
+            {
+                "radius": 3.5,
+                "depth": 3,
+                "vertices": 150,
+              "color": [0, 0, 0, 0.2]
+            },
+            "bs":
+            {
+                "radius": 1.5,
+                "depth": 1.5,
+                "vertices": 150
+            },
+            "states":
+            [
+                {
+                    "color": [0, 0, 0, 0.2]
+                },
+                {
+                    "color": [0, 0, 0, 0.2]
+                }
+            ],
+            "sphere":
+            {   "radius": 2.5,
+                "color": [0, 0, 0, 0.75]
+            }
+        },
+        "titin":
+        {
+            "radius": 1.5,
+            "depth": 1,
+            "vertices": 150,
+            "color": [0, 0, 0, 0.2]
+        },
+        "z_disk":
+        {
+            "depth": 1,
+            "color": [0, 0, 0, 0.2]
+        },
+        "m_disk":
+        {
+            "depth": 1,
+            "color": [0, 0, 0, 0.2]
+        }
+    }
+}
+

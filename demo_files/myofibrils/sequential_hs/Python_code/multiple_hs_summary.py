@@ -47,13 +47,15 @@ def summary_figure():
     no_of_conditions = no_of_conditions - 1
 
     # Now we can make a figure with one column per condition
-    no_of_rows = 4
+    no_of_rows = 7
     no_of_cols = no_of_conditions
     
     pCa_row = 1
     hs_force_row = 2
     hs_titin_row = 3
     hs_length_row = 4
+    m_pop_row = 5
+    delta_hs_length_row = 6
     
     fig = plt.figure(constrained_layout = False)
     spec = gridspec.GridSpec(nrows = no_of_rows,
@@ -135,14 +137,48 @@ def summary_figure():
             # hs_length
             plot_index = ((hs_length_row-1) * no_of_cols) + i
             for j in range(no_of_hs):
-                col_string = 'hs_%i_length' % (j+1);
+                col_string = 'hs_%i_length' % (j+1)
                 ax[plot_index].plot(d['time'], d[col_string], '-',
                                     color=cmap(cmap_values[j]))
                 if (d[col_string].max() > max_hsl):
                     max_hsl = d[col_string].max()
                 if (d[col_string].max() < min_hsl):
                     min_hsl = d[col_string].min()
-                
+                    
+            # m_pops
+            plot_index = ((m_pop_row-1) * no_of_cols) + i
+            for j in range(no_of_hs):
+                col_string = 'hs_%i_m_pop_1' % (j+1);
+                ax[plot_index].plot(d['time'], d[col_string], '-',
+                                    color=cmap(cmap_values[j]),
+                                    label = 'hs_%i' % (j+1))
+            
+            # delta_hs_length_row
+            plot_index = ((delta_hs_length_row-1) * no_of_cols) + i
+            bp = []
+            for j in range(no_of_hs):
+                col_string = 'hs_%i_length' % (j+1)
+                d_hsl_dt = d[col_string].diff()
+                vi = d_hsl_dt.idxmax()
+                ax[plot_index].plot(d['time'], d[col_string].diff(), '-',
+                                    color=cmap(cmap_values[j]),
+                                    label = 'hs_%i' % (j+1))
+                ax[plot_index].plot(d['time'].loc[vi], d_hsl_dt.loc[vi], 'o',
+                                    color=cmap(cmap_values[j]),
+                                    markerfacecolor='none')
+                bp.append(vi)
+
+            # Plot break_points
+            print(bp)
+            bp = np.asarray(bp)
+
+            plot_index = plot_index + no_of_cols
+            for j in range(no_of_hs):
+                print(j)
+                ax[plot_index].plot(j, bp[j],'o',
+                                    color=cmap(cmap_values[j]),
+                                    markerfacecolor='none')
+
     # Apply limits
     for i in range(no_of_conditions):
         
@@ -161,6 +197,20 @@ def summary_figure():
         # HSL
         plot_index = ((hs_length_row - 1) * no_of_cols) + i
         ax[plot_index].set_ylim([min_hsl - 50, max_hsl + 50])
+
+    for i in range(no_of_cols):
+        for j in range(no_of_rows-1):
+            plot_index = j*no_of_cols + i
+            ax[plot_index].set_xlim([0.9, 1.5])
+    
+        
+    # # Add legend
+    # for i in range(no_of_conditions):
+        
+    #     # pCa
+    #     plot_index = ((m_pop_row - 1) * no_of_cols) + i
+    #     ax[plot_index].legend(loc='upper left',
+    #                           bbox_to_anchor=(1.05, 1))
         
             
     ofs = os.path.join(top_data_folder, 'summary.png')
@@ -233,5 +283,5 @@ def superpose_traces():
 if __name__ == "__main__":
     summary_figure()
     
-    superpose_traces()
+    #superpose_traces()
     

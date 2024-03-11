@@ -55,24 +55,26 @@ class hs_blender():
 
         # Create thick filaments
         for i, thick_fil in enumerate(self.hs.thick_fil):
-            self.create_thick_filament(i)
+            if (thick_fil.m_y < 3):
+                self.create_thick_filament(i)
 
         # Create thin filaments
         for i, thin_fil in enumerate(self.hs.thin_fil):
-            self.create_thin_filament(i)
+            if (thin_fil.a_y < 2):
+                self.create_thin_filament(i)
 
-        # Set nearest thin filaments
-        # by adding an array into the hs.thick_fil structure
-        self.set_nearest_thin_filaments()
+        # # Set nearest thin filaments
+        # # by adding an array into the hs.thick_fil structure
+        # self.set_nearest_thin_filaments()
 
-        # # # Draws titin filaments
-        self.create_titin_filaments()
+        # # # # Draws titin filaments
+        # self.create_titin_filaments()
 
-        # Create cross-bridges
-        self.create_cross_bridges()
+        # # Create cross-bridges
+        # self.create_cross_bridges()
 
-        # Create mybpc
-        self.create_mybpcs()
+        # # Create mybpc
+        # self.create_mybpcs()
 
         # Hide the primitives
         for p in self.hs_b['primitives']:
@@ -142,6 +144,11 @@ class hs_blender():
             location=loc,
             rotation=rot)
         bpy.context.object.data.lens = 20
+        
+        if ('orthographic' in self.frame['camera']):
+            bpy.context.object.data.type = 'ORTHO'
+            bpy.context.object.data.ortho_scale = self.frame['camera']['orthographic']['ortho_scale']
+            bpy.context.object.data.clip_end = self.options['max_render_distance']
 
         bpy.context.scene.camera = bpy.context.object
 
@@ -153,6 +160,12 @@ class hs_blender():
         """Renders a screen capture of the current geometry."""
 
         bpy.context.scene.render.filepath = self.output_image_file
+        
+        print(self.options)
+        
+        bpy.context.scene.render.resolution_x = self.options['image_pixels'][0]
+        bpy.context.scene.render.resolution_y = self.options['image_pixels'][1]
+                
         bpy.context.scene.frame_set(1)
         bpy.ops.render.render(write_still=True)
         return
@@ -257,6 +270,38 @@ class hs_blender():
         cam_loc = np.asarray([self.frame['camera']['location']['x'],
                               self.frame['camera']['location']['y'],
                               self.frame['camera']['location']['z']])
+        
+        # Branch on mode
+        if (self.frame['style'] == 'x_ray'):
+            
+            thin_f = self.hs.thin_fil[thin_id]
+            bs_indices = np.arange(0, thin_f.a_no_of_bs)
+            
+            for bs_i in bs_indices:
+                
+                bs_angle = thin_f.bs_angle[bs_i]
+                
+                sph = self.hs_b['primitives']['bs_sphere'].copy()
+                sph.name = ('a_bs_sp_%i_%i' % (thin_id, bs_i))
+                
+                bot_x = thin_f.bs_x[bs_i]
+                bot_y = self.yz_scaling * thin_f.a_y + \
+                    self.template['thin_filament']['node']['radius'] * \
+                        np.sin(np.pi * bs_angle / 180.0)
+                bot_z = self.yz_scaling * thin_f.a_z + \
+                    self.template['thin_filament']['node']['radius'] * \
+                        np.cos(np.pi * bs_angle / 180.0)
+
+                # Check distance
+                h = np.linalg.norm(cam_loc - np.asarray([bot_x, bot_y, bot_z]))
+                if (h > self.options['max_render_distance']):
+                    continue
+                
+                sph.location=(bot_x, bot_y, bot_z)
+                
+                bpy.context.collection.objects.link(sph)
+            
+            return
 
         # Set the thin file
         thin_f = self.hs.thin_fil[thin_id]
@@ -1372,6 +1417,22 @@ class hs_blender():
             mesh.materials.append(mat)
 
             self.hs_b['primitives'][m_name] = m
+            
+        # Create bs_sphere
+        bpy.ops.mesh.primitive_ico_sphere_add(
+            radius = self.template['thin_filament']['sphere']['radius'],
+            enter_editmode=False,
+            subdivisions=4,
+            location=(0,0,0))
+        
+        m = bpy.context.object
+        mesh = m.data
+        m_name = 'bs_sphere'
+        mat = bpy.data.materials.new(name=m_name)
+        mat.diffuse_color = self.template['thin_filament']['sphere']['color']
+        mesh.materials.append(mat)
+        
+        self.hs_b['primitives']['bs_sphere'] = m
 
     def return_all_filament_y_coords(self):
         """Returns a list of all filament y coordinates"""

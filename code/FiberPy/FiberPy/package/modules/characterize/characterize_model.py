@@ -127,9 +127,8 @@ def generate_model_files(json_analysis_file_string):
         orig_options_file = os.path.join(temp_dir,
                                          model_struct['options_file'])
         new_options_file = os.path.join(generated_dir, model_struct['options_file'])
-    elif (model_struct['relative_to'] == 'false'):
+    elif (model_struct['relative_to'] == 'False'):
         orig_options_file = model_struct['options_file']
-        
         temp, file_name = os.path.split(orig_options_file)
         new_options_file = os.path.join(generated_dir, file_name)
     else:
@@ -1966,3 +1965,11 @@ def characterize_fv_with_pCa_and_isometric_force(json_analysis_file_string,
     # Now run the isotonic batch
     batch.run_batch(isotonic_batch_file, figures_only=figures_only)
         
+def return_base_dir(struct, file_string):
+    base_dir = ''
+    if ('relative_to' in struct):
+        if (struct['relative_to'] == 'this_file'):
+            base_dir = str(Path(file_string).parent.absolute().resolve())
+        elif not (struct['relative_to'] == 'False'):
+            base_dir = struct['relative_to']
+    return base_dir

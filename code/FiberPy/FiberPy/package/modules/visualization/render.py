@@ -100,7 +100,7 @@ def generate_images(render_batch_file):
             threads.append(t)
         else:
             for thread in threads:
-                if not thread.isAlive():
+                if not thread.is_alive():
                     threads.remove(thread)
 
     return
@@ -126,7 +126,7 @@ def worker(render_file):
         blender_exe_path = options_data['blender_exe_path']
     
         # Generate the command string
-        command_string = ('cd "%s"\n ' % blender_exe_path)
+        command_string = ('c: & cd "%s" & ' % blender_exe_path)
     
         # Deduce the path to this folder
         parent_path = Path(__file__).parent
@@ -142,10 +142,14 @@ def worker(render_file):
     
         # Complete the commmand line
         command_string = command_string + \
-              ('blender -noaudio %s --python "%s" -- -j "%s"' %
-                  (background_string,
-                   generate_path,
-                   os.path.abspath(render_file)))
+              ('blender --python "%s" -- -j "%s" -noaudio %s ' %
+                  (generate_path,
+                   os.path.abspath(render_file),
+                   background_string))
+        
+        print('\nCommand string:')
+        print(command_string)
+        print('')
 
         # Write command to temp.bat
         bat_file_string = 'run_job_%i.bat' % render_job['job_number']
@@ -158,7 +162,7 @@ def worker(render_file):
         subprocess.call(bat_file_string)
         time.sleep(1)
         try:
-            os.remove(bat_file_string)
+            # os.remove(bat_file_string)
             print('deleted %s' % bat_file_string)
         except:
             print('No file to delete')

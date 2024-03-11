@@ -17,19 +17,19 @@
                 {
                     "variable": "m_kinetics",
                     "isotype": 1,
-                    "scheme": 1,
+                    "state": 1,
                     "transition": 1,
                     "parameter_number": 3,
-                    "multipliers": [0, 5, 0,   5, -5,   0,  -5,   5, -5]
+                    "multipliers": [0, 10, -10, 0, 0, 10, -10, 10, -10]
 
                 },
                 {
                     "variable": "m_kinetics",
                     "isotype": 1,
-                    "scheme": 1,
+                    "state": 1,
                     "transition": 1,
                     "parameter_number": 4,
-                    "multipliers": [0, 0, 10, 10,  0, -10, -10, -10, 10]
+                    "multipliers": [0, 0, 0, 10, -10, -10, 10, 10, -10]
                 }
             ]
         }
@@ -41,10 +41,10 @@
               "sim_folder": "../sim_data",
               "m_n": 9,
               "pCa_values": [4.5],
-              "sim_duration_s": 1.4,
+              "sim_duration_s": 1.5,
               "time_step_s": 0.001,
               "pCa_step_up_s": 0.1,
-              "pCa_step_down_s": 0.5,
+              "pCa_step_down_s": 1,
               "output_image_formats": [ "png" ],
               "figures_only": "False",
               "trace_figures_on": "False",
