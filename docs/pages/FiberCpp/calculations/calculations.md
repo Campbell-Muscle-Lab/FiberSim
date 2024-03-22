@@ -30,7 +30,7 @@ $$ 2 \, k_m \, m_1 - k_m \, m_2 = k_m \, (l_{hs}- \lambda)$$
 
 $$ -  k_m \, m_{i-1} + 2 \, k_m \, m_i - k_m \, m_{i+1} = 0 \,\,\, \text{for} \, 1 \lt i \lt n$$
 
-$$k_m \, m_{n-1} - k_m \, m_n = k_m \, m_{rl}$$
+$$k_m \, m_{n-1} - k_m \, m_n = -k_m \, m_{rl}$$
 
 The system of equations for the thin and thick filament can be written in matrix form:
 

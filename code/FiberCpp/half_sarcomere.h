@@ -301,6 +301,48 @@ public:
 
     gsl_vector* cum_prob;           /**< gsl_vector holding cumulative transition probabilties */
 
+    // Sparse approach
+    gsl_vector* sp_f_bare;          /**< gsl_vector holding forces that depend only on the filaments
+                                         without cross-links */
+    gsl_vector* sp_f_titin;
+    gsl_vector* sp_f_myosin;
+    gsl_vector* sp_f_mybpc;
+
+    gsl_vector* sp_f_links;
+
+    gsl_vector* sp_f_complete;
+
+    gsl_spmatrix* sp_k_coo_bare;
+                                    /**< gsl_sparse_matrix in triplet format that holds the
+                                         k_matrix that depends only on the filaments without
+                                         cross-links */
+    gsl_spmatrix* sp_k_csc_bare;    /**< version of sp_k_coo_bare in compressed sparse columns
+                                         format */
+
+    gsl_spmatrix* sp_k_coo_titin;
+    gsl_spmatrix* sp_k_csc_titin;
+
+    gsl_spmatrix* sp_k_coo_myosin;
+    gsl_spmatrix* sp_k_csc_myosin;
+
+    gsl_spmatrix* sp_k_coo_mybpc;
+    gsl_spmatrix* sp_k_csc_mybpc;
+
+    gsl_spmatrix* sp_k_csc_links;
+
+    gsl_spmatrix* sp_k_coo_complete;
+    gsl_spmatrix* sp_k_csc_complete;
+
+    gsl_spmatrix* sp_k_ccs;
+                                    /**< gsl_sparse_matrix in css format that holds delta_k
+                                         which depends on cross-links */
+
+    void build_sparse_k_and_f(void);
+
+    void set_bare_sparse_k_and_f(void);
+    void set_titin_sparse_k_and_f(void);
+    void set_myosin_sparse_k_and_f(void);
+    void set_mybpc_sparse_k_and_f(void);
 
     // Functions
 
@@ -395,7 +437,7 @@ public:
     void calculate_g_vector(gsl_vector* x_trial);
 
     /**
-    * Calculates the g-vector which is the part of f in kx = f
+    * Calculates the df-vector which is the part of f in kx = f
     * which is due to cross-bridges and titin and does not depend on x
     * thus the part due titin rest length and cb extensions
     * @return void
@@ -409,6 +451,8 @@ public:
     * @return int number of iterations in iterative solver
     */
     size_t calculate_x_positions(void);
+
+    size_t calculate_x_positions_sparse(void);
 
     /**
     * void unpack_x_vector(void)
