@@ -23,7 +23,7 @@ Key contributors to the FiberSim team include:
 ## Alumni
 
 + [Sarah Kosta](https://be.linkedin.com/in/sarah-kosta-27b284251)
-  + Post-doc, University of Kentucky Department of Physiology (2001 to 2002)
+  + Post-doc, University of Kentucky Department of Physiology (2021 to 2022)
   + optimized algorithms for the FiberCpp code
   + validated the calculations
   + helped develop the website and demonstrations
