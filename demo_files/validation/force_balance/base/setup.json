@@ -1,0 +1,29 @@
+{
+  "FiberSim_setup": {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../../bin/FiberCpp.exe"
+    },
+    "model": {
+      "relative_to": "this_file",
+      "options_file": "sim_options.json",
+      "model_files": ["model.json"]
+    },
+    "characterization": [
+        {
+            "type": "pCa_length_control",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data",
+            "m_n": 9,
+            "pCa_values": [9.0],
+            "pCa_step_up_s": 0.02,
+            "sim_duration_s": 0.1,
+            "time_step_s": 0.001,
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False",
+            "post_sim_Python_call": "../Python_code/check_force_balance.py"
+        }
+    ]
+  }
+}

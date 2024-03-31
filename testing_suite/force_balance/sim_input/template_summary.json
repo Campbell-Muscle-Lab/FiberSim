@@ -30,7 +30,7 @@
         "scaling_type": "close_fit",
         "series": [
           {
-            "field": "pCa"
+            "field": "hs_1_pCa"
           }
         ]
       }
@@ -42,7 +42,7 @@
         "ticks": [ 990, 1010 ],
         "series": [
           {
-            "field": "hs_length"
+            "field": "hs_1_length"
           }
         ]
       }
@@ -53,12 +53,12 @@
         "label": "Stress\n(kN m$^{-2}$)",
         "series": [
           {
-            "field": "force",
+            "field": "hs_1_force",
             "field_label": "Total",
             "scaling_factor": 0.001
           },
           {
-            "field": "titin_force",
+            "field": "hs_1_titin_force",
             "field_label": "Titin",
             "scaling_factor": 0.001
           }
@@ -71,11 +71,11 @@
         "label": "Thin\nfilament",
         "series": [
           {
-            "field": "a_pop_0",
+            "field": "hs_1_a_pop_1",
             "field_label": "N$_{off}$"
           },
           {
-            "field": "a_pop_1",
+            "field": "hs_1_a_pop_2",
             "field_label": "N$_{on}$"
           }
         ]
@@ -87,16 +87,16 @@
         "label": "Thick\nfilament",
         "series": [
           {
-            "field": "m_pop_0",
-            "field_label": "M$_{0}$"
-          },
-          {
-            "field": "m_pop_1",
+            "field": "hs_1_m_pop_1",
             "field_label": "M$_{1}$"
           },
           {
-            "field": "m_pop_2",
+            "field": "hs_1_m_pop_2",
             "field_label": "M$_{2}$"
+          },
+          {
+            "field": "hs_1_m_pop_3",
+            "field_label": "M$_{3}$"
           }
         ]
       }
@@ -108,12 +108,12 @@
         "scaling_type": "close_fit",
         "series": [
           {
-            "field": "c_pop_0",
-            "field_label": "C$_{0}$"
+            "field": "hs_1_c_pop_1",
+            "field_label": "C$_{1}$"
           },
           {
-            "field": "c_pop_1",
-            "field_label": "C$_{1}$"
+            "field": "hs_1_c_pop_2",
+            "field_label": "C$_{2}$"
           }
         ]
       }

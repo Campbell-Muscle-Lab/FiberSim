@@ -344,6 +344,10 @@ public:
     void set_myosin_sparse_k_and_f(void);
     void set_mybpc_sparse_k_and_f(void);
 
+    size_t calculate_x_positions_sparse_2(void);
+    size_t calculate_x_positions_sparse_3(void);
+    double sum_of_vector(gsl_vector* v);
+
     // Functions
 
      /**

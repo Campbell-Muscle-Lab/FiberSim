@@ -64,6 +64,8 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 
     no_of_worker_threads = 0;               /**< default value for number of worker threads */
 
+    calculate_x_mode = 1;                   /**< default value for calculate_x_mode */
+
     afterload_load = GSL_NAN;               /**< default value for afterload load */
     afterload_break_delta_hs_length = GSL_NAN;
                                             /**< default value for breakout length */
@@ -284,6 +286,13 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     {
         JSON_functions::check_JSON_member_number(options, "lambda_jitter");
         lambda_jitter = options["lambda_jitter"].GetDouble();
+    }
+
+    // Check for calculate_x_mode
+    if (JSON_functions::is_JSON_member(options, "calculate_x_mode"))
+    {
+        JSON_functions::check_JSON_member_int(options, "calculate_x_mode");
+        calculate_x_mode = options["calculate_x_mode"].GetInt();
     }
 
     // Check for rand_seed - set to empty string if missing
