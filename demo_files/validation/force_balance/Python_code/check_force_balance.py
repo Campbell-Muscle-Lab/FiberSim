@@ -139,6 +139,33 @@ def check_force_balance(dump_file_string):
             if (m_f == 0):
                 print('m_row: %i' % m_row)
                 
+    # Now add in correction for myosin
+    for m_f, thick in enumerate(hs['thick']):
+        for m_n, bound_to_a_f in enumerate(thick['cb_bound_to_a_f']):
+            if (bound_to_a_f >= 0):
+                a_f = bound_to_a_f
+                a_n = thick['cb_bound_to_a_n'][m_n]
+                
+                x_m = thick['cb_x'][m_n]
+                x_a = hs['thin'][a_f]['bs_x'][a_n]
+                
+                a_row = (a_f * a_nodes_per_thin_filament) + \
+                    int(np.floor(a_n / thin['a_bs_per_node']))
+                    
+                m_row = (no_of_thin_filaments * a_nodes_per_thin_filament) + \
+                    (m_f * m_nodes_per_thick_filament) + \
+                    int(np.floor(m_n / thick['m_cbs_per_node']))
+                
+                ext = hs['hs_data']['cb_extensions'][thick['cb_state'][m_n]-1]
+                
+                fd = thick['m_k_cb'] * (x_m - x_a + ext)
+                
+                force_diff[a_row] = force_diff[a_row] + fd
+                force_diff[m_row] = force_diff[m_row] - fd
+                
+                
+                
+                
     print('x_m: %6f' % x_m)
     print('x_a: %6f' % x_a)
     

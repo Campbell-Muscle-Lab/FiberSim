@@ -340,9 +340,9 @@ public:
     gsl_vector* sp_F;
     gsl_vector* sp_G;
 
-    void build_sparse_k_and_f(void);
+    //void build_sparse_k_and_f(void);
 
-    void set_bare_sparse_k_and_f(void);
+    //void set_bare_sparse_k_and_f(void);
     void set_titin_sparse_k_and_f(void);
     void set_myosin_sparse_k_and_f(void);
     void set_mybpc_sparse_k_and_f(void);

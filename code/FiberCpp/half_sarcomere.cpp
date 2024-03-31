@@ -306,7 +306,7 @@ half_sarcomere::half_sarcomere(
     original_x_vector = gsl_vector_alloc(hs_total_nodes);
 
     // Allocate space
-
+/*
     size_t nnz = size_t(10 * hs_total_nodes);
     sp_k_coo_bare = gsl_spmatrix_alloc(hs_total_nodes, hs_total_nodes);
     sp_k_csc_bare = gsl_spmatrix_alloc_nzmax(hs_total_nodes, hs_total_nodes, nnz, GSL_SPMATRIX_CSC);
@@ -333,7 +333,7 @@ half_sarcomere::half_sarcomere(
     sp_f_links = gsl_vector_alloc(hs_total_nodes);
 
     sp_f_complete = gsl_vector_alloc(hs_total_nodes);
-
+*/
     sp_F = gsl_vector_alloc(hs_total_nodes);
     sp_G = gsl_vector_alloc(hs_total_nodes);
 
@@ -422,6 +422,7 @@ half_sarcomere::~half_sarcomere()
     gsl_vector_free(cum_prob);
 
     // Recover space
+/*
     gsl_spmatrix_free(sp_k_coo_bare);
     gsl_spmatrix_free(sp_k_csc_bare);
 
@@ -447,7 +448,7 @@ half_sarcomere::~half_sarcomere()
     gsl_vector_free(sp_f_mybpc);
     gsl_vector_free(sp_f_links);
     gsl_vector_free(sp_f_complete);
-
+*/
     gsl_vector_free(sp_F);
     gsl_vector_free(sp_G);
 }
@@ -1056,6 +1057,7 @@ void half_sarcomere::calculate_df_vector(gsl_vector* x_trial)
     }
 }
 
+/*
 size_t half_sarcomere::calculate_x_positions_sparse_2(void)
 {
     //! Code calculates x_positions using an iterative method
@@ -1206,7 +1208,7 @@ size_t half_sarcomere::calculate_x_positions_sparse_3(void)
     printf("sum_sp_f_bare: %g\n", sum_of_vector(sp_f_bare));
     printf("max_sp_f_complete: %g\n", gsl_vector_max(sp_f_complete));
     printf("sum_sp_f_complete: %g\n", sum_of_vector(sp_f_complete));
-    */
+    
 
     // Calculate x_0 as solution with bare filaments
     gsl_linalg_solve_tridiag(tri_d_vector, tri_e_vector, tri_f_vector,
@@ -1232,11 +1234,10 @@ size_t half_sarcomere::calculate_x_positions_sparse_3(void)
 
         gsl_spblas_dgemv(CblasNoTrans, 0.5, sp_k_csc_links, x_0_plus_delta_x, 0.0, delta_k_x_0);
         
-        /*
+
         printf("dfxx max: %g\n", gsl_vector_max(delta_f_minus_delta_k_x_0));
         printf("df2 max: %g\n", gsl_vector_max(sp_f_links));
         printf("x_0_max: %g\n", gsl_vector_max(x_0));
-        */
 
         gsl_vector_memcpy(delta_f_minus_delta_k_x_0, sp_f_links);
         gsl_vector_sub(delta_f_minus_delta_k_x_0, delta_k_x_0);
@@ -1285,7 +1286,6 @@ size_t half_sarcomere::calculate_x_positions_sparse_3(void)
         time_s, no_of_iterations, gsl_vector_max(x_worker));
     if (no_of_iterations == p_fs_options->x_vector_max_iterations)
         exit(1);
-    */
     //exit(1);
 
     // Free space
@@ -1300,6 +1300,7 @@ size_t half_sarcomere::calculate_x_positions_sparse_3(void)
     // Return
     return (size_t)no_of_iterations;
 }
+*/
 
 void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
 {
@@ -1311,6 +1312,7 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
     int row_index;
 
     double temp;
+    double f_temp;
 
     // Code
 
@@ -1339,25 +1341,25 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
                 t_attach_a_node - 1;
 
             // Linear portion of F
+            f_temp = t_k_stiff * t_offset;
+
             temp = gsl_vector_get(sp_F, thin_node_index);
-            gsl_vector_set(sp_F, thin_node_index, temp - (t_k_stiff * t_offset));
+            gsl_vector_set(sp_F, thin_node_index, temp - f_temp);
 
             temp = gsl_vector_get(sp_F, thick_node_index);
-            gsl_vector_set(sp_F, thick_node_index, temp + (t_k_stiff * t_offset));
+            gsl_vector_set(sp_F, thick_node_index, temp + f_temp);
 
             // Linear portion of G
+            f_temp = t_k_stiff * (gsl_vector_get(x, thin_node_index) -
+                        gsl_vector_get(x, thick_node_index));
+
             temp = gsl_vector_get(sp_G, thin_node_index);
-            gsl_vector_set(sp_G, thin_node_index,
-                temp + (t_k_stiff * gsl_vector_get(x, thin_node_index)) -
-                (t_k_stiff * gsl_vector_get(x, thick_node_index)));
+            gsl_vector_set(sp_G, thin_node_index, temp + f_temp);
 
             temp = gsl_vector_get(sp_G, thick_node_index);
-            gsl_vector_set(sp_G, thick_node_index,
-                temp - (t_k_stiff * gsl_vector_get(x, thin_node_index)) +
-                (t_k_stiff * gsl_vector_get(x, thick_node_index)));
+            gsl_vector_set(sp_G, thick_node_index, temp - f_temp);
 
             // Exponential portion of G
-            double f_temp;
             f_temp = t_sigma * exp(
                 (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
 
@@ -1368,6 +1370,50 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
             gsl_vector_set(sp_G, thick_node_index, temp + f_temp);
         }
     }
+
+    // Now add in cross-bridges
+    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    {
+        for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament; cb_counter++)
+        {
+            // Check for a link
+            if (gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_f, cb_counter) >= 0)
+            {
+                int thick_node_index = node_index('m', m_counter, cb_counter);
+                int thin_node_index = node_index('a',
+                    gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_f, cb_counter),
+                    gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_n, cb_counter));
+
+                // Get the extension
+                int cb_iso = gsl_vector_short_get(p_mf[m_counter]->cb_iso, cb_counter);
+                int cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, cb_counter);
+                double ext = p_m_scheme[cb_iso - 1]->p_m_states[cb_state - 1]->extension;
+
+                if (fabs(ext) > 0.0)
+                {
+                    // Need to adjust sp_F
+                    f_temp = (m_k_cb * ext);
+
+                    temp = gsl_vector_get(sp_F, thin_node_index);
+                    gsl_vector_set(sp_F, thin_node_index, temp + f_temp);
+
+                    temp = gsl_vector_get(sp_F, thick_node_index);
+                    gsl_vector_set(sp_F, thick_node_index, temp - f_temp);
+                }
+
+                // Always need to adjust sp_G
+                f_temp = m_k_cb * (gsl_vector_get(x, thin_node_index) -
+                            gsl_vector_get(x, thick_node_index));
+
+                temp = gsl_vector_get(sp_G, thin_node_index);
+                gsl_vector_set(sp_G, thin_node_index, temp + f_temp);
+
+                temp = gsl_vector_get(sp_G, thick_node_index);
+                gsl_vector_set(sp_G, thick_node_index, temp - f_temp);
+            }
+        }
+    }
+
 }
 
 size_t half_sarcomere::calculate_x_positions_sparse()
@@ -1402,9 +1448,6 @@ size_t half_sarcomere::calculate_x_positions_sparse()
     gsl_vector_memcpy(x_worker, x_vector);
     gsl_vector_memcpy(x_last, x_vector);
 
-    // Build the bare sparse_k
-    set_bare_sparse_k_and_f();
-
     // Loop
     keep_going = 1;
     iterations = 0;
@@ -1415,8 +1458,11 @@ size_t half_sarcomere::calculate_x_positions_sparse()
 
         calculate_sp_F_and_G(x_worker);
 
-        // Calculate x = x \ (F - G)
+        // Calculate x = x \ (F - alpha * G)
         gsl_vector_memcpy(f_rhs, sp_F);
+
+        //gsl_vector_scale(sp_G, 0.1);
+
         gsl_vector_sub(f_rhs, sp_G);
 
         // Now calculate x_i+1 = k_0 \ f_rhs
@@ -1439,8 +1485,6 @@ size_t half_sarcomere::calculate_x_positions_sparse()
         if (keep_going)
             gsl_vector_memcpy(x_last, x_worker);
     }
-
-    printf("iterations: %i", iterations);
     
     // Copy to main program
     gsl_vector_memcpy(x_vector, x_worker);
@@ -1586,7 +1630,7 @@ size_t half_sarcomere::calculate_x_positions_sparse()
     return iter;
     */
 }
-
+/*
 void half_sarcomere::build_sparse_k_and_f()
 {
     //! Code builds sparse versions of the k matrix and f vector
@@ -1639,7 +1683,7 @@ void half_sarcomere::build_sparse_k_and_f()
 
     gsl_vector_add(sp_f_complete, sp_f_bare);
     gsl_vector_add(sp_f_complete, sp_f_links);
-*/
+
 }
 
 void half_sarcomere::set_bare_sparse_k_and_f(void)
@@ -1846,7 +1890,7 @@ void half_sarcomere::set_myosin_sparse_k_and_f(void)
     // Now convert to css
     sp_k_csc_myosin = gsl_spmatrix_ccs(sp_k_coo_myosin);
 }
-
+*/
 
 size_t half_sarcomere::calculate_x_positions()
 {
