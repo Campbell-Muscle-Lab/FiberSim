@@ -1292,6 +1292,9 @@ def deduce_freeform_properties(json_analysis_file_string,
 
     freeform_b['job'] = []
     
+    protocol_afterload = []
+    after_struct = []
+    
     # Check for half-sarcomere lengths in the pCa_struct
     # If none are specified, create an hsl array from the model file
     if ('hs_lengths' in freeform_struct):
@@ -1330,8 +1333,6 @@ def deduce_freeform_properties(json_analysis_file_string,
             os.makedirs(prot_dir)
             
         # Set up for an array of protocols
-        protocol_afterload = []
-            
         for (i, ps) in enumerate(freeform_struct['protocol']['data']):
             prot_file_string = os.path.join(prot_dir,
                                             'protocol_%i.txt' % (i+1))
@@ -1445,9 +1446,9 @@ def deduce_freeform_properties(json_analysis_file_string,
             for prot_counter, prot_f in \
                 enumerate(freeform_struct['protocol_files']):
                 
-                after_struct = protocol_afterload[prot_counter]
-                if not (after_struct == []):
-                    after_range = range(len(after_struct['load']))
+                
+                if not (protocol_afterload == []):
+                    after_range = range(len(protocol_afterload[prot_counter]['load']))
                 else:
                     after_range = range(1)
                 

@@ -334,6 +334,9 @@ half_sarcomere::half_sarcomere(
 
     sp_f_complete = gsl_vector_alloc(hs_total_nodes);
 
+    sp_F = gsl_vector_alloc(hs_total_nodes);
+    sp_G = gsl_vector_alloc(hs_total_nodes);
+
     // Calculate the x positions
 
     // Set the x_vector to an initial approximation
@@ -445,6 +448,8 @@ half_sarcomere::~half_sarcomere()
     gsl_vector_free(sp_f_links);
     gsl_vector_free(sp_f_complete);
 
+    gsl_vector_free(sp_F);
+    gsl_vector_free(sp_G);
 }
 
 // Functions
@@ -1296,6 +1301,75 @@ size_t half_sarcomere::calculate_x_positions_sparse_3(void)
     return (size_t)no_of_iterations;
 }
 
+void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
+{
+    //! Calculates sp_F, a vector that holds the right-hand side of
+    //! K_0 X + G(X) = F(X)
+    
+    // Variables
+
+    int row_index;
+
+    double temp;
+
+    // Code
+
+    // Start by copying across the f0 vector that hold sarcomere length
+    gsl_vector_memcpy(sp_F, f0_vector);
+
+    // Now zero the G vector
+    gsl_vector_set_zero(sp_G);
+
+    // Start with titin
+
+    // Loop through the myosin filaments
+    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    {
+        // Work out where titin attaches to the thick filament
+        int thick_node_index = (a_n * a_nodes_per_thin_filament) +
+            (m_counter * m_nodes_per_thick_filament) +
+            t_attach_m_node - 1;
+
+        // Loop through surrounding actins
+        for (int a_counter = 0; a_counter < 6; a_counter++)
+        {
+            int thin_node_index =
+                (gsl_matrix_short_get(nearest_actin_matrix, m_counter, a_counter) *
+                    a_nodes_per_thin_filament) +
+                t_attach_a_node - 1;
+
+            // Linear portion of F
+            temp = gsl_vector_get(sp_F, thin_node_index);
+            gsl_vector_set(sp_F, thin_node_index, temp - (t_k_stiff * t_offset));
+
+            temp = gsl_vector_get(sp_F, thick_node_index);
+            gsl_vector_set(sp_F, thick_node_index, temp + (t_k_stiff * t_offset));
+
+            // Linear portion of G
+            temp = gsl_vector_get(sp_G, thin_node_index);
+            gsl_vector_set(sp_G, thin_node_index,
+                temp + (t_k_stiff * gsl_vector_get(x, thin_node_index)) -
+                (t_k_stiff * gsl_vector_get(x, thick_node_index)));
+
+            temp = gsl_vector_get(sp_G, thick_node_index);
+            gsl_vector_set(sp_G, thick_node_index,
+                temp - (t_k_stiff * gsl_vector_get(x, thin_node_index)) +
+                (t_k_stiff * gsl_vector_get(x, thick_node_index)));
+
+            // Exponential portion of G
+            double f_temp;
+            f_temp = t_sigma * exp(
+                (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
+
+            temp = gsl_vector_get(sp_G, thin_node_index);
+            gsl_vector_set(sp_G, thin_node_index, temp - f_temp);
+
+            temp = gsl_vector_get(sp_G, thick_node_index);
+            gsl_vector_set(sp_G, thick_node_index, temp + f_temp);
+        }
+    }
+}
+
 size_t half_sarcomere::calculate_x_positions_sparse()
 {
     //! Uses a sparse approach to calculate x positions
@@ -1328,9 +1402,8 @@ size_t half_sarcomere::calculate_x_positions_sparse()
     gsl_vector_memcpy(x_worker, x_vector);
     gsl_vector_memcpy(x_last, x_vector);
 
-    // Build the sparse matrices
-    build_sparse_k_and_f();
-    
+    // Build the bare sparse_k
+    set_bare_sparse_k_and_f();
 
     // Loop
     keep_going = 1;
@@ -1340,17 +1413,13 @@ size_t half_sarcomere::calculate_x_positions_sparse()
     {
         iterations = iterations + 1;
 
-        printf("check x_worker: %g\n", gsl_vector_max(x_worker));
-        printf("check f_complete: %g\n", gsl_vector_max(sp_f_complete));
+        calculate_sp_F_and_G(x_worker);
 
-        // Calculate f - delta_k * x
-        gsl_vector_memcpy(f_rhs, sp_f_complete);
-        gsl_spblas_dgemv(CblasNoTrans, 1.0, sp_k_csc_links, x_worker, 0.0, f_dk_x);
-        gsl_vector_sub(f_rhs, f_dk_x);
+        // Calculate x = x \ (F - G)
+        gsl_vector_memcpy(f_rhs, sp_F);
+        gsl_vector_sub(f_rhs, sp_G);
 
-        printf("max_rhs: %g\n", gsl_vector_max(f_rhs));
-
-        // Now calcualte x_i+1 = k_0^-1(f - dk.x)
+        // Now calculate x_i+1 = k_0 \ f_rhs
         gsl_linalg_solve_tridiag(tri_d_vector, tri_e_vector, tri_f_vector, f_rhs, x_worker);
 
         printf("max_x_worker: %g\n", gsl_vector_max(x_worker));
@@ -1360,17 +1429,18 @@ size_t half_sarcomere::calculate_x_positions_sparse()
         gsl_vector_sub(x_diff, x_last);
 
         max_diff = GSL_MAX(gsl_vector_max(x_diff), -gsl_vector_min(x_diff));
-        printf("max_diff: %g\n", max_diff);
 
         if (max_diff < p_fs_options->x_pos_rel_tol)
             keep_going = 0;
 
-        if (iterations < p_fs_options->x_vector_max_iterations)
+        if (iterations >= p_fs_options->x_vector_max_iterations)
             keep_going = 0;
 
         if (keep_going)
             gsl_vector_memcpy(x_last, x_worker);
     }
+
+    printf("iterations: %i", iterations);
     
     // Copy to main program
     gsl_vector_memcpy(x_vector, x_worker);

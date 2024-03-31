@@ -337,12 +337,18 @@ public:
                                     /**< gsl_sparse_matrix in css format that holds delta_k
                                          which depends on cross-links */
 
+    gsl_vector* sp_F;
+    gsl_vector* sp_G;
+
     void build_sparse_k_and_f(void);
 
     void set_bare_sparse_k_and_f(void);
     void set_titin_sparse_k_and_f(void);
     void set_myosin_sparse_k_and_f(void);
     void set_mybpc_sparse_k_and_f(void);
+
+    void calculate_sp_F_and_G(gsl_vector* x);
+    void calculate_sp_G(void);
 
     size_t calculate_x_positions_sparse_2(void);
     size_t calculate_x_positions_sparse_3(void);

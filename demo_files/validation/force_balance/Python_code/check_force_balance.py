@@ -122,10 +122,13 @@ def check_force_balance(dump_file_string):
             a_n = (hs['titin']['t_attach_a_node'] - 1) * a_bs_per_node
             x_a = hs['thin'][thin_id]['bs_x'][a_n]
            
-            fd = (hs['titin']['t_k_stiff'] * (x_m - x_a - hs['titin']['t_offset']))
+            fd = (hs['titin']['t_k_stiff'] * \
+                      (x_m - x_a - hs['titin']['t_offset'])) + \
+                    (hs['titin']['t_sigma'] * \
+                     np.exp((x_m - x_a) / hs['titin']['t_L']))
             
             a_row = (thin_id * a_nodes_per_thin_filament) + \
-                (hs['titin']['t_attach_a_node'] -1) * a_bs_per_node
+                (hs['titin']['t_attach_a_node'] -1)
             
             force_diff[a_row] = force_diff[a_row] + fd
             force_diff[m_row] = force_diff[m_row] - fd
@@ -367,7 +370,7 @@ def check_force_balance(dump_file_string):
 
 if __name__ == "__main__":
     
-    status_file_string = '../sim_data/sim_output/1/status_dumps_1_r1/hs_1_time_step_100.json'    
+    status_file_string = '../sim_data/sim_output/1/status_dumps_1_1_r1/hs_1_time_step_100.json'    
     
     check_force_balance(status_file_string)
         

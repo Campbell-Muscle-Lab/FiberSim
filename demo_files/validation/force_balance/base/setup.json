@@ -11,14 +11,11 @@
     },
     "characterization": [
         {
-            "type": "pCa_length_control",
+            "type": "freeform",
             "relative_to": "this_file",
             "sim_folder": "../sim_data",
             "m_n": 9,
-            "pCa_values": [9.0],
-            "pCa_step_up_s": 0.02,
-            "sim_duration_s": 0.1,
-            "time_step_s": 0.001,
+            "protocol_files": ["../protocols/ramp.txt"],
             "output_image_formats": [ "png" ],
             "figures_only": "False",
             "trace_figures_on": "False",
