@@ -1,0 +1,861 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 744.09448819 1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="hex_lattice.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="336.77709"
+     inkscape:cy="919.07303"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1018"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4138"
+       units="mm"
+       spacingx="3.5433071"
+       spacingy="3.5433072" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1f8a84;fill-opacity:1;fill-rule:evenodd;stroke:#1f8a84;stroke-width:0.98149592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-7-8"
+       cx="120.67673"
+       cy="-127.54688"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4142-0"
+       cx="171.96237"
+       cy="-83.658531"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="6.8367476"
+       ry="6.8337784"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1f8a84;fill-opacity:1;fill-rule:evenodd;stroke:#1f8a84;stroke-width:0.98149592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-7"
+       cx="159.09488"
+       cy="-61.705029"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-3-3"
+       cx="145.87466"
+       cy="-83.658531"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1f8a84;fill-opacity:1;fill-rule:evenodd;stroke:#1f8a84;stroke-width:0.98149592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-8-0"
+       cx="184.33894"
+       cy="-61.705029"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.39881897;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-0-8"
+       cx="198.05002"
+       cy="-83.658531"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-88-8"
+       cx="159.09488"
+       cy="-105.43965"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-5-8"
+       cx="184.33894"
+       cy="-105.43965"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4142-0-4"
+       cx="172.02528"
+       cy="-127.47066"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="6.8367476"
+       ry="6.8337784"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-7-4"
+       cx="159.15785"
+       cy="-105.51716"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-3-3-5"
+       cx="145.93758"
+       cy="-127.47066"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-8-0-9"
+       cx="184.40187"
+       cy="-105.51716"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-0-8-8"
+       cx="198.11298"
+       cy="-127.47066"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-88-8-7"
+       cx="159.15785"
+       cy="-149.25175"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-5-8-9"
+       cx="184.40187"
+       cy="-149.25175"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4142-0-5"
+       cx="133.76553"
+       cy="-105.7132"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="6.8367476"
+       ry="6.8337784"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1f8a84;fill-opacity:1;fill-rule:evenodd;stroke:#1f8a84;stroke-width:0.98149592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-7-0"
+       cx="120.8981"
+       cy="-83.759697"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1f8a84;fill-opacity:1;fill-rule:evenodd;stroke:#1f8a84;stroke-width:0.98149592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-3-3-4"
+       cx="107.67783"
+       cy="-105.7132"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-8-0-7"
+       cx="146.14212"
+       cy="-83.759697"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-5-8-7"
+       cx="146.14212"
+       cy="-127.49433"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4142-0-2"
+       cx="133.54416"
+       cy="-149.50035"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="6.8367476"
+       ry="6.8337784"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1f8a84;fill-opacity:1;fill-rule:evenodd;stroke:#1f8a84;stroke-width:0.98149592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-3-3-1"
+       cx="107.45648"
+       cy="-149.50035"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-8-0-72"
+       cx="145.92076"
+       cy="-127.54688"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1f8a84;fill-opacity:1;fill-rule:evenodd;stroke:#1f8a84;stroke-width:0.98149592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-88-8-8"
+       cx="120.67673"
+       cy="-171.28148"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1f8a84;fill-opacity:1;fill-rule:evenodd;stroke:#1f8a84;stroke-width:0.98149592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-5-8-5"
+       cx="145.92076"
+       cy="-171.28148"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4142-0-8"
+       cx="233.92735"
+       cy="-67.573479"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="6.8367476"
+       ry="6.8337784"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-0-8-8-7"
+       cx="234.20299"
+       cy="-109.59039"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1f8a84;fill-opacity:1;fill-rule:evenodd;stroke:#1f8a84;stroke-width:0.98149592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-5-8-5-3"
+       cx="233.92735"
+       cy="-145.43562"
+       transform="matrix(0,1,-1,0,0,0)"
+       rx="3.4183738"
+       ry="3.4168892"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot5487"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:35px;line-height:125%;font-family:Calibri;-inkscape-font-specification:'Calibri, Normal';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.38572886,0,0,0.38589641,26.520898,95.030971)"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200"><flowRegion
+         id="flowRegion5489"><rect
+           id="rect5491"
+           width="113.57143"
+           height="43.57143"
+           x="95"
+           y="350.93362" /></flowRegion><flowPara
+         id="flowPara5493"
+         style="font-size:17.5px">Thick</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot5487-5"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:35px;line-height:125%;font-family:Calibri;-inkscape-font-specification:'Calibri, Normal';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.38572886,0,0,0.38589641,63.784771,95.073834)"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200"><flowRegion
+         id="flowRegion5489-4"><rect
+           id="rect5491-9"
+           width="113.57143"
+           height="43.57143"
+           x="95"
+           y="350.93362" /></flowRegion><flowPara
+         id="flowPara5493-4"
+         style="font-size:17.5px">Thin</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot5487-8"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:35px;line-height:125%;font-family:Calibri;-inkscape-font-specification:'Calibri, Normal';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.38572886,0,0,0.38589641,108.2538,95.030971)"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\hex_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200"><flowRegion
+         id="flowRegion5489-9"><rect
+           id="rect5491-1"
+           width="113.57143"
+           height="43.57143"
+           x="95"
+           y="350.93362" /></flowRegion><flowPara
+         id="flowPara5493-6"
+         style="font-size:17.5px">Thin mirror</flowPara></flowRoot>    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4142-0-8-4"
+       cx="223.10126"
+       cy="-430.85724"
+       transform="matrix(0,1,-1,0,0,0)"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200"
+       rx="6.4012256"
+       ry="6.4172082"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\sarc_lattice.png" />
+    <ellipse
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4941-0-8-8-7-2"
+       cx="223.10126"
+       cy="-520.25049"
+       transform="matrix(0,1,-1,0,0,0)"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200"
+       rx="3.2006128"
+       ry="3.2086041"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\sarc_lattice.png" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot5487-4"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24.90636444px;line-height:125%;font-family:Calibri;-inkscape-font-specification:'Calibri, Normal';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.36221575,0,0,0.36131361,402.38217,92.913594)"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\sarc_lattice.png"><flowRegion
+         id="flowRegion5489-8"><rect
+           id="rect5491-0"
+           width="173.99896"
+           height="39.119507"
+           x="95"
+           y="350.93362"
+           style="font-size:24.90636444px" /></flowRegion><flowPara
+         id="flowPara5493-7"
+         style="font-size:21.79306984px">Thick filament</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot5487-5-2"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24.90636444px;line-height:125%;font-family:Calibri;-inkscape-font-specification:'Calibri, Normal';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.36221575,0,0,0.36131361,485.59893,92.913594)"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\sarc_lattice.png"><flowRegion
+         id="flowRegion5489-4-9"><rect
+           id="rect5491-9-4"
+           width="182.88536"
+           height="36.448349"
+           x="95"
+           y="350.93362"
+           style="font-size:24.90636444px" /></flowRegion><flowPara
+         id="flowPara5493-4-1"
+         style="font-size:21.79306984px">Thin filament</flowPara></flowRoot>    <g
+       id="g4537"
+       transform="matrix(0.90126249,0,0,0.9007848,-29.958926,21.860206)"
+       inkscape:export-filename="C:\Users\Sarah\Documents\GitHub\FiberSim\docs\pages\FiberCpp\sarcomere_lattice\sarc_lattice.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200">
+      <g
+         id="g4577"
+         transform="translate(83.337585,4.0406102)">
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4142-0-6"
+           cx="161.04877"
+           cy="-499.93729"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="7.106276"
+           ry="7.1202435" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:1.0893122;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-7-3"
+           cx="147.67401"
+           cy="-477.06354"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-3-3-17"
+           cx="133.9326"
+           cy="-499.93729"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:1.0893122;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-8-0-3"
+           cx="173.91327"
+           cy="-477.06354"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.66232634;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-0-8-4"
+           cx="188.1649"
+           cy="-499.93729"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-82"
+           cx="147.67401"
+           cy="-522.63147"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-5-8-93"
+           cx="173.91327"
+           cy="-522.63147"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4142-0-4-9"
+           cx="161.11418"
+           cy="-545.586"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="7.106276"
+           ry="7.1202435" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-3-3-5-5"
+           cx="133.99803"
+           cy="-545.586"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-0-8-8-1"
+           cx="188.23035"
+           cy="-545.586"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-7-7"
+           cx="147.73946"
+           cy="-568.28015"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-5-8-9-8"
+           cx="173.9787"
+           cy="-568.28015"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4142-0-5-1"
+           cx="121.34611"
+           cy="-522.91644"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="7.106276"
+           ry="7.1202435" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4142-0-2-8"
+           cx="121.11603"
+           cy="-568.53912"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="7.106276"
+           ry="7.1202435" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-3-3-2"
+           cx="133.43752"
+           cy="-409.08588"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3"
+           cx="147.17892"
+           cy="-431.78003"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-3-3-5-6"
+           cx="133.50294"
+           cy="-454.73456"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-7-9"
+           cx="147.24435"
+           cy="-477.42871"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4142-0-5-5"
+           cx="120.85102"
+           cy="-432.06503"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="7.106276"
+           ry="7.1202435" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-8-0-7-7"
+           cx="133.71555"
+           cy="-409.19125"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4142-0-2-3"
+           cx="120.62094"
+           cy="-477.68771"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="7.106276"
+           ry="7.1202435" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-3-3-2-1"
+           cx="173.02019"
+           cy="-431.53467"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-9"
+           cx="186.76161"
+           cy="-454.22879"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-7-4-2-5"
+           cx="186.82704"
+           cy="-454.30954"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-3-3-5-6-1"
+           cx="173.08563"
+           cy="-477.18332"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#a0001b;fill-opacity:1;fill-rule:evenodd;stroke:#a0001b;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4142-0-5-5-3"
+           cx="160.43372"
+           cy="-454.51382"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="7.106276"
+           ry="7.1202435" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-8-0-7-7-7"
+           cx="173.29823"
+           cy="-431.64005"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-5-8-7-0-3"
+           cx="173.29823"
+           cy="-477.20798"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-7"
+           cx="107.4763"
+           cy="-409.19125"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-6"
+           cx="93.734863"
+           cy="-432.06503"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-93"
+           cx="107.24619"
+           cy="-454.81396"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-8"
+           cx="107.74128"
+           cy="-591.23334"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-4"
+           cx="94.229942"
+           cy="-522.91644"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-4-2"
+           cx="107.97138"
+           cy="-500.04269"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-8-8"
+           cx="107.74128"
+           cy="-545.66541"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-4-5"
+           cx="93.999863"
+           cy="-568.53912"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-4-2-2"
+           cx="93.504776"
+           cy="-477.68771"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+        <ellipse
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0033a0;fill-opacity:1;fill-rule:evenodd;stroke:#0033a0;stroke-width:2.6636374;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+           id="path4941-88-8-3-4-2-4"
+           cx="133.98053"
+           cy="-591.23334"
+           transform="matrix(0,1,-1,0,0,0)"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200"
+           rx="3.553138"
+           ry="3.5601218" />
+      </g>
+    </g>
+  </g>
+</svg>

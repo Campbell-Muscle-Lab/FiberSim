@@ -306,11 +306,12 @@ half_sarcomere::half_sarcomere(
     original_x_vector = gsl_vector_alloc(hs_total_nodes);
 
     // Allocate space
-/*
+
     size_t nnz = size_t(10 * hs_total_nodes);
     sp_k_coo_bare = gsl_spmatrix_alloc(hs_total_nodes, hs_total_nodes);
     sp_k_csc_bare = gsl_spmatrix_alloc_nzmax(hs_total_nodes, hs_total_nodes, nnz, GSL_SPMATRIX_CSC);
 
+/*
     sp_k_coo_titin = gsl_spmatrix_alloc(hs_total_nodes, hs_total_nodes);
     sp_k_csc_titin = gsl_spmatrix_alloc_nzmax(hs_total_nodes, hs_total_nodes, nnz, GSL_SPMATRIX_CSC);
 
@@ -324,8 +325,10 @@ half_sarcomere::half_sarcomere(
 
     sp_k_coo_complete = gsl_spmatrix_alloc(hs_total_nodes, hs_total_nodes);
     sp_k_csc_complete = gsl_spmatrix_alloc_nzmax(hs_total_nodes, hs_total_nodes, nnz, GSL_SPMATRIX_CSC);
-
+*/
     sp_f_bare = gsl_vector_alloc(hs_total_nodes);
+
+/*
     sp_f_titin = gsl_vector_alloc(hs_total_nodes);
     sp_f_myosin = gsl_vector_alloc(hs_total_nodes);
     sp_f_mybpc = gsl_vector_alloc(hs_total_nodes);
@@ -335,6 +338,7 @@ half_sarcomere::half_sarcomere(
     sp_f_complete = gsl_vector_alloc(hs_total_nodes);
 */
     sp_F = gsl_vector_alloc(hs_total_nodes);
+    sp_dF = gsl_vector_alloc(hs_total_nodes);
     sp_G = gsl_vector_alloc(hs_total_nodes);
 
     // Calculate the x positions
@@ -422,10 +426,10 @@ half_sarcomere::~half_sarcomere()
     gsl_vector_free(cum_prob);
 
     // Recover space
-/*
+
     gsl_spmatrix_free(sp_k_coo_bare);
     gsl_spmatrix_free(sp_k_csc_bare);
-
+/*
     gsl_spmatrix_free(sp_k_coo_titin);
     gsl_spmatrix_free(sp_k_csc_titin);
 
@@ -441,8 +445,9 @@ half_sarcomere::~half_sarcomere()
     gsl_spmatrix_free(sp_k_csc_complete);
 
     //gsl_spmatrix_free(sp_k_ccs);
-
+*/
     gsl_vector_free(sp_f_bare);
+/*
     gsl_vector_free(sp_f_titin);
     gsl_vector_free(sp_f_myosin);
     gsl_vector_free(sp_f_mybpc);
@@ -450,6 +455,7 @@ half_sarcomere::~half_sarcomere()
     gsl_vector_free(sp_f_complete);
 */
     gsl_vector_free(sp_F);
+    gsl_vector_free(sp_dF);
     gsl_vector_free(sp_G);
 }
 
@@ -1416,6 +1422,252 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
 
 }
 
+void half_sarcomere::calculate_sp_dF_and_G(gsl_vector* x)
+{
+    //! Calculates sp_dF, a vector that holds the right-hand side of
+
+
+    // Variables
+
+    int row_index;
+
+    double temp;
+    double f_temp;
+
+    // Code
+
+    // Start by zeroing the vectors
+    gsl_vector_set_zero(sp_dF);
+    gsl_vector_set_zero(sp_G);
+
+    // Start with titin
+
+    // Loop through the myosin filaments
+    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    {
+        // Work out where titin attaches to the thick filament
+        int thick_node_index = (a_n * a_nodes_per_thin_filament) +
+            (m_counter * m_nodes_per_thick_filament) +
+            t_attach_m_node - 1;
+
+        // Loop through surrounding actins
+        for (int a_counter = 0; a_counter < 6; a_counter++)
+        {
+            int thin_node_index =
+                (gsl_matrix_short_get(nearest_actin_matrix, m_counter, a_counter) *
+                    a_nodes_per_thin_filament) +
+                t_attach_a_node - 1;
+
+            // Linear portion of F
+            f_temp = t_k_stiff * t_offset;
+
+            temp = gsl_vector_get(sp_dF, thin_node_index);
+            gsl_vector_set(sp_dF, thin_node_index, temp - f_temp);
+
+            temp = gsl_vector_get(sp_dF, thick_node_index);
+            gsl_vector_set(sp_dF, thick_node_index, temp + f_temp);
+
+            // Linear portion of G
+            f_temp = t_k_stiff * (gsl_vector_get(x, thin_node_index) -
+                gsl_vector_get(x, thick_node_index));
+
+            temp = gsl_vector_get(sp_G, thin_node_index);
+            gsl_vector_set(sp_G, thin_node_index, temp + f_temp);
+
+            temp = gsl_vector_get(sp_G, thick_node_index);
+            gsl_vector_set(sp_G, thick_node_index, temp - f_temp);
+
+            // Exponential portion of G
+            f_temp = t_sigma * exp(
+                (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
+
+            temp = gsl_vector_get(sp_G, thin_node_index);
+            gsl_vector_set(sp_G, thin_node_index, temp - f_temp);
+
+            temp = gsl_vector_get(sp_G, thick_node_index);
+            gsl_vector_set(sp_G, thick_node_index, temp + f_temp);
+        }
+    }
+
+    // Now add in cross-bridges
+    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    {
+        for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament; cb_counter++)
+        {
+            // Check for a link
+            if (gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_f, cb_counter) >= 0)
+            {
+                int thick_node_index = node_index('m', m_counter, cb_counter);
+                int thin_node_index = node_index('a',
+                    gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_f, cb_counter),
+                    gsl_vector_short_get(p_mf[m_counter]->cb_bound_to_a_n, cb_counter));
+
+                // Get the extension
+                int cb_iso = gsl_vector_short_get(p_mf[m_counter]->cb_iso, cb_counter);
+                int cb_state = gsl_vector_short_get(p_mf[m_counter]->cb_state, cb_counter);
+                double ext = p_m_scheme[cb_iso - 1]->p_m_states[cb_state - 1]->extension;
+
+                if (fabs(ext) > 0.0)
+                {
+                    // Need to adjust sp_F
+                    f_temp = (m_k_cb * ext);
+
+                    temp = gsl_vector_get(sp_dF, thin_node_index);
+                    gsl_vector_set(sp_dF, thin_node_index, temp + f_temp);
+
+                    temp = gsl_vector_get(sp_dF, thick_node_index);
+                    gsl_vector_set(sp_dF, thick_node_index, temp - f_temp);
+                }
+
+                // Always need to adjust sp_G
+                f_temp = m_k_cb * (gsl_vector_get(x, thin_node_index) -
+                    gsl_vector_get(x, thick_node_index));
+
+                temp = gsl_vector_get(sp_G, thin_node_index);
+                gsl_vector_set(sp_G, thin_node_index, temp + f_temp);
+
+                temp = gsl_vector_get(sp_G, thick_node_index);
+                gsl_vector_set(sp_G, thick_node_index, temp - f_temp);
+            }
+        }
+    }
+}
+
+size_t half_sarcomere::calculate_x_positions_sparse_2()
+{
+    //! Uses a sparse iterative approach to calculate x positions
+    
+    // Variables
+    size_t iterations;
+
+    gsl_vector* x_0;
+    gsl_vector* x_worker;
+    gsl_vector* x_total;
+    gsl_vector* x_scale;
+    gsl_vector* x_last;
+    gsl_vector* x_diff;
+
+    gsl_vector* f_rhs;
+    gsl_vector* f_k0_x;
+
+    double max_diff;
+    double last_max_diff;
+    double dx_scale;
+
+    int keep_going;
+
+    // Code
+
+    // Allocate
+    x_worker = gsl_vector_alloc(hs_total_nodes);
+    x_0 = gsl_vector_alloc(hs_total_nodes);
+    x_total = gsl_vector_alloc(hs_total_nodes);
+    x_last = gsl_vector_alloc(hs_total_nodes);
+    x_diff = gsl_vector_alloc(hs_total_nodes);
+    f_rhs = gsl_vector_alloc(hs_total_nodes);
+    f_k0_x = gsl_vector_alloc(hs_total_nodes);
+
+    // Calculate x_0
+    gsl_linalg_solve_tridiag(tri_d_vector, tri_e_vector, tri_f_vector, f0_vector, x_0);
+
+    // Initialise
+    gsl_vector_set_zero(x_worker);
+
+    gsl_vector_memcpy(x_total, x_vector);
+    
+    gsl_vector_memcpy(x_last, x_vector);
+
+
+    set_bare_sparse_k_and_f();
+
+    // Loop
+    keep_going = 1;
+    iterations = 0;
+
+    // Set the dx scale
+    dx_scale = 1;
+
+    // And the last max_diff
+    last_max_diff = GSL_POSINF;
+
+    while (keep_going)
+    {
+        iterations = iterations + 1;
+
+        calculate_sp_F_and_G(x_total);
+
+        gsl_spblas_dgemv(CblasNoTrans, 1.0, sp_k_csc_bare, x_total, 0, f_k0_x);
+
+        gsl_vector_memcpy(f_rhs, sp_F);
+        gsl_vector_sub(f_rhs, f_k0_x);
+        gsl_vector_sub(f_rhs, sp_G);
+
+        gsl_linalg_solve_tridiag(tri_d_vector, tri_e_vector, tri_f_vector, f_rhs, x_worker);
+
+        if (dx_scale < 1.0)
+        {
+            gsl_vector_scale(x_worker, dx_scale);
+        }
+
+        /*
+        calculate_sp_dF_and_G(x_total);
+
+        gsl_vector_memcpy(f_rhs, sp_dF);
+
+        gsl_vector_scale(sp_G, 1.0);
+
+        gsl_vector_sub(f_rhs, sp_G);
+
+        gsl_linalg_solve_tridiag(tri_d_vector, tri_e_vector, tri_f_vector, f_rhs, x_worker);
+        */
+
+        gsl_vector_memcpy(x_total, x_last);
+        gsl_vector_add(x_total, x_worker);
+
+        // Calculate the deviations
+        gsl_vector_memcpy(x_diff, x_last);
+        gsl_vector_sub(x_diff, x_total);
+
+        // Calculate the max deviation
+        max_diff = GSL_MAX(gsl_vector_max(x_diff), -gsl_vector_min(x_diff));
+
+        // Decide whether to break out
+        if (max_diff < p_fs_options->x_pos_rel_tol)
+           keep_going = 0;
+
+        if (iterations >= p_fs_options->x_vector_max_iterations)
+            keep_going = 0;
+
+        // Update the dx_scale
+        if (max_diff > last_max_diff)
+            dx_scale = dx_scale * 0.5;
+        last_max_diff = max_diff;
+
+        if (keep_going)
+            gsl_vector_memcpy(x_last, x_total);
+    }
+
+    // End
+    gsl_vector_memcpy(x_vector, x_total);
+
+    // Free
+    gsl_vector_free(x_0);
+    gsl_vector_free(x_worker);
+    gsl_vector_free(x_total);
+    gsl_vector_free(x_last);
+    gsl_vector_free(x_diff);
+    gsl_vector_free(f_rhs);
+    gsl_vector_free(f_k0_x);
+
+
+    printf("iterations: %i\n", iterations);
+
+    return iterations;
+
+
+
+}
+
 size_t half_sarcomere::calculate_x_positions_sparse()
 {
     //! Uses a sparse approach to calculate x positions
@@ -1685,6 +1937,7 @@ void half_sarcomere::build_sparse_k_and_f()
     gsl_vector_add(sp_f_complete, sp_f_links);
 
 }
+*/
 
 void half_sarcomere::set_bare_sparse_k_and_f(void)
 {
@@ -1766,6 +2019,8 @@ void half_sarcomere::set_bare_sparse_k_and_f(void)
     // Now convert to csc format
     sp_k_csc_bare = gsl_spmatrix_ccs(sp_k_coo_bare);
 }
+
+/*
 
 void half_sarcomere::set_titin_sparse_k_and_f(void)
 {
@@ -1903,7 +2158,7 @@ size_t half_sarcomere::calculate_x_positions()
 
     if (p_fs_options->calculate_x_mode == 1)
     {
-        no_of_iterations = calculate_x_positions_sparse();
+        no_of_iterations = calculate_x_positions_sparse_2();
 
         return no_of_iterations;
     }
