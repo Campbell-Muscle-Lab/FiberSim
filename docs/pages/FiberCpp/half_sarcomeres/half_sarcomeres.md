@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Half_sarcomeres
+title: Half-sarcomeres
 parent: FiberCpp
 has_children: true
 nav_order: 2
