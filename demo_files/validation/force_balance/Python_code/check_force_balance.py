@@ -6,6 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
+import re
+
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
@@ -22,7 +24,7 @@ sys.path.append(code_path)
 
 from modules.half_sarcomere import half_sarcomere
 
-def check_force_balance(dump_file_string):
+def check_force_balance(dump_file_string, analysis_counter):
     """ Checks force balance on the dump file """
     
     hs = half_sarcomere.half_sarcomere(dump_file_string)
@@ -45,14 +47,11 @@ def check_force_balance(dump_file_string):
     m_rl = hs['thick'][0]['m_inter_crown_rest_length']
     m_cbs_per_node = hs['thick'][0]['m_cbs_per_node']
     
-    print('no_of_thin_filaments: %i' % no_of_thin_filaments)
-    print('a_nodes_per_thin_filament: %i' % a_nodes_per_thin_filament)
-    print('no_of_thick_filaments: %i' % no_of_thick_filaments)
-    print('m_nodes_per_thick_filament: %i' % m_nodes_per_thick_filament)
-    print(hs_total_nodes)
-    
     force_diff = np.zeros(hs_total_nodes)
     x_dev = np.zeros(hs_total_nodes)
+    
+    thin_ext = np.zeros((a_nodes_per_thin_filament-1, no_of_thin_filaments))
+    thick_ext = np.zeros((m_nodes_per_thick_filament-1, no_of_thick_filaments))
     
     # Loop through thin filaments
     counter = 0
@@ -132,12 +131,6 @@ def check_force_balance(dump_file_string):
             
             force_diff[a_row] = force_diff[a_row] + fd
             force_diff[m_row] = force_diff[m_row] - fd
-
-            if (thin_id==0):
-                print('a_row: %i' % a_row)
-                
-            if (m_f == 0):
-                print('m_row: %i' % m_row)
                 
     # Now add in correction for myosin
     for m_f, thick in enumerate(hs['thick']):
@@ -163,28 +156,28 @@ def check_force_balance(dump_file_string):
                 force_diff[a_row] = force_diff[a_row] + fd
                 force_diff[m_row] = force_diff[m_row] - fd
                 
+    # And finally correction for mybpc
+    for m_f, thick in enumerate(hs['thick']):
+        for m_n, bound_to_a_f in enumerate(thick['pc_bound_to_a_f']):
+            if (bound_to_a_f >= 0):
+                a_f = bound_to_a_f
+                a_n = thick['pc_bound_to_a_n'][m_n]
                 
+                thick_node_index = thick['pc_node_index'][m_n]
+                x_m = thick['cb_x'][thick_node_index * thick['m_cbs_per_node']]
+                x_a = hs['thin'][a_f]['bs_x'][a_n]
                 
+                a_row = (a_f * a_nodes_per_thin_filament) + \
+                         int(np.floor(a_n / thin['a_bs_per_node']))
                 
-    print('x_m: %6f' % x_m)
-    print('x_a: %6f' % x_a)
-    
-
-            # Now add in the
-            # if (counter == 3403):
-            #     print(counter)
-            #     print(m_f)
-            #     print(i)
-            #     print(hs['hs_data']['hs_length'])
-            #     print(thick['m_lambda'])
-            #     print(x_pos)
-            #     print(x)
-            #     print(x_neg)
-        
-
-    print('max_force_diff: %g\n' % np.amax(np.abs(force_diff)))
-    print('max_indices:')
-    print(np.argmax(force_diff))
+                m_row = (no_of_thin_filaments * a_nodes_per_thin_filament) + \
+                    (m_f * m_nodes_per_thick_filament) + \
+                        thick_node_index
+                        
+                fd = 0 * thick['c_k_stiff'] * (x_m - x_a)
+                
+                force_diff[a_row] = force_diff[a_row] + fd
+                force_diff[m_row] = force_diff[m_row] - fd
         
     # Calculate deviations
     for i in range(hs_total_nodes):
@@ -192,33 +185,22 @@ def check_force_balance(dump_file_string):
             x_dev[i] = force_diff[i] / a_k_stiff
         else:
             x_dev[i] = force_diff[i] / m_k_stiff
-    
-    print('max_x_dev: %g\n' % np.amax(np.abs(x_dev)))        
-    
-        # node_indices = 
-        # for a_n in np.arange(0, len(thin['bs_x']), a_bs_per_node):
-        #     print(a_n)
-        #     print(thin['bs_x'][a_n])
-
-        #     x = thin['bs_x'][a_n]            
-        #     if (a_n == 0):
-        #         x_minus = 0
-        #         x_plus = thin['bs_x'][a_n + a_bs_per_node]
-        #     elif (a_n < (a_nodes_per_thin_filament-a_bs_per_node-1)):
-        #         x_minus = thin['bs_x'][a_n - a_bs_per_node]
-        #         x_plus = x
-        #     else:
-        #         x_minus = thin['bs_x'][a_n - a_bs_per_node]
-        #         x_plus = thin['bs_x'][a_n + a_bs_per_node]
-                
-                
-        #     fd = (a_k_stiff * (x_plus - x - a_rl)) - \
-        #                 (a_k_stiff * (x - x_minus - a_rl))
             
-        #     force_diff[counter] = fd
-                                 
-
-    no_of_rows = 2
+    # Now calculate the thin filament extensions
+    for (i,thin) in enumerate(hs['thin']):
+        thin_ext[:,i] = np.diff(thin['bs_x'][::a_bs_per_node])
+        
+    thin_ext_mean = np.mean(thin_ext, 1)
+    thin_ext_sd = np.std(thin_ext, 1)
+    
+    # And now the thick equivalent
+    for (i,thick) in enumerate(hs['thick']):
+        thick_ext[:,i] = -np.diff(thick['cb_x'][::m_cbs_per_node])
+        
+    thick_ext_mean = np.mean(thick_ext, 1)
+    thick_ext_sd = np.std(thick_ext, 1)
+    
+    no_of_rows = 4
     no_of_cols = 1                                      
     fig = plt.figure(constrained_layout = False)
     spec = gridspec.GridSpec(nrows = no_of_rows,
@@ -234,170 +216,56 @@ def check_force_balance(dump_file_string):
             ax.append(fig.add_subplot(spec[i,j]))
             
     ax[0].plot(force_diff)
+    ax[0].set_ylabel('Force\nimbalance (nN)')
     
     ax[1].plot(x_dev)
-            
-# def return_index(hs, filament, f, n)
-#     """ Takes one-based f and n and returns the zero-based
-#         index for the node """
+    ax[1].set_ylabel('Node position\nmismatch (nm)')
+    ax[1].set_xlabel('Node number')
 
-#     no_of_thin_filaments = len(hs['thin'])
-#     no_of_thick_filaments = len(hs['thick'])
-    
-#     a_nodes_per_thin_filament = hs['hs_data']['a_nodes_per_thin_filament']
-#     m_nodes_per_thick_filament = hs['hs_data']['m_nodes_per_thick_filament']
-    
-#     a_bs_per_node = hs['thin'][0]['a_bs_per_node']
-#     m_cbs_per_node = hs['thick'][0]['m_cbs_per_node']
-    
-#     thin_nodes = 
-            
-            
-            
-            
-            
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    x = thin['bs_x'][:-2:a_bs_per_node]
+    ax[2].plot(x, thin_ext_mean, '-')
+    ax[2].fill_between(x, thin_ext_mean-thin_ext_sd,
+                       thin_ext_mean+thin_ext_sd,
+                       alpha = 0.2)
+    ax[2].set_xlim([0, hs['hs_data']['hs_length']])
+    ax[2].set_xlabel('Distance along half-sarcomere (nm)')
+    ax[2].set_ylabel('Inter-node\nspacing (nm)')
 
-# def run_validation(kinetic_data, batch_file_string):
-#     """Entrance function for the FiberSim testing suite"""
+    x = thick['cb_x'][:-6:m_cbs_per_node]
+    ax[3].plot(x, thick_ext_mean, '-')
+    ax[3].fill_between(x, thick_ext_mean-thick_ext_sd,
+                       thick_ext_mean+thick_ext_sd,
+                       alpha = 0.2)
+    ax[3].set_xlim([0, hs['hs_data']['hs_length']])
+    ax[3].set_xlabel('Distance along half-sarcomere (nm)')
+    ax[3].set_ylabel('Inter-node\nspacing (nm)')
     
-#     print("Run_validation starting")
+    # Work out a file name to save the figure
+    file_parts = re.split('/', dump_file_string)
+    output_dir = os.path.join(*file_parts[:-3])
+    output_file_string = os.path.join(output_dir,
+                                      'analysis_%i.png' % analysis_counter)
+    # Save the figure
+    print('Saving analysis to %s' % output_file_string)
+    fig.savefig(output_file_string)
     
-#     base_folder = os.path.dirname(batch_file_string)
-        
-#     # Get  model/protocol/option files depending on the validation type
-    
-#     val_type = kinetic_data["validation_type"]
-    
-#     if (val_type == 'force_balance'):  # option files is a list for force-balance check
-    
-#         if isinstance(kinetic_data['options_file'], list): # check if a list of options is provided        
-            
-#             dump_folder_list = []
-#             dump_precision_list = []
-        
-#             for elmt in kinetic_data['options_file']:
-                
-#                 if (kinetic_data['relative_to'] == 'this_file'):
-                
-#                     options_file = os.path.join(base_folder, elmt)
-#                     output_folder = os.path.join(base_folder, kinetic_data['output_data_folder'])
-                    
-#                 else:
-                    
-#                     options_file = elmt
-#                     output_folder = kinetic_data['output_data_folder']                   
-                    
-#                 with open(options_file, 'r') as f:
-#                     opt = json.load(f)
-                    
-#                 option_dir = os.path.dirname(options_file)
-                    
-#                 if 'status_files' in opt['options']:
-                    
-#                     if opt['options']['status_files']['relative_to'] == 'this_file':
-#                         dump_folder = os.path.join(option_dir , opt['options']['status_files']['status_folder'])
-#                     else:
-#                         dump_folder = opt['options']['status_files']['status_folder']
-                                    
-#                 else:
-#                     raise RuntimeError("No dump folder found to run the test")
-                    
-#                 dump_precision_list.append(opt["options"]["x_pos_rel_tol"])
-#                 dump_folder_list.append(dump_folder)
-                
-#         else:
-#             raise RuntimeError("Option file(s) not provided in a list form")          
-            
-#         # Create output folder if it does not exist
-        
-#         if not os.path.exists(output_folder):
-#             os.makedirs(output_folder) 
-                                    
-#         print("force_balance check")
-        
-#         force_balance.compute_force_balance(dump_precision_list, dump_folder_list, output_folder) 
-        
-#     else:  # it is a kinetic test    
-    
-#         if (kinetic_data['relative_to'] == 'this_file'):  
-            
-#             model_file = os.path.join(base_folder, kinetic_data['model_file'])
-        
-#             protocol_file = os.path.join(base_folder, kinetic_data['protocol_file'])
-            
-#             options_file = os.path.join(base_folder, kinetic_data['options_file'])
-            
-#             output_folder = os.path.join(base_folder, kinetic_data['output_data_folder'])
-            
-#         else:            
-#             model_file = kinetic_data['model_file']
-#             protocol_file = kinetic_data['protocol_file']
-#             options_file = kinetic_data['options_file']
-#             output_folder = kinetic_data['output_data_folder']
-            
-#         # Create output folder if it does not exist
-
-#         if not os.path.exists(output_folder):
-#             os.makedirs(output_folder)   
-                                       
-#         # Get dump_folder from option file
-        
-#         with open(options_file, 'r') as f:
-#             opt = json.load(f)
-        
-#         option_dir = os.path.dirname(options_file)
-                
-#         if 'status_files' in opt['options']:
-#             if opt['options']['status_files']['relative_to'] == 'this_file':
-#                 dump_folder = os.path.join(option_dir, opt['options']['status_files']['status_folder'])
-#             else:
-#                 dump_folder = opt['options']['status_files']['status_folder']
-                
-#         else:
-#             raise RuntimeError("No dump folder found to run the test")
-            
-#         # Get number of adjacent bs from option file
-        
-#         if 'adjacent_bs' in opt['options']:
-#             adj_bs = opt["options"]["adjacent_bs"]        
-#         else:
-#             adj_bs = 0
-        
-#         # Now run the kinetics test
-        
-#         val_type = kinetic_data["validation_type"]
-        
-#         if (val_type == 'm_kinetics'): 
-            
-#             print("Myosin kinetics check")
-            
-#             myosin_kinetics.compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs)
-            
-#         if (val_type == 'c_kinetics'): 
-                  
-#             print("Mybpc kinetics check")
-            
-#             mybpc_kinetics.compute_rate(model_file, protocol_file, dump_folder, output_folder, adj_bs)
-            
-#         if (val_type == 'a_kinetics'): 
-                    
-#             print("Actin kinetics check")
-            
-#             actin_kinetics.compute_rate(model_file, protocol_file, dump_folder, output_folder)   
             
 
 if __name__ == "__main__":
     
-    status_file_string = '../sim_data/sim_output/1/status_dumps_1_1_r1/hs_1_time_step_100.json'    
+    status_file_strings = [
+        '../sim_data/sim_output/1/status_dumps_1_1_r1/hs_1_time_step_100.json',
+        '../sim_data/sim_output/2/status_dumps_1_1_r1/hs_1_time_step_100.json',
+        '../sim_data/sim_output/3/status_dumps_1_1_r1/hs_1_time_step_100.json',
+        '../sim_data/sim_output/4/status_dumps_1_1_r1/hs_1_time_step_100.json',
+        '../sim_data/sim_output/5/status_dumps_1_1_r1/hs_1_time_step_100.json',
+        '../sim_data/sim_output/6/status_dumps_1_1_r1/hs_1_time_step_100.json']    
     
-    check_force_balance(status_file_string)
+    # Get this directory
+    this_dir = os.path.dirname(__file__)
+    
+    for i, sf in enumerate(status_file_strings):
+        
+        status_file = os.path.join(this_dir, sf)
+        check_force_balance(status_file, i+1)
         

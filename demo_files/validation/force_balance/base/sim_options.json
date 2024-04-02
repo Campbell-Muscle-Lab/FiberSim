@@ -2,7 +2,7 @@
   "options": {
     "max_rate": 5e4,
     "x_pos_rel_tol": 1e-3,
-    "x_vector_max_iterations": 50,
+    "x_vector_max_iterations": 100,
     "hs_force_control_max_delta_hs_length": 100,
     "adjacent_bs": 2,
     "lambda_jitter" : 0,

@@ -301,17 +301,7 @@ public:
 
     gsl_vector* cum_prob;           /**< gsl_vector holding cumulative transition probabilties */
 
-    // Sparse approach
-    gsl_vector* sp_f_bare;          /**< gsl_vector holding forces that depend only on the filaments
-                                         without cross-links */
-    gsl_vector* sp_f_titin;
-    gsl_vector* sp_f_myosin;
-    gsl_vector* sp_f_mybpc;
-
-    gsl_vector* sp_f_links;
-
-    gsl_vector* sp_f_complete;
-
+    // 2024 sparse approach
     gsl_spmatrix* sp_k_coo_bare;
                                     /**< gsl_sparse_matrix in triplet format that holds the
                                          k_matrix that depends only on the filaments without
@@ -319,42 +309,9 @@ public:
     gsl_spmatrix* sp_k_csc_bare;    /**< version of sp_k_coo_bare in compressed sparse columns
                                          format */
 
-    gsl_spmatrix* sp_k_coo_titin;
-    gsl_spmatrix* sp_k_csc_titin;
+    gsl_vector* sp_F;               /**< gsl_vector holding the right hand side of KX = F */
 
-    gsl_spmatrix* sp_k_coo_myosin;
-    gsl_spmatrix* sp_k_csc_myosin;
-
-    gsl_spmatrix* sp_k_coo_mybpc;
-    gsl_spmatrix* sp_k_csc_mybpc;
-
-    gsl_spmatrix* sp_k_csc_links;
-
-    gsl_spmatrix* sp_k_coo_complete;
-    gsl_spmatrix* sp_k_csc_complete;
-
-    gsl_spmatrix* sp_k_ccs;
-                                    /**< gsl_sparse_matrix in css format that holds delta_k
-                                         which depends on cross-links */
-
-    gsl_vector* sp_F;
-    gsl_vector* sp_dF;
-    gsl_vector* sp_G;
-
-    //void build_sparse_k_and_f(void);
-
-    void set_bare_sparse_k_and_f(void);
-    
-    void set_titin_sparse_k_and_f(void);
-    void set_myosin_sparse_k_and_f(void);
-    void set_mybpc_sparse_k_and_f(void);
-
-    void calculate_sp_F_and_G(gsl_vector* x);
-    void calculate_sp_dF_and_G(gsl_vector* x);
-
-    size_t calculate_x_positions_sparse_2(void);
-    size_t calculate_x_positions_sparse_3(void);
-    double sum_of_vector(gsl_vector* v);
+    gsl_vector* sp_G;               /**< gsl_vector holding G in (k_bare X + G) = F */
 
     // Functions
 
@@ -463,8 +420,6 @@ public:
     * @return int number of iterations in iterative solver
     */
     size_t calculate_x_positions(void);
-
-    size_t calculate_x_positions_sparse(void);
 
     /**
     * void unpack_x_vector(void)
@@ -703,4 +658,39 @@ public:
     void write_gsl_vector_to_file(gsl_vector* p_vector, char output_file_string[]);
 
     void extract_digits(string test_string, int digits[], int no_of_digits);
+
+    /**
+    * void calculate_sparse_k_bare(void)
+    * calculates sp_k_csc_bare which is the k_matrix in CSC form for just the
+    * thin and thick filament backbones
+    * @return void
+    */
+    void calculate_sparse_k_bare(void);
+
+    /**
+    * void calculate_sp_F_and_G(void)
+    * Calculates sp_F, a vector that holds the right-hand side of
+    * K_0 X + G(X) = F(X)
+    * and the corresponding G vector
+    * @param x, a gsl_vector holding x positions
+    * @return void
+    */
+    void calculate_sp_F_and_G(gsl_vector* x);
+
+    /**
+    * size_t calculate_x_positions_sparse(void)
+    * calculates the x_vector using an iterative approach explained in
+    * the main FiberSim repo documentation
+    * @return size_t with the number of iterations required
+    * */
+    size_t calculate_x_positions_sparse(void);
+
+    /**
+    * size_t caclulate_x_positions_ye_method(void)
+    * calculates the x_vector using an iterative approach developed by
+    * Qiang Ye and used up until ver 2.3
+    * This is fast but is not stable for situations with very compliant filaments
+    * @return size_t with the number of iterations required
+    * */
+    size_t calculate_x_positions_ye_method(void);
 };

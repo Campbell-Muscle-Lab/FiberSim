@@ -1,7 +1,8 @@
 ---
 layout: default
 title: Sarcomere lattice
-parent: FiberCpp
+parent: Half-sarcomeress
+grand_parent: FiberCpp
 has_children: false
 nav_order: 4
 ---

@@ -4,7 +4,7 @@ title: KX=F
 grand_parent: FiberCpp
 parent: Half-sarcomeres
 has_children: false
-nav_order: 3
+nav_order: 2
 ---
 
 # KX=F
@@ -49,17 +49,29 @@ As explained at [lattice equations](../lattice_equations/lattice_equations.html)
 ### Approach
 
 The goal is to solve $X$ where $K$ and $F$ are known and 
-$$ K X = F $$
+$$
+\begin{equation}
+K X = F
+\end{equation}
+$$
+
 
 Define $K_0$ as the portion of $K$ that correspond to the thin and thick filament backbones, noting that $K_0$'s non-zero elements all lie on the tridiagonals.
 
 Define $G(X)$ as a vector that depends on X and represents perturbations induced by cross-links (in FiberSim's case, titin, bound myosins, and bound cMyBP-C molecules).
 
-$$ K_0 X + G(X) = F $$
+$$
+\begin{equation}
+K_0 X + G(X) = F
+\end{equation}
+$$
 
 Further define
-
-$$ X_i = X_{g,i} + \Delta X $$
+$$
+\begin{equation}
+X_i = X_{g,i} + \Delta X_i
+\end{equation}
+$$
 
 where
 
@@ -69,15 +81,33 @@ where
 
 Substituting in, leads to
 
-$ K_0 (X_{g,i} + \Delta X_i) + G(X_{g,i} + \Delta X_i) = F $
+$$
+\begin{equation}
+K_0 (X_{g,i} + \Delta X_i) + G(X_{g,i} + \Delta X_i) = F
+\end{equation}$$
 
 This can be re-arranged to yield
+$$
+\begin{equation}
+\Delta X_i  = K_0 ^{-1} (F - K_0 X_{g,i} - G(X_{g,i} + \Delta X_i))
+\end{equation}
+$$
 
-$ \Delta X  = K_0 ^{-1} (F - K_0 X_{g,i} - G(X_{g,i})) $
+If $G$ is dominated by $X_{g}$, equation (5) can be rewritten as
+
+$$
+\begin{equation}
+\Delta X_i  \approx K_0 ^{-1} (F - K_0 X_{g,i} - G(X_{g,i}))
+\end{equation}
+$$
 
 An improved guess for $X$ can then be calculated from
 
-$ X_{g,i+1} = X_{g,i} + \Delta X_i $
+$$
+\begin{equation}
+X_{g,i+1} = X_{g,i} + \Delta X_i
+\end{equation}
+$$
 
 Note that
 
@@ -97,7 +127,7 @@ This leads to an iterative approach that runs as follows:
   + form a new $X_{g,i+1}$ = $X_{g,i} + \alpha \Delta X_i$ 
   + repeat until $X_g$ converges
 
-Since FiberSim Ver 2.3, $ \alpha$ is initialized at 1 but can be reduced to improve convergence. Specifically, if $X$ starts to diverge, $ \alpha $ is multiplied by 0.5 for the next step. This adds a smaller correction.
+Since FiberSim Ver 2.3, $ \alpha$ is initialized at 1 but can be reduced to improve convergence. Specifically, if $X$ starts to diverge, the current value of $ \alpha $ is reduced by 50% for the next step. This adds a smaller correction.
 
 This approach
 
@@ -107,11 +137,11 @@ This approach
 
 #### An aside that didn't work
 
-FiberCpp uses the [GSL Scientific Library](https://www.gnu.org/software/gsl/doc/html/index.html) for most of the scientific computing procedues.
+FiberCpp uses the [GSL Scientific Library](https://www.gnu.org/software/gsl/doc/html/index.html) for most of the scientific computing procedures.
 
-GSL includes code that can solve $X = K \backslash X$ when $K$ is stored in a sparse format.
+GSL includes code that can solve $X = K \backslash X$ when $K$ is stored in a sparse format. Specifically, the [algorithm](https://www.gnu.org/software/gsl/doc/html/splinalg.html) implements a Generalized Minimum Residual (GMRES) method.
 
-GSL's [approach](https://www.gnu.org/software/gsl/doc/html/splinalg.html) uses a Generalized Minimum Residual Method (GMRES) algorithm. Early tests showed that the approach correctly calcuated $X$ but that the algorithm was so slow that the calculations became impractical.
+Pilot tests showed that the GMRES algorithm could calculate $X$ under at least some conditions but the approach was so slow that the calculations became impractical.
 
 Alternative methods may be more efficent.
 
