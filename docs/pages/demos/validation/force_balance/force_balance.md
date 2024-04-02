@@ -43,7 +43,7 @@ All of the results from the simulation are written to files in `<FiberSim_repo>/
 
 The file `superposed_traces.png` shows pCa, length, force per cross-sectional area (stress), and thick and thin filament properties for the first half-sarcomere in the myofibril plotted against time.
 
-<img src="images/superposed_traces.png" width="50%">
+<img src="images/superposed_traces.png" width="100%">
 
 FiberPy also generated customized figures for this simulation showing, in rows from the top:
 + the unbalanced force at each node

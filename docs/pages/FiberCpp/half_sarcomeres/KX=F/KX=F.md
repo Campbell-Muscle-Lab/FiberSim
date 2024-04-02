@@ -16,7 +16,7 @@ nav_order: 2
 $$ K X = F $$
 
 where:
- + $ K $ is a square matrix of size $ n $ x $ n $
+ + $K$ is a square matrix of size $ n $ x $ n $
  + $X$ is a vector of size $ n $ x 1
  + $F$ is a vector of size $ n $ x 1
 
