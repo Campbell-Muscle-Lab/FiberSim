@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Force-balance
-parent: Validations
+parent: Validation
 grand_parent: Demos
 nav_order: 1
 ---
