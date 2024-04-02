@@ -50,7 +50,7 @@
   "titin_parameters": {
     "t_passive_mode": "linear",
     "t_k_stiff": 0,
-    "t_slack_length": 0
+    "t_offset": 0
   },
   "extracellular_parameters": {
     "e_passive_mode": "exponential",
@@ -64,9 +64,7 @@
   },
   "m_kinetics": [
     {
-      "no_of_states": 3,
-      "max_no_of_transitions": 2,
-      "scheme": [
+      "state": [
         {
           "number": 1,
           "type": "S",
@@ -137,9 +135,7 @@
   },
   "c_kinetics": [
     {
-      "no_of_states": 2,
-      "max_no_of_transitions": 1,
-      "scheme": [
+      "state": [
         {
           "number": 1,
           "type": "D",
@@ -149,7 +145,7 @@
               "new_state": 2,
               "rate_type": "gaussian_pc",
               "rate_parameters": [
-                100
+                0
               ]
             }
           ]

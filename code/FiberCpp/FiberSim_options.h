@@ -118,6 +118,10 @@ public:
 
     char time_steps_string[_MAX_PATH];  /**< String definning which time_steps to dump */
 
+    int calculate_x_mode;               /**< Integer defining mode to use to calculate x positions
+                                                1 = Ken's sparse method (default)
+                                                2 = traditional Qiang Ye method */
+
     int start_status_time_step;         /**< Integer of first time-step to dump status file */
 
     int stop_status_time_step;          /**< Integer of last time-step to dump status file */

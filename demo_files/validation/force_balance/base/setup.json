@@ -1,0 +1,45 @@
+{
+  "FiberSim_setup": {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../../bin/FiberCpp.exe"
+    },
+    "model": {
+      "relative_to": "this_file",
+      "options_file": "sim_options.json",
+      "manipulations":
+      {
+        "base_model": "model.json",
+        "generated_folder": "../generated",
+        "adjustments":
+        [
+            {
+                "class": "thick_parameters",
+                "variable": "m_k_stiff",
+                "multipliers": [1, 0.5, 0.25, 0.1, 0.05, 0.025],
+                "output_type": "float"
+            },
+            {
+                "class": "thin_parameters",
+                "variable": "a_k_stiff",
+                "multipliers": [1, 0.5, 0.25, 0.1, 0.05, 0.025],
+                "output_type": "float"
+            }
+        ]
+       }
+    },
+    "characterization": [
+        {
+            "type": "freeform",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data",
+            "m_n": 9,
+            "protocol_files": ["../protocols/ramp.txt"],
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False",
+            "post_sim_Python_call": "../Python_code/check_force_balance.py"
+        }
+    ]
+  }
+}

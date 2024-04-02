@@ -301,6 +301,17 @@ public:
 
     gsl_vector* cum_prob;           /**< gsl_vector holding cumulative transition probabilties */
 
+    // 2024 sparse approach
+    gsl_spmatrix* sp_k_coo_bare;
+                                    /**< gsl_sparse_matrix in triplet format that holds the
+                                         k_matrix that depends only on the filaments without
+                                         cross-links */
+    gsl_spmatrix* sp_k_csc_bare;    /**< version of sp_k_coo_bare in compressed sparse columns
+                                         format */
+
+    gsl_vector* sp_F;               /**< gsl_vector holding the right hand side of KX = F */
+
+    gsl_vector* sp_G;               /**< gsl_vector holding G in (k_bare X + G) = F */
 
     // Functions
 
@@ -395,7 +406,7 @@ public:
     void calculate_g_vector(gsl_vector* x_trial);
 
     /**
-    * Calculates the g-vector which is the part of f in kx = f
+    * Calculates the df-vector which is the part of f in kx = f
     * which is due to cross-bridges and titin and does not depend on x
     * thus the part due titin rest length and cb extensions
     * @return void
@@ -647,4 +658,39 @@ public:
     void write_gsl_vector_to_file(gsl_vector* p_vector, char output_file_string[]);
 
     void extract_digits(string test_string, int digits[], int no_of_digits);
+
+    /**
+    * void calculate_sparse_k_bare(void)
+    * calculates sp_k_csc_bare which is the k_matrix in CSC form for just the
+    * thin and thick filament backbones
+    * @return void
+    */
+    void calculate_sparse_k_bare(void);
+
+    /**
+    * void calculate_sp_F_and_G(void)
+    * Calculates sp_F, a vector that holds the right-hand side of
+    * K_0 X + G(X) = F(X)
+    * and the corresponding G vector
+    * @param x, a gsl_vector holding x positions
+    * @return void
+    */
+    void calculate_sp_F_and_G(gsl_vector* x);
+
+    /**
+    * size_t calculate_x_positions_sparse(void)
+    * calculates the x_vector using an iterative approach explained in
+    * the main FiberSim repo documentation
+    * @return size_t with the number of iterations required
+    * */
+    size_t calculate_x_positions_sparse(void);
+
+    /**
+    * size_t caclulate_x_positions_ye_method(void)
+    * calculates the x_vector using an iterative approach developed by
+    * Qiang Ye and used up until ver 2.3
+    * This is fast but is not stable for situations with very compliant filaments
+    * @return size_t with the number of iterations required
+    * */
+    size_t calculate_x_positions_ye_method(void);
 };

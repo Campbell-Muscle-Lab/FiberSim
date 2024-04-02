@@ -363,7 +363,7 @@ def get_m_titin_force(hs, thick_fil, cb_node, bs_per_node=2, cb_per_node=6):
             
             delta_x = cb_x - bs_x 
             
-            titin_force += hs["titin"]["t_k_stiff"] * (delta_x - hs["titin"]["t_slack_length"])
+            titin_force += hs["titin"]["t_k_stiff"] * (delta_x - hs["titin"]["t_offset"])
     
       return titin_force
   
@@ -390,7 +390,7 @@ def get_a_titin_force(hs, thin_fil, bs_node, nearest_thicks, bs_per_node=2, cb_p
 
             delta_x = cb_x - bs_x 
             
-            titin_force += hs["titin"]["t_k_stiff"] * (delta_x - hs["titin"]["t_slack_length"])
+            titin_force += hs["titin"]["t_k_stiff"] * (delta_x - hs["titin"]["t_offset"])
     
       return titin_force
   

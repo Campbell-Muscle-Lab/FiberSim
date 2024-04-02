@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Visualization
 nav_order: 50
 parent: Demos
