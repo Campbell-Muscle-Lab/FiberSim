@@ -171,6 +171,7 @@ def generate_model_files(json_analysis_file_string):
                     adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1]['extension'] = \
                         value
                 else:
+                    print(a)
                     # Transition parameters
                     y = np.asarray(adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1] \
                               ['transition'][a['transition']-1]['rate_parameters'],

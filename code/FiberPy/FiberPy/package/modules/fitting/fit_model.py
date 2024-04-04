@@ -41,8 +41,21 @@ def fit_model(json_analysis_file_string):
         fitting_struct = model_struct['fitting']
 
     # Deduce the number of parameters
+    
+    # In the simplest case, the number of parameters is defined
+    # by the number of 'simple' adjustments
     no_of_parameters = len(fitting_struct['adjustments'])
     
+    # We also need to check for base_variants
+    if ('base_variants' in fitting_struct):
+        base_variants = fitting_struct['base_variants']
+        for (i, bv) in enumerate(base_variants):
+            adjustments = bv['adjustments']
+            for (j, adj) in enumerate(adjustments):
+                if not ('multipliers' in adj):
+                    no_of_parameters = no_of_parameters + 1
+
+    # Now set p    
     if ('initial_guess' in fitting_struct):
         p = np.asarray(fitting_struct['initial_guess'])
     else:
@@ -111,13 +124,12 @@ def pso(worker, p_vector, json_analysis_file_string, progress_data,
         f_particles = 2, bounds = [0, 1],
         inertia = 0.5, w_self = 0.5, w_family = 0.5,
         initial_vel = 0.0,
-        vel_bounds = [0.0, 0.1],
+        vel_bounds = [0.0, 0.2],
         jitter = 0.03,
         throw = 20):
     
     # Set the number of particles
-    n_particles = bounds[0] + (bounds[1]-bounds[0]) * \
-                    round(f_particles * len(p_vector))
+    n_particles = round(f_particles * len(p_vector))
     
     # Set the initial values
     rng = np.random.default_rng()
@@ -187,13 +199,6 @@ def pso(worker, p_vector, json_analysis_file_string, progress_data,
                 particle_best_value[i] = np.Inf
                 particle_best_x[i,:] = x[i,:]
     
-    
-    
-    
-    
-    
-    # worker(p_vector, json_analysis_file_string, progress_data)
-    
     print('Done')
 
     
@@ -257,10 +262,17 @@ def worker(p_vector, json_analysis_file_string, progress_data):
     # Set parameter multipliers for the adjustments
     adj = new_setup['FiberSim_setup']['model']['manipulations']['adjustments']
     
+    # Cycle through the adjustments setting the multiplier based on the
+    # p_vector. We will make a new array of adjustments here to allow for
+    # base variants
+    
+    new_adjustments = []
+    p_counter = 0
+    
     for (i, a) in enumerate(adj):
         
         span = a['factor_bounds'][1] - a['factor_bounds'][0]
-        m = a['factor_bounds'][0] + p_vector[i] * span
+        m = a['factor_bounds'][0] + p_vector[p_counter] * span
         a['multipliers'] = []
         if ('factor_mode' in a):
             if (a['factor_mode'] == "log"):
@@ -270,9 +282,96 @@ def worker(p_vector, json_analysis_file_string, progress_data):
             a['multipliers'].append(m)
         del a['factor_bounds']
         
-        # Overwrite
-        new_setup['FiberSim_setup']['model']['manipulations']['adjustments'][i] = a
-    
+        new_adjustments.append(a)
+        
+        p_counter = p_counter + 1
+        
+    # Now we need to check for base_variants
+    # We will handle these by adding new elements to the multipliers list for
+    # each adjustment
+    if ('base_variants' in new_setup['FiberSim_setup']['model']['manipulations']):
+        base_variants = new_setup['FiberSim_setup']['model']['manipulations']['base_variants']
+        
+        # Cycle through the base variants
+        for (i,bv) in enumerate(base_variants):
+
+            # Work out the index for the parameter we are adding
+            new_mult_index = len(new_adjustments[0]['multipliers'])
+            
+            # And now the adjustments
+            for (j, a) in enumerate(bv['adjustments']):
+
+                # Work out what the new value will be
+                if ('multipliers' in a):
+                    new_value = a['multipliers'][0]
+                else:
+                    span = a['factor_bounds'][1] - a['factor_bounds'][0]
+                    new_value = a['factor_bounds'][0] + p_vector[p_counter] * span
+                    if (a['factor_mode'] == 'log'):
+                        new_value = np.power(10, new_value)
+                    
+                    p_counter = p_counter + 1
+                
+                # Work out whether the adjustment is new or
+                # matches an existing entry         
+                matching_ind = return_matching_adjustment_index(
+                                    new_adjustments, a)
+                    
+                # Branch depending on match
+                if (matching_ind == -1):
+                    # There's no match
+                    # Duplicate the last multiplier for other adjustments
+                    # Add in a 1, x muliplier for the test
+                    
+                    for na in new_adjustments:
+                        y = na['multipliers']
+                        if (len(y) <= new_mult_index):
+                            na['multipliers'].append(y[-1])
+                        else:
+                            na['multipliers'][new_mult_index] = y[-1]
+                        
+                    # Now add in the new one
+                    a['multipliers'] = [new_value]
+                    a['multipliers'].insert(-1, 1)
+                    
+                    # Clean up the adjustment
+                    if ('factor_bounds' in a):
+                        del a['factor_bounds']
+                        
+                    if ('factor_mode' in a):
+                        del a['factor_mode']
+                    
+                    new_adjustments.append(a)
+                    
+                else:
+                    # There is a match.
+                    # Add in fixed multiplier for the match
+                    # Duplicate the last multiplier for the
+                    # non-matching adjustments
+                    
+                    for (k,na) in enumerate(new_adjustments):
+                        if (k == matching_ind):
+                            # Match
+                            y = na['multipliers']
+                            if (len(y) <= new_mult_index):
+                                na['multipliers'].append(new_value)
+                            else:
+                                na['multipliers'][new_mult_index] = new_value
+                        else:
+                            # Non-match
+                            y = na['multipliers']
+                            if (len(y) <= new_mult_index):
+                                na['multipliers'].append(y[-1])
+                            else:
+                                na['multipliers'][new_mult_index] = \
+                                    y[-1]
+                                    
+        # Delete the base variants that are no longer needed
+        del new_setup['FiberSim_setup']['model']['manipulations']['base_variants']
+            
+    # Overwrite
+    new_setup['FiberSim_setup']['model']['manipulations']['adjustments'] = \
+       new_adjustments
         
     # Add Python objective call to characterization, with an
     # extra field for the progress file
@@ -357,6 +456,32 @@ def worker(p_vector, json_analysis_file_string, progress_data):
     
     # Return
     return prog_d['error_total']
+
+def return_matching_adjustment_index(existing, test):
+    """ Compares the test adjustment to the existing ones and
+        returns an index for a match, or -1 if there is no match """
+    
+    for (i,a) in enumerate(existing):
+        if (test['variable'] == a['variable']):
+            if ('isotype' in a):
+                # It's a kinetic parameter, check the other matches
+                try:
+                    if (test['isotype'] == a['isotype']) and \
+                            (test['state'] == a['state']) and \
+                            (test['transition'] == a['transition']) and \
+                            (test['parameter_number'] == a['parameter_number']):
+                        # It's a match
+                        return i
+                except:
+                    pass
+            else:
+                # It's a non-kinetic parameter
+                if (test['class'] == a['class']):
+                    # It's a match
+                    return i
+    
+    # No match
+    return -1
     
 def update_best(progress_data, trial_df, json_analysis_file_string):
     """ Updates best simulation """
