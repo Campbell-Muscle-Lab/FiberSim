@@ -49,7 +49,6 @@ As explained at [lattice equations](../lattice_equations/lattice_equations.html)
 ### Approach
 
 The goal is to solve $$X$$ where $$K$$ and $$F$$ are known and 
-
 $$
 \begin{equation}
 K X = F
@@ -68,7 +67,6 @@ K_0 X + G(X) = F
 $$
 
 Further define
-
 $$
 \begin{equation}
 X_i = X_{g,i} + \Delta X_i
@@ -89,7 +87,6 @@ K_0 (X_{g,i} + \Delta X_i) + G(X_{g,i} + \Delta X_i) = F
 \end{equation}$$
 
 This can be re-arranged to yield
-
 $$
 \begin{equation}
 \Delta X_i  = K_0 ^{-1} (F - K_0 X_{g,i} - G(X_{g,i} + \Delta X_i))
