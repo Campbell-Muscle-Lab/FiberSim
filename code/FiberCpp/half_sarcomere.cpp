@@ -1500,15 +1500,18 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
             temp = gsl_vector_get(sp_G, thick_node_index);
             gsl_vector_set(sp_G, thick_node_index, temp - f_temp);
 
-            // Exponential portion of G
-            f_temp = t_sigma * exp(
-                (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
+            if (!strcmp(t_passive_mode, "exponential"))
+            {
+                // Exponential portion of G
+                f_temp = t_sigma * exp(
+                    (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
 
-            temp = gsl_vector_get(sp_G, thin_node_index);
-            gsl_vector_set(sp_G, thin_node_index, temp - f_temp);
+                temp = gsl_vector_get(sp_G, thin_node_index);
+                gsl_vector_set(sp_G, thin_node_index, temp - f_temp);
 
-            temp = gsl_vector_get(sp_G, thick_node_index);
-            gsl_vector_set(sp_G, thick_node_index, temp + f_temp);
+                temp = gsl_vector_get(sp_G, thick_node_index);
+                gsl_vector_set(sp_G, thick_node_index, temp + f_temp);
+            }
         }
     }
 
