@@ -1059,7 +1059,6 @@ size_t half_sarcomere::calculate_x_positions_sparse()
     gsl_vector* x_0;
     gsl_vector* x_worker;
     gsl_vector* x_total;
-    gsl_vector* x_scale;
     gsl_vector* x_last;
     gsl_vector* x_diff;
 
@@ -1450,8 +1449,6 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
 
     // Variables
 
-    int row_index;
-
     double temp;
     double f_temp;
 
@@ -1500,15 +1497,18 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
             temp = gsl_vector_get(sp_G, thick_node_index);
             gsl_vector_set(sp_G, thick_node_index, temp - f_temp);
 
-            // Exponential portion of G
-            f_temp = t_sigma * exp(
-                (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
+            if (!strcmp(t_passive_mode, "exponential"))
+            {
+                // Exponential portion of G
+                f_temp = t_sigma * exp(
+                    (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
 
-            temp = gsl_vector_get(sp_G, thin_node_index);
-            gsl_vector_set(sp_G, thin_node_index, temp - f_temp);
+                temp = gsl_vector_get(sp_G, thin_node_index);
+                gsl_vector_set(sp_G, thin_node_index, temp - f_temp);
 
-            temp = gsl_vector_get(sp_G, thick_node_index);
-            gsl_vector_set(sp_G, thick_node_index, temp + f_temp);
+                temp = gsl_vector_get(sp_G, thick_node_index);
+                gsl_vector_set(sp_G, thick_node_index, temp + f_temp);
+            }
         }
     }
 
