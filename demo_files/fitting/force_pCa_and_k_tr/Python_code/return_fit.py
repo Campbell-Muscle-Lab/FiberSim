@@ -16,7 +16,7 @@ import pandas as pd
 def return_fit():
     """ returns a single value defining the least squares fit
         between the current simulation and the target data """
-        
+       
     # Variables
     top_data_folder = '../sim_data/sim_output'
     pCa_data_file = 'pCa_analysis.xlsx'

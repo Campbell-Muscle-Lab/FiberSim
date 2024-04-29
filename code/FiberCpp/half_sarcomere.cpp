@@ -306,8 +306,8 @@ half_sarcomere::half_sarcomere(
     original_x_vector = gsl_vector_alloc(hs_total_nodes);
 
     // Allocate space
-    size_t nnz = size_t(10 * hs_total_nodes);
-    sp_k_coo_bare = gsl_spmatrix_alloc(hs_total_nodes, hs_total_nodes);
+    size_t nnz = size_t(5 * hs_total_nodes);
+    sp_k_coo_bare = gsl_spmatrix_alloc_nzmax(hs_total_nodes, hs_total_nodes, nnz, GSL_SPMATRIX_COO);
     sp_k_csc_bare = gsl_spmatrix_alloc_nzmax(hs_total_nodes, hs_total_nodes, nnz, GSL_SPMATRIX_CSC);
 
     sp_F = gsl_vector_alloc(hs_total_nodes);

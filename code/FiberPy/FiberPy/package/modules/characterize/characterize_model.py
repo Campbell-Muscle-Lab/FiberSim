@@ -1405,6 +1405,15 @@ def deduce_freeform_properties(json_analysis_file_string,
             
             if not os.path.isdir(sim_input_dir):
                 os.makedirs(sim_input_dir)
+                
+            # And a folder for the sim_output
+            sim_output_dir = os.path.join(base_dir,
+                                          freeform_struct['sim_folder'],
+                                          'sim_output',
+                                          ('%i' % dir_counter))
+            
+            if not os.path.isdir(sim_output_dir):
+                os.makedirs(sim_output_dir)
             
             # Copy the model and options files to the sim_input dir
             # adjusting half-sarcomere lengths as appropriate
@@ -1462,19 +1471,24 @@ def deduce_freeform_properties(json_analysis_file_string,
                         # Copy the orig_options_struct for local changes
                         # within the rep
                         rep_options_data = copy.deepcopy(orig_options_data)
-    
+        
                         # Update the options file to dump to a local directory
                         if ('status_files' in rep_options_data['options']):
+                            rep_options_data['options']['status_files']['relative_to'] = \
+                                'this_file'
+                            last_folder = re.split('/|\\\\',
+                                                   rep_options_data['options']['status_files']['status_folder'])[-1]
                             rep_options_data['options']['status_files']['status_folder'] = \
-                                os.path.join('../../sim_output',
-                                             ('%i' % dir_counter),
-                                             ('%s_%i_%i_r%i' %
-                                              (rep_options_data['options']['status_files']['status_folder'],
-                                               (prot_counter + 1),
-                                               (after_counter + 1),
-                                               (rep + 1))))
+                                os.path.join(sim_output_dir,
+                                              ('%s_%i_%i_r%i' %
+                                               (last_folder,
+                                                (prot_counter+1),
+                                                (after_counter+1),
+                                                (rep+1))))
+                               
                             # Make the status folder if required
                             test_dir = rep_options_data['options']['status_files']['status_folder']
+                            
                             if not os.path.isdir(test_dir):
                                 os.makedirs(test_dir)
     
@@ -1483,10 +1497,9 @@ def deduce_freeform_properties(json_analysis_file_string,
                             # update the options file to dump rates
                             rep_options_data['options']['rate_files'] = dict()
                             rep_options_data['options']['rate_files']['relative_to'] = \
-                                'this_file'
+                                'false'
                             rep_options_data['options']['rate_files']['file'] = \
-                                os.path.join('../../sim_output',
-                                             ('%i' % dir_counter),
+                                os.path.join(sim_output_dir,
                                              'rates.json')
 
                         if not (after_struct == []):
