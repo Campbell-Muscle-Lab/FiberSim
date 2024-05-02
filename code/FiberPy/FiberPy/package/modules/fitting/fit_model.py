@@ -82,6 +82,21 @@ def fit_model(json_analysis_file_string):
     # Check the working dir is there
     if not os.path.isdir(progress_dir):
         os.makedirs(progress_dir)
+
+    # And now the current folder
+    current_dir = os.path.join(model_base_dir, fitting_struct['current_folder'])
+    current_dir = str(Path(current_dir).resolve().absolute())
+
+    # Clean current dir
+    try:
+        print('Trying to clean: %s', current_dir)
+        shutil.rmtree(current_dir, ignore_errors = True)
+    except OSError as e:
+        print('Error: %s : %s' % (current_dir, e.strerror))
+
+    # Check the directory isthere
+    if not os.path.isdir(current_dir):
+        os.makedirs(current_dir)
     
     # Make the dictionary
     progress_data = dict()
@@ -94,6 +109,7 @@ def fit_model(json_analysis_file_string):
                                                          'progress.xlsx')
     progress_data['best_file_string'] = os.path.join(progress_dir,
                                                      'best.xlsx')
+    progress_data['current_folder'] = current_dir
         
     if (fitting_struct['single_run'] == 'True'):
         print('Single run')
@@ -450,6 +466,10 @@ def worker(p_vector, json_analysis_file_string, progress_data):
         update_best(progress_data,
                     trial_df,
                     json_analysis_file_string)
+
+    # Copy files to current
+    update_current(progress_data,
+                   json_analysis_file_string)
         
     # Update a figure
     plot_progress(progress_data)
@@ -533,6 +553,32 @@ def update_best(progress_data, trial_df, json_analysis_file_string):
         old_file = os.path.join(sim_output_dir, file)
         if (os.path.isfile(old_file)):
             new_file = os.path.join(progress_data['progress_folder'],
+                                    file)
+            shutil.copyfile(old_file, new_file)
+
+def update_current(progress_data, json_analysis_file_string):
+    """ Updates sim_output files for visualization """
+
+    # Laod the json analysis file
+    with open(json_analysis_file_string, 'r') as f:
+        json_data = json.load(f)
+
+    # Get the files from the sim_output and copy them across
+    char_struct = json_data['FiberSim_setup']['characterization'][0]
+    if (char_struct['relative_to'] == 'this_file'):
+        base_dir = str(Path(json_analysis_file_string).parent)
+    else:
+        base_dir = char_struct['relative_to']
+    sim_output_dir = os.path.join(base_dir,
+                                  char_struct['sim_folder'],
+                                  'sim_output')
+    sim_output_dir = str(Path(sim_output_dir).resolve().absolute())
+    
+    # Find the files and copy them to current
+    for file in os.listdir(sim_output_dir):
+        old_file = os.path.join(sim_output_dir, file)
+        if (os.path.isfile(old_file)):
+            new_file = os.path.join(progress_data['current_folder'],
                                     file)
             shutil.copyfile(old_file, new_file)
     
