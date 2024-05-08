@@ -1361,11 +1361,9 @@ def deduce_freeform_properties(json_analysis_file_string,
                 after = dict()
                 after['load'] = after_struct['load']
                 after['break_delta_hs_length'] = after_struct['break_delta_hs_length']
+                protocol_afterload.append(after)                  
             else:
                 after = []
-                
-            # Append
-            protocol_afterload.append(after)                  
 
     # Set the base dir
     base_dir = freeform_struct['relative_to']
@@ -1455,8 +1453,7 @@ def deduce_freeform_properties(json_analysis_file_string,
             # Loop through the protocol_files
             for prot_counter, prot_f in \
                 enumerate(freeform_struct['protocol_files']):
-                
-                
+
                 if not (protocol_afterload == []):
                     after_range = range(len(protocol_afterload[prot_counter]['load']))
                 else:
