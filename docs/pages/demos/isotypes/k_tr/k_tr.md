@@ -37,7 +37,7 @@ If you need help with these step, check the [installation instructions](../../..
 + Run the command
 
 ```text
- python FiberPy.py characterize "../../../demo_files/isotpyes/k_tr/base/setup.json"
+ python FiberPy.py characterize "../../../demo_files/isotypes/k_tr/base/setup.json"
  ```
 
 + You should see text appearing in the terminal window, showing that the simulations are running. When it finishes (this may take a few minutes), you should see something similar to the image below.
