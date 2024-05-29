@@ -548,13 +548,35 @@ def update_best(progress_data, trial_df, json_analysis_file_string):
                                   'sim_output')
     sim_output_dir = str(Path(sim_output_dir).resolve().absolute())
     
-    # Find the files and copy them to progress
-    for file in os.listdir(sim_output_dir):
-        old_file = os.path.join(sim_output_dir, file)
-        if (os.path.isfile(old_file)):
-            new_file = os.path.join(progress_data['progress_folder'],
-                                    file)
-            shutil.copyfile(old_file, new_file)
+    # Copy files across
+    shutil.copytree(sim_output_dir, progress_data['progress_folder'],
+                    dirs_exist_ok=True)
+    
+    # Call Python code if required
+    fitting_struct = json_data['FiberSim_setup']['model']['fitting']
+    if ('Python_best_call' in fitting_struct):
+        model_struct = json_data['FiberSim_setup']['model']
+        if (model_struct['relative_to'] == 'this_file'):
+            base_dir = str(Path(json_analysis_file_string).parent)
+        else:
+            base_dir = model_struct['relative_to']
+            
+            
+        python_cmd = 'python %s' % os.path.join(base_dir,
+                                  fitting_struct['Python_best_call'])
+        
+        print(python_cmd)
+        subprocess.call(python_cmd)
+        
+        
+    
+    # # Find the files and copy them to progress
+    # for file in os.listdir(sim_output_dir):
+    #     old_file = os.path.join(sim_output_dir, file)
+    #     if (os.path.isfile(old_file)):
+    #         new_file = os.path.join(progress_data['progress_folder'],
+    #                                 file)
+    #         shutil.copyfile(old_file, new_file)
 
 def update_current(progress_data, json_analysis_file_string):
     """ Updates sim_output files for visualization """
