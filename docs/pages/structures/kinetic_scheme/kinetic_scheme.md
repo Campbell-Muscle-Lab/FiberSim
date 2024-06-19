@@ -214,11 +214,11 @@ For more details, and additional transition types, see the function [`transition
 | constant | a | $$ rate = a $$ |
 | force_dependent | a, b | $$ rate = a + ( b * force\ at\ node) $$ |
 | poly | a, b, c | $$ rate = a + ( b . x^c) $$ |
-| gaussian | a, b | $$ rate = a . e^{\frac{b.k_{cb}.x^2}{2.k_B.T}} $$|
+| gaussian | a, b | $$ rate = a . e^{-\frac{b.k_{cb}.x^2}{2.k_B.T}} $$|
 | | | b is optional, and set to 1 if not provided |
 | gaussian_hsl | a, b | same as `gaussian` except that the rate increases with half-sarcomere length due to the filaments being pushed closer together |
-| gaussian_pc | a, b | $$ rate = a . e^{\frac{\alpha x^2}{2 . k_B . T}} $$ |
+| gaussian_pc | a, b | $$ rate = a . e^{-\frac{\alpha x^2}{2 . k_B . T}} $$ |
 | | | b is optional. If it is provided, $$ \alpha $$ = b. If not, $$ \alpha $$ = stiffness of MyBP-C |
-| exp_wall | a, b, c, d | $$ rate = a .e^{\frac{k_{cb}.(x + x_{ps}).b}{k_B . T}} +  \frac{max \ rate}{(1 + e^{-d . (x-c)})} $$
+| exp_wall | a, b, c, d | $$ rate = a .e^{-\frac{k_{cb}.(x + x_{ps}).b}{k_B . T}} +  \frac{max \ rate}{(1 + e^{-d . (x-c)})} $$
 | | | This produces a rate that increases exponentially as the link is pulled in the direction of shortening, but increases very rapidly if the head is stretch beyond d |
 
