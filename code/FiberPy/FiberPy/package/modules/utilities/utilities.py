@@ -45,36 +45,40 @@ def tidy_limits(vals, f=0.2):
     min_val = np.amin(vals)
     
     lims = np.NaN * np.ones(2)
-
-    for (i, v) in enumerate([min_val, max_val]):
-        if (i == 0):
-            y = multiple_less_than(v, f*round_down_decade(v))
-            if (y > 0):
-                if (y < 1):
-                    d = int(np.abs(np.ceil(np.log10(y))-2))
+    
+    try:
+        for (i, v) in enumerate([min_val, max_val]):
+            if (i == 0):
+                y = multiple_less_than(v, f*round_down_decade(v))
+                if (y > 0):
+                    if (y < 1):
+                        d = int(np.abs(np.ceil(np.log10(y))-2))
+                    else:
+                        d=0
                 else:
-                    d=0
+                    if (y > -1):
+                        d = int(np.abs(np.ceil(np.log10(np.abs(y)))-2))
+                    else:
+                        d = 0
             else:
-                if (y > -1):
-                    d = int(np.abs(np.ceil(np.log10(np.abs(y)))-2))
+                y = multiple_greater_than(v, f*round_up_decade(v))
+                if (y > 0):
+                    if (y < 1):
+                        d = int(np.abs(np.ceil(np.log10(y))-2))
+                    else:
+                        d=0
                 else:
-                    d = 0
-        else:
-            y = multiple_greater_than(v, f*round_up_decade(v))
-            if (y > 0):
-                if (y < 1):
-                    d = int(np.abs(np.ceil(np.log10(y))-2))
-                else:
-                    d=0
-            else:
-                if (y > -1):
-                    d = int(np.abs(np.ceil(np.log10(np.abs(y)))-2))
-                else:
-                    d = 0
-
-        y = np.around(y, decimals=d)
-        
-        lims[i] = y
+                    if (y > -1):
+                        d = int(np.abs(np.ceil(np.log10(np.abs(y)))-2))
+                    else:
+                        d = 0
+    
+            y = np.around(y, decimals=d)
+            
+            lims[i] = y
+    except:
+        lims[0] = 0
+        lims[1] = 1
       
     if ((lims[0] > 0) and (lims[1] > 0)):
         if (lims[0] < (0.7 * lims[1])):

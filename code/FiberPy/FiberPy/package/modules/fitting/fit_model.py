@@ -11,6 +11,8 @@ import shutil
 import copy
 import subprocess
 
+import concurrent.futures
+
 import numpy as np
 import pandas as pd
 
@@ -79,25 +81,10 @@ def fit_model(json_analysis_file_string):
     except OSError as e:
         print('Error: %s : %s' % (progress_dir, e.strerror))
         
-    # Check the working dir is there
+    # Check the progress dir is there
     if not os.path.isdir(progress_dir):
         os.makedirs(progress_dir)
-
-    # And now the current folder
-    current_dir = os.path.join(model_base_dir, fitting_struct['current_folder'])
-    current_dir = str(Path(current_dir).resolve().absolute())
-
-    # Clean current dir
-    try:
-        print('Trying to clean: %s', current_dir)
-        shutil.rmtree(current_dir, ignore_errors = True)
-    except OSError as e:
-        print('Error: %s : %s' % (current_dir, e.strerror))
-
-    # Check the directory isthere
-    if not os.path.isdir(current_dir):
-        os.makedirs(current_dir)
-    
+   
     # Make the dictionary
     progress_data = dict()
     progress_data['iteration'] = 1
@@ -109,40 +96,32 @@ def fit_model(json_analysis_file_string):
                                                          'progress.xlsx')
     progress_data['best_file_string'] = os.path.join(progress_dir,
                                                      'best.xlsx')
-    progress_data['current_folder'] = current_dir
-        
+       
     if (fitting_struct['single_run'] == 'True'):
-        print('Single run')
-        worker(p, json_analysis_file_string, progress_data)
-        print('Finished single run')
-        return
-    
+        run_single(p, json_analysis_file_string, progress_data)
+        exit(1)
     
     # Set up the optimizer
     if (fitting_struct['optimizer'] == 'particle_swarm'):
-        
-        pso(worker, p, json_analysis_file_string, progress_data)
-   
+        pso(p, json_analysis_file_string, progress_data)
     else:
-        
-        # Create the bounds
         bnds = []
         for i in range(no_of_parameters):
             bnds.append(tuple([0, 1]))
         bnds = tuple(bnds)
         
-        res = minimize(worker, p,
-                       args=(json_analysis_file_string, progress_data),
-                       method=fitting_struct['optimizer'],
-                       bounds=bnds)
+        minimize(run_single, p, (json_analysis_file_string, progress_data),
+                 method=fitting_struct['optimizer'],
+                 bounds=bnds)
         
-def pso(worker, p_vector, json_analysis_file_string, progress_data,
+def pso(p_vector, json_analysis_file_string, progress_data,
         f_particles = 2, bounds = [0, 1],
-        inertia = 0.5, w_self = 0.5, w_family = 0.5,
-        initial_vel = 0.0,
-        vel_bounds = [0.0, 0.2],
+        inertia = 0.9, w_self = 0.5, w_family = 0.3,
+        initial_vel = 0.1,
+        vel_bounds = [0.02, 0.2],
+        vel_factor = 1,
         jitter = 0.03,
-        throw = 20):
+        throw = 15):
     
     # Set the number of particles
     n_particles = round(f_particles * len(p_vector))
@@ -158,14 +137,77 @@ def pso(worker, p_vector, json_analysis_file_string, progress_data,
     particle_best_value = np.Inf * np.ones(n_particles)
     particle_best_x = np.NaN * np.ones([n_particles, len(p_vector)])
     v = initial_vel * np.ones([n_particles, len(p_vector)])
+    particle_max_vel = vel_bounds[-1] * np.ones(n_particles)
+    
+    # Open the analysis_file_string and check for thread_folder
+    with open(json_analysis_file_string, 'r') as f:
+        json_data = json.load(f)
+    
+    # We are going to run simulations in parallel
+    
+    # Deduce the base directory
+    model_struct = json_data['FiberSim_setup']['model']
+    if (model_struct['relative_to'] == 'this_file'):
+        model_base_dir = Path(json_analysis_file_string).parent.absolute()
+    else:
+        model_base_dir = model_struct['relative_to']
+    
+    # Work out the char structure
+    char_struct = json_data['FiberSim_setup']['characterization'][0]
+    
+    print(char_struct)
     
     for iter in range(100):
-        for i in range(n_particles):
-
-            particle_value = worker(x[i,:],
-                                      json_analysis_file_string,
-                                      progress_data)
+        
+        # Set the thread_dir, try to clean it, make it if necessary
+        thread_dir = json_data['FiberSim_setup']['model']['fitting']['thread_folder']
+        thread_dir = str(Path(os.path.join(model_base_dir, thread_dir)).resolve())
+        
+        try:
+            print('Trying to clean: %s' % thread_dir)
+            shutil.rmtree(thread_dir, ignore_errors = True)
+        except OSError as e:
+            print('Error: %s : %s' % (thread_dir, e.strerror))
+        
+        # Check the thread dir is there
+        if not os.path.isdir(thread_dir):
+            os.makedirs(thread_dir)
             
+        # Create an array of parameter sets
+        pars = []
+        for i in range(n_particles):
+            par_set = dict()
+            par_set['id'] = (i+1)
+            par_set['x'] = x[i,:]
+            par_set['json_analysis_file_string'] = json_analysis_file_string
+            par_set['thread_space'] = \
+                str(Path(os.path.join(thread_dir,
+                                      ('thread_%i' % (i+1)))).resolve())
+            par_set['model_base_dir'] = model_base_dir
+            par_set['sim_folder'] = return_sim_dir(char_struct)
+            par_set['Python_objective_call'] = \
+                model_struct['fitting']['Python_objective_call']
+            if ('Python_best_call' in model_struct['fitting']):
+                par_set['Python_best_call'] = \
+                    model_struct['fitting']['Python_best_call']                    
+            pars.append(par_set)
+
+        # Run the simulation            
+        with concurrent.futures.ThreadPoolExecutor(max_workers = 100) as executor:
+            executor.map(thread_worker, pars)
+            
+        # Now analyze the simulations
+        for i in range(n_particles):
+            print('Evaluating fit for particle: %i' % (i+1))
+            
+            # Need to run this in series
+            series_setup_file_string = str(Path(os.path.join(
+                pars[i]['thread_space'],
+                'working',
+                'series_setup.json')).resolve())
+            characterize_model.characterize_model(series_setup_file_string)
+            particle_value = thread_evaluate(pars[i], progress_data)
+                
             if (particle_value < particle_best_value[i]):
                 particle_best_value[i] = particle_value
                 particle_best_x[i,:] = copy.deepcopy(x[i,:])
@@ -178,57 +220,122 @@ def pso(worker, p_vector, json_analysis_file_string, progress_data,
             print("particle_best_value[%i]: %g" % (i, particle_best_value[i]))
             print(particle_best_x[i,:])
                 
-        # Update
-        for i in range(n_particles):
-            for j in range(len(p_vector)):
-                if (x[i,j] == bounds[0]):
-                    v[i,j] = 0
-                if (x[i,j] == bounds[-1]):
-                    v[i,j] = 0
-                
-                v[i,j] = inertia*v[i,j] + \
-                    w_self * rng.random() * (particle_best_x[i,j] - x[i,j]) + \
-                    w_family * rng.random() * (global_best_x[j] - x[i,j])
-                
-                if (v[i,j] > vel_bounds[-1]):
-                    v[i,j] = vel_bounds[-1]
-                if (v[i,j] < -vel_bounds[-1]):
-                    v[i,j]  = -vel_bounds[-1]
-                
-                x[i,j] = x[i,j] + v[i,j]
-                
-                # Add in some jitter
-                x[i,j] = x[i,j] + jitter * (rng.random() - 0.5)
-                
-                if (x[i,j] < bounds[0]):
-                    x[i,j] = bounds[0]
-                if (x[i,j] > bounds[-1]):
-                    x[i,j] = bounds[-1]
-                    
-        # Throw
-        if ((iter % throw) == 0):
-            # Throw out 1/3 of particles
-            for i in range(round(n_particles / 3)):
+            # Update
+            for i in range(n_particles):
                 for j in range(len(p_vector)):
-                    x[i,j] = rng.random()
-                    v[i,j] = 0
-                particle_best_value[i] = np.Inf
-                particle_best_x[i,:] = x[i,:]
+                    
+                    v[i,j] = inertia*v[i,j] + \
+                        w_self * rng.random() * (particle_best_x[i,j] - x[i,j]) + \
+                        w_family * rng.random() * (global_best_x[j] - x[i,j])
+                    
+                    if (v[i,j] > particle_max_vel[i]):
+                        v[i,j] = particle_max_vel[i]
+                    if (v[i,j] < -particle_max_vel[i]):
+                        v[i,j]  = -particle_max_vel[i]
+                    
+                    x[i,j] = x[i,j] + v[i,j]
+                    
+                    # Add in some jitter
+                    x[i,j] = x[i,j] + jitter * (rng.random() - 0.5)
+                    
+                    if (x[i,j] < bounds[0]):
+                        x[i,j] = bounds[0]
+                    if (x[i,j] > bounds[-1]):
+                        x[i,j] = bounds[-1]
+                        
+                particle_max_vel[i] = particle_max_vel[i] * vel_factor
+                if (particle_max_vel[i] < vel_bounds[0]):
+                    particle_max_vel[i] = vel_bounds[0]
+                        
+            # Throw
+            if ((iter % throw) == (throw-1)):
+                # Throw out 1/3 of particles
+                for i in range(round(n_particles / 3)):
+                    for j in range(len(p_vector)):
+                        x[i,j] = rng.random()
+                        v[i,j] = 0
+                    particle_best_value[i] = np.Inf
+                    particle_best_x[i,:] = x[i,:]
+                    particle_max_vel[i] = vel_bounds[-1]
+                    
+                    
+def run_single(p_vector, json_analysis_file_string, progress_data):
+    """ Runs a single evaluation as a thread """
     
-    print('Done')
+    with open(json_analysis_file_string, 'r') as f:
+        json_data = json.load(f)
+        model_struct = json_data['FiberSim_setup']['model']
+        fitting_struct = model_struct['fitting']
 
+    # Deduce the base directory
+    model_struct = json_data['FiberSim_setup']['model']
+    if (model_struct['relative_to'] == 'this_file'):
+        model_base_dir = Path(json_analysis_file_string).parent.absolute()
+    else:
+        model_base_dir = model_struct['relative_to']
+
+
+    # Clean thread folder
+    char_struct = json_data['FiberSim_setup']['characterization'][0]
+    if (not char_struct['figures_only'] == 'True'):
+        thread_dir = str(Path(os.path.join(model_base_dir,
+                                           fitting_struct['thread_folder'])).resolve())
+        try:
+            print('Trying to clean: %s' % thread_dir)
+            shutil.rmtree(thread_dir, ignore_errors = True)
+        except OSError as e:
+            print('Error: %s : %s' % (thread_dir, e.strerror))
+            
+        # Check the progress dir is there
+        if not os.path.isdir(thread_dir):
+            os.makedirs(thread_dir)
+
+    # Run a simulation as a single thread
+    pars = dict()
+    pars['id'] = 1
+    pars['x'] = p_vector
+    pars['json_analysis_file_string'] = json_analysis_file_string
+    pars['thread_space'] = \
+        str(Path(os.path.join(model_base_dir,
+                              fitting_struct['thread_folder'],
+                              'thread_1')).resolve())
+    pars['model_base_dir'] = model_base_dir
+    pars['sim_folder'] = return_sim_dir(char_struct)
+    pars['Python_objective_call'] = \
+        fitting_struct['Python_objective_call']
     
-def worker(p_vector, json_analysis_file_string, progress_data):
-    """ Code launches a simulation with parameter multipliers set
-        by p_vector and returns a single error value """
-        
+    if ('Python_best_call' in fitting_struct):
+        pars['Python_best_call'] = fitting_struct['Python_best_call']
+    else:
+        pars['Python_best_call'] = []
+
+    print('Single run')
+    # Run the simulation
+    thread_worker(pars)
+    
+    # Make the sim figures
+    series_setup_file_string = str(Path(os.path.join(
+        pars['thread_space'],
+        'working',
+        'series_setup.json')).resolve())
+    characterize_model.characterize_model(series_setup_file_string)
+    
+    # Evaluate fit
+    e = thread_evaluate(pars, progress_data)
+    print('Finished single run')
+    
+    # Return error
+    return e
+
+def thread_worker(pars):
+    
+    # Pull off the thread information
+    json_analysis_file_string = pars['json_analysis_file_string']
+    thread_space = pars['thread_space']
     
     # Open the analysis file
     with open(json_analysis_file_string, 'r') as f:
         orig_setup = json.load(f)
-        
-    # Copy the dict
-    new_setup = copy.deepcopy(orig_setup)
     
     # Pull out the model_struct
     model_struct = orig_setup['FiberSim_setup']['model']
@@ -240,12 +347,8 @@ def worker(p_vector, json_analysis_file_string, progress_data):
         model_base_dir = model_struct['relative_to']
 
     # Set the working directory
-    working_dir = os.path.join(model_base_dir,
-                               model_struct['fitting']['working_folder'])
-    
-    # Clean the working directory
-    working_dir = os.path.join(model_base_dir,
-                               model_struct['fitting']['working_folder'])
+    working_dir = os.path.join(thread_space, 'working')
+
     try:
         print('Trying to clean: %s' % working_dir)
         shutil.rmtree(working_dir, ignore_errors = True)
@@ -266,18 +369,179 @@ def worker(p_vector, json_analysis_file_string, progress_data):
         new_fn = os.path.join(working_dir, fn)
         with open(new_fn, 'w') as f:
             json.dump(orig_data, f, indent=4)
+            
+    # Copy the setup
+    orig_setup_deepcopy = copy.deepcopy(orig_setup)
+
+    # And adjust it, creating two copies, one that doesn't plot figures,
+    # and a second one that does, while also running the objective function
+    (parallel_setup, series_setup) = return_sim_setups(orig_setup_deepcopy, pars)
+    
+    # Write to file
+    parallel_setup_file_string = os.path.join(working_dir, 'parallel_setup.json')
+    with open(parallel_setup_file_string, 'w') as f:
+        json.dump(parallel_setup, f, indent=4)
+
+    series_setup_file_string = os.path.join(working_dir, 'series_setup.json')
+    with open(series_setup_file_string, 'w') as f:
+        json.dump(series_setup, f, indent=4)
         
-    # Rename the fitting key
-    new_setup['FiberSim_setup']['model']['manipulations'] = \
-        new_setup['FiberSim_setup']['model'].pop('fitting')
+    # Now run the simulation
+    characterize_model.characterize_model(parallel_setup_file_string)
+    
+def thread_evaluate(pars, progress_data):
+    """ Evaluates a simulation thread """
+    
+    # # Generate a path and a command string
+    obj_call = str(Path(os.path.join(pars['model_base_dir'],
+                                      pars['Python_objective_call'])).resolve())
+    
+    cmd_string = 'python %s %s' % (obj_call, pars['thread_space'])
+    
+    # Calculate the fit error
+    subprocess.call(cmd_string)
+    
+    # At this point, error components should be in
+    # [thread_space]/working/trial_errors.xlsx
+    working_dir = str(Path(os.path.join(pars['thread_space'],
+                                        'working')).resolve())
+    trial_errors_file = os.path.join(working_dir, 'trial_errors.xlsx')
+    
+    # # Insert here for test function
+    # if not os.path.isdir(working_dir):
+    #     os.makedirs(working_dir)
+
+    # test_function(pars['x'], trial_errors_file)
+    # # end insert
+
+    trial_errors = pd.read_excel(trial_errors_file)
+    
+    # Make a dictionary from the trial_errors file
+    prog_d = dict()
+    prog_d['trial'] = progress_data['iteration']
+    p_vector = pars['x']
+    for i in range(len(p_vector)):
+        prog_d['p_%i' % (i+1)] = p_vector[i]
+    prog_d['error_total'] = trial_errors['error_total'][0]
+    
+    error_cpt_labels = trial_errors.columns
+    for err_lab in error_cpt_labels:
+        if ('error_cpt' in err_lab):
+            prog_d[err_lab] = trial_errors[err_lab][0]
+    
+    # If there is a progress file, append the new entry to the dataframe
+    trial_df = pd.DataFrame(data=prog_d, index=[0])
+    if (os.path.isfile(progress_data['progress_file_string'])):
+        prog_df = pd.read_excel(progress_data['progress_file_string'])
+        prog_df = pd.concat([prog_df, trial_df])        
+    else:
+        # Make a new dataframe
+        prog_df = trial_df
+    
+    # Clean the file and then write
+    if (os.path.exists(progress_data['progress_file_string'])):
+        os.remove(progress_data['progress_file_string'])
+    prog_df.to_excel(progress_data['progress_file_string'], index=False)
+            
+    # Update
+    progress_data['iteration'] = progress_data['iteration'] + 1
+    
+    # Take action if this is the best fit
+    if (prog_d['error_total'] <= progress_data['lowest_error']):
+        progress_data['lowest_error'] = prog_d['error_total']
+        update_best_thread(progress_data,
+                    trial_df,
+                    pars)
         
-    # Remove keys we don't need
-    for k in ['working_folder', 'progress_folder','Python_objective_call']:
-        new_setup['FiberSim_setup']['model']['manipulations'].pop(k)
+    # Update a figure
+    plot_progress(progress_data)
+    
+    # Return error
+    return prog_d['error_total']
+    
+def return_sim_setups(orig_setup, pars):
+    """ Working from the original fitting setup, create a new setup with
+        parameter multipliers to run a simulation for a given pars struct """
+    
+    # Create a new setup
+    new_setup = dict()
+    
+    # Copy the FiberCpp element
+    new_setup['FiberSim_setup'] = dict()
+    new_setup['FiberSim_setup']['FiberCpp_exe'] = \
+        orig_setup['FiberSim_setup']['FiberCpp_exe']
+    
+    # Now the model
+    new_setup['FiberSim_setup']['model'] = dict()
+    new_setup['FiberSim_setup']['model']['relative_to'] = 'False'
+    new_setup['FiberSim_setup']['model']['options_file'] = str(Path(
+        os.path.join(pars['thread_space'],
+                     'working',
+                     orig_setup['FiberSim_setup']['model']['options_file'])).resolve())
+    
+    manip = dict()
+    manip['base_model'] = str(Path(
+        os.path.join(pars['thread_space'],
+                     'working',
+                     orig_setup['FiberSim_setup']['model']['fitting']['base_model'])).resolve())
+    manip['generated_folder'] = str(Path(
+        os.path.join(pars['thread_space'],
+                     'generated')).resolve())
+
+    # Now the adjustments
+    manip['adjustments'] = \
+        return_adjustments(orig_setup['FiberSim_setup']['model']['fitting'],
+                           pars['x'])
+    
+    # Prepare the new setup structure
+    new_setup['FiberSim_setup']['model']['manipulations'] = manip
+
+    new_setup['FiberSim_setup']['characterization'] = []
+    
+    # Copy it so that we have a version that makes figures and one does not
+    no_figs_setup = copy.deepcopy(new_setup)
+    figs_setup = copy.deepcopy(new_setup)
+        
+    # Now add in the characterizations
+    for (ch_id, ch) in enumerate(orig_setup['FiberSim_setup']['characterization']):
+        
+        # Create a new characterization
+        new_ch = dict()
+        orig_ch = ch
+    
+        for k in orig_ch.keys():
+            new_ch[k] = orig_ch[k]
+            
+        # Adjust paths
+        new_ch['relative_to'] = 'False'
+        new_ch['sim_folder'] = str(Path(
+            os.path.join(pars['thread_space'],
+                            return_sim_dir(orig_ch))).resolve())
+        
+        # Include protocol files if required
+        if ('protocol_files' in orig_ch):
+            for (i, pf) in enumerate(orig_ch['protocol_files']):
+                new_ch['protocol_files'][i] = str(Path(
+                    os.path.join(pars['model_base_dir'], pf)).resolve())
+        
+        # Add in the characterization with some adjustments for figures
+        no_figs_setup['FiberSim_setup']['characterization'].append(copy.deepcopy(new_ch))
+        no_figs_setup['FiberSim_setup']['characterization'][ch_id]['figures_only'] = 'False'
+        no_figs_setup['FiberSim_setup']['characterization'][ch_id]['figures_off'] = 'True'
+    
+        figs_setup['FiberSim_setup']['characterization'].append(copy.deepcopy(new_ch))
+        figs_setup['FiberSim_setup']['characterization'][ch_id]['figures_only'] = 'True'
+        figs_setup['FiberSim_setup']['characterization'][ch_id]['figures_off'] = 'False'
+    
+    # Return
+    return (no_figs_setup, figs_setup)
+    
+def return_adjustments(manipulations, p_vector):
+    """ Returns adjustments from a fitting structure """
         
     # Set parameter multipliers for the adjustments
-    adj = new_setup['FiberSim_setup']['model']['manipulations']['adjustments']
-    
+    adj = manipulations['adjustments']       
+
     # Cycle through the adjustments setting the multiplier based on the
     # p_vector. We will make a new array of adjustments here to allow for
     # base variants
@@ -286,7 +550,6 @@ def worker(p_vector, json_analysis_file_string, progress_data):
     p_counter = 0
     
     for (i, a) in enumerate(adj):
-        
         span = a['factor_bounds'][1] - a['factor_bounds'][0]
         m = a['factor_bounds'][0] + p_vector[p_counter] * span
         a['multipliers'] = []
@@ -305,18 +568,18 @@ def worker(p_vector, json_analysis_file_string, progress_data):
     # Now we need to check for base_variants
     # We will handle these by adding new elements to the multipliers list for
     # each adjustment
-    if ('base_variants' in new_setup['FiberSim_setup']['model']['manipulations']):
-        base_variants = new_setup['FiberSim_setup']['model']['manipulations']['base_variants']
+    if ('base_variants' in 'manipulations'):
+        base_variants = manipulations['base_variants']
         
         # Cycle through the base variants
         for (i,bv) in enumerate(base_variants):
-
+    
             # Work out the index for the parameter we are adding
             new_mult_index = len(new_adjustments[0]['multipliers'])
             
             # And now the adjustments
             for (j, a) in enumerate(bv['adjustments']):
-
+    
                 # Work out what the new value will be
                 if ('multipliers' in a):
                     new_value = a['multipliers'][0]
@@ -381,101 +644,10 @@ def worker(p_vector, json_analysis_file_string, progress_data):
                             else:
                                 na['multipliers'][new_mult_index] = \
                                     y[-1]
-                                    
-        # Delete the base variants that are no longer needed
-        del new_setup['FiberSim_setup']['model']['manipulations']['base_variants']
-            
-    # Overwrite
-    new_setup['FiberSim_setup']['model']['manipulations']['adjustments'] = \
-       new_adjustments
-        
-    # Add Python objective call to characterization, with an
-    # extra field for the progress file
-    new_setup['FiberSim_setup']['characterization'][0] \
-                        ['post_sim_Python_call'] = \
-                    orig_setup['FiberSim_setup']['model']['fitting'] \
-                       ['Python_objective_call']
-                
-    # Write the new setup to file
-    file_name = json_analysis_file_string.split('/')[-1]
-    
-    new_setup_file_string = os.path.join(working_dir,
-                                         file_name)
-    new_setup_file_string = str(Path(new_setup_file_string).resolve().absolute())
-    
-    with open(new_setup_file_string, 'w') as f:
-        json.dump(new_setup, f, indent=4)
-
-    # Now run the characterize
-    
-    # First off, need to work out where FiberPy is
-    FiberCpp_struct = new_setup['FiberSim_setup']['FiberCpp_exe']
-    if (FiberCpp_struct['relative_to'] == 'this_file'):
-        temp_dir = Path(json_analysis_file_string).parent.absolute()
-    else:
-        temp_dir = FiberCpp_struct['relative_to']
-    FiberCpp_exe_file = os.path.join(temp_dir,
-                                FiberCpp_struct['exe_file'])
-    FiberCpp_exe_dir = Path(FiberCpp_exe_file)
-    FiberPy_file = os.path.join(FiberCpp_exe_dir,
-                                '../../code/FiberPy/FiberPy',
-                                'FiberPy.py')
-    FiberPy_file = str(Path(FiberPy_file).resolve().absolute())
-    
-    # Now characeterize
-    characterize_model.characterize_model(new_setup_file_string)
-    
-    # test_function(p_vector)
-
-    # At this point, error components should be in ../worker/trial_errors.xlsx
-    trial_errors_file = os.path.join(working_dir, 'trial_errors.xlsx')
-    trial_errors = pd.read_excel(trial_errors_file)
-    
-    # Make a dictionary from the trial_errors file
-    prog_d = dict()
-    prog_d['trial'] = progress_data['iteration']
-    for i in range(len(p_vector)):
-        prog_d['p_%i' % (i+1)] = p_vector[i]
-    prog_d['error_total'] = trial_errors['error_total'][0]
-    
-    error_cpt_labels = trial_errors.columns
-    for err_lab in error_cpt_labels:
-        if ('error_cpt' in err_lab):
-            prog_d[err_lab] = trial_errors[err_lab][0]
-    
-    # If there is a progress file, append the new entry to the dataframe
-    trial_df = pd.DataFrame(data=prog_d, index=[0])
-    if (os.path.isfile(progress_data['progress_file_string'])):
-        prog_df = pd.read_excel(progress_data['progress_file_string'])
-        prog_df = pd.concat([prog_df, trial_df])        
-    else:
-        # Make a new dataframe
-        prog_df = trial_df
-    
-    # Clean the file and then write
-    if (os.path.exists(progress_data['progress_file_string'])):
-        os.remove(progress_data['progress_file_string'])
-    prog_df.to_excel(progress_data['progress_file_string'], index=False)
-            
-    # Update
-    progress_data['iteration'] = progress_data['iteration'] + 1
-    
-    # Take action if this is the best fit
-    if (prog_d['error_total'] < progress_data['lowest_error']):
-        progress_data['lowest_error'] = prog_d['error_total']
-        update_best(progress_data,
-                    trial_df,
-                    json_analysis_file_string)
-
-    # Copy files to current
-    update_current(progress_data,
-                   json_analysis_file_string)
-        
-    # Update a figure
-    plot_progress(progress_data)
     
     # Return
-    return prog_d['error_total']
+    return new_adjustments                                    
+
 
 def return_matching_adjustment_index(existing, test):
     """ Compares the test adjustment to the existing ones and
@@ -503,9 +675,9 @@ def return_matching_adjustment_index(existing, test):
     # No match
     return -1
     
-def update_best(progress_data, trial_df, json_analysis_file_string):
+def update_best_thread(progress_data, trial_df, pars):
     """ Updates best simulation """
-    
+
     # Update the best dataframe
     if (os.path.isfile(progress_data['best_file_string'])):
         best_df = pd.read_excel(progress_data['best_file_string'])
@@ -521,88 +693,49 @@ def update_best(progress_data, trial_df, json_analysis_file_string):
     best_df.to_excel(progress_data['best_file_string'], index=False)
     
     # Now get the model file from the generated dir and copy that
-    # To do this, we need to go back to the json analysis file
-    with open(json_analysis_file_string, 'r') as f:
-        json_data = json.load(f)
-        
-    model_struct = json_data['FiberSim_setup']['model']
-    if (model_struct['relative_to'] == 'this_file'):
-        base_dir = str(Path(json_analysis_file_string).parent)
-    else:
-        base_dir = model_struct['relative_to']
-    old_file = os.path.join(base_dir,
-                            model_struct['fitting']['generated_folder'],
+    # To do this, we first need to set some paths
+    generated_dir = str(Path(os.path.join(pars['thread_space'], 'generated')).resolve())
+    old_file = os.path.join(generated_dir,
                             'model_1.json')
     new_file = os.path.join(progress_data['progress_folder'],
                             'best_model.json')
     shutil.copyfile(old_file, new_file)
 
     # Finally, get the files from the sim_output and copy them across
-    char_struct = json_data['FiberSim_setup']['characterization'][0]
-    if (char_struct['relative_to'] == 'this_file'):
-        base_dir = str(Path(json_analysis_file_string).parent)
-    else:
-        base_dir = char_struct['relative_to']
-    sim_output_dir = os.path.join(base_dir,
-                                  char_struct['sim_folder'],
-                                  'sim_output')
-    sim_output_dir = str(Path(sim_output_dir).resolve().absolute())
+    
+    # This requires some finesse on the sim_folder
+    sim_dir = pars['sim_folder'].split('/')[0]
+    
+    sim_output_dir = str(Path(os.path.join(pars['thread_space'],
+                                           sim_dir)).resolve())
     
     # Copy files across
     shutil.copytree(sim_output_dir, progress_data['progress_folder'],
                     dirs_exist_ok=True)
     
     # Call Python code if required
-    fitting_struct = json_data['FiberSim_setup']['model']['fitting']
-    if ('Python_best_call' in fitting_struct):
-        model_struct = json_data['FiberSim_setup']['model']
-        if (model_struct['relative_to'] == 'this_file'):
-            base_dir = str(Path(json_analysis_file_string).parent)
+    if ('Python_best_call' in pars):
+        if not (pars['Python_best_call'] == []):
+            best_call = str(Path(os.path.join(pars['thread_space'],
+                                          '../',
+                                          pars['Python_best_call'])).resolve())
+            python_cmd = 'python %s' % best_call
+            subprocess.call(python_cmd)
+        
+def return_sim_dir(char_dict):
+    """ Parses a char_dict to get a simulation directory that is
+        appropriate for a thread structure """
+    
+    sim_dir = char_dict['sim_folder']
+    
+    keep_going = True
+    while (keep_going):
+        if (sim_dir.startswith('../')):
+            sim_dir = sim_dir[3::]
         else:
-            base_dir = model_struct['relative_to']
-            
-            
-        python_cmd = 'python %s' % os.path.join(base_dir,
-                                  fitting_struct['Python_best_call'])
-        
-        print(python_cmd)
-        subprocess.call(python_cmd)
-        
-        
+            keep_going = False
     
-    # # Find the files and copy them to progress
-    # for file in os.listdir(sim_output_dir):
-    #     old_file = os.path.join(sim_output_dir, file)
-    #     if (os.path.isfile(old_file)):
-    #         new_file = os.path.join(progress_data['progress_folder'],
-    #                                 file)
-    #         shutil.copyfile(old_file, new_file)
-
-def update_current(progress_data, json_analysis_file_string):
-    """ Updates sim_output files for visualization """
-
-    # Laod the json analysis file
-    with open(json_analysis_file_string, 'r') as f:
-        json_data = json.load(f)
-
-    # Get the files from the sim_output and copy them across
-    char_struct = json_data['FiberSim_setup']['characterization'][0]
-    if (char_struct['relative_to'] == 'this_file'):
-        base_dir = str(Path(json_analysis_file_string).parent)
-    else:
-        base_dir = char_struct['relative_to']
-    sim_output_dir = os.path.join(base_dir,
-                                  char_struct['sim_folder'],
-                                  'sim_output')
-    sim_output_dir = str(Path(sim_output_dir).resolve().absolute())
-    
-    # Find the files and copy them to current
-    for file in os.listdir(sim_output_dir):
-        old_file = os.path.join(sim_output_dir, file)
-        if (os.path.isfile(old_file)):
-            new_file = os.path.join(progress_data['current_folder'],
-                                    file)
-            shutil.copyfile(old_file, new_file)
+    return sim_dir
     
 def plot_progress(progress_data):
     
@@ -697,13 +830,12 @@ def plot_progress(progress_data):
                              'progress.png'),
                 bbox_inches='tight',
                 dpi=200)
-
-def test_function(p_vector):
-
-    trial_errors_file = 'd:/ken/github/campbellmusclelab/models/fibersim/demo_files/fitting/ante/working/trial_errors.xlsx'
     
-    g = np.asarray([0.1, 0.2, 0.3, 0.4, 0.5])
-    
+    plt.close()
+
+def test_function(p_vector, trial_errors_file):
+
+    t = np.linspace(0, 1, num=len(p_vector))
     
     d = dict()
     
@@ -712,9 +844,10 @@ def test_function(p_vector):
     rng = np.random.default_rng()
     
     for i in range(len(p_vector)):
-        ev[i]= np.power(p_vector[i] - g[i], 2.0) + \
-            (0.0 * (1+np.sin(100*p_vector[i]/3.14159))) + \
-                (0.0*rng.random())
+        # ev[i]= np.power(p_vector[i] - g[i], 2.0) + \
+        #     (0.0 * (1+np.sin(100*p_vector[i]/3.14159))) + \
+        #         (0.0*rng.random())
+        ev[i] = np.power((p_vector[i] - t[i]), 2.0)
             
         d['error_cpt_%i' % (i+1)] = ev[i]
     d['error_total'] = np.sum(ev)
@@ -724,6 +857,8 @@ def test_function(p_vector):
     df = pd.DataFrame(data=d, index=[0])
     
     df.to_excel(trial_errors_file, index=False)
+    
+    return(d['error_total'])
     
             
     

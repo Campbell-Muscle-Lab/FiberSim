@@ -17,6 +17,8 @@ from ..output_handler import output_handler as oh
 
 from ..display import analyses
 
+from ..analysis import pCa_analysis as pCa_anal
+
 from ..validation import validation
 
 from ..analysis import atp_cons
@@ -24,7 +26,8 @@ from ..analysis import atp_cons
 
 def run_batch(json_batch_file_string=[],
               batch_structure=[],
-              figures_only = False):
+              figures_only = False,
+              figures_off = False):
     """Runs >=1 simulation using multithreading"""
 
     print('FiberPy: run_batch() starting')
@@ -121,60 +124,75 @@ def run_batch(json_batch_file_string=[],
                 fs = os.path.join(base_directory, fs)
             oh.output_handler(fs,
                               sim_results_file_string=results_file_strings[i])
-
-    # Now see if we have to make any figures
-    if ('batch_figures' in batch_structure):
-        batch_figures = batch_structure['batch_figures']
-
-        # Dive into the structure
-        if ('rates' in batch_figures):
-            print('Now generating rates figure')
-            for fig_data in batch_figures['rates']:
-                analyses.create_rates_figure(fig_data,
+            
+    # Run analyses
+    if (figures_off == True):
+        # See if we have to run any analyses
+        if ('batch_figures' in batch_structure):
+            batch_figures = batch_structure['batch_figures']
+            
+            # Dive into the structure
+            if ('pCa_curves' in batch_figures):
+                print('Now running force-pCa_analysis without making figures')
+                for fig_data in batch_figures['pCa_curves']:
+                    pCa_anal.pCa_analysis(fig_data,
                                           json_batch_file_string)
 
-        if ('superposed_traces' in batch_figures):
-            print('Now generating superposed_traces figure')
-            for fig_data in batch_figures['superposed_traces']:
-                analyses.create_superposed_traces_figure(
-                    fig_data,
-                    json_batch_file_string)
-
-        if ('pCa_curves' in batch_figures):
-            print('Now generating tension-pCa curves')
-            for fig_data in batch_figures['pCa_curves']:
-                analyses.create_y_pCa_figure(fig_data,
-                                             json_batch_file_string)
-
-        if ('force_velocity' in batch_figures):
-            print('Now generating force-velocity curves')
-            for fig_data in batch_figures['force_velocity']:
-                analyses.create_fv_and_power_figure(fig_data,
-                                          json_batch_file_string)
-
-        if ('k_tr_analysis' in batch_figures):
-            print('Now generating k_tr_analysis figure')
-            for fig_data in batch_figures['k_tr_analysis']:
-                analyses.create_k_tr_analysis_figure(fig_data,
-                                          json_batch_file_string)
-
-        if ('ktr' in batch_figures):
-            print('Now generating ktr curves')
-            for fig_data in batch_figures['ktr']:
-                analyses.create_ktr_figure(fig_data,
-                                          json_batch_file_string)
-
-        if ('superpose_ktr_plots' in batch_figures):
-            print('Now generating superpose ktr plots')
-            for fig_data in batch_figures['superpose_ktr_plots']:
-                analyses.superpose_ktr_plots(fig_data,
-                                          json_batch_file_string)
-
-        if ('myotrope' in batch_figures):
-            print('Now generating dose response curve')
-            for fig_data in batch_figures['myotrope']:
-                analyses.dose_response(fig_data,
-                                          json_batch_file_string)
+    # Create figures            
+    if (figures_off == False):
+        # Now see if we have to make any figures
+        if ('batch_figures' in batch_structure):
+            batch_figures = batch_structure['batch_figures']
+    
+            # Dive into the structure
+            if ('rates' in batch_figures):
+                print('Now generating rates figure')
+                for fig_data in batch_figures['rates']:
+                    analyses.create_rates_figure(fig_data,
+                                              json_batch_file_string)
+    
+            if ('superposed_traces' in batch_figures):
+                print('Now generating superposed_traces figure')
+                for fig_data in batch_figures['superposed_traces']:
+                    analyses.create_superposed_traces_figure(
+                        fig_data,
+                        json_batch_file_string)
+    
+            if ('pCa_curves' in batch_figures):
+                print('Now generating tension-pCa curves')
+                for fig_data in batch_figures['pCa_curves']:
+                    analyses.create_y_pCa_figure(fig_data,
+                                                 json_batch_file_string)
+    
+            if ('force_velocity' in batch_figures):
+                print('Now generating force-velocity curves')
+                for fig_data in batch_figures['force_velocity']:
+                    analyses.create_fv_and_power_figure(fig_data,
+                                              json_batch_file_string)
+    
+            if ('k_tr_analysis' in batch_figures):
+                print('Now generating k_tr_analysis figure')
+                for fig_data in batch_figures['k_tr_analysis']:
+                    analyses.create_k_tr_analysis_figure(fig_data,
+                                              json_batch_file_string)
+    
+            if ('ktr' in batch_figures):
+                print('Now generating ktr curves')
+                for fig_data in batch_figures['ktr']:
+                    analyses.create_ktr_figure(fig_data,
+                                              json_batch_file_string)
+    
+            if ('superpose_ktr_plots' in batch_figures):
+                print('Now generating superpose ktr plots')
+                for fig_data in batch_figures['superpose_ktr_plots']:
+                    analyses.superpose_ktr_plots(fig_data,
+                                              json_batch_file_string)
+    
+            if ('myotrope' in batch_figures):
+                print('Now generating dose response curve')
+                for fig_data in batch_figures['myotrope']:
+                    analyses.dose_response(fig_data,
+                                              json_batch_file_string)
 
     # Now see if we have to do a kinetics check
     if ('batch_validation' in batch_structure):

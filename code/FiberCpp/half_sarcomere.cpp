@@ -1478,15 +1478,6 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
                     a_nodes_per_thin_filament) +
                 t_attach_a_node - 1;
 
-            // Linear portion of F
-            f_temp = t_k_stiff * t_offset;
-
-            temp = gsl_vector_get(sp_F, thin_node_index);
-            gsl_vector_set(sp_F, thin_node_index, temp - f_temp);
-
-            temp = gsl_vector_get(sp_F, thick_node_index);
-            gsl_vector_set(sp_F, thick_node_index, temp + f_temp);
-
             // Linear portion of G
             f_temp = t_k_stiff * (gsl_vector_get(x, thin_node_index) -
                 gsl_vector_get(x, thick_node_index));
@@ -1500,8 +1491,13 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
             if (!strcmp(t_passive_mode, "exponential"))
             {
                 // Exponential portion of G
-                f_temp = t_sigma * exp(
-                    (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
+                double x_diff = gsl_vector_get(x, thick_node_index) -
+                    gsl_vector_get(x, thin_node_index);
+
+                f_temp = GSL_SIGN(x_diff) * t_sigma * (exp(fabs(x_diff) / t_L) - 1);
+
+//                f_temp = t_sigma * exp(
+//                    (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
 
                 temp = gsl_vector_get(sp_G, thin_node_index);
                 gsl_vector_set(sp_G, thin_node_index, temp - f_temp);
@@ -3230,11 +3226,12 @@ int half_sarcomere::return_event_index(gsl_vector* prob)
     }
 
     // Scale if required (where the probabilities are very high)
-    if (holder > 1.0)
+    if ((holder > 1.0) & (rescaling_flag == 0))
     {
         // Flag
         printf("Probabilities are re-scaled\n");
         gsl_vector_scale(cum_prob, 1.0 / holder);
+        rescaling_flag = 1;
     }
 
     // Set the event index to -1 (nothing happened)
@@ -3448,7 +3445,6 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     fprintf(output_file, "\"titin\": {\n");
     fprintf(output_file, "\t\"t_passive_mode\": \"%s\",\n", t_passive_mode);
     fprintf(output_file, "\t\"t_k_stiff\": %.*F,\n", p_fs_options->dump_precision, t_k_stiff);
-    fprintf(output_file, "\t\"t_offset\": %.*F,\n", p_fs_options->dump_precision, t_offset);
     fprintf(output_file, "\t\"t_sigma\": %.*F,\n", p_fs_options->dump_precision, t_sigma);
     fprintf(output_file, "\t\"t_L\": %.*F,\n", p_fs_options->dump_precision, t_L);
     fprintf(output_file, "\t\"t_attach_a_node\": %i,\n", t_attach_a_node);

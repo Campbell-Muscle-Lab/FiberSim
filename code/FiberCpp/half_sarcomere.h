@@ -259,8 +259,6 @@ public:
 
     double t_sigma, t_L;            /**< doubles defining parameters in
                                          f = sigma * (exp(x/L) - 1) */
-
-    double t_offset;
     
     // Extracellular parameters
     char e_passive_mode[_MAX_PATH];     /**< char array defining the extracellular
@@ -312,6 +310,10 @@ public:
     gsl_vector* sp_F;               /**< gsl_vector holding the right hand side of KX = F */
 
     gsl_vector* sp_G;               /**< gsl_vector holding G in (k_bare X + G) = F */
+
+    // Helper variables
+    int rescaling_flag;             /**< int showing whether probabilities have been
+    /                                       rescaled on this time-step */
 
     // Functions
 
