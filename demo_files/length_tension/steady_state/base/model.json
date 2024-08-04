@@ -49,11 +49,9 @@
   },
   "titin_parameters": {
     "t_passive_mode": "exponential",
-    "xt_k_stiff": 2e-5,
-    "t_k_stiff": 0,
-    "t_offset": 0,
-    "t_sigma":1e-5,
-    "t_L": 50
+    "t_k_stiff": 2e-5,
+    "t_sigma": 1e-5,
+    "t_L": 90
   },
   "extracellular_parameters": {
     "e_passive_mode": "exponential",

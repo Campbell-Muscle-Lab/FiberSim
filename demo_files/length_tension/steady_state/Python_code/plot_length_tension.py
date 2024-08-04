@@ -85,9 +85,7 @@ def plot_length_tension():
         # Get the sim_data files for the condition
         for file in os.listdir(condition_folder):
             
-            print(file)
-            
-            if (file.startswith('rates')):
+            if (file.startswith(('rates','status'))):
                 continue
             else:
                 # Adjust path
@@ -107,16 +105,12 @@ def plot_length_tension():
             pas_force.append(passive_force)
             act_force.append(active_force)
             tot_force.append(total_force)
-            
-    print(hsl)
-    print(pas_force)
-    print(act_force)
-    print(tot_force)
 
     # Now plot
     ax[0].plot(hsl, pas_force, 'bo', label='Passive')
-    # ax[0].plot(hsl, act_force, 'rs', label='Active')
-    # ax[0].plot(hsl, tot_force, 'gd', label='Total')
+    ax[0].plot(hsl, act_force, 'rs', label='Active')
+    ax[0].plot(hsl, tot_force, 'gd', label='Total')
+    ax[0].legend()
     
     # Save fig
     output_file_string = os.path.join(top_data_folder, 'length_tension.png')

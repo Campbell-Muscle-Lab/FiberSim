@@ -264,7 +264,6 @@ half_sarcomere::half_sarcomere(
         t_sigma = p_fs_model->t_sigma;
         t_L = p_fs_model->t_L;
     }
-    t_offset = p_fs_model->t_offset;
 
     // Extracellular parameters
     sprintf_s(e_passive_mode, _MAX_PATH, p_fs_model->e_passive_mode);
@@ -1729,18 +1728,12 @@ void half_sarcomere::calculate_g_vector(gsl_vector* x_trial)
             double x_m = gsl_vector_get(x_trial, thick_node_index);
 
             // There is always a linear component
-            g_adjustment = t_k_stiff * (x_a + t_offset - x_m);
+            g_adjustment = t_k_stiff * (x_a - x_m);
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
-                if (x_m > (x_a + t_offset))
-                {
-                    g_adjustment = g_adjustment - t_sigma * (exp((x_m - (x_a + t_offset)) / t_L) - 1.0);
-                }
-                else
-                {
-                    g_adjustment = g_adjustment + t_sigma * (exp((x_a + t_offset - x_m) / t_L) - 1.0);
-                }
+                g_adjustment = g_adjustment -
+                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a) / t_L) - 1);
             }
 
             gsl_vector_set(g_vector, thin_node_index,
@@ -2027,14 +2020,12 @@ double half_sarcomere::calculate_titin_force(void)
             double x_a = gsl_vector_get(x_vector, thin_node_index);
 
             // There is always a linear force
-            holder = holder + t_k_stiff * (x_m - (x_a + t_offset));
+            holder = holder + t_k_stiff * (x_m - x_a);
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
-                if (x_m > (x_a + t_offset))
-                    holder = holder + t_sigma * (exp((x_m - (x_a + t_offset)) / t_L) - 1.0);
-                else
-                    holder = holder - t_sigma * (exp(((x_a + t_offset) - x_m) / t_L) - 1.0);
+                holder = holder +
+                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a) / t_L) - 1);
             }
         }
     }

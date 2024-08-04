@@ -122,9 +122,12 @@ def check_force_balance(dump_file_string, analysis_counter):
             x_a = hs['thin'][thin_id]['bs_x'][a_n]
            
             fd = (hs['titin']['t_k_stiff'] * \
-                      (x_m - x_a)) + \
+                      (x_m - x_a))
+                
+            if (hs['titin']['t_passive_mode'] == 'exponential'):
+                fd = fd + \
                     (np.sign(x_m - x_a) * hs['titin']['t_sigma'] * \
-                     (np.exp((x_m - x_a) / hs['titin']['t_L']) - 1))
+                     (np.exp(np.fabs(x_m - x_a) / hs['titin']['t_L']) - 1))
             
             a_row = (thin_id * a_nodes_per_thin_filament) + \
                 (hs['titin']['t_attach_a_node'] -1)
@@ -206,6 +209,7 @@ def check_force_balance(dump_file_string, analysis_counter):
     spec = gridspec.GridSpec(nrows = no_of_rows,
                              ncols = no_of_cols,
                              figure = fig,
+                             left=0.25,
                              wspace = 1,
                              hspace = 1)
     fig.set_size_inches([7,7])
@@ -217,10 +221,12 @@ def check_force_balance(dump_file_string, analysis_counter):
             
     ax[0].plot(force_diff)
     ax[0].set_ylabel('Force\nimbalance (nN)')
+    ax[0].ticklabel_format(useOffset=False)
     
     ax[1].plot(x_dev)
     ax[1].set_ylabel('Node position\nmismatch (nm)')
     ax[1].set_xlabel('Node number')
+    ax[1].ticklabel_format(useOffset=False)
 
     x = thin['bs_x'][:-2:a_bs_per_node]
     ax[2].plot(x, thin_ext_mean, '-')
@@ -230,6 +236,7 @@ def check_force_balance(dump_file_string, analysis_counter):
     ax[2].set_xlim([0, hs['hs_data']['hs_length']])
     ax[2].set_xlabel('Distance along half-sarcomere (nm)')
     ax[2].set_ylabel('Inter-node\nspacing (nm)')
+    ax[2].ticklabel_format(useOffset=False)
 
     x = thick['cb_x'][:-6:m_cbs_per_node]
     ax[3].plot(x, thick_ext_mean, '-')
@@ -239,6 +246,7 @@ def check_force_balance(dump_file_string, analysis_counter):
     ax[3].set_xlim([0, hs['hs_data']['hs_length']])
     ax[3].set_xlabel('Distance along half-sarcomere (nm)')
     ax[3].set_ylabel('Inter-node\nspacing (nm)')
+    ax[3].ticklabel_format(useOffset=False)
     
     # Work out a file name to save the figure
     file_parts = re.split('/', dump_file_string)
@@ -254,7 +262,8 @@ def check_force_balance(dump_file_string, analysis_counter):
 if __name__ == "__main__":
     
     status_file_strings = [
-        '../sim_data/sim_output/1/status_dumps_1_r1/hs_1_time_step_1.json']    
+        '../sim_data/sim_output/1/status_dumps_1_r1/hs_1_time_step_1.json',
+        '../sim_data/sim_output/10/status_dumps_1_r1/hs_1_time_step_1.json']    
     
     # Get this directory
     this_dir = os.path.dirname(__file__)
