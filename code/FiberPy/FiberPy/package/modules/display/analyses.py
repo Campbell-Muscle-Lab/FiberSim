@@ -133,7 +133,7 @@ def create_y_pCa_figure(fig_data, batch_file_string):
     while (keep_going):
         curve_folder = os.path.join(top_data_folder,
                                     ('%i' % curve_counter))
-        print(curve_folder)
+
         if os.path.isdir(curve_folder):
             # Find the results files
             for file in os.listdir(curve_folder):
@@ -583,13 +583,6 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         
         # Now make a new frame for just that curve
         rc = r[r['curve'] == c].copy()
-        
-        # Fit the hyperbola 
-        fv_curve = cv.fit_hyperbola(rc['m_force'], rc['m_velocity'])
-
-        # Deduce v_max
-        fv_curve['v_max'] = ((fv_curve['x_0'] + fv_curve['a']) * 
-                                (fv_curve['b'] / fv_curve['a'])) - fv_curve['b']
 
         # Now calculate the relative force, relative velocity, and relative power            
         rc['m_f_to_f_max'] = rc['m_force'] / rc['m_force_isometric']
@@ -646,6 +639,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                        formatting['marker_size'],
                        fillstyle=formatting['fill_styles'][c_ind],
                        color = formatting['color_set'][c_ind])
+            
+            #x,y  = cv.remove_outliers(rc['m_force'], rc['m_velocity'])
+            #fv_curve = cv.fit_hyperbola(x, y)
             fv_curve = cv.fit_hyperbola(rc['m_force'], rc['m_velocity'])
 
             if formatting['labels'] != []:
@@ -665,7 +661,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                        formatting['marker_size'],
                        fillstyle=formatting['fill_styles'][c_ind],
                         color = formatting['color_set'][c_ind])
+            
+            #x,y = cv.remove_outliers(rc['m_force'], rc['m_power'])
+            #pow_curve = cv.fit_power_curve(x, y)
             pow_curve = cv.fit_power_curve(rc['m_force'], rc['m_power'])
+            
             ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c_ind])
@@ -675,7 +675,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                            formatting['marker_size'],
                            fillstyle=formatting['fill_styles'][c_ind],
                            color = formatting['color_set'][c_ind])
+            
+            # x,y = cv.remove_outliers(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'])
+            # rel_fv_curve = cv.fit_hyperbola(x, y)
             rel_fv_curve = cv.fit_hyperbola(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'])
+            
             ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'],
                            color=ax_rel_fv.lines[-1].get_color(),
                            linestyle = formatting['line_styles'][c_ind])
@@ -685,7 +689,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                             formatting['marker_size'],
                             fillstyle=formatting['fill_styles'][c_ind],
                             color = formatting['color_set'][c_ind])
+            
+            # x,y = cv.remove_outliers(rc['m_f_to_f_max'], rc['m_rel_power'])
+            # rel_pow_curve = cv.fit_power_curve(x,y)
             rel_pow_curve = cv.fit_power_curve(rc['m_f_to_f_max'], rc['m_rel_power'])
+            
             ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
                         linestyle = formatting['line_styles'][c_ind])
@@ -698,10 +706,20 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
             p_ticks = np.concatenate((p_ticks, rc['m_power']))
             rel_p_ticks = np.concatenate((rel_p_ticks, rc['m_rel_power']))
             
+            # Deduce v_max
+            fv_curve['v_max'] = ((fv_curve['x_0'] + fv_curve['a']) * 
+                                    (fv_curve['b'] / fv_curve['a'])) - fv_curve['b']
+
+            # Calculate v_max in muscle lengths per second
+            fv_curve['v_max_l0_per_s'] = 1e9 * fv_curve['v_max'] / initial_ml
+
+            
             # Store the curve data
             d_parameters = pd.DataFrame({'fv_x_0': fv_curve['x_0'],
                                          'fv_a': fv_curve['a'],
                                          'fv_b': fv_curve['b'],
+                                         'fv_v_max': fv_curve['v_max'],
+                                         'fv_v_max_l0_per_s': fv_curve['v_max_l0_per_s'],
                                          'pow_x_0': pow_curve['x_0'],
                                          'pow_a': pow_curve['a'],
                                          'pow_b': pow_curve['b'],
@@ -1438,7 +1456,7 @@ def create_rates_figure(fig_data, batch_file_string):
     fig = plt.figure(constrained_layout = False)
     spec = gridspec.GridSpec(nrows = max_no_of_rates, ncols = no_of_cols,
                              wspace = 1, hspace = 0.5)
-    fig.set_size_inches([2 * no_of_cols, 1.5 * no_of_rates])
+    fig.set_size_inches([2 * no_of_cols, 2.5 * no_of_rates])
 
     ax = []
 
@@ -1482,6 +1500,8 @@ def create_rates_figure(fig_data, batch_file_string):
 
                 if (k == (len(s)-1)):
                     # Tidy up
+                    x_ticks = np.asarray([d['x'].min(), 0, d['x'].max()])
+                    ax[plot_index].set_xlim(x_ticks[[0, -1]])
                     ax[plot_index].set_ylabel('log10 %s' % r_string)
                     ax[plot_index].set_ylim([0, 3])
                     ax[plot_index].set_yticks(np.arange(0,4,1))
@@ -1638,6 +1658,12 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                     ax[plot_index].title.set_text(formatting['column_titles'][i])
                     
                 plot_index = (i*no_of_rows) + (hs_length_row - 1)
+                ax[plot_index].plot(d['time'], d['m_length'], 'k-',
+                                    linewidth = 1,
+                                    label = "M length")
+                ax[plot_index].plot(d['time'], d['hs_1_slack_length'], 'r-',
+                                    linewidth = 1,
+                                    label = "Slack length")
                 for hs in range(no_of_half_sarcomeres):
                     hs_label = 'hs_%i_length' % (hs+1)
                     ax[plot_index].plot(d['time'], d[hs_label], '-',

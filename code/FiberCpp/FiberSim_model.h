@@ -104,6 +104,8 @@ public:
 
     gsl_vector* m_isotype_props;	    /**< gsl_vector holding the myosin isotype proportions */
 
+    gsl_vector_short* m_isotype_ints;   /**< gsl_vector_short holding myosin isotypes */
+
     // Myosin parameters
 
     double m_k_cb;                      /**< double defining the stiffness of a
@@ -217,6 +219,8 @@ public:
     int c_no_of_pc_states;              /**< max number of MyBPC states */
 
     gsl_vector* c_isotype_props;	    /**< gsl_vector holding the C-protein isotypes proportions */
+
+    gsl_vector_short* c_isotype_ints;   /**< gsl_vector_short holding C-protein isotype */
 
     kinetic_scheme* p_c_scheme[MAX_NO_OF_ISOTYPES];
                                         /**< pointer to a kinetic scheme array for MyBPC */

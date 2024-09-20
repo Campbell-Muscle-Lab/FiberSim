@@ -274,13 +274,6 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
         min_hs_length = options["min_hs_length"].GetDouble();
     }
 
-    // Check if the dump precision was specified.
-    if (JSON_functions::is_JSON_member(options, "dump_precision"))
-    {
-        JSON_functions::check_JSON_member_int(options, "dump_precision");
-        dump_precision = options["dump_precision"].GetInt();
-    }
-
     // Check if lambda_jitter was specified.
     if (JSON_functions::is_JSON_member(options, "lambda_jitter"))
     {
@@ -373,6 +366,14 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
 
         JSON_functions::check_JSON_member_string(status_files, "time_steps");
         sprintf_s(time_steps_string, _MAX_PATH, "%s", status_files["time_steps"].GetString());
+
+        // Check if the dump precision was specified.
+        if (JSON_functions::is_JSON_member(status_files, "dump_precision"))
+        {
+            JSON_functions::check_JSON_member_int(status_files, "dump_precision");
+            dump_precision = status_files["dump_precision"].GetInt();
+        }
+
     }
 }
 

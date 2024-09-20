@@ -311,6 +311,9 @@ void muscle::implement_time_step(int protocol_index)
 			// Simplest case of 1 half-sarcomere and no compliance
 			hs_counter = 0;
 
+			// Reset the flag
+			p_hs[hs_counter]->rescaling_flag = 0;
+
 			// Update the hs_command_length
 			p_hs[hs_counter]->hs_command_length = p_hs[hs_counter]->hs_command_length +
 				gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
@@ -378,6 +381,10 @@ void muscle::implement_time_step(int protocol_index)
 		else
 		{
 			// We have a myofibril
+
+			// Reset the rescaling flag
+			for (int hs_counter = 0; hs_counter < p_fs_model[0]->no_of_half_sarcomeres; hs_counter++)
+				p_hs[hs_counter]->rescaling_flag = 0;
 
 			// Branch on control mode
 			sim_mode = gsl_vector_get(p_fs_protocol->sim_mode, protocol_index);

@@ -259,12 +259,12 @@ half_sarcomere::half_sarcomere(
 
     sprintf_s(t_passive_mode, _MAX_PATH, p_fs_model->t_passive_mode);
     t_k_stiff = p_fs_model->t_k_stiff;
+    t_offset = p_fs_model->t_offset;
     if (!strcmp(t_passive_mode, "exponential"))
     {
         t_sigma = p_fs_model->t_sigma;
         t_L = p_fs_model->t_L;
     }
-    t_offset = p_fs_model->t_offset;
 
     // Extracellular parameters
     sprintf_s(e_passive_mode, _MAX_PATH, p_fs_model->e_passive_mode);
@@ -1478,18 +1478,9 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
                     a_nodes_per_thin_filament) +
                 t_attach_a_node - 1;
 
-            // Linear portion of F
-            f_temp = t_k_stiff * t_offset;
-
-            temp = gsl_vector_get(sp_F, thin_node_index);
-            gsl_vector_set(sp_F, thin_node_index, temp - f_temp);
-
-            temp = gsl_vector_get(sp_F, thick_node_index);
-            gsl_vector_set(sp_F, thick_node_index, temp + f_temp);
-
             // Linear portion of G
             f_temp = t_k_stiff * (gsl_vector_get(x, thin_node_index) -
-                gsl_vector_get(x, thick_node_index));
+                gsl_vector_get(x, thick_node_index) + t_offset);
 
             temp = gsl_vector_get(sp_G, thin_node_index);
             gsl_vector_set(sp_G, thin_node_index, temp + f_temp);
@@ -1500,8 +1491,13 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
             if (!strcmp(t_passive_mode, "exponential"))
             {
                 // Exponential portion of G
-                f_temp = t_sigma * exp(
-                    (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
+                double x_diff = gsl_vector_get(x, thick_node_index) -
+                    gsl_vector_get(x, thin_node_index) - t_offset;
+
+                f_temp = GSL_SIGN(x_diff) * t_sigma * (exp(fabs(x_diff) / t_L) - 1);
+
+//                f_temp = t_sigma * exp(
+//                    (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
 
                 temp = gsl_vector_get(sp_G, thin_node_index);
                 gsl_vector_set(sp_G, thin_node_index, temp - f_temp);
@@ -1733,18 +1729,12 @@ void half_sarcomere::calculate_g_vector(gsl_vector* x_trial)
             double x_m = gsl_vector_get(x_trial, thick_node_index);
 
             // There is always a linear component
-            g_adjustment = t_k_stiff * (x_a + t_offset - x_m);
+            g_adjustment = t_k_stiff * (x_a - x_m + t_offset);
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
-                if (x_m > (x_a + t_offset))
-                {
-                    g_adjustment = g_adjustment - t_sigma * (exp((x_m - (x_a + t_offset)) / t_L) - 1.0);
-                }
-                else
-                {
-                    g_adjustment = g_adjustment + t_sigma * (exp((x_a + t_offset - x_m) / t_L) - 1.0);
-                }
+                g_adjustment = g_adjustment -
+                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a - t_offset) / t_L) - 1);
             }
 
             gsl_vector_set(g_vector, thin_node_index,
@@ -2031,14 +2021,12 @@ double half_sarcomere::calculate_titin_force(void)
             double x_a = gsl_vector_get(x_vector, thin_node_index);
 
             // There is always a linear force
-            holder = holder + t_k_stiff * (x_m - (x_a + t_offset));
+            holder = holder + t_k_stiff * (x_m - x_a - t_offset);
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
-                if (x_m > (x_a + t_offset))
-                    holder = holder + t_sigma * (exp((x_m - (x_a + t_offset)) / t_L) - 1.0);
-                else
-                    holder = holder - t_sigma * (exp(((x_a + t_offset) - x_m) / t_L) - 1.0);
+                holder = holder +
+                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a - t_offset) / t_L) - 1);
             }
         }
     }
@@ -3230,11 +3218,12 @@ int half_sarcomere::return_event_index(gsl_vector* prob)
     }
 
     // Scale if required (where the probabilities are very high)
-    if (holder > 1.0)
+    if ((holder > 1.0) & (rescaling_flag == 0))
     {
         // Flag
         printf("Probabilities are re-scaled\n");
         gsl_vector_scale(cum_prob, 1.0 / holder);
+        rescaling_flag = 1;
     }
 
     // Set the event index to -1 (nothing happened)

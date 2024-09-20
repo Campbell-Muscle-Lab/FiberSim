@@ -6,6 +6,8 @@ Created on Wed Feb 12 17:20:25 2020
 """
 
 import numpy as np
+
+from numpy.polynomial import Polynomial as poly
     
 from scipy.optimize import curve_fit
 from scipy.optimize import minimize_scalar
@@ -346,3 +348,32 @@ def fit_straight_line(x, y):
     d['y_fit'] = d['intercept'] + d['slope'] * d['x']
     
     return d
+
+
+def remove_outliers(x, y, poly_deg=2, med_threshold=5):
+    """ Tries to remove outliers """
+    
+    keep_going = True
+    
+    try:
+        while keep_going:
+            p_fit = poly.fit(x, y, deg = poly_deg)
+            
+            y_est = p_fit(x)
+            
+            abs_y_diff = np.abs(y - y_est)
+            med_y_diff = np.median(abs_y_diff)
+            
+            if (np.max(abs_y_diff) > (med_threshold * med_y_diff)):
+                # Points deviate, drop the furthest one
+                bi = np.argmax(abs_y_diff)
+                
+                x = np.delete(x, bi)
+                y = np.delete(y, bi)
+            else:
+                keep_going = False
+    except:
+        x = x
+        y = y
+    
+    return (x,y)
