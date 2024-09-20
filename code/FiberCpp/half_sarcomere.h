@@ -257,6 +257,8 @@ public:
     double t_k_stiff;               /**< double defining stiffness of titin filament
                                          spring in N m^-1 */
 
+    double t_offset;                /**< double defining offset for titin stiffness */
+
     double t_sigma, t_L;            /**< doubles defining parameters in
                                          f = sigma * (exp(x/L) - 1) */
     

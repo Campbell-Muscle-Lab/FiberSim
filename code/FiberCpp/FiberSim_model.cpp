@@ -35,6 +35,10 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     // Set some things that haven't been implemented yet
     a_no_of_bs_isotypes = 1;
 
+    // And null some vectors that might not be needed
+    m_isotype_ints = NULL;
+    c_isotype_ints = NULL;
+
     // Log
     if (p_fs_options->log_mode > 0)
     {
@@ -89,6 +93,13 @@ FiberSim_model::~FiberSim_model()
     // Delete gsl_vector
     gsl_vector_free(m_isotype_props);
     gsl_vector_free(c_isotype_props);
+
+    // Delete arrays if necessary
+    if (m_isotype_ints != NULL)
+        gsl_vector_short_free(m_isotype_ints);
+
+    if (c_isotype_ints != NULL)
+        gsl_vector_short_free(c_isotype_ints);
 }
 
 // Functions
@@ -389,16 +400,36 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(m_parameters, "m_k_cb");
     m_k_cb = m_parameters["m_k_cb"].GetDouble();
 
-    JSON_functions::check_JSON_member_array(m_parameters, "m_isotype_proportions");
-    const rapidjson::Value& mip = m_parameters["m_isotype_proportions"];
-
-    m_no_of_isotypes = mip.Size();
-    m_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
-    gsl_vector_set_zero(m_isotype_props);
-
-    for (int i = 0; i < (int)mip.Size(); i++)
+    if (JSON_functions::is_JSON_member(m_parameters, "m_isotype_proportions"))
     {
-        gsl_vector_set(m_isotype_props, i, mip[i].GetDouble());
+        const rapidjson::Value& mip = m_parameters["m_isotype_proportions"];
+
+        m_no_of_isotypes = mip.Size();
+        m_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
+        gsl_vector_set_zero(m_isotype_props);
+
+        for (int i = 0; i < (int)mip.Size(); i++)
+        {
+            gsl_vector_set(m_isotype_props, i, mip[i].GetDouble());
+        }
+    }
+    
+    // If there is an array of isotypes, save it to the appropriate short vector
+    if (JSON_functions::is_JSON_member(m_parameters, "m_isotype_ints"))
+    {
+        const rapidjson::Value& mi_ints = m_parameters["m_isotype_ints"];
+
+        int model_cb_n = (int)mi_ints.Size();
+
+        m_isotype_ints = gsl_vector_short_alloc(model_cb_n);
+        gsl_vector_short_set_zero(m_isotype_ints);
+
+        for (int i = 0; i < model_cb_n; i++)
+        {
+            gsl_vector_short_set(m_isotype_ints, i, (short)mi_ints[i].GetInt());
+        }
+
+        m_no_of_isotypes = (int)gsl_vector_short_max(m_isotype_ints);
     }
 
     // Kinetic scheme for myosin - this is complicated so it's done in a different file
@@ -420,18 +451,39 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(mybpc_parameters, "c_k_stiff");
     c_k_stiff = mybpc_parameters["c_k_stiff"].GetDouble();
 
-    JSON_functions::check_JSON_member_array(mybpc_parameters, "c_isotype_proportions");
-    const rapidjson::Value& cip = mybpc_parameters["c_isotype_proportions"];
-
-    c_no_of_isotypes = cip.Size();
-
-    c_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
-    gsl_vector_set_zero(c_isotype_props);
-
-    for (int i = 0; i < (int)cip.Size(); i++)
+    if (JSON_functions::is_JSON_member(mybpc_parameters, "c_isotype_proportions"))
     {
-        gsl_vector_set(c_isotype_props, i, cip[i].GetDouble());
+        const rapidjson::Value& cip = mybpc_parameters["c_isotype_proportions"];
+
+        c_no_of_isotypes = cip.Size();
+
+        c_isotype_props = gsl_vector_alloc(MAX_NO_OF_ISOTYPES);
+        gsl_vector_set_zero(c_isotype_props);
+
+        for (int i = 0; i < (int)cip.Size(); i++)
+        {
+            gsl_vector_set(c_isotype_props, i, cip[i].GetDouble());
+        }
     }
+
+    // If there is an array of isotypes, save it to the appropriate short vector
+    if (JSON_functions::is_JSON_member(mybpc_parameters, "c_isotype_ints"))
+    {
+        const rapidjson::Value& ci_ints = mybpc_parameters["c_isotype_ints"];
+
+        int model_mybpc_n = (int)ci_ints.Size();
+
+        c_isotype_ints = gsl_vector_short_alloc(model_mybpc_n);
+        gsl_vector_short_set_zero(c_isotype_ints);
+
+        for (int i = 0; i < model_mybpc_n; i++)
+        {
+            gsl_vector_short_set(c_isotype_ints, i, (short)ci_ints[i].GetInt());
+        }
+
+        c_no_of_isotypes = (int)gsl_vector_short_max(c_isotype_ints);
+    }
+    
 
     // Kinetic scheme for MyBPC
     JSON_functions::check_JSON_member_array(doc, "c_kinetics");

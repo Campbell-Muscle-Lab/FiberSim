@@ -110,6 +110,7 @@ def plot_length_tension():
     ax[0].plot(hsl, pas_force, 'bo', label='Passive')
     ax[0].plot(hsl, act_force, 'rs', label='Active')
     ax[0].plot(hsl, tot_force, 'gd', label='Total')
+    ax[0].plot([hsl[0], hsl[-1]], [0, 0], 'k-')
     ax[0].legend()
     
     # Save fig

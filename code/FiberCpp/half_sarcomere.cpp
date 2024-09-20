@@ -259,6 +259,7 @@ half_sarcomere::half_sarcomere(
 
     sprintf_s(t_passive_mode, _MAX_PATH, p_fs_model->t_passive_mode);
     t_k_stiff = p_fs_model->t_k_stiff;
+    t_offset = p_fs_model->t_offset;
     if (!strcmp(t_passive_mode, "exponential"))
     {
         t_sigma = p_fs_model->t_sigma;
@@ -1479,7 +1480,7 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
 
             // Linear portion of G
             f_temp = t_k_stiff * (gsl_vector_get(x, thin_node_index) -
-                gsl_vector_get(x, thick_node_index));
+                gsl_vector_get(x, thick_node_index) + t_offset);
 
             temp = gsl_vector_get(sp_G, thin_node_index);
             gsl_vector_set(sp_G, thin_node_index, temp + f_temp);
@@ -1491,7 +1492,7 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
             {
                 // Exponential portion of G
                 double x_diff = gsl_vector_get(x, thick_node_index) -
-                    gsl_vector_get(x, thin_node_index);
+                    gsl_vector_get(x, thin_node_index) - t_offset;
 
                 f_temp = GSL_SIGN(x_diff) * t_sigma * (exp(fabs(x_diff) / t_L) - 1);
 
@@ -1728,12 +1729,12 @@ void half_sarcomere::calculate_g_vector(gsl_vector* x_trial)
             double x_m = gsl_vector_get(x_trial, thick_node_index);
 
             // There is always a linear component
-            g_adjustment = t_k_stiff * (x_a - x_m);
+            g_adjustment = t_k_stiff * (x_a - x_m + t_offset);
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
                 g_adjustment = g_adjustment -
-                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a) / t_L) - 1);
+                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a - t_offset) / t_L) - 1);
             }
 
             gsl_vector_set(g_vector, thin_node_index,
@@ -2020,12 +2021,12 @@ double half_sarcomere::calculate_titin_force(void)
             double x_a = gsl_vector_get(x_vector, thin_node_index);
 
             // There is always a linear force
-            holder = holder + t_k_stiff * (x_m - x_a);
+            holder = holder + t_k_stiff * (x_m - x_a - t_offset);
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
                 holder = holder +
-                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a) / t_L) - 1);
+                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a - t_offset) / t_L) - 1);
             }
         }
     }
@@ -3436,6 +3437,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     fprintf(output_file, "\"titin\": {\n");
     fprintf(output_file, "\t\"t_passive_mode\": \"%s\",\n", t_passive_mode);
     fprintf(output_file, "\t\"t_k_stiff\": %.*F,\n", p_fs_options->dump_precision, t_k_stiff);
+    fprintf(output_file, "\t\"t_offset\": %.*F,\n", p_fs_options->dump_precision, t_offset);
     fprintf(output_file, "\t\"t_sigma\": %.*F,\n", p_fs_options->dump_precision, t_sigma);
     fprintf(output_file, "\t\"t_L\": %.*F,\n", p_fs_options->dump_precision, t_L);
     fprintf(output_file, "\t\"t_attach_a_node\": %i,\n", t_attach_a_node);

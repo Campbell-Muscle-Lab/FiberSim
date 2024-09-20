@@ -640,9 +640,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                        fillstyle=formatting['fill_styles'][c_ind],
                        color = formatting['color_set'][c_ind])
             
-            x,y  = cv.remove_outliers(rc['m_force'], rc['m_velocity'])
-            fv_curve = cv.fit_hyperbola(x, y)
-            # fv_curve = cv.fit_hyperbola(rc['m_force'], rc['m_velocity'])
+            #x,y  = cv.remove_outliers(rc['m_force'], rc['m_velocity'])
+            #fv_curve = cv.fit_hyperbola(x, y)
+            fv_curve = cv.fit_hyperbola(rc['m_force'], rc['m_velocity'])
 
             if formatting['labels'] != []:
 
@@ -662,9 +662,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                        fillstyle=formatting['fill_styles'][c_ind],
                         color = formatting['color_set'][c_ind])
             
-            x,y = cv.remove_outliers(rc['m_force'], rc['m_power'])
-            pow_curve = cv.fit_power_curve(x, y)
-            # pow_curve = cv.fit_power_curve(rc['m_force'], rc['m_power'])
+            #x,y = cv.remove_outliers(rc['m_force'], rc['m_power'])
+            #pow_curve = cv.fit_power_curve(x, y)
+            pow_curve = cv.fit_power_curve(rc['m_force'], rc['m_power'])
             
             ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
@@ -676,9 +676,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                            fillstyle=formatting['fill_styles'][c_ind],
                            color = formatting['color_set'][c_ind])
             
-            x,y = cv.remove_outliers(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'])
-            rel_fv_curve = cv.fit_hyperbola(x, y)
-            # rel_fv_curve = cv.fit_hyperbola(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'])
+            # x,y = cv.remove_outliers(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'])
+            # rel_fv_curve = cv.fit_hyperbola(x, y)
+            rel_fv_curve = cv.fit_hyperbola(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'])
             
             ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'],
                            color=ax_rel_fv.lines[-1].get_color(),
@@ -690,10 +690,9 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                             fillstyle=formatting['fill_styles'][c_ind],
                             color = formatting['color_set'][c_ind])
             
-            x,y = cv.remove_outliers(rc['m_f_to_f_max'], rc['m_rel_power'])
-            rel_pow_curve = cv.fit_power_curve(x,y)
-            
-            # rel_pow_curve = cv.fit_power_curve(rc['m_f_to_f_max'], rc['m_rel_power'])
+            # x,y = cv.remove_outliers(rc['m_f_to_f_max'], rc['m_rel_power'])
+            # rel_pow_curve = cv.fit_power_curve(x,y)
+            rel_pow_curve = cv.fit_power_curve(rc['m_f_to_f_max'], rc['m_rel_power'])
             
             ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
@@ -1659,6 +1658,12 @@ def create_superposed_traces_figure(fig_data, batch_file_string):
                     ax[plot_index].title.set_text(formatting['column_titles'][i])
                     
                 plot_index = (i*no_of_rows) + (hs_length_row - 1)
+                ax[plot_index].plot(d['time'], d['m_length'], 'k-',
+                                    linewidth = 1,
+                                    label = "M length")
+                ax[plot_index].plot(d['time'], d['hs_1_slack_length'], 'r-',
+                                    linewidth = 1,
+                                    label = "Slack length")
                 for hs in range(no_of_half_sarcomeres):
                     hs_label = 'hs_%i_length' % (hs+1)
                     ax[plot_index].plot(d['time'], d[hs_label], '-',

@@ -24,7 +24,8 @@
             "output_image_formats": [ "png" ],
             "figures_only": "False",
             "trace_figures_on": "False",
-            "post_sim_Python_call": "../Python_code/check_force_balance.py"
+            "xpost_sim_Python_call": "../Python_code/check_force_balance.py",
+            "post_sim_Python_call": "../Python_code/plot_length_tension.py"
         }
     ]
   }

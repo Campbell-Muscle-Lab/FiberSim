@@ -204,7 +204,7 @@ def generate_model_files(json_analysis_file_string):
                 # Check for NaN
                 if (np.isnan(value)):
                     adj_model[a['class']][a['variable']] = 'null'
-    
+        
         # Now generate the model file string
         model_file_string = 'model_%i.json' % (i+1)
         
@@ -1004,6 +1004,19 @@ def deduce_fv_properties(json_analysis_file_string,
 
             # Update dir_counter
             dir_counter = dir_counter + 1
+            
+            # Get the sim options file
+            if (model_struct['relative_to'] == 'this_file'):
+                model_dir = Path(json_analysis_file_string).parent.absolute()
+            else:
+                model_dir = ''
+                
+            # Copy the base options file
+            orig_options_file = os.path.join(model_dir,
+                                             model_struct['options_file'])
+            
+            with open(orig_options_file, 'r') as f:
+                orig_options_data = json.load(f)
             
             # Adjust the options struct if we have randomized repeats
             if ('randomized_repeats' in fv_struct):

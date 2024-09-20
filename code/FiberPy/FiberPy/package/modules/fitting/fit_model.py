@@ -6,6 +6,7 @@ Created on Tue Jan 23 17:36:17 2024
 """
 
 import os
+import re
 import json
 import shutil
 import copy
@@ -556,7 +557,6 @@ def return_adjustments(manipulations, p_vector):
         if ('factor_mode' in a):
             if (a['factor_mode'] == "log"):
                 a['multipliers'].append(np.power(10, m))
-                del a['factor_mode']
         else:
             a['multipliers'].append(m)
         del a['factor_bounds']
@@ -564,6 +564,29 @@ def return_adjustments(manipulations, p_vector):
         new_adjustments.append(a)
         
         p_counter = p_counter + 1
+        
+        # Check for a constraint
+        if ('also_linked' in a):
+            
+            # Special case
+            digits = [int(s) for s in re.findall(r'\d+', a['also_linked'])]
+            print(digits)
+            
+            linked_a = dict();
+            linked_a['variable'] = a['variable']
+            linked_a['isotype'] = digits[0]
+            linked_a['state'] = digits[1]
+            linked_a['transition'] = digits[2]
+            linked_a['parameter_number'] = digits[3]
+            linked_a['multipliers'] = []
+            if ('factor_mode' in a):
+                if (a['factor_mode'] == "log"):
+                    mult = np.power(10, m)
+            else:
+                mult = m
+            linked_a['multipliers'].append(mult)
+            
+            new_adjustments.append(linked_a)
         
     # Now we need to check for base_variants
     # We will handle these by adding new elements to the multipliers list for

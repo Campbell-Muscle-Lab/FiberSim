@@ -122,12 +122,13 @@ def check_force_balance(dump_file_string, analysis_counter):
             x_a = hs['thin'][thin_id]['bs_x'][a_n]
            
             fd = (hs['titin']['t_k_stiff'] * \
-                      (x_m - x_a))
+                      (x_m - x_a - hs['titin']['t_offset']))
                 
             if (hs['titin']['t_passive_mode'] == 'exponential'):
                 fd = fd + \
                     (np.sign(x_m - x_a) * hs['titin']['t_sigma'] * \
-                     (np.exp(np.fabs(x_m - x_a) / hs['titin']['t_L']) - 1))
+                     (np.exp(np.fabs(x_m - x_a - hs['titin']['t_offset']) /
+                             hs['titin']['t_L']) - 1))
             
             a_row = (thin_id * a_nodes_per_thin_filament) + \
                 (hs['titin']['t_attach_a_node'] -1)
