@@ -59,7 +59,7 @@ You can also the rates for the two isotypes.
 
 <img src="images/rates.png" width="50%">
 
-Most importantly for this demo, you will also see a new figure that shows the state population time-courses for each myosin isotype.
+Most importantly for this demo, you will also see a new figure that shows the state population time-courses for each myosin isotype. This was generated using the same post-simulation Python call as described in [k_tr_demo](../k_tr/k_tr.html).
 
 <img src="images/isotypes.png" width="100%">
 
