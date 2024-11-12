@@ -49,6 +49,9 @@ public:
     double a_y;                     /**< the y coordinate of the filament in nm */
     double a_z;                     /**< the z coordinate of the filament in nm */
 
+    double a_titin_force;           /**< double holding the force due to titin
+                                         strands associated with the filament */
+
     // Arrays
     gsl_vector* bs_x;               /**< pointer to a gsl_vector holding
                                          bs positions */
@@ -99,6 +102,10 @@ public:
 
     gsl_vector* node_forces;        /**< pointer to a gsl_vector holding force
                                          at each node */
+
+    gsl_vector_short* nearest_thick_filaments;
+                                    /**< pointer to an array of indices of thick
+                                        filaments around this thin filament */
 
     /**
     * Constructor

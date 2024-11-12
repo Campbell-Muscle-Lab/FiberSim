@@ -220,6 +220,34 @@ half_sarcomere::half_sarcomere(
     // Initialise the nearest_a_matrix
     initialise_nearest_actin_matrix();
 
+    // Now set the nearest thick filaments for each actin
+    for (short int a_counter = 0; a_counter < a_n; a_counter++)
+    {
+        int surrounding_thick_index = 0;
+
+        // Now scan through the nearest_actin_matrix
+        for (int thick_counter = 0; thick_counter < m_n; thick_counter++)
+        {
+            for (int thin_pos = 0; thin_pos < 6; thin_pos++)
+            {
+                if (gsl_matrix_short_get(nearest_actin_matrix, thick_counter, thin_pos) == a_counter)
+                {
+                    gsl_vector_short_set(p_af[a_counter]->nearest_thick_filaments,
+                        surrounding_thick_index, thick_counter);
+
+                    // Increment the counter
+                    surrounding_thick_index = surrounding_thick_index + 1;
+
+                    break;
+                }
+            }
+
+            // If we have all the surrounding thick filaments, break out
+            if (surrounding_thick_index == 3)
+                break;
+        }
+    }
+
     // Set some values
     m_nodes_per_thick_filament = p_fs_model->m_crowns_per_filament;
     m_cbs_per_thick_filament = p_mf[0]->m_no_of_cbs;
@@ -249,7 +277,6 @@ half_sarcomere::half_sarcomere(
     a_k_on = p_fs_model->a_k_on;
     a_k_off = p_fs_model->a_k_off;
     a_gamma_coop = p_fs_model->a_gamma_coop;
-    a_k_force = p_fs_model->a_k_force;
 
     m_no_of_cb_states = p_fs_model->p_m_scheme[0]->no_of_states;
     m_k_stiff = p_fs_model->m_k_stiff;
@@ -461,39 +488,95 @@ void half_sarcomere::initialise_filament_y_z_coordinates(int m_n)
         }
 
         z = z + (3.0 * z_distance);
-
-        if (GSL_IS_ODD(r))
-            y = 0.0;
+        
+        if (GSL_IS_ODD(n_rows))
+        {
+            if (GSL_IS_ODD(r))
+                y = 0.0;
+            else
+                y = y_distance;
+        }
         else
-            y = y_distance;
+        {
+            if (GSL_IS_EVEN(r))
+                y = -y_distance;
+            else
+                y = 0.0;
+        }
     }
 
     // Now actins
-    counter = 0;
-    y = 0.0;
-    z = (-2.0 * z_distance);
-    int c;
-
-    for (int r = 0; r < (2 * n_rows); r++)
+    if (GSL_IS_ODD(n_rows))
     {
-        for (c = 0; c < n_cols; c++)
+        counter = 0;
+        y = 0.0;
+        z = (-2.0 * z_distance);
+        int c;
+
+        for (int r = 0; r < (2 * n_rows); r++)
         {
-            p_af[counter]->a_y = y;
-            p_af[counter]->a_z = z;
+            for (c = 0; c < n_cols; c++)
+            {
+                p_af[counter]->a_y = y;
+                p_af[counter]->a_z = z;
 
-            y = y + (2.0 * y_distance);
-            counter = counter + 1;
+                y = y + (2.0 * y_distance);
+                counter = counter + 1;
+            }
+
+            if (GSL_IS_ODD(r))
+                z = z + (2.0 * z_distance);
+            else
+                z = z + z_distance;
+
+            if (((r % 4) == 0) || ((r % 4) == 1))
+                y = y_distance;
+            else
+                y = 0;
         }
+    }
+    else
+    {
+        counter = 0;
+        y = -y_distance;
+        z = (-1.0 * z_distance);
+        int c;
 
-        if (GSL_IS_ODD(r))
-            z = z + (2.0 * z_distance);
-        else
-            z = z + z_distance;
+        for (int r = 0; r < (2 * n_rows); r++)
+        {
+            for (c = 0; c < n_cols; c++)
+            {
+                p_af[counter]->a_y = y;
+                p_af[counter]->a_z = z;
 
-        if (((r % 4) == 0) || ((r % 4) == 1))
-            y = y_distance;
-        else
-            y = 0;
+                y = y + (2.0 * y_distance);
+                counter = counter + 1;
+            }
+
+            switch (r % 4)
+            {
+                case 0:
+                    z = z - z_distance;
+                    break;
+
+                case 1:
+                    z = z + 4 * z_distance;
+                    break;
+
+                case 2:
+                    z = z - z_distance;
+                    break;
+
+                case 3:
+                    z = z + 4 * z_distance;
+                    break;
+            }
+
+            if (((r % 4) == 0) || ((r % 4) == 1))
+                y = 0;
+            else
+                y = -y_distance;
+        }
     }
 }
 
@@ -718,6 +801,19 @@ void half_sarcomere::handle_hs_variation(model_hs_variation* p_hs_variation)
         p_fs_model->m_filament_density = p_fs_model->m_filament_density *
             gsl_vector_get(p_hs_variation->hs_multiplier, hs_id);
     }
+
+    if (variable == "t_sigma")
+    {
+        p_fs_model->t_sigma = p_fs_model->t_sigma *
+            gsl_vector_get(p_hs_variation->hs_multiplier, hs_id);
+    }
+
+    if (variable == "t_k_stiff")
+    {
+        p_fs_model->t_k_stiff = p_fs_model->t_k_stiff *
+            gsl_vector_get(p_hs_variation->hs_multiplier, hs_id);
+    }
+
 
     if (variable.rfind("m_kinetics", 0) == 0)
     {
@@ -1995,11 +2091,24 @@ double half_sarcomere::calculate_viscous_force(double delta_hsl, double time_ste
 
 double half_sarcomere::calculate_titin_force(void)
 {
-    //! Calculate the titin contribution to total force 
+    //! Calculate the titin contribution to total force
+    //! Updates the titin_force associated with each thin filament as it goes
+
+    // Variables
+
+    double t_strand_force = 0.0;            // force in a single strand of titin
 
     double holder = 0.0;
 
-    // Loop through thick filaments
+    // Code
+
+    // First, zero all the titin forces
+    for (int a_counter = 0; a_counter < a_n; a_counter++)
+    {
+        p_af[a_counter]->a_titin_force = 0.0;
+    }
+
+    // Now loop through thick filaments
 
     for (int m_counter = 0; m_counter < m_n; m_counter++)
     {
@@ -2021,13 +2130,20 @@ double half_sarcomere::calculate_titin_force(void)
             double x_a = gsl_vector_get(x_vector, thin_node_index);
 
             // There is always a linear force
-            holder = holder + t_k_stiff * (x_m - x_a - t_offset);
+            t_strand_force = t_k_stiff + (x_m - x_a - t_offset);
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
-                holder = holder +
+                t_strand_force = t_strand_force +
                     GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a - t_offset) / t_L) - 1);
             }
+
+            // Update
+            holder = holder + t_strand_force;
+
+            // Adjust a_titin_force for the filament
+            p_af[gsl_matrix_short_get(nearest_actin_matrix, m_counter, a_counter)]->a_titin_force =
+                p_af[gsl_matrix_short_get(nearest_actin_matrix, m_counter, a_counter)]->a_titin_force + t_strand_force;
         }
     }
 
@@ -2424,7 +2540,6 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
     double rand_double;
 
     double coop_boost = 0.0;
-    double force_boost = 0.0;
 
     int thin_filament_repeat = 1;
 
@@ -2450,10 +2565,10 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
         // Loop through thin filaments setting active neighbors
         for (int a_counter = 0; a_counter < a_n; a_counter++)
         {
-            // Loop through strands
+            // Loop through strands, setting the active neighbors
             for (int str_counter = 0; str_counter < a_strands_per_filament; str_counter++)
             {
-                // Loop through regualtory units
+                // Loop through regulatory units
                 for (int unit = 0; unit < a_regulatory_units_per_strand; unit++)
                 {
                     int unit_counter = str_counter + (unit * a_strands_per_filament);
@@ -2485,11 +2600,7 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                     gsl_vector_short_set(p_af[a_counter]->active_neighbors, unit_counter, active_neigh);
                 }
             }
-        }
 
-        // Loop through thin filaments
-        for (int a_counter = 0; a_counter < a_n; a_counter++)
-        {
             // Loop through strands
             for (int str_counter = 0; str_counter < a_strands_per_filament; str_counter++)
             {
@@ -2497,21 +2608,6 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                 for (int unit = 0; unit < a_regulatory_units_per_strand; unit++)
                 {
                     int unit_counter = str_counter + (unit * a_strands_per_filament);
-
-                    // Deduce the status of the neighbors
-                    if (unit_counter >= a_strands_per_filament)
-                        down_neighbor_status =
-                        gsl_vector_short_get(p_af[a_counter]->unit_status,
-                            ((size_t)unit_counter - (size_t)a_strands_per_filament));
-                    else
-                        down_neighbor_status = -1;
-
-                    if (unit_counter <= (a_strands_per_filament * a_regulatory_units_per_strand - a_strands_per_filament - 1))
-                        up_neighbor_status =
-                        gsl_vector_short_get(p_af[a_counter]->unit_status,
-                            ((size_t)unit_counter + (size_t)a_strands_per_filament));
-                    else
-                        up_neighbor_status = -1;
 
                     // Set the indices for the unit
                     p_af[a_counter]->set_regulatory_unit_indices(unit_counter, bs_indices);
@@ -2522,12 +2618,7 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                         coop_boost = a_gamma_coop *
                             (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter);
 
-                        // Calculate force boost
-                        double node_force = gsl_vector_get(p_af[a_counter]->node_forces,
-                            gsl_vector_short_get(bs_indices, 0) / a_bs_per_node);
-                        force_boost = a_k_force * node_force;
-
-                        rate = a_k_on * Ca_conc * gsl_max(0, (1.0 + coop_boost + force_boost));
+                        rate = a_k_on * Ca_conc * (1.0 + coop_boost);
 
                         // Test event with a random number
                         rand_double = gsl_rng_uniform(rand_generator);
@@ -2556,6 +2647,22 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                         {
                             coop_boost = a_gamma_coop *
                                 (2.0 - (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter));
+
+                            double temp = 0.0;
+                            if (hs_id > 0)
+                            {
+                                temp = (gsl_vector_get(p_fs_model->a_k_force, 1) *
+                                    (hs_titin_force - p_parent_m->p_hs[hs_id - 1]->hs_titin_force));
+                            }
+                            if (hs_id < (p_fs_model->no_of_half_sarcomeres - 1))
+                            {
+                                temp = temp + (gsl_vector_get(p_fs_model->a_k_force, 2) *
+                                    (hs_titin_force -p_parent_m->p_hs[hs_id + 1]->hs_titin_force));
+                            }
+                            temp = 1.0 + (temp * gsl_vector_get(p_fs_model->a_k_force, 0));
+                            temp = GSL_MAX(0.0, temp);
+                            a_force_boost = GSL_MIN(temp, 2.0);
+                            coop_boost = coop_boost * a_force_boost;
 
                             rate = a_k_off * (1.0 + coop_boost);
 

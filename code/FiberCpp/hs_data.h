@@ -64,6 +64,9 @@ public:
 	gsl_vector* hs_m_length;	/**< gsl_vector holder thick_filament length (nm) for
 									 each time-point */
 
+	gsl_vector* hs_a_force_boost;
+								/**< gsl_vector holding force boost for activation */
+
 	gsl_vector* hs_force;		/**< gsl_vector holding hs_force for each time-point */
 
 	gsl_vector* hs_titin_force;	/**< gsl_vector holding hs_titin_force for each time-point */

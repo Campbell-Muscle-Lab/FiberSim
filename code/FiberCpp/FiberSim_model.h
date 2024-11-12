@@ -150,8 +150,8 @@ public:
     double a_gamma_coop;                 /**< double defining cooperativity
                                               dimensionless */
 
-    double a_k_force;                   /**< double defining force-dependent rate
-                                             boost */
+    gsl_vector* a_k_force;               /**< gsl_vector defining force-dependent
+                                              effects */
 
     int coop_name;                      /**< int defining cooperativity
                                               notation */

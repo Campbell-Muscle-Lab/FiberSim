@@ -241,6 +241,8 @@ public:
     double a_gamma_coop;
     double a_k_force;               /**< force-depenent activation factor */
 
+    double a_force_boost;           /**< force boost to cooperativity */
+
     // Myosin
     double m_k_stiff;               /**< double defining stiffness of thick filament
                                          spring in N m^-1 */

@@ -43,7 +43,9 @@ hs_data::hs_data(int set_no_of_time_points,
 	hs_viscous_force = gsl_vector_alloc(no_of_time_points);
 	hs_extracellular_force = gsl_vector_alloc(no_of_time_points);
 	hs_a_length = gsl_vector_alloc(no_of_time_points);
-	hs_m_length = gsl_vector_alloc(no_of_time_points);	
+	hs_m_length = gsl_vector_alloc(no_of_time_points);
+
+	hs_a_force_boost = gsl_vector_alloc(no_of_time_points);
 	
 	// Allocate space for data matrices
 	hs_a_pops = gsl_matrix_alloc(no_of_time_points, p_fs_model->a_no_of_bs_states);
@@ -63,6 +65,8 @@ hs_data::hs_data(int set_no_of_time_points,
 
 	gsl_vector_set_zero(hs_a_length);
 	gsl_vector_set_zero(hs_m_length);
+
+	gsl_vector_set_zero(hs_a_force_boost);
 
 	gsl_matrix_set_zero(hs_a_pops);
 	gsl_matrix_set_zero(hs_m_pops);
@@ -87,6 +91,8 @@ hs_data::~hs_data(void)
 
 	gsl_vector_free(hs_a_length);
 	gsl_vector_free(hs_m_length);
+
+	gsl_vector_free(hs_a_force_boost);
 
 	// Then the matrices
 	gsl_matrix_free(hs_a_pops);

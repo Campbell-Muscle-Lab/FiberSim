@@ -191,19 +191,31 @@ def generate_model_files(json_analysis_file_string):
                     a['proportions'][i]['isotype_proportions']
             
             else:
-                base_value = adj_model[a['class']][a['variable']]
-                
-                value = base_value * a['multipliers'][i]
-                
-                if (a['output_type'] == 'int'):
-                    adj_model[a['class']][a['variable']] = int(value)
+                if ('parameter_number' in a):
+                    # It's an array
+                    y = np.asarray(adj_model[a['class']][a['variable']],
+                                   dtype = np.float32)
+                    base_value = y[a['parameter_number'] - 1]
+                    value = base_value * a['multipliers'][i]
                     
-                if (a['output_type'] == 'float'):
-                    adj_model[a['class']][a['variable']] = float(value)
+                    y[a['parameter_number'] - 1] = value
+                    adj_model[a['class']][a['variable']] = y.tolist()
                     
-                # Check for NaN
-                if (np.isnan(value)):
-                    adj_model[a['class']][a['variable']] = 'null'
+                else:
+                    # Standard value
+                    base_value = adj_model[a['class']][a['variable']]
+                
+                    value = base_value * a['multipliers'][i]
+                
+                    if (a['output_type'] == 'int'):
+                        adj_model[a['class']][a['variable']] = int(value)
+                    
+                    if (a['output_type'] == 'float'):
+                        adj_model[a['class']][a['variable']] = float(value)
+                    
+                    # Check for NaN
+                    if (np.isnan(value)):
+                        adj_model[a['class']][a['variable']] = 'null'
         
         # Now generate the model file string
         model_file_string = 'model_%i.json' % (i+1)
