@@ -150,8 +150,14 @@ public:
     double a_gamma_coop;                 /**< double defining cooperativity
                                               dimensionless */
 
-    gsl_vector* a_k_force;               /**< gsl_vector defining force-dependent
-                                              effects */
+    gsl_vector* a_k_on_t_force;          /**< gsl_vector defining titin force-dependent
+                                              effects on a_k_on */
+
+    gsl_vector* a_k_off_t_force;          /**< gsl_vector defining titin force-dependent
+                                              effects on a_k_off */
+
+    gsl_vector* a_k_coop_t_force;          /**< gsl_vector defining titin force-dependent
+                                              effects on a_k_coop */
 
     int coop_name;                      /**< int defining cooperativity
                                               notation */

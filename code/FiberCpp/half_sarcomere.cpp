@@ -2130,12 +2130,12 @@ double half_sarcomere::calculate_titin_force(void)
             double x_a = gsl_vector_get(x_vector, thin_node_index);
 
             // There is always a linear force
-            t_strand_force = t_k_stiff + (x_m - x_a - t_offset);
+            t_strand_force = t_k_stiff * (x_m - x_a - t_offset);
 
             if (!strcmp(t_passive_mode, "exponential"))
             {
                 t_strand_force = t_strand_force +
-                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a - t_offset) / t_L) - 1);
+                    GSL_SIGN(x_m - x_a - t_offset) * t_sigma * (exp(fabs(x_m - x_a - t_offset) / t_L) - 1);
             }
 
             // Update
@@ -2147,12 +2147,9 @@ double half_sarcomere::calculate_titin_force(void)
         }
     }
 
-    // Adjust for nm scale of filaments and density of thick filaments
+    // Adjust for nm scale of filaments
     // Normalize to the number of thick filaments in the calculation
-    // Return force in N m^-2
-    holder = holder * (1.0 - p_fs_model->prop_fibrosis) *
-                p_fs_model->prop_myofilaments * p_fs_model->m_filament_density *
-                1e-9 / (double)m_n;
+    holder = holder * 1e-9 / (double)m_n;
 
     // Return
     return holder;
@@ -2545,6 +2542,9 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
     gsl_vector_short* bs_indices;
 
+    double t_force_across_M;
+    double t_force_across_Z;
+
     // Thin filament kinetics are faster than myosin kinetics, so run this multiple times
     // with a short time-step
 
@@ -2558,6 +2558,71 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
     {
         p_af[a_counter]->calculate_node_forces();
     }
+
+    // Reset a_k_* factors
+    a_k_on_t_force_factor = 1.0;
+    a_k_off_t_force_factor = 1.0;
+    a_k_coop_t_force_factor = 1.0;
+
+    // Set force values
+    t_force_across_M = 0.0;
+    t_force_across_Z = 0.0;
+
+    // Calculate them
+    if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_on_t_force, 0)) ||
+        !gsl_isnan(gsl_vector_get(p_fs_model->a_k_off_t_force, 0)) ||
+        !gsl_isnan(gsl_vector_get(p_fs_model->a_k_coop_t_force, 0)))
+    {
+        // We have a titin-force dependency somewhere, deduce the relevant forces
+
+        if (GSL_IS_EVEN(hs_id))
+        {
+            // This half-sarcomere has Z-line on left
+            if (hs_id > 0)
+            {
+                t_force_across_Z = p_parent_m->p_hs[hs_id - 1]->hs_titin_force;
+            }
+
+            if (hs_id < (p_fs_model->no_of_half_sarcomeres - 1))
+            {
+                t_force_across_M = p_parent_m->p_hs[hs_id + 1]->hs_titin_force;
+            }
+        }
+        else
+        {
+            // This half-sarcomere has Z-line on right
+            if (hs_id > 0)
+            {
+                t_force_across_M = p_parent_m->p_hs[hs_id - 1]->hs_titin_force;
+            }
+
+            if (hs_id < (p_fs_model->no_of_half_sarcomeres - 1))
+            {
+                t_force_across_Z = p_parent_m->p_hs[hs_id + 1]->hs_titin_force;
+            }
+        }
+
+        // Try the coop
+        if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_coop_t_force, 0)))
+        {
+            a_k_coop_t_force_factor = 1.0 +
+                gsl_vector_get(p_fs_model->a_k_coop_t_force, 0) *
+                ((gsl_vector_get(p_fs_model->a_k_coop_t_force, 1) * hs_titin_force) +
+                    (gsl_vector_get(p_fs_model->a_k_coop_t_force, 2) * t_force_across_M) +
+                    (gsl_vector_get(p_fs_model->a_k_coop_t_force, 3) * t_force_across_Z));
+
+            // Limit
+            if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_coop_t_force, 4)))
+                a_k_coop_t_force_factor = GSL_MAX(a_k_coop_t_force_factor,
+                    gsl_vector_get(p_fs_model->a_k_coop_t_force, 4));
+
+            if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_coop_t_force, 5)))
+                a_k_coop_t_force_factor = GSL_MIN(a_k_coop_t_force_factor,
+                    gsl_vector_get(p_fs_model->a_k_coop_t_force, 5));
+        }
+
+    }
+
 
     for (int rep_counter = 0; rep_counter < thin_filament_repeat; rep_counter++)
     {
@@ -2618,7 +2683,7 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                         coop_boost = a_gamma_coop *
                             (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter);
 
-                        rate = a_k_on * Ca_conc * (1.0 + coop_boost);
+                        rate = a_k_on * Ca_conc * (1.0 + (a_k_coop_t_force_factor * coop_boost));
 
                         // Test event with a random number
                         rand_double = gsl_rng_uniform(rand_generator);
@@ -2648,23 +2713,7 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                             coop_boost = a_gamma_coop *
                                 (2.0 - (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter));
 
-                            double temp = 0.0;
-                            if (hs_id > 0)
-                            {
-                                temp = (gsl_vector_get(p_fs_model->a_k_force, 1) *
-                                    (hs_titin_force - p_parent_m->p_hs[hs_id - 1]->hs_titin_force));
-                            }
-                            if (hs_id < (p_fs_model->no_of_half_sarcomeres - 1))
-                            {
-                                temp = temp + (gsl_vector_get(p_fs_model->a_k_force, 2) *
-                                    (hs_titin_force -p_parent_m->p_hs[hs_id + 1]->hs_titin_force));
-                            }
-                            temp = 1.0 + (temp * gsl_vector_get(p_fs_model->a_k_force, 0));
-                            temp = GSL_MAX(0.0, temp);
-                            a_force_boost = GSL_MIN(temp, 2.0);
-                            coop_boost = coop_boost * a_force_boost;
-
-                            rate = a_k_off * (1.0 + coop_boost);
+                            rate = a_k_off * (1.0 + (a_k_coop_t_force_factor * coop_boost));
 
                             // Test event with a random number
                             rand_double = gsl_rng_uniform(rand_generator);

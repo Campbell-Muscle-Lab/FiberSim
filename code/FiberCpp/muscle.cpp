@@ -478,9 +478,17 @@ void muscle::implement_time_step(int protocol_index)
 			protocol_index,
 			p_hs[hs_counter]->m_mean_fil_length);
 
-		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_a_force_boost,
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_a_k_on_t_force_factor,
 			protocol_index,
-			p_hs[hs_counter]->a_force_boost);
+			p_hs[hs_counter]->a_k_on_t_force_factor);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_a_k_off_t_force_factor,
+			protocol_index,
+			p_hs[hs_counter]->a_k_off_t_force_factor);
+
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_a_k_coop_t_force_factor,
+			protocol_index,
+			p_hs[hs_counter]->a_k_coop_t_force_factor);
 
 		// Update pops
 		for (int i = 0; i < p_fs_model[hs_counter]->a_no_of_bs_states; i++)

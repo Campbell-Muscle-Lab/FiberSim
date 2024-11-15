@@ -241,7 +241,14 @@ public:
     double a_gamma_coop;
     double a_k_force;               /**< force-depenent activation factor */
 
-    double a_force_boost;           /**< force boost to cooperativity */
+    double a_k_on_t_force_factor;   /**< titin force-dependent modulation of
+                                         a_k_on */
+
+    double a_k_off_t_force_factor;  /**< titin force-dependent modulation of
+                                         a_k_off */
+
+    double a_k_coop_t_force_factor; /**< titin force-dependent modulation of
+                                         a_k_coop */
 
     // Myosin
     double m_k_stiff;               /**< double defining stiffness of thick filament
