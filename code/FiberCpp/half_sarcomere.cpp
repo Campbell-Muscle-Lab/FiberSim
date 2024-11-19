@@ -2602,6 +2602,44 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
             }
         }
 
+        // Try the k_on
+        if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_on_t_force, 0)))
+        {
+            a_k_on_t_force_factor = 1.0 +
+                gsl_vector_get(p_fs_model->a_k_on_t_force, 0) *
+                ((gsl_vector_get(p_fs_model->a_k_on_t_force, 1) * hs_titin_force) +
+                    (gsl_vector_get(p_fs_model->a_k_on_t_force, 2) * t_force_across_M) +
+                    (gsl_vector_get(p_fs_model->a_k_on_t_force, 3) * t_force_across_Z));
+
+            // Limit
+            if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_on_t_force, 4)))
+                a_k_on_t_force_factor = GSL_MAX(a_k_on_t_force_factor,
+                    gsl_vector_get(p_fs_model->a_k_on_t_force, 4));
+
+            if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_on_t_force, 5)))
+                a_k_on_t_force_factor = GSL_MIN(a_k_on_t_force_factor,
+                    gsl_vector_get(p_fs_model->a_k_on_t_force, 5));
+        }
+
+        // Try the k_off
+        if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_off_t_force, 0)))
+        {
+            a_k_off_t_force_factor = 1.0 +
+                gsl_vector_get(p_fs_model->a_k_off_t_force, 0) *
+                ((gsl_vector_get(p_fs_model->a_k_off_t_force, 1) * hs_titin_force) +
+                    (gsl_vector_get(p_fs_model->a_k_off_t_force, 2) * t_force_across_M) +
+                    (gsl_vector_get(p_fs_model->a_k_off_t_force, 3) * t_force_across_Z));
+
+            // Limit
+            if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_off_t_force, 4)))
+                a_k_off_t_force_factor = GSL_MAX(a_k_off_t_force_factor,
+                    gsl_vector_get(p_fs_model->a_k_off_t_force, 4));
+
+            if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_off_t_force, 5)))
+                a_k_off_t_force_factor = GSL_MIN(a_k_off_t_force_factor,
+                    gsl_vector_get(p_fs_model->a_k_off_t_force, 5));
+        }
+
         // Try the coop
         if (!gsl_isnan(gsl_vector_get(p_fs_model->a_k_coop_t_force, 0)))
         {
@@ -2683,7 +2721,7 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                         coop_boost = a_gamma_coop *
                             (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter);
 
-                        rate = a_k_on * Ca_conc * (1.0 + (a_k_coop_t_force_factor * coop_boost));
+                        rate = (a_k_on_t_force_factor * a_k_on) * Ca_conc * (1.0 + (a_k_coop_t_force_factor * coop_boost));
 
                         // Test event with a random number
                         rand_double = gsl_rng_uniform(rand_generator);
@@ -2713,7 +2751,7 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                             coop_boost = a_gamma_coop *
                                 (2.0 - (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter));
 
-                            rate = a_k_off * (1.0 + (a_k_coop_t_force_factor * coop_boost));
+                            rate = (a_k_off_t_force_factor * a_k_off) * (1.0 + (a_k_coop_t_force_factor * coop_boost));
 
                             // Test event with a random number
                             rand_double = gsl_rng_uniform(rand_generator);

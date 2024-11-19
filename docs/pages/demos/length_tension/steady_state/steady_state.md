@@ -30,12 +30,12 @@ If you need help with these step, check the [installation instructions](../../..
 + Change directory to `<FiberSim_repo>/code/FiberPy/FiberPy`
 + Run the command
 ```
- python FiberPy.py characterize "../../../demo_files/isotonic/force_velocity/base/setup.json"
+ python FiberPy.py characterize "../../../demo_files/length_tension/steady_state/base/setup.json"
  ```
 
 ### Viewing the results
 
-All of the results from the isotonic simulations are written to files in `<FiberSim_repo>/demo_files/isotonic/force_velocity/sim_data/isotonic/sim_output`
+All of the results from the isotonic simulations are written to files in `<FiberSim_repo>/demo_files/length_tension/steady_state/sim_output`
 
 The file `superposed_traces.png` shows pCa, length, force per cross-sectional area (stress), and thick and thin filamnt properties plotted against time.
 
@@ -45,28 +45,25 @@ The file `rates.png` summarizes the kinetic scheme.
 
 <img src="images/rates.png" width="50%">
 
-The file `fv_traces_1.png` shows the loaded shortening segment of the simulation in more details.
+The file `length_tension.png` shows the active, passive, and total length-tension curves.
 
-<img src="images/fv_traces_1.png" width="50%">
-
-The file `fv_and_power.png` shows the force-velocity and force-power curves.
-
-<img src="images/fv_and_power.png" width="50%">
-
-Finally, data derived from the simulations are tabulated in `fv_analysis.xlsx`.
-
-<img src="images/fv_analysis.png" width="50%">
-
+<img src="images/length_tension.png" width="50%">
 
 
 
 ### How this worked
 
-The setup file follows the normal template. The experimental protocols are defined by the `characterization` element. See the table below for more details.
+The setup file follows the normal template. The experimental protocols are defined by the `characterization` element.
+
+The new feature in this demo is the `hs_lengths` option in the characterization structure. As you can see from the output figures, the code simulates a pCa 4.5 activation at half-sarcomere lengths ranging from 700 to 1800 nm.
+
+The `post_sim_Python_call` generates the length-tension figure which is unique to this demo.
+
 
 ```text
 {
-  "FiberSim_setup": {
+  "FiberSim_setup":
+  {
     "FiberCpp_exe": {
       "relative_to": "this_file",
       "exe_file": "../../../../bin/FiberCpp.exe"
@@ -77,40 +74,22 @@ The setup file follows the normal template. The experimental protocols are defin
       "model_files": ["model.json"]
     },
     "characterization": [
-      {
-        "type": "force_velocity",
-        "pCa": 4.5,
-        "hs_lengths": [1100],
-        "m_n": 4,
-        "randomized_repeats": 1,
-        "length_fit_mode": "exponential",
-        "time_step_s": 0.001,
-        "sim_duration_s": 0.5,
-        "sim_release_s": 0.4,
-        "rel_isotonic_forces": [0.03, 0.04, 0.075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.875, 0.9, 0.925, 0.95],
-        "fit_time_s": [ 0.41, 0.49 ],
-        "relative_to": "this_file",
-        "sim_folder": "../sim_data",
-        "output_image_formats": [ "png" ],
-        "figures_only": "False",
-        "trace_figures_on": "False"
-      }
+        {
+            "type": "pCa_length_control",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data",
+            "hs_lengths": [700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800],
+            "m_n": 4,
+            "pCa_values": [4.5],
+            "sim_duration_s": 1,
+            "time_step_s": 0.001,
+            "pCa_step_up_s": 0.1,
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False",
+            "post_sim_Python_call": "../Python_code/plot_length_tension.py"
+        }
     ]
   }
 }
 ```
-
-| Parameter | Value | Comments |
-| ---- | ---- | ---- |
-| type | force_velocity | |
-| pCa | float | The pCa value for the tests (as in this example) |
-|  | "pCa_50" | Alternative mode, which runs isotonic shortening at pCa<sub>50</sub>. If this mode is selected, an additional parameter `pCa_values` must also be provided. FiberPy will run isometric simulations with these values to determine the pCa<sub>50</sub>. Example, `"pCa_values": [9, 6.5, 6.3, 6.1, 5.9, 5.7, 5.5, 5.3, 4.5]` |
-| hs_lengths (optional)| array of floats | array of hs_lengths to run the simulations at. FiberPy uses the hs_length in the model file if not provided |
-| randomized_repeats (optional) | integer | number of repeats to run at each length with different seeds |
-| length_fit_mode | "linear" | fits shortening velocity with a straight line |
-|  | "exponential" | fits shortening velocity with an exponential and extrapolates to the onset of shortening to establish fastest shortening (useful for traces where shortening slows progressively during shortening) |
-| time_step_s | float | time step in seconds for simulation |
-| sim_duration_s | float | total duration in seconds of each simulation |
-| sim_release_s | float | time in seconds at which muscle starts to shorten isotonically |
-| rel_isotonic_forces | array of floats | the forces (relative to isometric) which the muscle shortens against |
-| fit_time_s | [2 element array of floats] | time range (in seconds) over which to fit shortening velocity |
