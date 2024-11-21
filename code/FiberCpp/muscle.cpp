@@ -300,6 +300,17 @@ void muscle::implement_time_step(int protocol_index)
 	int hs_counter;
 
 	// Code
+
+	// Check whether we need to calculate inter_hs_forces
+	if (p_fs_model[0]->no_of_half_sarcomeres > 1)
+	{
+		if (!gsl_isnan(gsl_vector_get(p_fs_model[0]->inter_hs_t_force_effects, 0)))
+		{
+			calculate_inter_hs_t_force_effects();
+		}
+	}
+
+	// Now worry about afterload
 	if (afterload_flag == 1)
 	{
 		afterload_time_step(protocol_index);
@@ -478,17 +489,9 @@ void muscle::implement_time_step(int protocol_index)
 			protocol_index,
 			p_hs[hs_counter]->m_mean_fil_length);
 
-		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_a_k_on_t_force_factor,
+		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_inter_hs_titin_force_effect,
 			protocol_index,
-			p_hs[hs_counter]->a_k_on_t_force_factor);
-
-		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_a_k_off_t_force_factor,
-			protocol_index,
-			p_hs[hs_counter]->a_k_off_t_force_factor);
-
-		gsl_vector_set(p_fs_data->p_hs_data[hs_counter]->hs_a_k_coop_t_force_factor,
-			protocol_index,
-			p_hs[hs_counter]->a_k_coop_t_force_factor);
+			p_hs[hs_counter]->hs_inter_hs_titin_force_effect);
 
 		// Update pops
 		for (int i = 0; i < p_fs_model[hs_counter]->a_no_of_bs_states; i++)
@@ -976,6 +979,68 @@ size_t muscle::force_control_myofibril_with_series_compliance(int protocol_index
 	
 	// Return the max number of lattice iterations
 	return max_lattice_iterations;
+}
+
+void muscle::calculate_inter_hs_t_force_effects(void)
+{
+	//| Function updates inter_hs_t_force for each half-sarcomere
+
+	// Variables
+	double t_force_across_M;
+	double t_force_across_Z;
+
+	// Code
+
+	// Loop through half-sarcomeres
+	for (int hs_id = 0; hs_id < p_fs_model[0]->no_of_half_sarcomeres; hs_id++)
+	{
+		// Zero variables
+		t_force_across_M = 0;
+		t_force_across_Z = 0;
+
+		if (GSL_IS_EVEN(hs_id))
+		{
+			// This half-sarcomere has Z-line on left
+			if (hs_id > 0)
+			{
+				t_force_across_Z = p_hs[hs_id - 1]->hs_titin_force;
+			}
+
+			if (hs_id < (p_fs_model[0]->no_of_half_sarcomeres - 1))
+			{
+				t_force_across_M = p_hs[hs_id + 1]->hs_titin_force;
+			}
+		}
+		else
+		{
+			// This half-sarcomere has Z-line on right
+			if (hs_id > 0)
+			{
+				t_force_across_M = p_hs[hs_id - 1]->hs_titin_force;
+			}
+
+			if (hs_id < (p_fs_model[0]->no_of_half_sarcomeres - 1))
+			{
+				t_force_across_Z = p_hs[hs_id + 1]->hs_titin_force;
+			}
+		}
+
+		// Add up the forces with appropriate weights
+		p_hs[hs_id]->hs_inter_hs_titin_force_effect =
+			gsl_vector_get(p_fs_model[hs_id]->inter_hs_t_force_effects, 0) *
+				((gsl_vector_get(p_fs_model[hs_id]->inter_hs_t_force_effects, 1) * p_hs[hs_id]->hs_titin_force) +
+					(gsl_vector_get(p_fs_model[hs_id]->inter_hs_t_force_effects, 2) * t_force_across_M) +
+					(gsl_vector_get(p_fs_model[hs_id]->inter_hs_t_force_effects, 3) * t_force_across_Z));
+
+		// Limit
+		p_hs[hs_id]->hs_inter_hs_titin_force_effect = GSL_MAX(
+			p_hs[hs_id]->hs_inter_hs_titin_force_effect,
+			gsl_vector_get(p_fs_model[hs_id]->inter_hs_t_force_effects, 4));
+
+		p_hs[hs_id]->hs_inter_hs_titin_force_effect = GSL_MIN(
+			p_hs[hs_id]->hs_inter_hs_titin_force_effect,
+			gsl_vector_get(p_fs_model[hs_id]->inter_hs_t_force_effects, 5));
+	}
 }
 
 void muscle::write_rates_file()

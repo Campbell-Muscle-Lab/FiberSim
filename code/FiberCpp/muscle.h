@@ -87,6 +87,10 @@ public:
 
     void afterload_time_step(int protocol_index);
 
+    void calculate_inter_hs_t_force_effects(void);
+                                        /**< Updates values of inter_hs_t_force for each
+                                             half-sarcomere */
+
     // Variables
 
     char model_version[_MAX_PATH];      /**< FiberSim version from the model file */

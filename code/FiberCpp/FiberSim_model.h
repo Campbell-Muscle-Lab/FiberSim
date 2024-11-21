@@ -150,15 +150,6 @@ public:
     double a_gamma_coop;                 /**< double defining cooperativity
                                               dimensionless */
 
-    gsl_vector* a_k_on_t_force;          /**< gsl_vector defining titin force-dependent
-                                              effects on a_k_on */
-
-    gsl_vector* a_k_off_t_force;          /**< gsl_vector defining titin force-dependent
-                                              effects on a_k_off */
-
-    gsl_vector* a_k_coop_t_force;          /**< gsl_vector defining titin force-dependent
-                                              effects on a_k_coop */
-
     int coop_name;                      /**< int defining cooperativity
                                               notation */
 
@@ -236,6 +227,10 @@ public:
 
     model_hs_variation* p_model_hs_variation[MAX_NO_OF_MODEL_HS_VARIATION];
                                         /**< pointer to an array of model_hs_variation objects */
+
+    gsl_vector* inter_hs_t_force_effects;
+                                        /**< gsl_vector defining how to calculate inter-hs
+                                             titin forces */
 
     // Functions
 

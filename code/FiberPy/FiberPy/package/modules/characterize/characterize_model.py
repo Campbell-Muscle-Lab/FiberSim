@@ -42,9 +42,12 @@ def characterize_model(json_analysis_file_string):
     # If there is a manipulations section, use that to create the
     # appropriate models
     if ("manipulations" in anal_struct['model']):
-        print(json_analysis_file_string)
-        json_analysis_file_string = \
+        # We are writing new files
+        (json_analysis_file_string, json_data) = \
             generate_model_files(json_analysis_file_string)
+            
+        # Now neeed to reload the new data
+        anal_struct = json_data['FiberSim_setup']
    
     # Pull off the characterization tasks
     char_struct = anal_struct['characterization']
@@ -73,10 +76,10 @@ def characterize_model(json_analysis_file_string):
             
 def post_sim_Python_call(json_analysis_file_string, char_struct):
     
-    if (char_struct['relative_to'] == 'this_file'):
-        working_dir = Path(json_analysis_file_string).parent.absolute()
-    else:
-        working_dir = ''
+    working_dir = ''
+    if ('relative_to' in char_struct):
+        if (char_struct['relative_to'] == 'this_file'):
+            working_dir = Path(json_analysis_file_string).parent.absolute()
            
     command_string = 'python %s' % (os.path.join(working_dir,
                                                  char_struct['post_sim_Python_call']))
@@ -125,6 +128,7 @@ def generate_model_files(json_analysis_file_string):
         temp_dir = Path(json_analysis_file_string).parent.absolute()
         orig_options_file = os.path.join(temp_dir,
                                          model_struct['options_file'])
+        temp, file_name = os.path.split(orig_options_file)
         new_options_file = os.path.join(generated_dir, model_struct['options_file'])
     elif (model_struct['relative_to'] == 'False'):
         orig_options_file = model_struct['options_file']
@@ -132,6 +136,9 @@ def generate_model_files(json_analysis_file_string):
         new_options_file = os.path.join(generated_dir, file_name)
     else:
         print('characterize_model - need more work on sim options copying')
+        
+    temp, file_name = os.path.split(orig_options_file)
+    new_options_file = os.path.join(generated_dir, file_name)
     
     shutil.copy(orig_options_file, new_options_file)
 
@@ -189,6 +196,18 @@ def generate_model_files(json_analysis_file_string):
                 class_string = '%s_parameters' % prefix
                 adj_model[class_string][a['variable']] = \
                     a['proportions'][i]['isotype_proportions']
+                    
+            elif (a['class'] == 'half_sarcomere_variation'):
+                hsv = adj_model[a['class']]
+                for (vi, h) in enumerate(hsv):
+                    if (h['variable'] == a['variable']):
+                        y = np.asarray(adj_model[a['class']][vi]['multiplier'],
+                                       dtype=np.float32)
+                        base_value = y[a['parameter_number'] - 1]
+                        value = base_value * a['multipliers'][i]
+                        
+                        y[a['parameter_number'] - 1] = value
+                        adj_model[a['class']][vi]['multiplier'] = y.tolist()
             
             else:
                 if ('parameter_number' in a):
@@ -238,6 +257,24 @@ def generate_model_files(json_analysis_file_string):
     # Add in the model files
     json_data['FiberSim_setup']['model']['model_files'] = generated_models
     
+    # Correct the options file
+    temp, file_name = os.path.split(new_options_file)
+    json_data['FiberSim_setup']['model']['options_file'] = file_name
+    
+    # Correct the characterization modes
+    for (i, ch) in enumerate(json_data['FiberSim_setup']['characterization']):
+        
+        if (ch['relative_to'] == 'this_file'):
+            
+            base_dir = str(Path(json_analysis_file_string).parent.absolute())
+
+            json_data['FiberSim_setup']['characterization'][i]['sim_folder'] = \
+                str(Path(os.path.join(base_dir, ch['sim_folder'])).resolve().absolute())
+
+            if ('post_sim_Python_call' in ch):
+                json_data['FiberSim_setup']['characterization'][i]['post_sim_Python_call'] = \
+                    str(Path(os.path.join(base_dir, ch['post_sim_Python_call'])).resolve().absolute())
+    
     # Delete the adjustments
     del(json_data['FiberSim_setup']['model']['manipulations'])
     
@@ -250,7 +287,7 @@ def generate_model_files(json_analysis_file_string):
         json.dump(json_data, f, indent=4)
         
     # Return the new filename
-    return (generated_setup_file_string)
+    return (generated_setup_file_string, json_data)
             
             
 def deduce_pCa_length_control_properties(json_analysis_file_string,
@@ -323,8 +360,8 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
             base_dir = pCa_struct['relative_to']
         base_dir = os.path.join(base_dir, pCa_struct['sim_folder'])
     else:
-        base_dir = pCa_struct['sim_folder']        
-    
+        base_dir = pCa_struct['sim_folder']
+   
     # If you are running simulations, delete the existing structure
     if not figures_only:
         try:

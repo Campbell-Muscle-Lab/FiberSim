@@ -64,27 +64,18 @@ public:
 	gsl_vector* hs_m_length;	/**< gsl_vector holder thick_filament length (nm) for
 									 each time-point */
 
-	gsl_vector* hs_a_k_on_t_force_factor;
-								/**< gsl_vector holding titin force dependent modulation
-									 of a_k_on */
-
-	gsl_vector* hs_a_k_off_t_force_factor;
-								/**< gsl_vector holding titin force dependent modulation
-									 of a_k_off */
-
-	gsl_vector* hs_a_k_coop_t_force_factor;
-								/**< gsl_vector holding titin force dependent modulation
-									 of a_k_coop */
-
 	gsl_vector* hs_force;		/**< gsl_vector holding hs_force for each time-point */
 
 	gsl_vector* hs_titin_force;	/**< gsl_vector holding hs_titin_force for each time-point */
 
 	gsl_vector* hs_viscous_force;
-	/**< gsl_vector holding viscous force within half-sarcomere */
+								/**< gsl_vector holding viscous force within half-sarcomere */
 
 	gsl_vector* hs_extracellular_force;
-	/**< gsl_vector holding hs_extracellular_force for each time-point */
+								/**< gsl_vector holding hs_extracellular_force for each time-point */
+
+	gsl_vector* hs_inter_hs_titin_force_effect;
+								/**< gsl_vector holding effect of inter-half-sarcomere titin forces */
 
 	gsl_matrix* hs_a_pops;		/**< gsl_matrix holding the proportion of binding sites
 									 in each state at each time-point */

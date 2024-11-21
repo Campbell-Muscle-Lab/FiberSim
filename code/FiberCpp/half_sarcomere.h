@@ -241,15 +241,6 @@ public:
     double a_gamma_coop;
     double a_k_force;               /**< force-depenent activation factor */
 
-    double a_k_on_t_force_factor;   /**< titin force-dependent modulation of
-                                         a_k_on */
-
-    double a_k_off_t_force_factor;  /**< titin force-dependent modulation of
-                                         a_k_off */
-
-    double a_k_coop_t_force_factor; /**< titin force-dependent modulation of
-                                         a_k_coop */
-
     // Myosin
     double m_k_stiff;               /**< double defining stiffness of thick filament
                                          spring in N m^-1 */
@@ -321,6 +312,11 @@ public:
     gsl_vector* sp_F;               /**< gsl_vector holding the right hand side of KX = F */
 
     gsl_vector* sp_G;               /**< gsl_vector holding G in (k_bare X + G) = F */
+
+    // Inter-half-sarcomere dynamics
+    double hs_inter_hs_titin_force_effect;
+                                    /**< double holding effect of titin forces from
+                                         adjacent half-sarcomeres */
 
     // Helper variables
     int rescaling_flag;             /**< int showing whether probabilities have been

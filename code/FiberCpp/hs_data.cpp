@@ -45,9 +45,7 @@ hs_data::hs_data(int set_no_of_time_points,
 	hs_a_length = gsl_vector_alloc(no_of_time_points);
 	hs_m_length = gsl_vector_alloc(no_of_time_points);
 
-	hs_a_k_on_t_force_factor = gsl_vector_alloc(no_of_time_points);
-	hs_a_k_off_t_force_factor = gsl_vector_alloc(no_of_time_points);
-	hs_a_k_coop_t_force_factor = gsl_vector_alloc(no_of_time_points);
+	hs_inter_hs_titin_force_effect = gsl_vector_alloc(no_of_time_points);
 	
 	// Allocate space for data matrices
 	hs_a_pops = gsl_matrix_alloc(no_of_time_points, p_fs_model->a_no_of_bs_states);
@@ -68,9 +66,7 @@ hs_data::hs_data(int set_no_of_time_points,
 	gsl_vector_set_zero(hs_a_length);
 	gsl_vector_set_zero(hs_m_length);
 
-	gsl_vector_set_zero(hs_a_k_on_t_force_factor);
-	gsl_vector_set_zero(hs_a_k_off_t_force_factor);
-	gsl_vector_set_zero(hs_a_k_coop_t_force_factor);
+	gsl_vector_set_zero(hs_inter_hs_titin_force_effect);
 
 	gsl_matrix_set_zero(hs_a_pops);
 	gsl_matrix_set_zero(hs_m_pops);
@@ -96,9 +92,7 @@ hs_data::~hs_data(void)
 	gsl_vector_free(hs_a_length);
 	gsl_vector_free(hs_m_length);
 
-	gsl_vector_free(hs_a_k_on_t_force_factor);
-	gsl_vector_free(hs_a_k_off_t_force_factor);
-	gsl_vector_free(hs_a_k_coop_t_force_factor);
+	gsl_vector_free(hs_inter_hs_titin_force_effect);
 
 	// Then the matrices
 	gsl_matrix_free(hs_a_pops);

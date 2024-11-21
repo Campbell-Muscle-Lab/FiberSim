@@ -138,9 +138,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 		fprintf_s(output_file, "hs_%i_titin_force%c", hs_counter + 1, delimiter);
 		fprintf_s(output_file, "hs_%i_viscous_force%c", hs_counter + 1, delimiter);
 		fprintf_s(output_file, "hs_%i_extracellular_force%c", hs_counter + 1, delimiter);
-		fprintf_s(output_file, "hs_%i_a_k_on_t_force_factor%c", hs_counter + 1, delimiter);
-		fprintf_s(output_file, "hs_%i_a_k_off_t_force_factor%c", hs_counter + 1, delimiter);
-		fprintf_s(output_file, "hs_%i_a_k_coop_t_force_factor%c", hs_counter + 1, delimiter);
+		fprintf_s(output_file, "hs_%i_inter_hs_titin_force_effect%c", hs_counter + 1, delimiter);
 
 		// Build pops as loops
 		for (int j = 0; j < p_fs_model->a_no_of_bs_states; j++)
@@ -203,11 +201,7 @@ void FiberSim_data::write_data_to_delimited_file(char output_file_string[], char
 			fprintf_s(output_file, "%g%c",
 				gsl_vector_get(p_hs_data[hs_counter]->hs_extracellular_force, i), delimiter);
 			fprintf_s(output_file, "%g%c",
-				gsl_vector_get(p_hs_data[hs_counter]->hs_a_k_on_t_force_factor, i), delimiter);
-			fprintf_s(output_file, "%g%c",
-				gsl_vector_get(p_hs_data[hs_counter]->hs_a_k_off_t_force_factor, i), delimiter);
-			fprintf_s(output_file, "%g%c",
-				gsl_vector_get(p_hs_data[hs_counter]->hs_a_k_coop_t_force_factor, i), delimiter);
+				gsl_vector_get(p_hs_data[hs_counter]->hs_inter_hs_titin_force_effect, i), delimiter);
 
 			// Build pops as loops
 			for (int j = 0; j < p_fs_model->a_no_of_bs_states; j++)

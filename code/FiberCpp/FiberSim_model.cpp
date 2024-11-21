@@ -41,15 +41,11 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     m_isotype_ints = NULL;
     c_isotype_ints = NULL;
 
-    // Allocate vectors for thin filament force-dependency
-    a_k_on_t_force = gsl_vector_alloc(MAX_NO_OF_RATE_PARAMETERS);
-    a_k_off_t_force = gsl_vector_alloc(MAX_NO_OF_RATE_PARAMETERS);
-    a_k_coop_t_force = gsl_vector_alloc(MAX_NO_OF_RATE_PARAMETERS);
+    // Allocate vectors for inter-hs force weights
+    inter_hs_t_force_effects = gsl_vector_alloc(MAX_NO_OF_RATE_PARAMETERS);
 
-    // Set to zero
-    gsl_vector_set_all(a_k_on_t_force, GSL_NAN);
-    gsl_vector_set_all(a_k_off_t_force, GSL_NAN);
-    gsl_vector_set_all(a_k_coop_t_force, GSL_NAN);
+    // Set to NaN
+    gsl_vector_set_all(inter_hs_t_force_effects, GSL_NAN);
 
     // Log
     if (p_fs_options->log_mode > 0)
@@ -106,9 +102,7 @@ FiberSim_model::~FiberSim_model()
     gsl_vector_free(m_isotype_props);
     gsl_vector_free(c_isotype_props);
 
-    gsl_vector_free(a_k_on_t_force);
-    gsl_vector_free(a_k_off_t_force);
-    gsl_vector_free(a_k_coop_t_force);
+    gsl_vector_free(inter_hs_t_force_effects);
 
     // Delete arrays if necessary
     if (m_isotype_ints != NULL)
@@ -344,36 +338,6 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         a_gamma_coop = thin_parameters["a_gamma_coop"].GetDouble();
     }
 
-    if (JSON_functions::is_JSON_member(thin_parameters, "a_k_on_t_force"))
-    {
-        const rapidjson::Value& ak = thin_parameters["a_k_on_t_force"];
-
-        for (int i = 0; i < (int)ak.Size(); i++)
-        {
-            gsl_vector_set(a_k_on_t_force, i, ak[i].GetDouble());
-        }
-    }
-
-    if (JSON_functions::is_JSON_member(thin_parameters, "a_k_off_t_force"))
-    {
-        const rapidjson::Value& ak = thin_parameters["a_k_off_t_force"];
-
-        for (int i = 0; i < (int)ak.Size(); i++)
-        {
-            gsl_vector_set(a_k_off_t_force, i, ak[i].GetDouble());
-        }
-    }
-
-    if (JSON_functions::is_JSON_member(thin_parameters, "a_k_coop_t_force"))
-    {
-        const rapidjson::Value& ak = thin_parameters["a_k_coop_t_force"];
-
-        for (int i = 0; i < (int)ak.Size(); i++)
-        {
-            gsl_vector_set(a_k_coop_t_force, i, ak[i].GetDouble());
-        }
-    }
-
     // Load the thick_parameters
     JSON_functions::check_JSON_member_object(doc, "thick_parameters");
     const rapidjson::Value& thick_parameters = doc["thick_parameters"];
@@ -433,6 +397,22 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
 
     JSON_functions::check_JSON_member_number(extracellular_parameters, "e_slack_length");
     e_slack_length = extracellular_parameters["e_slack_length"].GetDouble();
+
+    // Inter_half-sarcomere effects
+    if (JSON_functions::is_JSON_member(doc, "inter_half_sarcomere_parameters"))
+    {
+        const rapidjson::Value& ihs = doc["inter_half_sarcomere_parameters"];
+
+        if (JSON_functions::is_JSON_member(ihs, "titin_force_effects"))
+        {
+            const rapidjson::Value& tfe = ihs["titin_force_effects"];
+
+            for (int i = 0; i < (int)tfe.Size(); i++)
+            {
+                gsl_vector_set(inter_hs_t_force_effects, i, tfe[i].GetDouble());
+            }
+        }
+    }
 
     // Load the m_parameters
     JSON_functions::check_JSON_member_object(doc, "m_parameters");
