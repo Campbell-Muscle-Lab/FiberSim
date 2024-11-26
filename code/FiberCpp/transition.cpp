@@ -572,6 +572,45 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 			(1 + exp(-x_smooth * (x - x_offset - x_wall))));
 	}
 
+	if (!strcmp(rate_type, "exp_exp_inter_hs_titin_force"))
+	{
+		// Variables
+
+		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+		double k0 = gsl_vector_get(rate_parameters, 0);
+		double d = gsl_vector_get(rate_parameters, 1);
+		double x0 = gsl_vector_get(rate_parameters, 2);
+		double mag = gsl_vector_get(rate_parameters, 3);
+		double x_offset = gsl_vector_get(rate_parameters, 4);
+		double k_sweep = gsl_vector_get(rate_parameters, 5);
+
+		double t_sweep;
+
+		// Adjust for NaNs
+		if (gsl_isnan(x_offset))
+			x_offset = 0;
+
+		if (gsl_isnan(k_sweep))
+			k_sweep = 0.0;
+
+		// Calculate F
+		double F = p_model->m_k_cb * (x - x_offset + x_ext);
+
+		// Calculate t_sweep
+		t_sweep = GSL_MAX(0, 1.0 + (k_sweep * p_hs->hs_inter_hs_titin_force_effect));
+
+		// Code
+		rate = k0 * exp(-(F * d) /
+			(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
+
+		if (x > (x0 + x_offset))
+		{
+			rate = rate + exp(mag * (x - (x0 + x_offset)));
+		}
+
+		rate = t_sweep * rate;
+	}
+
 
 	if (!strcmp(rate_type, "bi_wall"))
 	{
