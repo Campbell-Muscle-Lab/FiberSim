@@ -86,9 +86,16 @@ Cross-bridge linking toughens the numerical solving of $$K x = F$$, which notabl
 
 ## Titin 
 
-Titin is responsible for the passive force developing within the half-sarcomere when it is stretched, and for the recoil force when it is shortened. In the model, it is assumed that titin is a linear spring of stiffness $$k_t$$ and rest length $$t_{rl}$$. This spring is attached at both ends, on a particular thick and thin filament node respectively. Similar to crossbridge links, titin adds some force contribution $$f_{t}$$ to the force-balance equations:
+Titin is responsible for the passive force developing within the half-sarcomere when it is stretched, and for the recoil force when it is shortened. In the model, it is assumed that titin is a linear spring of stiffness $$k_t$$ and rest length $$t_{rl}$$. This spring is attached at both ends, on a particular thick and thin filament node respectively. Similar to crossbridge links, titin contributes $$f_{t}$$ to the force-balance equation.
 
-$$f_{t} = k_{t} \, (m_l - a_k - t_{rl})$$
+The default behavior is:
+
+$$f_{t} = k_{t} \, (m_l - a_k)$$
+
+If `t_passive_mode` is defined as `exponential`, the equation is modified to:
+
+$$f_{t} = k_{t} \, (m_l - a_k) + sign(m_l - a_k) \ t_{sigma} \ (e^{\frac{abs(m_l - a_k)}{t_L}} - 1)$$
+
 
 ![Titin](titin.png)
 

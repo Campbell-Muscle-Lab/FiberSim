@@ -51,6 +51,9 @@ thin_filament::thin_filament(
     a_no_of_bs = a_strands_per_filament * a_regulatory_units_per_strand *
                     a_bs_per_unit;
 
+    // Zero the titin force
+    a_titin_force = 0.0;
+
     // Allocate space for arrays
     bs_x = gsl_vector_alloc(a_no_of_bs);
     bs_angle = gsl_vector_alloc(a_no_of_bs);
@@ -85,6 +88,10 @@ thin_filament::thin_filament(
     // Allocate space for node forces
     node_forces = gsl_vector_alloc(a_regulatory_units_per_strand * a_bs_per_unit);
     gsl_vector_set_zero(node_forces);
+
+    // Allocate space for nearest_thick_filaments
+    nearest_thick_filaments = gsl_vector_short_alloc(3);
+    gsl_vector_short_set_zero(nearest_thick_filaments);
 
     // Log
     if (p_fs_options->log_mode > 0)
@@ -121,6 +128,8 @@ thin_filament::~thin_filament()
     gsl_vector_short_free(bound_to_m_n);
 
     gsl_vector_free(node_forces);
+
+    gsl_vector_short_free(nearest_thick_filaments);
 }
 
 // Functions

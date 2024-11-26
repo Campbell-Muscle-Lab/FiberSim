@@ -42,10 +42,9 @@ def characterize_model(json_analysis_file_string):
     # If there is a manipulations section, use that to create the
     # appropriate models
     if ("manipulations" in anal_struct['model']):
+        print(json_analysis_file_string)
         json_analysis_file_string = \
             generate_model_files(json_analysis_file_string)
-            
-    print(json_analysis_file_string)
    
     # Pull off the characterization tasks
     char_struct = anal_struct['characterization']
@@ -171,7 +170,6 @@ def generate_model_files(json_analysis_file_string):
                     adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1]['extension'] = \
                         value
                 else:
-                    print(a)
                     # Transition parameters
                     y = np.asarray(adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1] \
                               ['transition'][a['transition']-1]['rate_parameters'],
@@ -193,20 +191,32 @@ def generate_model_files(json_analysis_file_string):
                     a['proportions'][i]['isotype_proportions']
             
             else:
-                base_value = adj_model[a['class']][a['variable']]
-                
-                value = base_value * a['multipliers'][i]
-                
-                if (a['output_type'] == 'int'):
-                    adj_model[a['class']][a['variable']] = int(value)
+                if ('parameter_number' in a):
+                    # It's an array
+                    y = np.asarray(adj_model[a['class']][a['variable']],
+                                   dtype = np.float32)
+                    base_value = y[a['parameter_number'] - 1]
+                    value = base_value * a['multipliers'][i]
                     
-                if (a['output_type'] == 'float'):
-                    adj_model[a['class']][a['variable']] = float(value)
+                    y[a['parameter_number'] - 1] = value
+                    adj_model[a['class']][a['variable']] = y.tolist()
                     
-                # Check for NaN
-                if (np.isnan(value)):
-                    adj_model[a['class']][a['variable']] = 'null'
-    
+                else:
+                    # Standard value
+                    base_value = adj_model[a['class']][a['variable']]
+                
+                    value = base_value * a['multipliers'][i]
+                
+                    if (a['output_type'] == 'int'):
+                        adj_model[a['class']][a['variable']] = int(value)
+                    
+                    if (a['output_type'] == 'float'):
+                        adj_model[a['class']][a['variable']] = float(value)
+                    
+                    # Check for NaN
+                    if (np.isnan(value)):
+                        adj_model[a['class']][a['variable']] = 'null'
+        
         # Now generate the model file string
         model_file_string = 'model_%i.json' % (i+1)
         
@@ -250,13 +260,15 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     # Potentially switch off simulations
     figures_only = False
     if ('figures_only' in pCa_struct):
-        if (pCa_struct['figures_only'] == "True"):
+        if (pCa_struct['figures_only'] == 'True'):
             figures_only = True
-
-    trace_figures_on = True
-    if ('trace_figures_on' in pCa_struct):
-        if (pCa_struct['trace_figures_on'] == 'False'):
-            trace_figures_on = False
+            
+    figures_off = False
+    if ('figures_off' in pCa_struct):
+        if (pCa_struct['figures_off'] == 'True'):
+            figures_off = True
+            
+    trace_figures_on = False;
 
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
@@ -602,7 +614,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     # Deduce the output dir
     output_dir = str(Path(sim_output_dir).parent)
     
-    # Create a dict for functino return values
+    # Create a dict for function return values
     func_output = dict()
 
     # pCa curves
@@ -688,7 +700,9 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
         json.dump(pCa_lc_batch, f, indent=4)
         
     # Now run the isometric batch
-    batch.run_batch(pCa_lc_batch_file, figures_only=figures_only)
+    batch.run_batch(pCa_lc_batch_file,
+                    figures_only = figures_only,
+                    figures_off = figures_off)
     
     # Add the batch to the output
     func_output['sim_batch'] = pCa_lc_batch    
@@ -704,13 +718,15 @@ def deduce_fv_properties(json_analysis_file_string,
     # Potentially switch off simulations
     figures_only = False
     if ('figures_only' in fv_struct):
-        if (fv_struct['figures_only'] == "True"):
+        if (fv_struct['figures_only'] == 'True'):
             figures_only = True
+             
+    figures_off = False
+    if ('figures_off' in fv_struct):
+        if (fv_struct['figures_off'] == 'True'):
+            figures_off = True
 
-    trace_figures_on = True
-    if ('trace_figures_on' in fv_struct):
-        if (fv_struct['trace_figures_on'] == 'False'):
-            trace_figures_on = False
+    trace_figures_on = False 
 
     # Load the file
     with open(json_analysis_file_string, 'r') as f:
@@ -1001,16 +1017,36 @@ def deduce_fv_properties(json_analysis_file_string,
             # Update dir_counter
             dir_counter = dir_counter + 1
             
+            # Get the sim options file
+            if (model_struct['relative_to'] == 'this_file'):
+                model_dir = Path(json_analysis_file_string).parent.absolute()
+            else:
+                model_dir = ''
+                
+            # Copy the base options file
+            orig_options_file = os.path.join(model_dir,
+                                             model_struct['options_file'])
+            
+            with open(orig_options_file, 'r') as f:
+                orig_options_data = json.load(f)
+            
+            # Adjust the options struct if we have randomized repeats
+            if ('randomized_repeats' in fv_struct):
+                rand_repeats = fv_struct['randomized_repeats']
+                orig_options_data['options']['rand_seed'] = "random"
+            else:
+                rand_repeats = 1
+            
             if (fv_struct['pCa'] == "pCa_50"):
                 # Deduce data from the curve fit
                 c_fit = force_pCa_fit[dir_counter - 1]
                 isometric_force = c_fit['f_at_pCa_50']
                 isometric_job_index = (dir_counter - 1) * \
                                         len(fv_struct['pCa_values']) * \
-                                        fv_struct['randomized_repeats']
+                                        rand_repeats
                                         
             else:
-                # Pull off the isoric force for the preceding job
+                # Pull off the isometric force for the preceding job
                 isometric_job_index = dir_counter - 1
                 results_file_string = isometric_jobs[isometric_job_index]['results_file']
                 sim_data = pd.read_csv(results_file_string, sep='\t')
@@ -1052,13 +1088,6 @@ def deduce_fv_properties(json_analysis_file_string,
             orig_options_file = isometric_jobs[isometric_job_index]['options_file']
             with open(orig_options_file, 'r') as f:
                 orig_options_data = json.load(f)
-            
-            # Adjust the options struct if we have randomized repeats
-            if ('randomized_repeats' in fv_struct):
-                rand_repeats = fv_struct['randomized_repeats']
-                orig_options_data['options']['rand_seed'] = "random"
-            else:
-                rand_repeats = 1
     
             # Loop through the isotonic forces
             for (k, rel_f) in enumerate(fv_struct['rel_isotonic_forces']):
@@ -1247,7 +1276,9 @@ def deduce_fv_properties(json_analysis_file_string,
         json.dump(isotonic_batch, f, indent=4)
         
     # Now run the isotonic batch
-    batch.run_batch(isotonic_batch_file, figures_only=figures_only)
+    batch.run_batch(isotonic_batch_file,
+                    figures_only = figures_only,
+                    figures_off = figures_off)
 
 def deduce_freeform_properties(json_analysis_file_string,
                                freeform_struct):
@@ -1258,6 +1289,10 @@ def deduce_freeform_properties(json_analysis_file_string,
     if ('figures_only' in freeform_struct):
         if (freeform_struct['figures_only'] == "True"):
             figures_only = True
+
+    figures_off = False
+    if ('figures_off' in freeform_struct):
+        figures_off = freeform_struct['figures_off']    
 
     trace_figures_on = True
     if ('trace_figures_on' in freeform_struct):
@@ -1323,15 +1358,16 @@ def deduce_freeform_properties(json_analysis_file_string,
         prot_dir = os.path.join(base_dir,
                                 freeform_struct['protocol']['protocol_folder'])
         
-        # Clear it and then check it is there
-        try:
-            print('Trying to remove %s' % prot_dir)
-            shutil.rmtree(prot_dir, ignore_errors = True)
-        except OSError as e:
-            print('Error: %s : %s' % (prot_dir, e.strerror))
-            
-        if not os.path.isdir(prot_dir):
-            os.makedirs(prot_dir)
+        # If you are running simulations, delete the existing sim folders
+        if not figures_only:
+            try:
+                print('Trying to remove %s' % prot_dir)
+                shutil.rmtree(prot_dir, ignore_errors = True)
+            except OSError as e:
+                print('Error: %s : %s' % (prot_dir, e.strerror))
+                
+            if not os.path.isdir(prot_dir):
+                os.makedirs(prot_dir)
             
         # Set up for an array of protocols
         for (i, ps) in enumerate(freeform_struct['protocol']['data']):
@@ -1361,11 +1397,9 @@ def deduce_freeform_properties(json_analysis_file_string,
                 after = dict()
                 after['load'] = after_struct['load']
                 after['break_delta_hs_length'] = after_struct['break_delta_hs_length']
+                protocol_afterload.append(after)                  
             else:
                 after = []
-                
-            # Append
-            protocol_afterload.append(after)                  
 
     # Set the base dir
     base_dir = freeform_struct['relative_to']
@@ -1375,11 +1409,14 @@ def deduce_freeform_properties(json_analysis_file_string,
 
     # Clear the sim_folder and then check it is there
     sim_folder = os.path.join(base_dir, freeform_struct['sim_folder'])
-    try:
-        print('Trying to remove %s' % sim_folder)
-        shutil.rmtree(sim_folder, ignore_errors = True)
-    except OSError as e:
-        print('Error: %s : %s' % (sim_folder, e.strerror))
+    
+    # If you are running simulations, delete the existing sim folders
+    if not figures_only:
+        try:
+            print('Trying to remove %s' % sim_folder)
+            shutil.rmtree(sim_folder, ignore_errors = True)
+        except OSError as e:
+            print('Error: %s : %s' % (sim_folder, e.strerror))
         
     if not os.path.isdir(sim_folder):
         os.makedirs(sim_folder)
@@ -1405,6 +1442,15 @@ def deduce_freeform_properties(json_analysis_file_string,
             
             if not os.path.isdir(sim_input_dir):
                 os.makedirs(sim_input_dir)
+                
+            # And a folder for the sim_output
+            sim_output_dir = os.path.join(base_dir,
+                                          freeform_struct['sim_folder'],
+                                          'sim_output',
+                                          ('%i' % dir_counter))
+            
+            if not os.path.isdir(sim_output_dir):
+                os.makedirs(sim_output_dir)
             
             # Copy the model and options files to the sim_input dir
             # adjusting half-sarcomere lengths as appropriate
@@ -1446,8 +1492,7 @@ def deduce_freeform_properties(json_analysis_file_string,
             # Loop through the protocol_files
             for prot_counter, prot_f in \
                 enumerate(freeform_struct['protocol_files']):
-                
-                
+
                 if not (protocol_afterload == []):
                     after_range = range(len(protocol_afterload[prot_counter]['load']))
                 else:
@@ -1462,19 +1507,24 @@ def deduce_freeform_properties(json_analysis_file_string,
                         # Copy the orig_options_struct for local changes
                         # within the rep
                         rep_options_data = copy.deepcopy(orig_options_data)
-    
+        
                         # Update the options file to dump to a local directory
                         if ('status_files' in rep_options_data['options']):
+                            rep_options_data['options']['status_files']['relative_to'] = \
+                                'this_file'
+                            last_folder = re.split('/|\\\\',
+                                                   rep_options_data['options']['status_files']['status_folder'])[-1]
                             rep_options_data['options']['status_files']['status_folder'] = \
-                                os.path.join('../../sim_output',
-                                             ('%i' % dir_counter),
-                                             ('%s_%i_%i_r%i' %
-                                              (rep_options_data['options']['status_files']['status_folder'],
-                                               (prot_counter + 1),
-                                               (after_counter + 1),
-                                               (rep + 1))))
+                                os.path.join(sim_output_dir,
+                                              ('%s_%i_%i_r%i' %
+                                               (last_folder,
+                                                (prot_counter+1),
+                                                (after_counter+1),
+                                                (rep+1))))
+                               
                             # Make the status folder if required
                             test_dir = rep_options_data['options']['status_files']['status_folder']
+                            
                             if not os.path.isdir(test_dir):
                                 os.makedirs(test_dir)
     
@@ -1483,10 +1533,9 @@ def deduce_freeform_properties(json_analysis_file_string,
                             # update the options file to dump rates
                             rep_options_data['options']['rate_files'] = dict()
                             rep_options_data['options']['rate_files']['relative_to'] = \
-                                'this_file'
+                                'false'
                             rep_options_data['options']['rate_files']['file'] = \
-                                os.path.join('../../sim_output',
-                                             ('%i' % dir_counter),
+                                os.path.join(sim_output_dir,
                                              'rates.json')
 
                         if not (after_struct == []):
@@ -1516,9 +1565,6 @@ def deduce_freeform_properties(json_analysis_file_string,
                         fn = re.split('/|\\\\', orig_prot_file)[-1]
                         freeform_prot_file = os.path.join(sim_input_dir,
                                                           fn)
-                        
-                        print("opf: %s" % orig_prot_file)
-                        print("fpf: %s" % freeform_prot_file)
                         
                         shutil.copyfile(orig_prot_file, freeform_prot_file)
     
@@ -1574,43 +1620,44 @@ def deduce_freeform_properties(json_analysis_file_string,
     # Now create the batch analysis section
     batch_figs = dict()
     
-    # Rates
-    batch_figs['rates'] = []
-    fig = dict()
-    fig['relative_to'] = "False"
-    fig['results_folder'] = os.path.join(base_dir,
-                                         freeform_struct['sim_folder'],
-                                         'sim_output')
-    fig['output_image_file'] = os.path.join(base_dir,
-                                            freeform_struct['sim_folder'],
-                                            'sim_output',
-                                            'rates')
-    fig['output_image_formats'] = freeform_struct['output_image_formats']
+    if (figures_off == False):
+        # Rates
+        batch_figs['rates'] = []
+        fig = dict()
+        fig['relative_to'] = "False"
+        fig['results_folder'] = os.path.join(base_dir,
+                                             freeform_struct['sim_folder'],
+                                             'sim_output')
+        fig['output_image_file'] = os.path.join(base_dir,
+                                                freeform_struct['sim_folder'],
+                                                'sim_output',
+                                                'rates')
+        fig['output_image_formats'] = freeform_struct['output_image_formats']
+        
+        if ('formatting' in freeform_struct):
+            fig['formatting'] = freeform_struct['formatting']
+        
+        batch_figs['rates'].append(fig)
     
-    if ('formatting' in freeform_struct):
-        fig['formatting'] = freeform_struct['formatting']
-    
-    batch_figs['rates'].append(fig)
-
-    # Superposed traces
-    batch_figs['superposed_traces'] = []
-    fig = dict()
-    fig['relative_to'] = "False"
-    fig['results_folder'] = os.path.join(base_dir,
-                                         freeform_struct['sim_folder'],
-                                         'sim_output')
-    fig['output_image_file'] = os.path.join(base_dir,
-                                            freeform_struct['sim_folder'],
-                                            'sim_output',
-                                            'superposed_traces')
-    fig['output_image_formats'] = freeform_struct['output_image_formats']
-    if ('superposed_x_ticks' in freeform_struct):
-        fig['superposed_x_ticks'] = freeform_struct['superposed_x_ticks']
-    if ('formatting' in freeform_struct):
-        fig['formatting'] = freeform_struct['formatting']        
-    batch_figs['superposed_traces'].append(fig)
-    
-    freeform_b['batch_figures'] = batch_figs
+        # Superposed traces
+        batch_figs['superposed_traces'] = []
+        fig = dict()
+        fig['relative_to'] = "False"
+        fig['results_folder'] = os.path.join(base_dir,
+                                             freeform_struct['sim_folder'],
+                                             'sim_output')
+        fig['output_image_file'] = os.path.join(base_dir,
+                                                freeform_struct['sim_folder'],
+                                                'sim_output',
+                                                'superposed_traces')
+        fig['output_image_formats'] = freeform_struct['output_image_formats']
+        if ('superposed_x_ticks' in freeform_struct):
+            fig['superposed_x_ticks'] = freeform_struct['superposed_x_ticks']
+        if ('formatting' in freeform_struct):
+            fig['formatting'] = freeform_struct['formatting']        
+        batch_figs['superposed_traces'].append(fig)
+        
+        freeform_b['batch_figures'] = batch_figs
                    
     # Now insert isometric_b into a full batch structure
     freeform_batch = dict()

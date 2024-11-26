@@ -4,7 +4,7 @@ title: Twitch
 has_children: false
 parent: Isotypes
 grand_parent: Demos
-nav_order: w
+nav_order: 2
 ---
 
 ## Single half-sarcomere twitch contraction with two isotypes

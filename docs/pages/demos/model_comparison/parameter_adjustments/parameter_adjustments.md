@@ -85,7 +85,7 @@ The only difference between this simulation and the [single pCa curve](../../pCa
             {
                 "variable": "m_kinetics",
                 "isotype": 1,
-                "scheme": 3,
+                "state": 3,
                 "transition": 2,
                 "parameter_number": 1,
                 "multipliers": [1, 1, 1, 0.5, 0.5],
@@ -119,7 +119,7 @@ The details are as follows:
             {
                 "variable": "m_kinetics",
                 "isotype": 1,
-                "scheme": 3,
+                "state": 3,
                 "transition": 2,
                 "parameter_number": 1,
                 "multipliers": [1, 1, 1, 0.5, 0.5],
@@ -127,7 +127,7 @@ The details are as follows:
             }
 ```
 
-+ During the 5 trials adjust `parameter_number` 1 in the kinetics for myosin `isotype` 1, `scheme` 3, `transition` 2 to 1, 1, 1, 0.5, 0.5 times its value in the base model
++ During the 5 trials adjust `parameter_number` 1 in the kinetics for myosin `isotype` 1, `state` 3, `transition` 2 to 1, 1, 1, 0.5, 0.5 times its value in the base model
 + If the variable is changed to `c_kinetics`, the parameters for cMyBP-C transitions will be adjusted instead.
 
 This nomenclature is a bit more complicated but should be easier to understand when viewed in conjunction with the same section from the base model file.
@@ -135,9 +135,7 @@ This nomenclature is a bit more complicated but should be easier to understand w
 ```
 "m_kinetics": [
     {
-      "no_of_states": 4,
-      "max_no_of_transitions": 2,
-      "scheme": [
+    "state": [
         {
             <snip>
         },

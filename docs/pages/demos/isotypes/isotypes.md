@@ -10,17 +10,15 @@ nav_order: 6
 
 In FiberSim, myosin and myosin binding protein-C molecules have an _isotype_.
 
-Different isotypes follow different kinetic schemes. You can also define the proportion of molecules that have each isotype. This framework provides a lot of flexibility. Examples of things it allows you to simulate include:
+Different isotypes follow different kinetic schemes. For example, you could define a myosin scheme with fast kinetics that represents alpha myosin heads and a scheme with slower kinetics that represents beta myosin heads. You could then test how changing the relative proportions of alpha and beta molecules influences contraction.
 
-+ changing the relative expression of alpha and beta myosin heavy chain
-+ phosphorylating a proportion of myosin binding protein-C molecules
-+ dose-response curves for myotropes
+The framework can set the isotype of each myosin and/or MyBP-C molecule randomly (based on your chosen proportions) but you can also set the isotype of each specific molecule.
 
-The isotypes in these three examples correspond to:
+The latter approach allows you to:
++ have each myosin within a dimer follow a different kinetic scheme
++ test how different arrangements of MyBP-C isoforms modulate force development.
 
-+ different myosin isoforms
-+ MyBP-C molecules with different phosphorylation statuses
-+ myosins with/without a drug bound
+See the demonstrations for examples.
 
 ## Model files
 

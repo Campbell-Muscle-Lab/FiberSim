@@ -64,6 +64,18 @@ public:
 	gsl_vector* hs_m_length;	/**< gsl_vector holder thick_filament length (nm) for
 									 each time-point */
 
+	gsl_vector* hs_a_k_on_t_force_factor;
+								/**< gsl_vector holding titin force dependent modulation
+									 of a_k_on */
+
+	gsl_vector* hs_a_k_off_t_force_factor;
+								/**< gsl_vector holding titin force dependent modulation
+									 of a_k_off */
+
+	gsl_vector* hs_a_k_coop_t_force_factor;
+								/**< gsl_vector holding titin force dependent modulation
+									 of a_k_coop */
+
 	gsl_vector* hs_force;		/**< gsl_vector holding hs_force for each time-point */
 
 	gsl_vector* hs_titin_force;	/**< gsl_vector holding hs_titin_force for each time-point */

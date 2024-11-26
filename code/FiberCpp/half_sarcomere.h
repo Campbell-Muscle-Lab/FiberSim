@@ -241,6 +241,15 @@ public:
     double a_gamma_coop;
     double a_k_force;               /**< force-depenent activation factor */
 
+    double a_k_on_t_force_factor;   /**< titin force-dependent modulation of
+                                         a_k_on */
+
+    double a_k_off_t_force_factor;  /**< titin force-dependent modulation of
+                                         a_k_off */
+
+    double a_k_coop_t_force_factor; /**< titin force-dependent modulation of
+                                         a_k_coop */
+
     // Myosin
     double m_k_stiff;               /**< double defining stiffness of thick filament
                                          spring in N m^-1 */
@@ -257,10 +266,10 @@ public:
     double t_k_stiff;               /**< double defining stiffness of titin filament
                                          spring in N m^-1 */
 
+    double t_offset;                /**< double defining offset for titin stiffness */
+
     double t_sigma, t_L;            /**< doubles defining parameters in
                                          f = sigma * (exp(x/L) - 1) */
-
-    double t_offset;
     
     // Extracellular parameters
     char e_passive_mode[_MAX_PATH];     /**< char array defining the extracellular
@@ -312,6 +321,10 @@ public:
     gsl_vector* sp_F;               /**< gsl_vector holding the right hand side of KX = F */
 
     gsl_vector* sp_G;               /**< gsl_vector holding G in (k_bare X + G) = F */
+
+    // Helper variables
+    int rescaling_flag;             /**< int showing whether probabilities have been
+    /                                       rescaled on this time-step */
 
     // Functions
 

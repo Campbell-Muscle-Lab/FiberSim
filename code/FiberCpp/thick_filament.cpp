@@ -97,14 +97,27 @@ thick_filament::thick_filament(
     // Use special function for cb_x and cb_angle
     initalise_cb_x_and_cb_angle();
 
-    // Set the cb_isotype for each dimer based on probabilities
-    for (int cb_counter = 0; cb_counter < m_no_of_cbs; cb_counter = cb_counter + 2)
+    // Set the cb_isotype
+    if (p_fs_model->m_isotype_ints == NULL)
     {
-        int iso_index = p_parent_hs->return_event_index(p_fs_model->m_isotype_props);
+        // Set the cb_isotype for each dimer based on probabilities
+        for (int cb_counter = 0; cb_counter < m_no_of_cbs; cb_counter = cb_counter + 2)
+        {
+            int iso_index = p_parent_hs->return_event_index(p_fs_model->m_isotype_props);
 
-        // Set the dimer
-        gsl_vector_short_set(cb_iso, cb_counter, iso_index + 1);
-        gsl_vector_short_set(cb_iso, cb_counter + 1, iso_index + 1);
+            // Set the dimer
+            gsl_vector_short_set(cb_iso, cb_counter, iso_index + 1);
+            gsl_vector_short_set(cb_iso, cb_counter + 1, iso_index + 1);
+        }
+    }
+    else
+    {
+        // Set the isotype based on the model file
+        for (int cb_counter = 0; cb_counter < m_no_of_cbs; cb_counter = cb_counter + 1)
+        {
+            gsl_vector_short_set(cb_iso, cb_counter,
+                gsl_vector_short_get(p_fs_model->m_isotype_ints, cb_counter));
+        }
     }
 
     // Other arrays are intialized with constants
@@ -145,13 +158,26 @@ thick_filament::thick_filament(
     // Use special function for cb_x and cb_angle
     initalise_pc_node_index_and_pc_angle();
 
-    // Set the pc_isotype based on probabilities
-    for (int pc_counter = 0; pc_counter < c_no_of_pcs; pc_counter++)
+    // Set the pc_isotype
+    if (p_fs_model->c_isotype_ints == NULL)
     {
-        int iso_index = p_parent_hs->return_event_index(p_fs_model->c_isotype_props);
+        // Set the pc_isotype based on probabilities
+        for (int pc_counter = 0; pc_counter < c_no_of_pcs; pc_counter++)
+        {
+            int iso_index = p_parent_hs->return_event_index(p_fs_model->c_isotype_props);
 
-        // Set the pc_iso
-        gsl_vector_short_set(pc_iso, pc_counter, iso_index + 1);
+            // Set the pc_iso
+            gsl_vector_short_set(pc_iso, pc_counter, iso_index + 1);
+        }
+    }
+    else
+    {
+        // Set the isotype based on the model file
+        for (int pc_counter = 0 ; pc_counter < c_no_of_pcs ; pc_counter++)
+        {
+            gsl_vector_short_set(pc_iso, pc_counter,
+                gsl_vector_short_get(p_fs_model->c_isotype_ints, pc_counter));
+        }
     }
 
     // Other arrays are initialized with constants

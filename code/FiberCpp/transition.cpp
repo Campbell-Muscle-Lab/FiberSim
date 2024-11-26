@@ -437,7 +437,7 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 			x_center = x_ext;
 		}
 
-		if (x > x_center)
+		if (x > -x_center)
 			rate = gsl_vector_get(rate_parameters, 0) +
 				(gsl_vector_get(rate_parameters, 1) *
 					gsl_pow_int(x + x_center, (int)gsl_vector_get(rate_parameters, 3)));
@@ -462,23 +462,53 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 			rate = p_options->max_rate;
 	}
 
+	if (!strcmp(rate_type, "sigmoid"))
+	{
+		// Variables
+		double y_left = gsl_vector_get(rate_parameters, 0);
+		double y_amp = gsl_vector_get(rate_parameters, 1);
+		double k = gsl_vector_get(rate_parameters, 2);
+		double x_mid = gsl_vector_get(rate_parameters, 3);
+
+		if (gsl_isnan(x_mid))
+		{
+			// optional parameter is not specified, use the state extension instead
+			FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+			kinetic_scheme* p_scheme = p_parent_m_state->p_parent_scheme;
+			m_state* p_new_state = p_scheme->p_m_states[new_state - 1];
+
+			double x_new_ext = p_new_state->extension;
+			double x_current_ext = p_parent_m_state->extension;
+			double x_mid = 0.5 * (x_new_ext + x_current_ext);
+		}
+
+		rate = y_left + y_amp * (1 /
+			(1 + exp(-k * (x + x_mid))));
+	}
+
 	if (!strcmp(rate_type, "exp_wall"))
 	{
 		// Variables
 
 		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
 		double k0 = gsl_vector_get(rate_parameters, 0);
-		double F = p_model->m_k_cb * (x + x_ext);
 		double d = gsl_vector_get(rate_parameters, 1);
 		double x_wall = gsl_vector_get(rate_parameters, 2);
 		double x_smooth = gsl_vector_get(rate_parameters, 3);
+
+		double x_offset = 0;
+		double temp = gsl_vector_get(rate_parameters, 4);
+		if (!gsl_isnan(temp))
+			x_offset = temp;
+
+		double F = p_model->m_k_cb * (x - x_offset + x_ext);
 
 		// Code
 		rate = k0 * exp(-(F * d) /
 				(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
 
 		rate = rate + p_options->max_rate * (1 /
-			(1 + exp(-x_smooth * (x - x_wall))));
+			(1 + exp(-x_smooth * (x - x_offset - x_wall))));
 	}
 
 	if (!strcmp(rate_type, "exp_wall_sweep"))
@@ -505,6 +535,22 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 		rate = rate + sweep * (2.0 - (double)active_neigh);
 
 		//printf("active_neigh: %g  rate: %f\n", (double)active_neigh, rate);
+	}
+
+	if (!strcmp(rate_type, "bi_wall"))
+	{
+		// Variables
+		double base = gsl_vector_get(rate_parameters, 0);
+		double x_pos = gsl_vector_get(rate_parameters, 1);
+		double k_pos = gsl_vector_get(rate_parameters, 2);
+		double x_neg = gsl_vector_get(rate_parameters, 3);
+		double k_neg = gsl_vector_get(rate_parameters, 4);
+
+		rate = base +
+			p_options->max_rate *
+			((1 / (1 + exp(-k_pos * (x - x_pos)))) +
+				(1 / (1 + exp(k_neg * (x - x_neg)))));
+
 	}
 
 	if (!strcmp(rate_type, "exp_wall_mybpc_dependent"))
