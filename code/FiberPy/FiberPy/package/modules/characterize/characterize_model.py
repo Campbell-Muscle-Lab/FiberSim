@@ -145,13 +145,27 @@ def generate_model_files(json_analysis_file_string):
     # Load up the base model
     with open(base_model_file_string, 'r') as f:
         base_model = json.load(f)
+        
+    # Check if we need to duplicate any isotypes
+    if ('isotype_clones' in model_struct):
+        if ('additional_m_isotypes' in model_struct['isotype_clones']):
+            m_isotype = base_model['m_kinetics'][0]
+            for i in range(model_struct['isotype_clones']['additional_m_isotypes']):
+                base_model['m_kinetics'].append(copy.deepcopy(m_isotype))
+        
+        if ('additional_c_isotypes' in model_struct['isotype_clones']):
+            c_isotype = base_model['c_kinetics'][0]
+            for i in range(model_struct['isotype_clones']['additional_c_isotypes']):
+                base_model['c_kinetics'].append(copy.deepcopy(c_isotype))
 
     # Now work out how many adjustments you need to make
     adjustments = model_struct['manipulations']['adjustments']
     if ('multipliers' in adjustments[0]):
         no_of_models = len(adjustments[0]['multipliers'])
     elif (adjustments[0]['variable'].endswith('isotype_proportions')):
-        no_of_models = len(adjustments[0]['proportions'])        
+        no_of_models = len(adjustments[0]['proportions'])
+    elif (adjustments[0]['variable'].endswith('isotype_profiles')):
+        no_of_models = len(adjustments[0]['profile'])
     else:
         no_of_models = 1
     
@@ -162,7 +176,7 @@ def generate_model_files(json_analysis_file_string):
         
         # Copy the base model
         adj_model = copy.deepcopy(base_model)
-                
+               
         for (j,a) in enumerate(adjustments):
             
             if ((a['variable'] == 'm_kinetics') or
@@ -196,6 +210,90 @@ def generate_model_files(json_analysis_file_string):
                 class_string = '%s_parameters' % prefix
                 adj_model[class_string][a['variable']] = \
                     a['proportions'][i]['isotype_proportions']
+                    
+            elif (a['variable'] == 'm_isotype_profiles'):
+
+                # Create an empty array of m_isotypes
+                m_iso_int = []
+                
+                if a['profile'][i].startswith('all'):
+                    iso_int = int(a['profile'][i][4])
+                    
+                    # Set m_isotype_ints to a constant array of iso_int
+                    for crown_counter in range(adj_model['thick_structure']['m_crowns_per_filament']):
+                        for hub_counter in range(adj_model['thick_structure']['m_hubs_per_crown']):
+                            for d_counter in range(adj_model['thick_structure']['m_myosins_per_hub']):
+                                m_iso_int.append(iso_int)
+                                
+                if a['profile'][i].startswith('dimer'):
+                    
+                    iso_int_a = int(a['profile'][i][6])
+                    iso_int_b = int(a['profile'][i][8])
+                    
+                    # Set m_isotype_ints to a constant array of iso_int
+                    for crown_counter in range(adj_model['thick_structure']['m_crowns_per_filament']):
+                        for hub_counter in range(adj_model['thick_structure']['m_hubs_per_crown']):
+                            m_iso_int.append(iso_int_a)
+                            m_iso_int.append(iso_int_b)
+                            
+                if a['profile'][i].startswith('p'):
+                    
+                    iso_p_a = int(a['profile'][i][2])
+                    iso_p_b = int(a['profile'][i][4])
+                    iso_c_a = int(a['profile'][i][8])
+                    iso_c_b = int(a['profile'][i][10])
+                    iso_c_c = int(a['profile'][i][12])
+                    iso_c_d = int(a['profile'][i][14])
+                    iso_c_e = int(a['profile'][i][16])
+                    iso_c_f = int(a['profile'][i][18])
+                    iso_d_a = int(a['profile'][i][22])
+                    iso_d_b = int(a['profile'][i][24])
+                    
+                    # Set m_isotype_ints to a constant array of iso_int
+                    for crown_counter in range(adj_model['thick_structure']['m_crowns_per_filament']):
+                        if (crown_counter < (adj_model['mybpc_structure']['c_thick_proximal_node'] - 1)):
+                            # P-zone
+                            for hub_counter in range(adj_model['thick_structure']['m_hubs_per_crown']):
+                                m_iso_int.append(iso_p_a)
+                                m_iso_int.append(iso_p_b)
+
+                        elif (crown_counter >= (adj_model['mybpc_structure']['c_thick_proximal_node'] +
+                                               ((adj_model['mybpc_structure']['c_thick_stripes']) *
+                                                    adj_model['mybpc_structure']['c_thick_node_spacing']) - 1)):
+                            # D-zone
+                            for hub_counter in range(adj_model['thick_structure']['m_hubs_per_crown']):
+                                m_iso_int.append(iso_d_a)
+                                m_iso_int.append(iso_d_b)
+                                
+                        else:
+                            # C-zone
+                            
+                            # Work out which stripe we are in
+                            stripe_index = (1 + crown_counter- 
+                                                    adj_model['mybpc_structure']['c_thick_proximal_node']) % 3
+                            
+                            if (stripe_index == 0):
+                                x = iso_c_a
+                                y = iso_c_b
+                            elif (stripe_index == 1):
+                                x = iso_c_c
+                                y = iso_c_d
+                            else:
+                                x = iso_c_e
+                                y = iso_c_f
+
+                            for hub_counter in range(adj_model['thick_structure']['m_hubs_per_crown']):
+                                m_iso_int.append(x)
+                                m_iso_int.append(y)
+
+                                
+                # Set the m_isotype_ints
+                adj_model['m_parameters']['m_isotype_ints'] = m_iso_int
+                
+                # If there was an m_isotype_proportions, delete it
+                if ('m_isotype_proportions' in adj_model['m_parameters']):
+                    del adj_model['m_parameters']['m_isotype_proportions']
+                
                     
             elif (a['class'] == 'half_sarcomere_variation'):
                 hsv = adj_model[a['class']]

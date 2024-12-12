@@ -70,6 +70,10 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     afterload_break_delta_hs_length = GSL_NAN;
                                             /**< default value for breakout length */
 
+    start_status_time_step = 0;             /**< default value */
+    stop_status_time_step = 0;              /**< default value */
+    skip_status_time_step = 0;              /**< default value */
+
     // Update values from log file
     set_FiberSim_options_from_JSON_file_string(JSON_options_file_string);
 
@@ -123,6 +127,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
             sprintf_s(status_folder, _MAX_PATH, "%s", status_path.string().c_str());
         }
 
+        /*
         // Parse the time_steps string
         std::string ts_string = time_steps_string;
 
@@ -132,6 +137,7 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
         start_status_time_step = (int)std::stoi(ts_string.substr(0, first_sep));
         skip_status_time_step = (int)std::stoi(ts_string.substr((first_sep+1), last_sep));
         stop_status_time_step = (int)std::stoi(ts_string.substr(last_sep+1));
+        */
     }
 
     if (strlen(log_folder) > 0)
@@ -404,4 +410,30 @@ void FiberSim_options::write_FiberSim_options_to_file(void)
 
     // Tidy up
     fclose(output_file);
+}
+
+void FiberSim_options::parse_status_time_steps_string(int no_of_time_points)
+{
+    // Sets the time-points values
+
+    // Code
+
+    if (strcmp(time_steps_string, "last") == 0)
+    {
+        start_status_time_step = no_of_time_points - 1;
+        skip_status_time_step = 1;
+        stop_status_time_step = start_status_time_step;
+    }
+    else
+    {
+        // Parse the time_steps string
+        std::string ts_string = time_steps_string;
+
+        size_t first_sep = ts_string.find_first_of(":");
+        size_t last_sep = ts_string.find_last_of(":");
+
+        start_status_time_step = (int)std::stoi(ts_string.substr(0, first_sep));
+        skip_status_time_step = (int)std::stoi(ts_string.substr((first_sep + 1), last_sep));
+        stop_status_time_step = (int)std::stoi(ts_string.substr(last_sep + 1));
+    }
 }

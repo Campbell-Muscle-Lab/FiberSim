@@ -148,4 +148,9 @@ public:
      * a function that writes model options to file
      */
     void write_FiberSim_options_to_file(void);
+
+    /**
+    *
+    */
+    void parse_status_time_steps_string(int no_of_time_points);
 };

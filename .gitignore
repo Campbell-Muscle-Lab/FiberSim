@@ -516,6 +516,9 @@ Gemfile.lock
 **/demo_files/**/protocols/**/*.*
 **/demo_files/**/fitting/**/progress/**/*.*
 **/demo_files/**/fitting/**/working/**/*.*
+**/demo_files/**/sim_output/**/*.*
+
+
 
 
 

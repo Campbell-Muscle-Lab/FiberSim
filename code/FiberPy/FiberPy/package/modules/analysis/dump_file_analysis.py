@@ -19,6 +19,8 @@ def extract_dump_data(dump_file_string):
     hs = dict()
     hs['time'] = d['hs_data']['time']
     hs['pCa'] = d['hs_data']['pCa']
+    hs['hs_length'] = d['hs_data']['hs_length']
+    hs['hs_force'] = d['hs_data']['hs_force']
         
     # Get the thick filaments
     d_thick = d['thick']

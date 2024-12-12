@@ -1,0 +1,52 @@
+{
+    "FiberSim_batch": {
+        "FiberCpp_exe": {
+            "exe_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../../../../bin/FiberCpp.exe"
+        },
+        "job": [
+            {
+                "relative_to": "False",
+                "protocol_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_input\\1\\prot_pCa_45_s_0_r1.txt",
+                "results_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_output\\1\\sim_pCa_45_s_0_r1.txt",
+                "model_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_input\\1\\model_1.json",
+                "options_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_input\\1\\sim_options_1_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_input\\2\\prot_pCa_45_s_0_r1.txt",
+                "results_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_output\\2\\sim_pCa_45_s_0_r1.txt",
+                "model_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_input\\2\\model_2.json",
+                "options_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_input\\2\\sim_options_1_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_input\\3\\prot_pCa_45_s_0_r1.txt",
+                "results_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_output\\3\\sim_pCa_45_s_0_r1.txt",
+                "model_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_input\\3\\model_3.json",
+                "options_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\../sim_data_2\\sim_input\\3\\sim_options_1_r1.json"
+            }
+        ],
+        "batch_figures": {
+            "rates": [
+                {
+                    "relative_to": "False",
+                    "results_folder": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\..\\sim_data_2\\sim_output",
+                    "output_image_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\..\\sim_data_2\\sim_output\\rates",
+                    "output_image_formats": [
+                        "png"
+                    ]
+                }
+            ],
+            "superposed_traces": [
+                {
+                    "relative_to": "False",
+                    "results_folder": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\..\\sim_data_2\\sim_output",
+                    "output_image_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\myofibrils\\hs_with_sec\\generated\\..\\sim_data_2\\sim_output\\superposed_traces",
+                    "output_image_formats": [
+                        "png"
+                    ]
+                }
+            ]
+        }
+    }
+}

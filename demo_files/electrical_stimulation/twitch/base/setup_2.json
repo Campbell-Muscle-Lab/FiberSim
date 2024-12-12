@@ -1,0 +1,56 @@
+{
+  "FiberSim_setup":
+  {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../../bin/FiberCpp.exe"
+    },
+    "model": {
+      "relative_to": "this_file",
+      "options_file": "sim_options.json",
+      "manipulations":
+      {
+        "base_model": "model_2.json",
+        "generated_folder": "../generated",
+        "adjustments":
+        [
+            {
+                "variable": "m_kinetics",
+                "isotype": 1,
+                "state": 2,
+                "transition": 1,
+                "parameter_number": 1,
+                "multipliers": [1, 0.2, 5]
+            }
+        ]
+      }
+    },
+    "characterization": [
+        {
+            "type": "twitch",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data_2",
+            "m_n": 196,
+            "protocol":
+            {
+                "protocol_folder": "../protocols",
+                "data": [
+                    {
+                        "time_step_s": 0.001,
+                        "n_points": 400,
+                        "stimulus_times_s": [0.1],
+                        "Ca_content": 1e-3,
+                        "stimulus_duration_s": 0.01,
+                        "k_leak": 6e-4,
+                        "k_act": 8.2e-2,
+                        "k_serca": 20
+                    }
+                ]
+            },
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False"
+        }
+    ]
+  }
+}
