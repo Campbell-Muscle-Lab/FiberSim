@@ -93,12 +93,16 @@ def default_layout():
 
     return layout
 
-def plot_y_pCa_data(plot_data, ax=[], y_ticks=[]):
+def plot_y_pCa_data(plot_data, ax=[], y_ticks=[],
+                    formatting_overrides=[]):
     """ Plots an array of pCa-y-data """
     
     # Pull default formatting, then overwrite any values from
     # input file
     formatting = default_formatting()
+    if not (formatting_overrides == []):
+        for entry in formatting_overrides:
+            formatting[entry] = formatting_overrides[entry]
     
     # Make an axes if required
     if (ax == []):
@@ -113,6 +117,7 @@ def plot_y_pCa_data(plot_data, ax=[], y_ticks=[]):
     
     # Work out how many curves there are
     if (isinstance(plot_data, pd.DataFrame)):
+        # There is only one, but we need the data in an array
         no_of_curves = 1
         
         # Make the plot_data, an array of length 1
