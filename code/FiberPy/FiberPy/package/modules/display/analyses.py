@@ -94,6 +94,7 @@ def default_layout():
     return layout
 
 def plot_y_pCa_data(plot_data, ax=[], y_ticks=[]):
+    """ Plots an array of pCa-y-data """
     
     # Pull default formatting, then overwrite any values from
     # input file
@@ -162,11 +163,70 @@ def plot_y_pCa_data(plot_data, ax=[], y_ticks=[]):
         max_y = max(max_y, np.amax(y))
         min_y = min(min_y, np.amin(y))
         
-        # Formatting
-        ax.invert_xaxis()
-        if not (y_ticks == []):
-            ax.set_ylim(y_ticks)
+    # Set y_ticks
+    if (y_ticks == []):
+        min_y = ut.multiple_less_than(min_y,
+                                      0.05*np.power(10, np.ceil(np.log10(min_y))))
+        max_y = ut.multiple_greater_than(max_y,
+                                         0.05*np.power(10, np.ceil(np.log10(max_y))))
+        y_ticks = [min(min_y, 0), max_y]
+    
+    # Add in data
+    y_anchor = y_ticks[0] + \
+        (formatting['table_y_anchor'] * (y_ticks[-1] - y_ticks[0]))
+    y_spacing = formatting['table_y_spacing'] * (y_ticks[-1] - y_ticks[0])
+    x_anchor = formatting['high_pCa_tick'] - 0.7
+    
+    ax.text(x_anchor,
+            y_anchor,
+            'pCa$\\mathregular{_{50}}$',
+            fontfamily=formatting['fontname'],
+            fontsize=formatting['table_fontsize'],
+            horizontalalignment='center',
+            verticalalignment='center',
+            clip_on=False)
+    
+    ax.text(x_anchor - (1.5 * formatting['table_x_spacing']),
+            y_anchor,
+           'n$\\mathregular{_{H}}$',
+           fontfamily=formatting['fontname'],
+           fontsize=formatting['table_fontsize'],
+           horizontalalignment='center',
+           verticalalignment='center',
+           clip_on=False)
+    
+    for i in range(no_of_curves):
+        y_anchor = y_anchor - y_spacing
         
+        ax.plot(x_anchor + 1.25 * formatting['table_x_spacing'],
+                y_anchor,
+                formatting['marker_symbols'][i],
+                color = formatting['color_set'][i],
+                fillstyle = formatting['fill_styles'][i])
+        
+        ax.text(x_anchor,
+                y_anchor,
+                '%.2f' % pd_fit[i]['pCa_50'],
+                fontfamily=formatting['fontname'],
+                fontsize=formatting['table_fontsize'],
+                horizontalalignment='center',
+                verticalalignment='center',
+                clip_on=False)
+        
+        ax.text(x_anchor - (1.5 * formatting['table_x_spacing']),
+                y_anchor,
+               '%.2f' % pd_fit[i]['n_H'],
+               fontfamily=formatting['fontname'],
+               fontsize=formatting['table_fontsize'],
+               horizontalalignment='center',
+               verticalalignment='center',
+               clip_on=False)
+    
+    # Formatting
+    ax.invert_xaxis()
+    if not (y_ticks == []):
+        ax.set_ylim(y_ticks)
+    
         
         
     # # Tidy up axis
