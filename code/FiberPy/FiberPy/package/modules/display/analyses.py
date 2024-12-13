@@ -6,10 +6,14 @@ Created on Wed May 19 16:30:00 2021
 """
 
 import os
+import sys
 import json
+import copy
 
 import numpy as np
 import pandas as pd
+
+from pathlib import Path
 
 from collections import defaultdict
 
@@ -21,8 +25,17 @@ import matplotlib.gridspec as gridspec
 
 from natsort import natsorted
 
-from package.modules.analysis import curve_fitting as cv
-from package.modules.utilities import utilities as ut
+try:
+    from package.modules.analysis import curve_fitting as cv
+    from package.modules.utilities import utilities as ut
+except:
+    this_dir = str(Path(os.path.dirname(__file__)).resolve())
+   
+    sys.path.append(os.path.join(this_dir, '../analysis'))
+    import curve_fitting as cv
+
+    sys.path.append(os.path.join(this_dir, '../../'))
+    import modules.utilities.utilities as ut
 
 def default_formatting():
     formatting = dict()
@@ -79,6 +92,208 @@ def default_layout():
     layout['grid_hspace'] = 0.5
 
     return layout
+
+def plot_y_pCa_data(plot_data, ax=[], y_ticks=[]):
+    
+    # Pull default formatting, then overwrite any values from
+    # input file
+    formatting = default_formatting()
+    
+    # Make an axes if required
+    if (ax == []):
+        # Set up current figure
+        fig = plt.figure(constrained_layout=False)
+        spec = fig.add_gridspec(nrows=1, ncols=1,
+                          left=0.3, right=0.95, wspace=0.1,
+                          bottom = 0.2)
+        fig.set_size_inches([3.5, 2.5])
+        
+        ax.append(fig.add_suplot(spec[0, 0]))
+    
+    # Work out how many curves there are
+    if (isinstance(plot_data, pd.DataFrame)):
+        no_of_curves = 1
+        
+        # Make the plot_data, an array of length 1
+        pd_temp = []
+        pd_temp.append(plot_data)
+        
+        del plot_data
+        plot_data = pd_temp.copy()
+    else:
+        no_of_curves = len(plot_data)
+    
+    print(no_of_curves)
+    
+    # Create an empty dictionary
+    pd_fit = {}
+    
+    # Hold min and max values
+    min_y = np.inf
+    max_y = -np.inf
+    
+    for i in range(no_of_curves):
+        
+        # Pull off the values
+        pCa = plot_data[i]['pCa']
+        y = plot_data[i]['y']
+        
+        # Calculate the fit
+        pd_fit[i] = cv.fit_pCa_data(pCa, y)
+        
+        x_fit = pd_fit[i]['x_fit']
+        y_fit = pd_fit[i]['y_fit']
+        
+        # Now do some subsitutions
+        vi = np.nonzero(pCa >= formatting['high_pCa_tick'])
+        pCa[vi] = formatting['high_pCa_tick']
+        
+        vi = np.nonzero(x_fit >= formatting['high_pCa_tick'])
+        x_fit[vi] = formatting['high_pCa_tick']
+        
+        ax.plot(pCa, y,
+                formatting['marker_symbols'][i],
+                color = formatting['color_set'][i],
+                fillstyle = formatting['fill_styles'][i])
+        
+        ax.plot(x_fit, y_fit,
+                color = formatting['color_set'][i])
+            
+        max_y = max(max_y, np.amax(y))
+        min_y = min(min_y, np.amin(y))
+        
+        # Formatting
+        ax.invert_xaxis()
+        if not (y_ticks == []):
+            ax.set_ylim(y_ticks)
+        
+        
+        
+    # # Tidy up axis
+    # ax_left.set_xlim(formatting['high_pCa_tick'] +
+    #                  formatting['high_pCa_span']*np.asarray([0.5, -0.5]))
+    # right_lims = [formatting['low_pCa_ticks'][0] + formatting['low_pCa_pad'],
+    #               formatting['low_pCa_ticks'][-1]]
+    # ax_right.set_xlim(right_lims)
+    
+    # ax_left.spines['right'].set_visible(False)
+    # ax_left.spines['top'].set_visible(False)
+    # ax_right.spines['left'].set_visible(False)
+    # ax_right.spines['right'].set_visible(False)
+    # ax_right.spines['top'].set_visible(False)
+    # ax_right.tick_params('y', left=False, labelleft=False)
+    
+    # # Ticks
+    # ax_left.set_xticks([formatting['high_pCa_tick']])
+    # ax_left.set_ylabel(formatting['y_axis_label'],
+    #                    loc='center',
+    #                    verticalalignment='center',
+    #                    labelpad=formatting['y_label_pad'],
+    #                    fontfamily=formatting['fontname'],
+    #                    fontsize=formatting['y_label_fontsize'],
+    #                    rotation=formatting['y_label_rotation'])
+    
+    # ax_right.set_xlabel('pCa',
+    #                    loc='center',
+    #                    verticalalignment='center',
+    #                    labelpad=formatting['x_label_pad'],
+    #                    fontfamily=formatting['fontname'],
+    #                    fontsize=formatting['x_label_fontsize'])
+    # ax_right.set_xticks(formatting['low_pCa_ticks'])
+    
+    # # Set the y_ticks
+    # y_ticks = [0, ut.multiple_greater_than(max_y,
+    #                                         0.05*np.power(10, np.ceil(np.log10(max_y))))]
+    
+    
+    # for a in [ax_left, ax_right]:
+    #     a.set_xticklabels(a.get_xticks(),
+    #                       fontsize=formatting['tick_labels_fontsize'],
+    #                       fontfamily=formatting['fontname'])
+    #     a.set_ylim(y_ticks)
+    #     a.set_yticks(y_ticks)
+    #     a.set_yticklabels(a.get_yticks(),
+    #                       fontsize=formatting['tick_labels_fontsize'],
+    #                       fontfamily=formatting['fontname'])
+    
+    #     if formatting['y_normalized_to_max']:
+    #         y_ticks = [0,1]
+    #         a.set_ylim([0,1.03])
+    #         a.spines['left'].set_bounds(y_ticks)
+    #         a.set_yticks(y_ticks)
+    #         a.set_yticklabels(a.get_yticks(),
+    #             fontsize=formatting['tick_labels_fontsize'],
+    #             fontfamily=formatting['fontname'])
+    
+    # # Draw split
+    # # proportion of vertical to horizontal extent of the slanted line
+    # d = 0.5
+    # kwargs = dict(marker=[(-d, -1), (d, 1)],
+    #               linestyle='none',
+    #               markersize=10,
+    #               mec='k', mew=1,
+    #               color='k', clip_on=False)
+    # ax_left.plot([1], [0], transform=ax_left.transAxes, **kwargs)
+    # ax_right.plot([0], [0], transform=ax_right.transAxes, **kwargs)
+    
+    # # Draw table
+    # y_anchor = formatting['table_y_anchor'] * y_ticks[-1]
+    # y_spacing = formatting['table_y_spacing'] * y_ticks[-1]
+    # x_anchor = formatting['low_pCa_ticks'][0]
+    
+    # ax_right.text(x_anchor,
+    #              y_anchor,
+    #              'pCa$\\mathregular{_{50}}$',
+    #              fontfamily=formatting['fontname'],
+    #              fontsize=formatting['table_fontsize'],
+    #              horizontalalignment='center',
+    #              verticalalignment='center',
+    #              clip_on=False)
+    # ax_right.text(x_anchor - 1 * formatting['table_x_spacing'],
+    #              y_anchor,
+    #              'n$\\mathregular{_{H}}$',
+    #              fontfamily=formatting['fontname'],
+    #              fontsize=formatting['table_fontsize'],
+    #              horizontalalignment='center',
+    #              verticalalignment='center',
+    #              clip_on=False)
+    
+    # # Add in data
+    # for i in range(no_of_curves):
+        
+    #     pdf = pd_fit[i]
+    
+    #     # Deduce curve props        
+    #     c_ind = i % len(formatting['marker_symbols'])
+        
+    #     y_anchor = y_anchor - y_spacing
+    #     ax_right.plot(x_anchor + formatting['table_x_spacing'],
+    #                 y_anchor,
+    #                 formatting['marker_symbols'][c_ind],
+    #                 mfc = formatting['color_set'][c_ind],
+    #                 mec = formatting['color_set'][c_ind],
+    #                 fillstyle = formatting['fill_styles'][c_ind],
+    #                 markersize=formatting['marker_size'],
+    #                 clip_on=False)
+    
+    #     ax_right.text(x_anchor,
+    #                 y_anchor,
+    #                 '%.2f' % pdf['pCa_50'],
+    #                 fontfamily=formatting['fontname'],
+    #                 fontsize=formatting['table_fontsize'],
+    #                 horizontalalignment='center',
+    #                 verticalalignment='center',
+    #                 clip_on=False)
+    #     ax_right.text(x_anchor - formatting['table_x_spacing'],
+    #                 y_anchor,
+    #                 '%.2f' % pdf['n_H'],
+    #                 fontfamily=formatting['fontname'],
+    #                 fontsize=formatting['table_fontsize'],
+    #                 horizontalalignment='center',
+    #                 verticalalignment='center',
+    #                 clip_on=False)
+
+    
 
 def create_y_pCa_figure(fig_data, batch_file_string):
     """ Creates a y pCa figure based on dict fig_data """
