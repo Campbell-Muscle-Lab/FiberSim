@@ -124,8 +124,6 @@ def plot_y_pCa_data(plot_data, ax=[], y_ticks=[]):
     else:
         no_of_curves = len(plot_data)
     
-    print(no_of_curves)
-    
     # Create an empty dictionary
     pd_fit = {}
     
