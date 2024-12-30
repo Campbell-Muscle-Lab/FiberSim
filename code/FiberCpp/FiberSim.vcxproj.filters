@@ -63,6 +63,15 @@
     <ClCompile Include="model_hs_variation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="iso_transition.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="iso_scheme.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="iso_type.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FiberSim_model.h">
@@ -117,6 +126,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="model_hs_variation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="iso_transition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="iso_scheme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="iso_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

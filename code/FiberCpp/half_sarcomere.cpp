@@ -14,6 +14,7 @@
 #include "kinetic_scheme.h"
 #include "transition.h"
 #include "m_state.h"
+#include "iso_type.h"
 #include "thin_filament.h"
 #include "muscle.h"
 #include "FiberSim_model.h"
@@ -3308,7 +3309,7 @@ int half_sarcomere::return_event_index(gsl_vector* prob)
     }
 
     // Scale if required (where the probabilities are very high)
-    if ((holder > 1.0) & (rescaling_flag == 0))
+    if ((holder > 1.0) && (rescaling_flag == 0))
     {
         // Flag
         printf("Probabilities are re-scaled\n");
@@ -3411,6 +3412,41 @@ void half_sarcomere::handle_lattice_event(lattice_event* p_event)
     }
 }
 
+/*
+void half_sarcomere::myosin_isotype_kinetics(double time_step)
+{
+    //! Code deduces whether a myosin head will switch isotype
+
+    // Variables
+
+    int m_isotype;
+
+    isotype* p_isotype;
+
+
+
+    // Code
+
+    // Cycle through filaments
+    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    {
+        for (int cb_counter = 0; cb_counter < m_cbs_per_thick_filament; cb_counter++)
+        {
+            // Zero the transition vector
+            gsl_vector_set_zero(m_iso_transition_probs);
+
+            m_isotype = gsl_vector_short_get(p_mf[m_counter]->cb_iso, cb_counter]);
+            p_isotype = p_iso_scheme[m_isotype - 1];
+
+            // Cycle through the transitions
+            for (int t_counter = 0; t_counter < max_m_iso_transitions ; t_counter++)
+            {
+
+
+}
+*/
+
+
 void half_sarcomere::write_gsl_spmatrix_to_file(gsl_spmatrix* p_sparse_matrix, char output_file_string[])
 {
     //! Writes gsl_sparse_triplet_matrix to file
@@ -3465,6 +3501,7 @@ void half_sarcomere::write_gsl_vector_to_file(gsl_vector* p_vector, char output_
     // Tidy up
     fclose(output_file);
 }
+
 
 void half_sarcomere::write_hs_status_to_file(char output_file_string[])
 {

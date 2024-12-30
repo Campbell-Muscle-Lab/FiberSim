@@ -17,6 +17,7 @@
 
 class FiberSim_options;
 class kinetic_scheme;
+class iso_scheme;
 class model_hs_variation;
 
 class FiberSim_model
@@ -231,6 +232,13 @@ public:
     gsl_vector* inter_hs_t_force_effects;
                                         /**< gsl_vector defining how to calculate inter-hs
                                              titin forces */
+
+    // Isotype switching
+    iso_scheme* p_m_iso_scheme;          /**< pointer to a scheme that describes
+                                              isotype switching for myosin */
+
+    iso_scheme* p_c_iso_scheme;          /**< pointer to a kinetic scheme that describes
+                                              isotype switching for C-protein */
 
     // Functions
 

@@ -12,13 +12,15 @@
 #include "kinetic_scheme.h"
 #include "m_state.h"
 #include "transition.h"
-
-#include "kinetic_scheme.h"
-#include "JSON_functions.h"
-
 #include "model_hs_variation.h"
 
+#include "iso_scheme.h"
+#include "iso_type.h"
+#include "iso_transition.h"
+
 #include "gsl_math.h"
+
+#include "JSON_functions.h"
 
 #include "rapidjson\document.h"
 #include "rapidjson\filereadstream.h"
@@ -530,6 +532,16 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
             p_model_hs_variation[i] = new model_hs_variation(this, hsv[i]);
         }
     }
+
+    /*
+    // Check for isotype switches
+    if (JSON_functions::check_JSON_member_exists(doc, "m_iso_switching"))
+    {
+        const rapidjson::Value& m_iso = doc["m_iso_switching"].GetArray();
+        
+        p_m_iso_scheme = new iso_scheme(m_iso, this, p_fs_options);
+    }
+    */
 
     if (p_fs_options->log_mode > 0)
     {
