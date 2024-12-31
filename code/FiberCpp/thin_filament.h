@@ -64,7 +64,7 @@ public:
                                          1 means off 
                                          2 means on */
 
-    gsl_vector_short* bs_isotype;   /**< pointer to a gsl array of signed short
+    gsl_vector_short* bs_iso;      /**< pointer to a gsl array of signed short
                                          integers indicating the isotype of
                                          the bs */
 

@@ -20,6 +20,8 @@ class kinetic_scheme;
 class iso_scheme;
 class model_hs_variation;
 
+struct a_kinetics;
+
 class FiberSim_model
 {
 public:
@@ -134,16 +136,20 @@ public:
     int a_no_of_bs_states;              /**< integer defining the number of states that
                                              a binding site can tranisiton between */
 
-    int a_no_of_bs_isotypes;            /**< integer defining the number of isotypes of
+    int a_no_of_bs_iso_types;            /**< integer defining the number of isotypes of
                                              binding sites */
 
     double a_k_stiff;                   /**< double defining the stiffness of an
                                              actin spring in N m^-1 */
 
-    double a_k_on;                      /**< double defining second order rate constant
+    a_kinetics* p_a_kinetics[MAX_NO_OF_ISOTYPES];
+                                        /**< pointer to array of structures holding
+                                             thin filament kinetics */
+
+/*    double a_k_on;                      /**< double defining second order rate constant
                                              for binding site activation in units of
                                              s^-1 M^-1 of Ca2+ */
-
+/*
     double a_k_off;                      /**< double defining rate constant
                                               for binding site de-activation in units
                                               of s^-1 */
@@ -240,12 +246,10 @@ public:
     iso_scheme* p_c_iso_scheme;          /**< pointer to a kinetic scheme that describes
                                               isotype switching for C-protein */
 
-    // Functions
 
-    /**
-     * a function that writes FiberSim properties to file
-     */
-    void write_FiberSim_model_to_file(void);
+    iso_scheme* p_thin_iso_scheme;      /**< pointer to a kinetic scheme that describes
+                                             isotype switching for binding sites */
+    // Functions
 
     /**
      * a function that sets FiberSim_model parameters from a JSON file

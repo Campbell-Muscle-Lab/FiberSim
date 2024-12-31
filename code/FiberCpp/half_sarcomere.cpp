@@ -58,6 +58,14 @@ struct lattice_event
     transition * p_trans;   // transition
 };
 
+// Structure for thin_kinetics
+struct a_kinetics
+{
+    double a_k_on;
+    double a_k_off;
+    double a_k_coop;
+};
+
 // Constructor
 half_sarcomere::half_sarcomere(
     FiberSim_model* set_p_fs_model,
@@ -278,9 +286,6 @@ half_sarcomere::half_sarcomere(
     // Copy parameters from p_fs_model
     a_no_of_bs_states = p_fs_model->a_no_of_bs_states;
     a_k_stiff = p_fs_model->a_k_stiff;
-    a_k_on = p_fs_model->a_k_on;
-    a_k_off = p_fs_model->a_k_off;
-    a_gamma_coop = p_fs_model->a_gamma_coop;
 
     m_no_of_cb_states = p_fs_model->p_m_scheme[0]->no_of_states;
     m_k_stiff = p_fs_model->m_k_stiff;
@@ -935,10 +940,12 @@ void half_sarcomere::sarcomere_kinetics(double time_step, double set_pCa)
 
     // Update isoforms if required
     if (p_fs_model->p_m_iso_scheme != NULL)
-        myosin_isotype_kinetics(time_step);
+        myosin_iso_type_kinetics(time_step);
     if (p_fs_model->p_c_iso_scheme != NULL)
-        mybpc_isotype_kinetics(time_step);
-
+        mybpc_iso_type_kinetics(time_step);
+    if (p_fs_model->p_thin_iso_scheme != NULL)
+        thin_iso_type_kinetics(time_step);
+ 
     // Map the filaments and run kinetics
     set_cb_nearest_a_n();
     set_pc_nearest_a_n();
@@ -2567,7 +2574,6 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
     for (int rep_counter = 0; rep_counter < thin_filament_repeat; rep_counter++)
     {
-
         // Loop through thin filaments setting active neighbors
         for (int a_counter = 0; a_counter < a_n; a_counter++)
         {
@@ -2618,13 +2624,18 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                     // Set the indices for the unit
                     p_af[a_counter]->set_regulatory_unit_indices(unit_counter, bs_indices);
 
+                    // Now get the iso-type for the unit
+                    int iso_type = gsl_vector_short_get(p_af[a_counter]->bs_iso,
+                        gsl_vector_short_get(bs_indices, 0));
+
                     if (gsl_vector_short_get(p_af[a_counter]->unit_status, unit_counter) == 1)
                     {
                         // Site is off and can turn on
-                        coop_boost = a_gamma_coop *
+                        coop_boost = p_fs_model->p_a_kinetics[iso_type - 1]->a_k_coop *
                             (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter);
 
-                        rate = a_k_on * Ca_conc * (1.0 + coop_boost);
+                        rate = p_fs_model->p_a_kinetics[iso_type - 1]->a_k_on *
+                                Ca_conc * (1.0 + coop_boost);
 
                         // Test event with a random number
                         rand_double = gsl_rng_uniform(rand_generator);
@@ -2651,10 +2662,10 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
                         if (unit_occupied == 0)
                         {
-                            coop_boost = a_gamma_coop *
+                            coop_boost = p_fs_model->p_a_kinetics[iso_type - 1]->a_k_coop *
                                 (2.0 - (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter));
 
-                            rate = a_k_off * (1.0 + coop_boost);
+                            rate = p_fs_model->p_a_kinetics[iso_type - 1]->a_k_off * (1.0 + coop_boost);
 
                             // Test event with a random number
                             rand_double = gsl_rng_uniform(rand_generator);
@@ -2677,7 +2688,6 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
         {
             p_af[a_counter]->set_unit_status();
         }
-
     }
 
     // Tidy up
@@ -3423,7 +3433,7 @@ void half_sarcomere::handle_lattice_event(lattice_event* p_event)
     }
 }
 
-void half_sarcomere::myosin_isotype_kinetics(double time_step)
+void half_sarcomere::myosin_iso_type_kinetics(double time_step)
 {
     //! Code deduces whether a myosin head will switch isotype
 
@@ -3481,13 +3491,144 @@ void half_sarcomere::myosin_isotype_kinetics(double time_step)
     }
 }
 
-void half_sarcomere::mybpc_isotype_kinetics(double time_step)
+void half_sarcomere::mybpc_iso_type_kinetics(double time_step)
 {
-    //! Handles mybpc isotype switching
+    //! Code deduces whether a mybpc molecule will switch isotype
 
-    // Variables
+   // Variables
+    iso_scheme* p_iso_scheme;           // pointer to the m_iso_scheme
+    iso_transition* p_iso_trans;        // pointer to an isotype transition
+
+    int c_iso;                          // isotype of a mybpc molecule
+    int event_index;                    // index of isoform transition event
+
+    double x;                           // the x position of a mybpc molecule
+
+    double prob;                        // probability of an event
 
     // Code
+    p_iso_scheme = p_fs_model->p_c_iso_scheme;
+
+    // Cycle through filaments
+    for (int m_counter = 0; m_counter < m_n; m_counter++)
+    {
+        for (int pc_counter = 0; pc_counter < c_no_of_pcs; pc_counter++)
+        {
+            // Zero the transition vector
+            gsl_vector_set_zero(p_iso_scheme->transition_probs);
+
+            c_iso = gsl_vector_short_get(p_mf[m_counter]->pc_iso, pc_counter);
+
+            for (int t_counter = 0; t_counter < p_iso_scheme->p_iso_types[c_iso - 1]->no_of_transitions;
+                t_counter++)
+            {
+                // Calculate the probability of the event
+                // Set the pointer
+                p_iso_trans = p_iso_scheme->p_iso_types[c_iso - 1]->p_iso_transitions[t_counter];
+
+                // And the c-protein position x
+                x = gsl_vector_get(x_vector, node_index('c', m_counter, pc_counter));
+
+                // Calculate it
+                prob = (1.0 - exp(-time_step * p_iso_trans->calculate_rate(x, this)));
+
+                // Assign
+                gsl_vector_set(p_iso_scheme->transition_probs, t_counter, prob);
+            }
+
+            // Now use a random number to determine which event (if any) occurred
+            event_index = return_event_index(p_iso_scheme->transition_probs);
+
+            // Implement event if required
+            if (event_index >= 0)
+            {
+                gsl_vector_short_set(p_mf[m_counter]->pc_iso, pc_counter,
+                    (short)(p_iso_scheme->p_iso_types[c_iso - 1]->p_iso_transitions[event_index]->new_iso_type));
+            }
+        }
+    }
+}
+
+void half_sarcomere::thin_iso_type_kinetics(double time_step)
+{
+    //! Code deduces whether a mybpc molecule will switch isotype
+
+   // Variables
+    iso_scheme* p_iso_scheme;           // pointer to the thin_iso_scheme
+    iso_transition* p_iso_trans;        // pointer to an isotype transition
+
+    gsl_vector_short* bs_indices;
+
+    int a_iso;                          // isotype of the binding site
+    int first_bs_index;                 // index of the first binding site in a regulatory unit
+    int event_index;                    // index of isoform transition event
+
+    double x;                           // the x position of each binding site
+
+    double prob;                        // probability of an event
+
+    // Code
+    p_iso_scheme = p_fs_model->p_thin_iso_scheme;
+
+    bs_indices = gsl_vector_short_alloc(a_bs_per_unit);
+
+    // Cycle through filaments
+    for (int a_counter = 0; a_counter < a_n; a_counter++)
+    {
+        // Loop through strands
+        for (int str_counter = 0; str_counter < a_strands_per_filament; str_counter++)
+        {
+            // Loop through the regulatory units
+            for (int unit_counter = 0; unit_counter < a_regulatory_units_per_strand; unit_counter++)
+            {
+                int unit_index = str_counter + (unit_counter * a_strands_per_filament);
+
+                // Set the indices for the unit
+                p_af[a_counter]->set_regulatory_unit_indices(unit_index, bs_indices);
+
+                first_bs_index = gsl_vector_short_get(bs_indices, 0);
+                
+                // Now get the isotype
+                a_iso = gsl_vector_short_get(p_af[a_counter]->bs_iso, first_bs_index);
+                
+                // Now loop through the transitions
+                for (int t_counter = 0; t_counter < p_iso_scheme->p_iso_types[a_iso - 1]->no_of_transitions;
+                    t_counter++)
+                {
+                    // Calculate the probability of the event
+                    // Set the pointer
+                    p_iso_trans = p_iso_scheme->p_iso_types[a_iso - 1]->p_iso_transitions[t_counter];
+
+                    // And the bs_position
+                    x = gsl_vector_get(p_af[a_counter]->bs_x, first_bs_index);
+
+                    // Calculate it
+                    prob = (1.0 - exp(-time_step * p_iso_trans->calculate_rate(x, this)));
+
+                    // Assign
+                    gsl_vector_set(p_iso_scheme->transition_probs, t_counter, prob);
+                }
+
+                // Now use a random number to determine which event (if any) occurred
+                event_index = return_event_index(p_iso_scheme->transition_probs);
+
+                // Implement event if required
+                if (event_index >= 0)
+                {
+                    // Update the iso_type for each binding site in the regulatory unit
+                    for (int i = 0; i < a_bs_per_unit; i++)
+                    {
+                        gsl_vector_short_set(p_af[a_counter]->bs_iso,
+                            gsl_vector_short_get(bs_indices, i),
+                            p_iso_scheme->p_iso_types[a_iso - 1]->p_iso_transitions[event_index]->new_iso_type);
+                    }
+                }
+            }
+        }
+    }
+
+    // Tidy up
+    gsl_vector_short_free(bs_indices);
 }
 
 void half_sarcomere::write_gsl_spmatrix_to_file(gsl_spmatrix* p_sparse_matrix, char output_file_string[])
@@ -3815,7 +3956,7 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
         fprintf_s(output_file, "\t\"a_z\": %.*F,\n", p_fs_options->dump_precision,
             p_af[thin_counter]->a_z);
         fprintf_s(output_file, "\t\"a_no_of_bs\": %i,\n", p_af[thin_counter]->a_no_of_bs);
-        fprintf_s(output_file, "\t\"m_no_of_isotypes\": %i,\n", p_fs_model->a_no_of_bs_isotypes);
+        fprintf_s(output_file, "\t\"a_no_of_iso_types\": %i,\n", p_fs_model->a_no_of_bs_iso_types);
         fprintf_s(output_file, "\t\"a_bs_per_node\": %i,\n", a_bs_per_node);
         fprintf_s(output_file, "\t\"a_k_stiff\": %.*F,\n", p_fs_options->dump_precision,
             a_k_stiff);
@@ -3844,9 +3985,9 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
             output_file,
             temp_string, false);
 
-        sprintf_s(temp_string, _MAX_PATH, "bs_isoform");
+        sprintf_s(temp_string, _MAX_PATH, "bs_iso");
         JSON_functions::write_gsl_vector_short_as_JSON_array(
-            p_af[thin_counter]->bs_isotype,
+            p_af[thin_counter]->bs_iso,
             output_file,
             temp_string, false);
 

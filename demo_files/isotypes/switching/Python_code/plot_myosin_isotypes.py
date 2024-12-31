@@ -53,7 +53,7 @@ def plot_myosin_isotypes():
     no_of_conditions = no_of_conditions - 1
   
     # Now we can make a figure with one column per condition
-    no_of_rows = 5
+    no_of_rows = 7
     no_of_cols = no_of_conditions
     
     pCa_row = 1
@@ -245,6 +245,8 @@ def plot_isoform_profiles():
     # Find out how many simulations there are
     no_of_conditions = 1
     keep_going = True
+    
+    max_sim_files = 0
 
     while (keep_going):
         condition_folder = os.path.join(top_data_folder,
@@ -252,21 +254,31 @@ def plot_isoform_profiles():
 
         if os.path.isdir(condition_folder):
             no_of_conditions = no_of_conditions + 1
+            
+            counter = 0
+            
+            # Get the number of sim_files
+            for file in os.listdir(condition_folder):
+                if ((not file.startswith('rates')) and
+                    (not os.path.isfile(os.path.join(condition_folder, file)))):
+                    counter = counter + 1
         else:
             keep_going = False
+            
+        max_sim_files = np.max([counter, max_sim_files])
             
     no_of_conditions = no_of_conditions - 1
   
     # Now we can make a figure with one column per condition
-    no_of_rows = 1
+    no_of_rows = max_sim_files
     no_of_cols = no_of_conditions
     
     fig = plt.figure(constrained_layout = False)
     spec = gridspec.GridSpec(nrows = no_of_rows,
                              ncols = no_of_cols,
                              figure = fig,
-                             wspace = 2,
-                             hspace = 1)
+                             wspace = 1,
+                             hspace = 0.5)
     fig.set_size_inches([no_of_conditions * 3, 7])
     
     ax = []
@@ -318,16 +330,30 @@ def plot_isoform_profiles():
                 (hs, thick) = dump_analysis.extract_dump_data(file)
                
                 iso_types = thick['m_isotypes_by_crown']
-                x = range(len(iso_types))
+                iso_sh = iso_types.shape
                 
-                if ((k==0) or (k==(len(dump_files)-1))):
-                    plot_index = i
-                    ax[plot_index].plot(x, 1 + iso_types[:,1], label='%i' % k)
+                x = np.arange(1, iso_sh[0]+1)
+                
+                # Plot
+                plot_index = (j*no_of_cols) + i
+                    
+                for iso in range(iso_sh[1]):
+                    if (k==0):
+                        label_string = '%i' % iso
+                    else:
+                        label_string = '_'
+
+                    ax[plot_index].plot(x, iso_types[:, iso],'-',
+                                        color=color_map[iso],
+                                            label=label_string)
+                
         
-    for i in range(no_of_conditions):
-        plot_index = i
-        ax[plot_index].legend()
-            
+    ax[0].legend(title='Myosin isotype',
+                 loc='upper center', bbox_to_anchor=(0.5, 2))
+    
+    for i in range(len(ax)):
+        ax[i].set_ylabel('Isotype proportion')
+        ax[i].set_xlabel('Crown number\n1=barezeone')
    
     # Save fig
     output_file_string = os.path.join(top_data_folder, 'myosin_isotype_profiles.png')

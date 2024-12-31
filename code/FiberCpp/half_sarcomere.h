@@ -657,14 +657,21 @@ public:
     * handles switches between myosin isotypes
     * @return void
     */
-    void myosin_isotype_kinetics(double time_step);
+    void myosin_iso_type_kinetics(double time_step);
 
     /**
     * void mybpc_isotype_kinetics(double time_step)
     * handles switches between myosin isotypes
     * @return void
     */
-    void mybpc_isotype_kinetics(double time_step);
+    void mybpc_iso_type_kinetics(double time_step);
+
+    /**
+    * void thin_isotype_kinetics(double time_step)
+    * handles switches between binding site iso types
+    * @return void
+    */
+    void thin_iso_type_kinetics(double time_step);
 
     // Debugging functions
     

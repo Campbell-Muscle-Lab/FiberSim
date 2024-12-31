@@ -142,6 +142,12 @@ public:
                                                 in nm s^-1 at which to restretch after
                                                 an afterload */
 
+    double afterload_factor_s;          /** double defining a time after which to increase
+                                                the afterload */
+
+    double afterload_factor_multiplier; /** double defining the factor to increase the
+                                                afterload */
+
     // Functions
 
     /**

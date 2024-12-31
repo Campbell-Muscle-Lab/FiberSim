@@ -1,15 +1,14 @@
 {
   "FiberSim": {
-    "version": "2.1.0"
+    "version": "3.1.0"
   },
   "muscle": {
     "no_of_half_sarcomeres": 1,
     "no_of_myofibrils": 1,
-    "initial_hs_length": 1100,
+    "initial_hs_length": 1050,
     "prop_fibrosis": 0.0,
     "prop_myofilaments": 0.5,
-    "m_filament_density": 0.407e15,
-    "sc_k_stiff": 1e4
+    "m_filament_density": 0.407e15
   },
   "lattice_parameters": {
     "viscosity": 0.5
@@ -39,18 +38,22 @@
   },
   "thin_parameters": {
     "a_no_of_bs_states": 2,
-    "a_k_stiff": 2,
-    "a_k_on": 2e8,
-    "a_k_off": 100,
-    "a_k_coop": 55
+    "a_k_stiff": 2
   },
+  "thin_kinetics": [
+    {
+      "a_k_on": 1e9,
+      "a_k_off": 300,
+      "a_k_coop": 50
+    }
+  ],
   "thick_parameters": {
     "m_k_stiff": 5 },
   "titin_parameters": {
     "t_passive_mode": "exponential",
-    "t_k_stiff": 1e-5,
+    "t_k_stiff": 2e-5,
     "t_offset": 0,
-    "t_sigma": 1e-5,
+    "t_sigma": 2e-5,
     "t_L": 90
   },
   "extracellular_parameters": {
@@ -74,7 +77,7 @@
           {
             "new_number": 2,
             "rate_type": "constant",
-            "rate_parameters": [0.3]
+            "rate_parameters": [2]
           }
         ]
       },
@@ -84,10 +87,30 @@
         [
           {
             "new_number": 1,
-            "xrate_type": "exp_from_Z_line",
-            "xrate_parameters": [100, 5e-2],
-            "rate_type": "wall_from_Z_line",
-            "rate_parameters": [1000, 350]
+            "rate_type": "exponential",
+            "rate_parameters": [100, 30, 100, 0]
+          }
+        ]
+      },
+      {
+        "number": 3,
+        "transition":
+        [
+          {
+            "new_number": 4,
+            "rate_type": "constant",
+            "rate_parameters": [2]
+          }
+        ]
+      },
+      {
+        "number": 4,
+        "transition":
+        [
+          {
+            "new_number": 3,
+            "rate_type": "exponential",
+            "rate_parameters": [10, 30, 100, 0]
           }
         ]
       }
@@ -104,7 +127,7 @@
             {
               "new_state": 2,
               "rate_type": "force_dependent",
-              "rate_parameters": [ 10, 0.30 ]
+              "rate_parameters": [ 50, 0.30 ]
             }
           ]
         },
@@ -116,12 +139,12 @@
             {
               "new_state": 1,
               "rate_type": "constant",
-              "rate_parameters": [ 50 ]
+              "rate_parameters": [ 250 ]
             },
             {
               "new_state": 3,
               "rate_type": "gaussian_hsl",
-              "rate_parameters": [ 100 ]
+              "rate_parameters": [ 500 ]
             }
           ]
         },
@@ -133,7 +156,7 @@
               {
                 "new_state": 2,
                 "rate_type": "exp_wall",
-                "rate_parameters": [100, 0.75, 4, 4]
+                "rate_parameters": [500, 0.75, 4, 4]
               }
             ]
           }

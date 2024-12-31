@@ -111,6 +111,31 @@ double iso_transition::calculate_rate(double x, half_sarcomere* p_hs)
 			rate = 0;
 	}
 
+	if (!strcmp(rate_type, "gaussian"))
+	{
+		double amp = gsl_vector_get(rate_parameters, 0);
+		double fwhm = gsl_vector_get(rate_parameters, 1);
+		double x_mid = gsl_vector_get(rate_parameters, 2);
+		double base = gsl_vector_get(rate_parameters, 3);
+
+		// See https://en.wikipedia.org/wiki/Gaussian_function
+		double c = fwhm / 2.35482;
+
+		rate = base + (amp * exp(-gsl_pow_2(x - x_mid) / (2 * gsl_pow_2(c))));
+	}
+
+	if (!strcmp(rate_type, "exponential"))
+	{
+		double amp = gsl_vector_get(rate_parameters, 0);
+		double x_half = gsl_vector_get(rate_parameters, 1);
+		double x_mid = gsl_vector_get(rate_parameters, 2);
+		double base = gsl_vector_get(rate_parameters, 3);
+
+		double k = -log(0.5) / x_half;
+
+		rate = base + (amp * exp(-k * fabs(x - x_mid)));
+	}
+
 	// Curtail at max rate
 
 	if (rate > (p_options->max_rate))

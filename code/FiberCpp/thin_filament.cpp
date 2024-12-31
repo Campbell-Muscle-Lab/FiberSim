@@ -59,7 +59,7 @@ thin_filament::thin_filament(
     bs_angle = gsl_vector_alloc(a_no_of_bs);
 
     bs_state = gsl_vector_short_alloc(a_no_of_bs);
-    bs_isotype = gsl_vector_short_alloc(a_no_of_bs);
+    bs_iso = gsl_vector_short_alloc(a_no_of_bs);
     bs_unit = gsl_vector_short_alloc(a_no_of_bs);
 
     unit_status = gsl_vector_short_alloc(a_regulatory_units_per_strand * a_strands_per_filament);
@@ -78,7 +78,7 @@ thin_filament::thin_filament(
 
     // Other arrays are initialized with constants
     gsl_vector_short_set_all(bs_state, 1);
-    gsl_vector_short_set_all(bs_isotype, 1);
+    gsl_vector_short_set_all(bs_iso, 1);
     gsl_vector_short_set_all(bound_to_m_type, 0);
     gsl_vector_short_set_all(bound_to_m_f, -1);
     gsl_vector_short_set_all(bound_to_m_n, -1);
@@ -119,7 +119,7 @@ thin_filament::~thin_filament()
 
     // Delete the integer vectors
     gsl_vector_short_free(bs_state);
-    gsl_vector_short_free(bs_isotype);
+    gsl_vector_short_free(bs_iso);
     gsl_vector_short_free(bs_unit);
     gsl_vector_short_free(unit_status);
     gsl_vector_short_free(active_neighbors);

@@ -1528,14 +1528,7 @@ def deduce_freeform_properties(json_analysis_file_string,
             
             # Pull out afterloads if they exist
             if ('afterload' in ps):
-                after_struct = ps['afterload']
-                after = dict()
-                after['load'] = after_struct['load']
-                after['break_delta_hs_length'] = after_struct['break_delta_hs_length']
-                if ('post_break_wait_s' in after_struct):
-                    after['post_break_wait_s'] = after_struct['post_break_wait_s']
-                if ('restretch_vel' in after_struct):
-                    after['restretch_vel'] = after_struct['restretch_vel']
+                after = ps['afterload'].copy()
                 protocol_afterload.append(after)                  
             else:
                 after = []
@@ -1677,18 +1670,12 @@ def deduce_freeform_properties(json_analysis_file_string,
                                 os.path.join(sim_output_dir,
                                              'rates.json')
 
-                        if not (after_struct == []):
+                        if not (protocol_afterload == []):
+                            after_keys = protocol_afterload[prot_counter].keys()
                             rep_options_data['options']['afterload'] = dict()
-                            rep_options_data['options']['afterload']['load'] = \
-                                after_struct['load'][after_counter]
-                            rep_options_data['options']['afterload']['break_delta_hs_length'] = \
-                                after_struct['break_delta_hs_length'][after_counter]
-                            if ('post_break_wait_s' in after_struct):
-                                rep_options_data['options']['afterload']['post_break_wait_s'] = \
-                                    after_struct['post_break_wait_s'][after_counter]
-                            if ('restretch_vel' in after_struct):
-                                rep_options_data['options']['afterload']['restretch_vel'] = \
-                                    after_struct['restretch_vel'][after_counter]
+                            for ak in after_keys:
+                                rep_options_data['options']['afterload'][ak] = \
+                                    protocol_afterload[prot_counter][ak][after_counter]
                         
                         # Create the new options file
                         options_file = os.path.join(
