@@ -15,6 +15,8 @@
 #include "iso_type.h"
 #include "iso_transition.h"
 
+#include "gsl_vector.h"
+
 #include "JSON_functions.h"
 #include "rapidjson\document.h"
 
@@ -44,6 +46,9 @@ iso_scheme::iso_scheme(const rapidjson::Value& iso_sch,
 		max_no_of_transitions = GSL_MAX(max_no_of_transitions, (int)trans.Size());
 	}
 
+	// Allocate the transition_probs_vector
+	transition_probs = gsl_vector_alloc(max_no_of_transitions);
+
 	// Now cycle through making the isotypes
 	for (rapidjson::SizeType i = 0; i < types.Size(); i++)
 	{
@@ -51,12 +56,6 @@ iso_scheme::iso_scheme(const rapidjson::Value& iso_sch,
 	}
 
 	no_of_isotypes = types.Size();
-
-	printf("\nNo_of_isotypes: %i\n\n\n", no_of_isotypes);
-	exit(1);
-
-	// Now that we know the state properties, set the transition types
-//	set_transition_types();
 }
 
 // Destructor
@@ -71,6 +70,9 @@ iso_scheme::~iso_scheme(void)
 	{
 		delete p_iso_types[type_counter];
 	}
+
+	// Delete the transition probs
+	gsl_vector_free(transition_probs);
 }
 
 // Functions

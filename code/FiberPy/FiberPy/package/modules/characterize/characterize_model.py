@@ -1532,6 +1532,10 @@ def deduce_freeform_properties(json_analysis_file_string,
                 after = dict()
                 after['load'] = after_struct['load']
                 after['break_delta_hs_length'] = after_struct['break_delta_hs_length']
+                if ('post_break_wait_s' in after_struct):
+                    after['post_break_wait_s'] = after_struct['post_break_wait_s']
+                if ('restretch_vel' in after_struct):
+                    after['restretch_vel'] = after_struct['restretch_vel']
                 protocol_afterload.append(after)                  
             else:
                 after = []
@@ -1679,6 +1683,12 @@ def deduce_freeform_properties(json_analysis_file_string,
                                 after_struct['load'][after_counter]
                             rep_options_data['options']['afterload']['break_delta_hs_length'] = \
                                 after_struct['break_delta_hs_length'][after_counter]
+                            if ('post_break_wait_s' in after_struct):
+                                rep_options_data['options']['afterload']['post_break_wait_s'] = \
+                                    after_struct['post_break_wait_s'][after_counter]
+                            if ('restretch_vel' in after_struct):
+                                rep_options_data['options']['afterload']['restretch_vel'] = \
+                                    after_struct['restretch_vel'][after_counter]
                         
                         # Create the new options file
                         options_file = os.path.join(

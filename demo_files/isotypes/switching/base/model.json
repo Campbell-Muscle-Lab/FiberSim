@@ -8,7 +8,8 @@
     "initial_hs_length": 1100,
     "prop_fibrosis": 0.0,
     "prop_myofilaments": 0.5,
-    "m_filament_density": 0.407e15
+    "m_filament_density": 0.407e15,
+    "sc_k_stiff": 1e4
   },
   "lattice_parameters": {
     "viscosity": 0.5
@@ -73,7 +74,7 @@
           {
             "new_number": 2,
             "rate_type": "constant",
-            "rate_parameters": [10]
+            "rate_parameters": [0.3]
           }
         ]
       },
@@ -83,8 +84,10 @@
         [
           {
             "new_number": 1,
-            "rate_type": "constant",
-            "rate_parameters": [1]
+            "xrate_type": "exp_from_Z_line",
+            "xrate_parameters": [100, 5e-2],
+            "rate_type": "wall_from_Z_line",
+            "rate_parameters": [1000, 350]
           }
         ]
       }

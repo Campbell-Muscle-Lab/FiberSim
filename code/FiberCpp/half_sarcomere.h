@@ -659,6 +659,13 @@ public:
     */
     void myosin_isotype_kinetics(double time_step);
 
+    /**
+    * void mybpc_isotype_kinetics(double time_step)
+    * handles switches between myosin isotypes
+    * @return void
+    */
+    void mybpc_isotype_kinetics(double time_step);
+
     // Debugging functions
     
     /**

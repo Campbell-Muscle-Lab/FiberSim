@@ -69,6 +69,9 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     afterload_load = GSL_NAN;               /**< default value for afterload load */
     afterload_break_delta_hs_length = GSL_NAN;
                                             /**< default value for breakout length */
+    afterload_post_break_wait_s = GSL_POSINF;
+                                            /**< default value for post break wait s */
+    afterload_restretch_vel = 0;            /**< default value for restretch velocity */
 
     start_status_time_step = 0;             /**< default value */
     stop_status_time_step = 0;              /**< default value */
@@ -333,6 +336,16 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
 
         JSON_functions::check_JSON_member_number(afterload, "break_delta_hs_length");
         afterload_break_delta_hs_length = afterload["break_delta_hs_length"].GetDouble();
+
+        if (JSON_functions::check_JSON_member_exists(afterload, "post_break_wait_s"))
+        {
+            afterload_post_break_wait_s = afterload["post_break_wait_s"].GetDouble();
+        }
+
+        if (JSON_functions::check_JSON_member_exists(afterload, "restretch_vel"))
+        {
+            afterload_restretch_vel = afterload["restretch_vel"].GetDouble();
+        }
     }
 
     // Now check for logging

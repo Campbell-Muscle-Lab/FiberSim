@@ -99,6 +99,8 @@ public:
 
     double m_length;                    /**< double defining the length of the muscle in nm */
 
+    double initial_m_length;            /**< double defining the initial length of the muscle in nm */
+
     double m_force;                     /**< double defining the stress in the muscle in N m^-2 */
 
     int dump_status_counter;            /**< Integer used to track which status files
@@ -138,4 +140,6 @@ public:
     int afterload_mode = 0;
 
     double afterload_min_hs_length;
+
+    double afterload_break_time_s;
 };

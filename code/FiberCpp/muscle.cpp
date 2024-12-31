@@ -72,6 +72,7 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 		afterload_flag = 1;
 		afterload_mode = 0;
 		afterload_min_hs_length = GSL_POSINF;
+		afterload_break_time_s = GSL_NAN;
 	}
 	else
 	{
@@ -106,6 +107,9 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 
 	// Set the muscle force to the force in the last half-sarcomere
 	m_force = p_hs[0]->hs_force;
+
+	// Set the initial m_lenght
+	initial_m_length = m_length;
 
 	// Make a series component if you need one
 	if (!gsl_isnan(p_fs_model[0]->sc_k_stiff))
@@ -258,13 +262,38 @@ void muscle::afterload_time_step(int protocol_index)
 	else
 	{
 		// We have a myofibril
+		if (afterload_mode == -1)
+		{
+			// We are post break out but not yet relengthened
+			if ((p_hs[0]->time_s - afterload_break_time_s) > p_fs_options->afterload_post_break_wait_s)
+			{
+				if (m_length < initial_m_length)
+				{
+					double delta_ml = p_fs_options->afterload_restretch_vel *
+						gsl_vector_get(p_fs_protocol->dt, protocol_index);
+
+					m_length = m_length + delta_ml;
+
+					if (m_length >= initial_m_length)
+					{
+						// Reset
+						m_length = initial_m_length;
+						afterload_mode = 0;
+						afterload_min_hs_length = GSL_POSINF;
+					}
+				}
+			}
+		}
+
 		if (afterload_mode <= 0)
 		{
 			// Length control
 			lattice_iterations = length_control_myofibril_with_series_compliance(protocol_index);
 
 			if ((afterload_mode == 0) && (m_force >= p_fs_options->afterload_load))
+			{
 				afterload_mode = 1;
+			}
 		}
 
 		if (afterload_mode == 1)
@@ -278,7 +307,11 @@ void muscle::afterload_time_step(int protocol_index)
 				m_length / p_fs_model[0]->no_of_half_sarcomeres);
 
 			if ((m_length - afterload_min_hs_length) > p_fs_options->afterload_break_delta_hs_length)
+			{
+				// Break out
 				afterload_mode = -1;
+				afterload_break_time_s = p_hs[0]->time_s;
+			}
 		}
 	}
 }

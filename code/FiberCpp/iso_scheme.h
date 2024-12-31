@@ -38,6 +38,8 @@ public:
 	int max_no_of_transitions;			/**< int defining the maximum number of transitions
 											 from a state */
 
+	gsl_vector* transition_probs;		/**< gsl_vector holding transition probabilities */
+
 	// Functions
 
 	/**

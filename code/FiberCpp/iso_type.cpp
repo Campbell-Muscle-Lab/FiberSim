@@ -16,10 +16,7 @@
 // Constructor
 iso_type::iso_type(const rapidjson::Value& iso_ty, iso_scheme* set_p_parent_scheme)
 {
-	
-	char temp_string[_MAX_PATH];
-
-	p_parent_scheme = set_p_parent_scheme;
+	p_parent_iso_scheme = set_p_parent_scheme;
 
 	JSON_functions::check_JSON_member_int(iso_ty, "number");
 	iso_number = iso_ty["number"].GetInt();
@@ -30,13 +27,13 @@ iso_type::iso_type(const rapidjson::Value& iso_ty, iso_scheme* set_p_parent_sche
 
 	for (int i = 0; i < (int)trans.Size(); i++)
 	{
-		//p_iso_transitions[i] = new iso_transition(trans[i],this);
+		p_iso_transitions[i] = new iso_transition(trans[i], this);
 	}
 
 	// Fill in gaps if not all transitions are set
-	if (trans.Size() < (size_t)(p_parent_scheme->max_no_of_transitions))
+	if (trans.Size() < (size_t)(p_parent_iso_scheme->max_no_of_transitions))
 	{
-		for (int i = trans.Size(); i < p_parent_scheme->max_no_of_transitions; i++)
+		for (int i = trans.Size(); i < p_parent_iso_scheme->max_no_of_transitions; i++)
 		{
 			p_iso_transitions[i] = new iso_transition();
 		}
@@ -49,7 +46,7 @@ iso_type::iso_type(const rapidjson::Value& iso_ty, iso_scheme* set_p_parent_sche
 iso_type::~iso_type(void)
 {
 	// Tidy up
-	for (int i = 0; i < p_parent_scheme->max_no_of_transitions; i++)
+	for (int i = 0; i < p_parent_iso_scheme->max_no_of_transitions; i++)
 		delete p_iso_transitions[i];
 
 }

@@ -22,7 +22,7 @@ public:
 
 	// Variables
 
-	iso_scheme* p_parent_scheme;
+	iso_scheme* p_parent_iso_scheme;
 									/**< pointer to the parent iso scheme */
 
 	int iso_number;					/**< integer defining the iso number */

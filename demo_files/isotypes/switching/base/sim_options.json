@@ -16,7 +16,8 @@
     {
         "relative_to": "this_file",
         "status_folder": "status_dumps",
-        "time_steps": "1:10:10000"
+        "xtime_steps": "1:10:10000",
+        "time_steps": "last"
     }
   }
 }

@@ -49,6 +49,10 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     // Set to NaN
     gsl_vector_set_all(inter_hs_t_force_effects, GSL_NAN);
 
+    // Null some pointers that might not be used
+    p_m_iso_scheme = NULL;
+    p_c_iso_scheme = NULL;
+
     // Log
     if (p_fs_options->log_mode > 0)
     {
@@ -112,6 +116,12 @@ FiberSim_model::~FiberSim_model()
 
     if (c_isotype_ints != NULL)
         gsl_vector_short_free(c_isotype_ints);
+
+    // Delete iso_schemes if necessary
+    if (p_m_iso_scheme != NULL)
+        delete p_m_iso_scheme;
+    if (p_c_iso_scheme != NULL)
+        delete p_c_iso_scheme;
 }
 
 // Functions
@@ -451,8 +461,6 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         {
             gsl_vector_short_set(m_isotype_ints, i, (short)mi_ints[i].GetInt());
         }
-
-        m_no_of_isotypes = (int)gsl_vector_short_max(m_isotype_ints);
     }
 
     // Kinetic scheme for myosin - this is complicated so it's done in a different file
@@ -466,6 +474,8 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         p_m_scheme[i] = create_kinetic_scheme(m_ks[i]);
         m_no_of_cb_states = GSL_MAX(m_no_of_cb_states, p_m_scheme[i]->no_of_states);
     }
+
+    m_no_of_isotypes = m_ks.Size();
 
     // Load the MyBPC parameters variables
     JSON_functions::check_JSON_member_object(doc, "mybpc_parameters");
@@ -503,8 +513,6 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         {
             gsl_vector_short_set(c_isotype_ints, i, (short)ci_ints[i].GetInt());
         }
-
-        c_no_of_isotypes = (int)gsl_vector_short_max(c_isotype_ints);
     }
     
 
@@ -518,6 +526,8 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         p_c_scheme[i] = create_kinetic_scheme(c_ks[i]);
         c_no_of_pc_states = GSL_MAX(c_no_of_pc_states, p_c_scheme[i]->no_of_states);
     }
+
+    c_no_of_isotypes = c_ks.Size();
 
     // Try to load the half-sarcomere variation
     if (JSON_functions::check_JSON_member_exists(doc, "half_sarcomere_variation"))
@@ -533,15 +543,13 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         }
     }
 
-    /*
     // Check for isotype switches
     if (JSON_functions::check_JSON_member_exists(doc, "m_iso_switching"))
     {
-        const rapidjson::Value& m_iso = doc["m_iso_switching"].GetArray();
+        const rapidjson::Value& m_iso = doc["m_iso_switching"];
         
         p_m_iso_scheme = new iso_scheme(m_iso, this, p_fs_options);
     }
-    */
 
     if (p_fs_options->log_mode > 0)
     {
