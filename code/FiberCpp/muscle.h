@@ -85,7 +85,7 @@ public:
 
     size_t worker_length_control_myofibril_with_series_compliance(const gsl_vector* x, void* p, gsl_vector* f);
 
-    void afterload_time_step(int protocol_index);
+    size_t afterload_time_step(int protocol_index);
 
     void calculate_inter_hs_t_force_effects(void);
                                         /**< Updates values of inter_hs_t_force for each
@@ -97,7 +97,11 @@ public:
 
     int muscle_id;                      /**< integer labeling the muscle */
 
+    double m_time_s;                    /**< double defining the time in s */
+
     double m_length;                    /**< double defining the length of the muscle in nm */
+
+    double initial_m_length;            /**< double defining the initial length of the muscle in nm */
 
     double m_force;                     /**< double defining the stress in the muscle in N m^-2 */
 
@@ -138,4 +142,6 @@ public:
     int afterload_mode = 0;
 
     double afterload_min_hs_length;
+
+    double afterload_break_time_s;
 };

@@ -134,6 +134,19 @@ public:
                                         /**< Double defining the change in hs_length at
                                                 which to break out of load control in
                                                 afterloaded contractions */
+    double afterload_post_break_wait_s;
+                                        /** double defining how long to wait after breaking
+                                            out of afterload mode before restretching */
+
+    double afterload_restretch_vel;     /** double defining muscle relengthening velocity
+                                                in nm s^-1 at which to restretch after
+                                                an afterload */
+
+    double afterload_factor_s;          /** double defining a time after which to increase
+                                                the afterload */
+
+    double afterload_factor_multiplier; /** double defining the factor to increase the
+                                                afterload */
 
     // Functions
 

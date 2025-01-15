@@ -652,6 +652,27 @@ public:
     */
     int return_event_index(gsl_vector* p_prob);
 
+    /**
+    * void myosin_isotype_kinetics(double time_step)
+    * handles switches between myosin isotypes
+    * @return void
+    */
+    void myosin_iso_type_kinetics(double time_step);
+
+    /**
+    * void mybpc_isotype_kinetics(double time_step)
+    * handles switches between myosin isotypes
+    * @return void
+    */
+    void mybpc_iso_type_kinetics(double time_step);
+
+    /**
+    * void thin_isotype_kinetics(double time_step)
+    * handles switches between binding site iso types
+    * @return void
+    */
+    void thin_iso_type_kinetics(double time_step);
+
     // Debugging functions
     
     /**

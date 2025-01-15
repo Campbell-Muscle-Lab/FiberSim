@@ -72,6 +72,7 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 		afterload_flag = 1;
 		afterload_mode = 0;
 		afterload_min_hs_length = GSL_POSINF;
+		afterload_break_time_s = GSL_NAN;
 	}
 	else
 	{
@@ -104,8 +105,14 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 	// Get the model version
 	sprintf_s(model_version, _MAX_PATH, p_fs_model[0]->version);
 
+	// Set the muscle time
+	m_time_s = 0.0;
+
 	// Set the muscle force to the force in the last half-sarcomere
 	m_force = p_hs[0]->hs_force;
+
+	// Set the initial m_length
+	initial_m_length = m_length;
 
 	// Make a series component if you need one
 	if (!gsl_isnan(p_fs_model[0]->sc_k_stiff))
@@ -232,64 +239,12 @@ void muscle::implement_protocol(char set_protocol_file_string[], char set_result
 	delete p_thread_pool;
 }
 
-void muscle::afterload_time_step(int protocol_index)
-{
-	//! Code implements a time-step with afterload control
-
-	// Variables
-	size_t lattice_iterations;					// number of iterations required to solve
-	// x positions for lattice. If the code is
-	// simulating a myofibril, this is the largest
-	// number of iterations required
-
-	double sim_mode;						// value from protocol file
-
-	double time_step_s;
-	double pCa;
-
-	double new_length;						// hs_length if muscle is slack
-	double adjustment;						// length change to implose
-
-	int hs_counter;
-
-	if ((p_fs_model[0]->no_of_half_sarcomeres == 1) && (p_sc == NULL))
-	{
-
-	}
-	else
-	{
-		// We have a myofibril
-		if (afterload_mode <= 0)
-		{
-			// Length control
-			lattice_iterations = length_control_myofibril_with_series_compliance(protocol_index);
-
-			if ((afterload_mode == 0) && (m_force >= p_fs_options->afterload_load))
-				afterload_mode = 1;
-		}
-
-		if (afterload_mode == 1)
-		{
-			gsl_vector_set(p_fs_protocol->sim_mode, protocol_index, p_fs_options->afterload_load);
-
-			// Force control
-			lattice_iterations = force_control_myofibril_with_series_compliance(protocol_index);
-
-			afterload_min_hs_length = GSL_MIN(afterload_min_hs_length,
-				m_length / p_fs_model[0]->no_of_half_sarcomeres);
-
-			if ((m_length - afterload_min_hs_length) > p_fs_options->afterload_break_delta_hs_length)
-				afterload_mode = -1;
-		}
-	}
-}
-
 void muscle::implement_time_step(int protocol_index)
 {
 	//! Code implements a time-step
 
 	// Variables
-	size_t lattice_iterations;					// number of iterations required to solve
+	size_t lattice_iterations;				// number of iterations required to solve
 											// x positions for lattice. If the code is
 											// simulating a myofibril, this is the largest
 											// number of iterations required
@@ -306,6 +261,10 @@ void muscle::implement_time_step(int protocol_index)
 
 	// Code
 
+	// Pull out the time-step, and increment time
+	time_step_s = gsl_vector_get(p_fs_protocol->dt, protocol_index);
+	m_time_s = m_time_s + time_step_s;
+
 	// Check whether we need to calculate inter_hs_forces
 	if (p_fs_model[0]->no_of_half_sarcomeres > 1)
 	{
@@ -318,7 +277,8 @@ void muscle::implement_time_step(int protocol_index)
 	// Now worry about afterload
 	if (afterload_flag == 1)
 	{
-		afterload_time_step(protocol_index);
+		// We need a special control to allow for the changing afterloads
+		lattice_iterations = afterload_time_step(protocol_index);
 	}
 	else
 	{
@@ -541,6 +501,173 @@ void muscle::implement_time_step(int protocol_index)
 		if (dump_status_counter > p_fs_options->skip_status_time_step)
 			dump_status_counter = 1;
 	}
+}
+size_t muscle::afterload_time_step(int protocol_index)
+{
+	//! Code implements a time-step with afterload control
+
+	// Variables
+	size_t lattice_iterations;					// number of iterations required to solve
+												// x positions for lattice. If the code is
+												// simulating a myofibril, this is the largest
+												// number of iterations required
+
+	double time_step_s;
+	double pCa;
+	double adjustment;							// length change to implose
+
+	double afterload;							// the afterload to work against
+
+	// Code
+
+	// Extract the time-step and pCa
+	time_step_s = gsl_vector_get(p_fs_protocol->dt, protocol_index);
+	pCa = gsl_vector_get(p_fs_protocol->pCa, protocol_index);
+
+	// Deduce the afterload
+	afterload = p_fs_options->afterload_load;
+	if (m_time_s > p_fs_options->afterload_factor_s)
+	{
+		afterload = afterload * p_fs_options->afterload_factor_multiplier;
+	}
+
+	// Check what kind of muscle we have
+	if ((p_fs_model[0]->no_of_half_sarcomeres == 1) && (p_sc == NULL))
+	{
+		// Update the time
+		p_hs[0]->time_s = m_time_s;
+
+		// Implement the kinetics
+		p_hs[0]->sarcomere_kinetics(time_step_s, pCa);
+
+		// Just a single half-sarcomere
+		if (afterload_mode == -1)
+		{
+			// We are post break out but have not yet relengthened
+			if ((m_time_s - afterload_break_time_s) > p_fs_options->afterload_post_break_wait_s)
+			{
+				if (m_length < initial_m_length)
+				{
+					// We just have a single half-sarcomere
+					double delta_hsl_restretch = p_fs_options->afterload_restretch_vel * time_step_s;
+					double new_m_length = GSL_MIN(m_length + delta_hsl_restretch, initial_m_length);
+					double hsl_adjustment = new_m_length - m_length;
+
+					// Implement
+					m_length = new_m_length;
+					lattice_iterations = p_hs[0]->update_lattice(time_step_s, hsl_adjustment);
+
+					// Check whether restretch is complete
+					if(m_length == initial_m_length)
+					{
+						// Reset
+						m_length = initial_m_length;
+						afterload_mode = 0;
+						afterload_min_hs_length = GSL_POSINF;
+					}
+				}
+			}
+		}
+
+		if (afterload_mode <= 0)
+		{
+			// Length control
+			adjustment = gsl_vector_get(p_fs_protocol->delta_hsl, protocol_index);
+
+			// Implement
+			m_length = m_length + adjustment;
+			lattice_iterations = p_hs[0]->update_lattice(time_step_s, adjustment);
+
+			if ((afterload_mode == 0) && (p_hs[0]->hs_force >= afterload))
+			{
+				// Switch to isotonic mode
+				afterload_mode = 1;
+			}
+		}
+
+		if (afterload_mode == 1)
+		{
+			// We are in afterload mode
+			double new_length = p_hs[0]->return_hs_length_for_force(afterload, time_step_s);
+
+			// Dedice adjustment and implement
+			adjustment = new_length - m_length;
+			m_length = m_length + adjustment;
+			lattice_iterations = p_hs[0]->update_lattice(time_step_s, adjustment);
+
+			// Check for breaking out
+			afterload_min_hs_length = GSL_MIN(afterload_min_hs_length, new_length);
+
+			if ((new_length - afterload_min_hs_length) > p_fs_options->afterload_break_delta_hs_length)
+			{
+				// Break out
+				afterload_mode = -1;
+				afterload_break_time_s = p_hs[0]->time_s;
+			}
+		}
+
+		// Update
+		m_force = p_hs[0]->hs_force;
+	}
+	else
+	{
+		// We have a myofibril
+		if (afterload_mode == -1)
+		{
+			// We are post break out but not yet relengthened
+			if ((p_hs[0]->time_s - afterload_break_time_s) > p_fs_options->afterload_post_break_wait_s)
+			{
+				if (m_length < initial_m_length)
+				{
+					double delta_ml = p_fs_options->afterload_restretch_vel *
+						p_fs_model[0]->no_of_half_sarcomeres *
+						gsl_vector_get(p_fs_protocol->dt, protocol_index);
+
+					m_length = m_length + delta_ml;
+
+					if (m_length >= initial_m_length)
+					{
+						// Reset
+						m_length = initial_m_length;
+						afterload_mode = 0;
+						afterload_min_hs_length = GSL_POSINF;
+					}
+				}
+			}
+		}
+
+		if (afterload_mode <= 0)
+		{
+			// Length control
+			lattice_iterations = length_control_myofibril_with_series_compliance(protocol_index);
+
+			if ((afterload_mode == 0) && (m_force >= afterload))
+			{
+				afterload_mode = 1;
+			}
+		}
+
+		if (afterload_mode == 1)
+		{
+			gsl_vector_set(p_fs_protocol->sim_mode, protocol_index, afterload);
+
+			// Force control
+			lattice_iterations = force_control_myofibril_with_series_compliance(protocol_index);
+
+			afterload_min_hs_length = GSL_MIN(afterload_min_hs_length,
+				m_length / p_fs_model[0]->no_of_half_sarcomeres);
+
+			if ((m_length - afterload_min_hs_length) > p_fs_options->afterload_break_delta_hs_length)
+			{
+				// Break out
+				afterload_mode = -1;
+				afterload_break_time_s = p_hs[0]->time_s;
+			}
+		}
+	}
+
+	// Return
+	return lattice_iterations;
 }
 
 void thread_sarcomere_kinetics(half_sarcomere* p_hs, double time_step, double pCa_value)

@@ -12,18 +12,28 @@
 #include "kinetic_scheme.h"
 #include "m_state.h"
 #include "transition.h"
-
-#include "kinetic_scheme.h"
-#include "JSON_functions.h"
-
 #include "model_hs_variation.h"
 
+#include "iso_scheme.h"
+#include "iso_type.h"
+#include "iso_transition.h"
+
 #include "gsl_math.h"
+
+#include "JSON_functions.h"
 
 #include "rapidjson\document.h"
 #include "rapidjson\filereadstream.h"
 
 #include "global_definitions.h"
+
+// Structure for thin_kinetics
+struct a_kinetics
+{
+    double a_k_on;
+    double a_k_off;
+    double a_k_coop;
+};
 
 // Constructor
 FiberSim_model::FiberSim_model(char JSON_model_file_string[],
@@ -34,18 +44,23 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     // Set the pointer
     p_fs_options = set_p_fs_options;
 
-    // Set some things that haven't been implemented yet
-    a_no_of_bs_isotypes = 1;
-
     // And null some vectors that might not be needed
     m_isotype_ints = NULL;
     c_isotype_ints = NULL;
+
+    // Zero the number of a_isotypes
+    a_no_of_bs_iso_types = 0;
 
     // Allocate vectors for inter-hs force weights
     inter_hs_t_force_effects = gsl_vector_alloc(MAX_NO_OF_RATE_PARAMETERS);
 
     // Set to NaN
     gsl_vector_set_all(inter_hs_t_force_effects, GSL_NAN);
+
+    // Null some pointers that might not be used
+    p_m_iso_scheme = NULL;
+    p_c_iso_scheme = NULL;
+    p_thin_iso_scheme = NULL;
 
     // Log
     if (p_fs_options->log_mode > 0)
@@ -104,12 +119,26 @@ FiberSim_model::~FiberSim_model()
 
     gsl_vector_free(inter_hs_t_force_effects);
 
+    // Delete a_kinetics
+    for (int i = 0; i < a_no_of_bs_iso_types; i++)
+    {
+        delete p_a_kinetics[i];
+    }
+
     // Delete arrays if necessary
     if (m_isotype_ints != NULL)
         gsl_vector_short_free(m_isotype_ints);
 
     if (c_isotype_ints != NULL)
         gsl_vector_short_free(c_isotype_ints);
+
+    // Delete iso_schemes if necessary
+    if (p_m_iso_scheme != NULL)
+        delete p_m_iso_scheme;
+    if (p_c_iso_scheme != NULL)
+        delete p_c_iso_scheme;
+    if (p_thin_iso_scheme != NULL)
+        delete p_thin_iso_scheme;
 }
 
 // Functions
@@ -317,25 +346,31 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_number(thin_parameters, "a_no_of_bs_states");
     a_no_of_bs_states = thin_parameters["a_no_of_bs_states"].GetInt();
 
-    JSON_functions::check_JSON_member_number(thin_parameters, "a_k_on");
-    a_k_on = thin_parameters["a_k_on"].GetDouble();
-
-    JSON_functions::check_JSON_member_number(thin_parameters, "a_k_off");
-    a_k_off = thin_parameters["a_k_off"].GetDouble();
-
-    // Check if k_coop or gamma_coop is specified - This part of the code ensures compatibility with versions < 2.0.0
-
-    coop_name = JSON_functions::is_JSON_member(thin_parameters, "a_k_coop");
-
-    if (coop_name == 1) // User specified a_k_coop
+    // Check whether thin_kinetics is specified
+    if (JSON_functions::check_JSON_member_exists(doc, "thin_kinetics"))
     {
-        a_gamma_coop = thin_parameters["a_k_coop"].GetDouble();
+        // It does, create arrays of structures
+        JSON_functions::check_JSON_member_array(doc, "thin_kinetics");
+        const rapidjson::Value& thin_kin = doc["thin_kinetics"].GetArray();
+
+        a_no_of_bs_iso_types = thin_kin.Size();
+        for (rapidjson::SizeType i = 0; i < thin_kin.Size(); i++)
+        {
+            p_a_kinetics[i] = new a_kinetics();
+            p_a_kinetics[i]->a_k_on = thin_kin[i]["a_k_on"].GetDouble();
+            p_a_kinetics[i]->a_k_off = thin_kin[i]["a_k_off"].GetDouble();
+            p_a_kinetics[i]->a_k_coop = thin_kin[i]["a_k_coop"].GetDouble();
+        }
     }
-
-    else if (coop_name == 0) // User specified a_gamma_coop
+    else
     {
-        JSON_functions::check_JSON_member_number(thin_parameters, "a_gamma_coop");
-        a_gamma_coop = thin_parameters["a_gamma_coop"].GetDouble();
+        // Thin kinetics is not specified. Create a single struct and fill it
+        // from thin_parameters
+        a_no_of_bs_iso_types = 1;
+        p_a_kinetics[0] = new a_kinetics();
+        p_a_kinetics[0]->a_k_on = thin_parameters["a_k_on"].GetDouble();
+        p_a_kinetics[0]->a_k_off = thin_parameters["a_k_off"].GetDouble();
+        p_a_kinetics[0]->a_k_coop = thin_parameters["a_k_coop"].GetDouble();
     }
 
     // Load the thick_parameters
@@ -449,8 +484,6 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         {
             gsl_vector_short_set(m_isotype_ints, i, (short)mi_ints[i].GetInt());
         }
-
-        m_no_of_isotypes = (int)gsl_vector_short_max(m_isotype_ints);
     }
 
     // Kinetic scheme for myosin - this is complicated so it's done in a different file
@@ -464,6 +497,8 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         p_m_scheme[i] = create_kinetic_scheme(m_ks[i]);
         m_no_of_cb_states = GSL_MAX(m_no_of_cb_states, p_m_scheme[i]->no_of_states);
     }
+
+    m_no_of_isotypes = m_ks.Size();
 
     // Load the MyBPC parameters variables
     JSON_functions::check_JSON_member_object(doc, "mybpc_parameters");
@@ -501,8 +536,6 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         {
             gsl_vector_short_set(c_isotype_ints, i, (short)ci_ints[i].GetInt());
         }
-
-        c_no_of_isotypes = (int)gsl_vector_short_max(c_isotype_ints);
     }
     
 
@@ -517,6 +550,8 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         c_no_of_pc_states = GSL_MAX(c_no_of_pc_states, p_c_scheme[i]->no_of_states);
     }
 
+    c_no_of_isotypes = c_ks.Size();
+
     // Try to load the half-sarcomere variation
     if (JSON_functions::check_JSON_member_exists(doc, "half_sarcomere_variation"))
     {
@@ -529,6 +564,30 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         {
             p_model_hs_variation[i] = new model_hs_variation(this, hsv[i]);
         }
+    }
+
+    // Check for isotype switches
+    if (JSON_functions::check_JSON_member_exists(doc, "m_iso_switching"))
+    {
+        const rapidjson::Value& m_iso = doc["m_iso_switching"];
+        
+        p_m_iso_scheme = new iso_scheme(m_iso, this, p_fs_options);
+    }
+
+    // Check for isotype switches
+    if (JSON_functions::check_JSON_member_exists(doc, "c_iso_switching"))
+    {
+        const rapidjson::Value& c_iso = doc["c_iso_switching"];
+
+        p_c_iso_scheme = new iso_scheme(c_iso, this, p_fs_options);
+    }
+
+    // Check for isotype switches
+    if (JSON_functions::check_JSON_member_exists(doc, "thin_iso_switching"))
+    {
+        const rapidjson::Value& thin_iso = doc["thin_iso_switching"];
+
+        p_thin_iso_scheme = new iso_scheme(thin_iso, this, p_fs_options);
     }
 
     if (p_fs_options->log_mode > 0)
@@ -550,83 +609,3 @@ kinetic_scheme* FiberSim_model::create_kinetic_scheme(const rapidjson::Value& ks
     // Return the pointer
     return p_scheme;
 }
-
-void FiberSim_model::write_FiberSim_model_to_file(void)
-{
-    // Code writes FiberSim_model parameters to file
-
-    // Variables
-    char output_file_string[_MAX_PATH];
-    FILE* output_file;
-
-    // Code
-    sprintf_s(output_file_string, _MAX_PATH, "%s\\%s",
-        p_fs_options->log_folder, "FiberSim_model.json");
-
-    errno_t err = fopen_s(&output_file, output_file_string, "w");
-    if (err != 0)
-    {
-        printf("Options log file file: %s\ncould not be opened\n",
-            output_file_string);
-        exit(1);
-    }
-
-    fprintf_s(output_file, "\"muscle\":{\n");
-    fprintf_s(output_file, "\t\"no_of_half_sarcomeres\": %i,\n", no_of_half_sarcomeres);
-    fprintf_s(output_file, "\t\"no_of_myofibrils\": %i},\n", no_of_myofibrils);
-    fprintf_s(output_file, "\t\"initial_hs_length\": %g},\n", initial_hs_length);
-    fprintf_s(output_file, "\t\"m_filament_density\": %g},\n", m_filament_density);
-    
-    fprintf_s(output_file, "\"thick_structure\":{\n");
-    fprintf_s(output_file, "\t\"m_n\": %i,\n", m_n);
-    fprintf_s(output_file, "\t\"m_crowns_per_filament\": %i,\n", m_crowns_per_filament);
-    fprintf_s(output_file, "\t\"m_hubs_per_crown\": %i,\n", m_hubs_per_crown);
-    fprintf_s(output_file, "\t\"m_myosins_per_hub\": %i,\n", m_myosins_per_hub);
-    fprintf_s(output_file, "\t\"m_inter_crown_rest_length\": %g,\n", m_inter_crown_rest_length);
-    fprintf_s(output_file, "\t\"m_lambda\": %g,\n", m_lambda);
-    fprintf_s(output_file, "\t\"m_inter_crown_twist\": %g,\n", m_inter_crown_twist);
-    fprintf_s(output_file, "\t\"m_within_hub_twist\": %g},\n", m_within_hub_twist);
-    
-    fprintf_s(output_file, "\"thin_structure\":{\n");
-    fprintf_s(output_file, "\t\"a_regulatory_units_per_strand\": %i,\n", a_regulatory_units_per_strand);
-    fprintf_s(output_file, "\t\"a_bs_per_unit\": %i,\n", a_bs_per_unit);
-    fprintf_s(output_file, "\t\"a_strands_per_filament\": %i,\n", a_strands_per_filament);
-    fprintf_s(output_file, "\t\"a_inter_bs_rest_length\": %g,\n", a_inter_bs_rest_length);
-    fprintf_s(output_file, "\t\"a_inter_bs_twist\": %g},\n", a_inter_bs_twist);
-
-    fprintf_s(output_file, "\"titin_structure\":{\n");
-    fprintf_s(output_file, "\t\"t_attach_a_node\": %i,\n", t_attach_a_node);
-    fprintf_s(output_file, "\t\"t_attach_m_node\": %i},\n", t_attach_m_node);
-
-    fprintf_s(output_file, "\"mybpc_structure\":{\n");
-    fprintf_s(output_file, "\t\"c_thick_proximal_node\": %i,\n", c_thick_proximal_node);
-    fprintf_s(output_file, "\t\"c_thick_stripes\": %i,\n", c_thick_stripes);
-    fprintf_s(output_file, "\t\"c_thick_node_spacing\": %i,\n", c_thick_node_spacing);
-    fprintf_s(output_file, "\t\"c_mols_per_node\": %i},\n", c_mols_per_node);
-
-    fprintf_s(output_file, "\"mybpc_parameters\":{\n");
-    fprintf_s(output_file, "\t\"c_k_stiff\": %g},\n", c_k_stiff);
-    
-    fprintf_s(output_file, "\"thick_parameters\":{\n");
-    fprintf_s(output_file, "\t\"m_k_stiff\": %g},\n", m_k_stiff);
-
-    fprintf_s(output_file, "\"m_parameters\":{\n");
-    fprintf_s(output_file, "\t\"m_k_cb\": %g},\n", m_k_cb);
-
-    fprintf_s(output_file, "\"thin_parameters\":{\n");
-    fprintf_s(output_file, "\t\"a_no_of_bs_states\": %i,", a_no_of_bs_states);
-    fprintf_s(output_file, "\t\"a_k_stiff\": %g,\n", a_k_stiff);
-    fprintf_s(output_file, "\t\"a_k_on\": %g,\n", a_k_on);
-    fprintf_s(output_file, "\t\"a_k_off\": %g,\n", a_k_off);
-    fprintf_s(output_file, "\t\"a_gamma_coop\": %g},\n", a_gamma_coop);
-
-    fprintf_s(output_file, "\"titin_parameters\":{\n");
-    fprintf_s(output_file, "\t\"t_passive_mode\": %s,\n", t_passive_mode);
-    fprintf_s(output_file, "\t\"t_k_stiff\": %g,\n", t_k_stiff);
-    fprintf_s(output_file, "\t\"t_sigma\": %g,\n", t_sigma);
-    fprintf_s(output_file, "\t\"t_L\": %g,\n", t_L);
-
-    // Tidy up
-    fclose(output_file);
-}
-
