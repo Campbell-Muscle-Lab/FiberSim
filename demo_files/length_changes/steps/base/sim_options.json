@@ -1,0 +1,17 @@
+{
+  "options": {
+    "max_rate": 5e4,
+    "x_pos_rel_tol": 1e-3,
+    "hs_force_control_max_delta_hs_length": 100,
+    "adjacent_bs": 1,
+    "lambda_jitter" : 0,
+    "calculate_x_mode": 1,
+    "myofibrils":
+    {
+        "force_tolerance": 1,
+        "max_iterations": 100,
+        "max_delta_hs_length": 300,
+        "multithreading": 0
+    }    
+  }
+}

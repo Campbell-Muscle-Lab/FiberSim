@@ -189,7 +189,8 @@ void muscle::implement_protocol(char set_protocol_file_string[], char set_result
 
 	// Now that we know the number of time-points, we can set some options for
 	// dumping status files
-	p_fs_options->parse_status_time_steps_string(p_fs_protocol->no_of_time_points);
+	if (strlen(p_fs_options->status_folder) > 0)
+		p_fs_options->parse_status_time_steps_string(p_fs_protocol->no_of_time_points);
 
 	// Create a FiberSim_data object for the muscle
 	p_fs_data = new FiberSim_data(p_fs_protocol->no_of_time_points,

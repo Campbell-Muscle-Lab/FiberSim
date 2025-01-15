@@ -48,8 +48,11 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 
     dump_precision = 6;                     /**< default value for dump precision */
 
+    // Set default values for strings
     sprintf_s(rate_file_string, _MAX_PATH, "");
-                                            /**< default value for rate file string */
+    sprintf_s(status_folder, _MAX_PATH, "");
+    sprintf_s(log_folder, _MAX_PATH, "");
+    sprintf_s(time_steps_string, _MAX_PATH, "");
 
     myofibril_force_tolerance = 0.001;      /**< default value for the force tolerance
                                                  for myofibril multiroot calculations */
@@ -417,7 +420,6 @@ void FiberSim_options::parse_status_time_steps_string(int no_of_time_points)
     // Sets the time-points values
 
     // Code
-
     if (strcmp(time_steps_string, "last") == 0)
     {
         start_status_time_step = no_of_time_points - 1;
