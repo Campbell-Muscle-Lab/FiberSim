@@ -25,19 +25,21 @@ FiberCpp will perform the calculations and create an output file that summarizes
 
 ```mermaid
 flowchart LR
-  t[Single trial]
-  mf[Model file] --> fs[FiberSim]
-  pf[Protocol file] --> fs
-  of[Options file] --> fs
-  fs --> sf[Summary file]
-  fs .-> stat_f[Optional<br>status files]
+  subgraph Single simulation launched via command line
+    direction LR
+    mf@{shape: doc, label: "Model file"} --> fs[FiberSim]
+    pf@{shape: doc, label: "Protocol file"} --> fs
+    of@{shape: doc, label: "Options file"} --> fs
+    fs --> sf@{shape: doc, label: "Summary file"}
+    fs .-> stat_f@{shape: docs, label: "Optional status files"}
+  end
 ```
 
 If you wanted, you <i>could</i> run this simulation from the command line by changing to the appropriate directory and typing
 
 `FiberCpp model_file.json protocol_file.txt options_file.json output_summary.txt`
 
-In practice, this would get pretty tedious for most real-life simulation tasks. A better alternative is to define the simulation using a `FiberSim_batch` written in JSON format.
+In practice, this would get pretty tedious for most real-life simulation tasks. A better alternative (in the sense that it gives more flexibility going forward) is to define the simulation using a `FiberSim_batch` written in JSON format.
 
 ```
 {
@@ -64,6 +66,22 @@ In practice, this would get pretty tedious for most real-life simulation tasks. 
 You can then launch FiberPy with this file. The Python code will load the batch structure and run the simulation defined by the job. The command would be
 
 `python FiberPy.py run_batch batch_file.json`
+
+Conceptually, the framework looks like this.
+
+```mermaid
+flowchart LR
+  subgraph Single simulation launched via FiberPy
+    direction LR
+    bf@{shape: doc, label: "Batch file"} --> fp[FiberPy]
+    fp --> fs[FiberSim]
+    mf@{shape: doc, label: "Model file"} --> fs
+    pf@{shape: doc, label: "Protocol file"} --> fs
+    of@{shape: doc, label: "Options file"} --> fs
+    fs --> sf@{shape: doc, label: "Summary file"}
+    fs .-> stat_f@{shape: docs, label: "Optional status files"}
+  end
+```
 
 This might not seem like a big advantage until you realize that the job element in the JSON structure is actually an array. In the example above, the array had just a single entry, so FiberPy ran only one simulation. However, you can set the job array to have as many entries as you want.
 
@@ -107,7 +125,23 @@ For example, you could simulate a muscle at 3 different Ca<sup>2+</sup> concentr
 
 When launched with this batch file, FiberPy will simulate the same model using 3 different protocols, writing the results for each simulation to a separate file.
 
-The next step is to add some simple analyses. For example, it's often useful to see the results of the simulations as a figure.
+The structure looks like this.
+
+```mermaid
+flowchart LR
+  subgraph Multiple simulations launched by FiberPy
+    direction LR
+    bf@{shape: doc, label: "Batch file"} --> fp[FiberPy]
+    fp --> fs[FiberSim]
+    mf@{shape: docs, label: "Model files"} --> fs
+    pf@{shape: docs, label: "Protocol files"} --> fs
+    of@{shape: docs, label: "Options files"} --> fs
+    fs --> sf@{shape: docs, label: "Summary files"}
+    fs .-> stat_f@{shape: docs, label: "Optional status files"}
+  end
+```
+
+The next step is to add some simple analyses. For example, it's often useful to see the results of the simulations as a figure. We can do this by adding a new element `batch_figures` to the batch file, as shown here.
 
 ```
 {
@@ -142,36 +176,120 @@ The next step is to add some simple analyses. For example, it's often useful to 
             }
         ]
     },
-    "superposed_traces":
-    [
-        {
-            "relative_to": "False",
-            "results_folder": "c:/temp",
-             "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\switching\\sim_data\\sim_output",
-                    "output_image_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\switching\\sim_data\\sim_output\\superposed_traces",
-                    "output_image_formats": [
-                        "png"
-                    ]
-                }
-            ]
-
-
+    "batch_figures":
+    {
+        "superposed_traces":
+        [
+            {
+                "relative_to": "False",
+                "results_folder": "c:/temp"
+                "output_image_file": "c:/results/superposed_traces",
+                "output_image_formats": ["png", "svg"]
+            }
+        ]
+    }
 }
 ```
 
+When FiberPy is launched with this `batch_file`, it will run the simulations for the 3 calcium conditions as before and then create a figure showing superposed simulation traces for all the simulations in the output folder. The figure will be saved in both `png` and `svg` formats.
 
-"superposed_traces": [
-                {
-                    "relative_to": "False",
-                    "results_folder": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\switching\\sim_data\\sim_output",
-                    "output_image_file": "C:\\ken\\GitHub\\CampbellMuscleLab\\models\\FiberSim\\demo_files\\isotypes\\switching\\sim_data\\sim_output\\superposed_traces",
-                    "output_image_formats": [
-                        "png"
-                    ]
-                }
-            ]
+```mermaid
+flowchart LR
+  subgraph Multiple simulations launched by FiberPy
+    direction LR
+
+    subgraph FiberPy
+      rs[Launch simulations]
+      cf[Create figures]
+    end
 
 
+    bf@{shape: doc, label: "Batch file"} --> rs
+    rs --> fs[FiberSim]
+    mf@{shape: docs, label: "Model files"} --> fs
+    pf@{shape: docs, label: "Protocol files"} --> fs
+    fs --> sf@{shape: docs, label: "Summary files"}
+    of@{shape: docs, label: "Options files"} --> fs
+    fs .-> stat_f@{shape: docs, label: "Optional status files"}
+    sf --> cf
+    cf --> ofs@{shape: docs, label: "Output figures"}
+
+  end
+
+
+```
+
+```mermaid
+flowchart LR
+  subgraph Multiple simulations launched by FiberPy
+    direction LR
+
+    subgraph FiberPy
+      direction TB
+      create_files[Create files]
+      launch_simulations[Launch simulations]
+      perform_analyses[Perform analyses]
+      create_figures[Create figures]
+    end
+
+    subgraph FiberCpp
+      direction TB
+      run_simulations[Run simulations]
+    end
+
+    setup_file@{shape: doc, label: "Setup file"}
+    base_model_file@{shape: doc, label: "Base model file"}
+    base_options_file@{shape: doc, label: "Base options file"}
+
+    batch_file@{shape: doc, label: "Batch file"}
+    model_files@{shape: docs, label: "Model files"}
+    protocol_files@{shape: docs, label: "Protocol files"}
+    options_files@{shape: docs, label: "Options files"}
+
+    summary_files@{shape: docs, label: "Summary files"}
+    status_files@{shape: docs, label: "Optional status files"}
+
+    output_data@{shape: docs, label: "Output data"}
+    output_figures@{shape: docs, label: "Output figures"}
+
+    setup_file --> create_files
+    setup_file --> launch_simulations
+    setup_file --> perform_analyses
+    setup_file --> create_figures
+    base_model_file --> create_files
+    base_options_file --> create_files
+
+    create_files --> batch_file
+    create_files --> model_files
+    create_files --> protocol_files
+    create_files --> options_files
+
+    launch_simulations --> run_simulations
+    model_files --> run_simulations
+    protocol_files --> run_simulations
+    options_files --> run_simulations
+
+    run_simulations --> summary_files
+    run_simulations --> status_files
+
+    summary_files --> perform_analyses
+    summary_files --> create_figures
+
+    perform_analyses --> output_data
+    
+    output_data --> create_figures
+
+    create_figures --> output_figures
+
+
+
+
+
+
+  end
+
+
+```
 
 
 
