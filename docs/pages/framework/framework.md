@@ -291,6 +291,46 @@ flowchart LR
 
 ```
 
+``` mermaid
+zenuml
+  title Ken
+  @Actor User
+  @DataBase Drive
+  @DataProc FiberPy
+  @DataProc FiberCpp
+
+  
+
+  
+  // 1. Setup
+  // 2. Base model
+  // 3. Base options
+  User->Drive.Provides_files()
+  {
+
+  }
+
+  User->FiberPy.Launches_simulation()
+  {
+    // Needed files
+    Drive -> FiberPy
+
+    // Additional files
+    FiberPy -> Drive
+
+    // Launches FiberCpp
+    FiberPy -> FiberCpp
+
+    // FiberCpp runs simulations
+    // and stores results
+    
+  }
+
+
+
+
+```
+
 
 
 

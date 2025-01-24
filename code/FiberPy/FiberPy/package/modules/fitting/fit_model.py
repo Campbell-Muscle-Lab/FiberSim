@@ -68,7 +68,7 @@ def fit_model(json_analysis_file_string):
     
     # Set the progress folder
     if (model_struct['relative_to'] == 'this_file'):
-        model_base_dir = Path(json_analysis_file_string).parent
+        model_base_dir = str(Path(json_analysis_file_string).parent)
     else:
         model_base_dir = model_struct['relative_to']
     progress_dir = os.path.join(model_base_dir,
@@ -263,6 +263,10 @@ def pso(p_vector, json_analysis_file_string, progress_data,
 def run_single(p_vector, json_analysis_file_string, progress_data):
     """ Runs a single evaluation as a thread """
     
+    print('\nrun_single')
+    print(json_analysis_file_string)
+    print('\n')
+    
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
         model_struct = json_data['FiberSim_setup']['model']
@@ -271,7 +275,7 @@ def run_single(p_vector, json_analysis_file_string, progress_data):
     # Deduce the base directory
     model_struct = json_data['FiberSim_setup']['model']
     if (model_struct['relative_to'] == 'this_file'):
-        model_base_dir = Path(json_analysis_file_string).parent.absolute()
+        model_base_dir = str(Path(json_analysis_file_string).parent.absolute())
     else:
         model_base_dir = model_struct['relative_to']
 
@@ -311,6 +315,7 @@ def run_single(p_vector, json_analysis_file_string, progress_data):
         pars['Python_best_call'] = []
 
     print('Single run')
+    
     # Run the simulation
     thread_worker(pars)
     
@@ -330,6 +335,9 @@ def run_single(p_vector, json_analysis_file_string, progress_data):
 
 def thread_worker(pars):
     
+    print('Thread worker')
+    print(pars)
+    
     # Pull off the thread information
     json_analysis_file_string = pars['json_analysis_file_string']
     thread_space = pars['thread_space']
@@ -343,7 +351,7 @@ def thread_worker(pars):
     
     # Deduce the base directory
     if (model_struct['relative_to'] == 'this_file'):
-        model_base_dir = Path(json_analysis_file_string).parent.absolute()
+        model_base_dir = str(Path(json_analysis_file_string).parent.absolute())
     else:
         model_base_dir = model_struct['relative_to']
 
@@ -359,6 +367,7 @@ def thread_worker(pars):
     # Check the working dir is there
     if not os.path.isdir(working_dir):
         os.makedirs(working_dir)
+    print(model_struct)
         
     # Move the model file and the simulations to the working dir
     file_names = [model_struct['fitting']['base_model'],
@@ -386,7 +395,10 @@ def thread_worker(pars):
     series_setup_file_string = os.path.join(working_dir, 'series_setup.json')
     with open(series_setup_file_string, 'w') as f:
         json.dump(series_setup, f, indent=4)
-        
+       
+    print('ll')
+    print(parallel_setup_file_string)
+       
     # Now run the simulation
     characterize_model.characterize_model(parallel_setup_file_string)
     
@@ -479,7 +491,7 @@ def return_sim_setups(orig_setup, pars):
         os.path.join(pars['thread_space'],
                      'working',
                      orig_setup['FiberSim_setup']['model']['options_file'])).resolve())
-    
+   
     manip = dict()
     manip['base_model'] = str(Path(
         os.path.join(pars['thread_space'],

@@ -29,6 +29,10 @@ def characterize_model(json_analysis_file_string):
     """ Code takes a json struct that includes a model file, and run the
         analyses described in the file """
         
+    print('\n\ncharacterize')
+    print(json_analysis_file_string)
+    print('\n\n')
+        
     # Check for the analysis file
     if (not json_analysis_file_string):
         print('characterize_model: no analysis file specified')
@@ -356,8 +360,9 @@ def generate_model_files(json_analysis_file_string):
     json_data['FiberSim_setup']['model']['model_files'] = generated_models
     
     # Correct the options file
-    temp, file_name = os.path.split(new_options_file)
-    json_data['FiberSim_setup']['model']['options_file'] = file_name
+    if not (json_data['FiberSim_setup']['model']['relative_to'] == 'False'):
+        temp, file_name = os.path.split(new_options_file)
+        json_data['FiberSim_setup']['model']['options_file'] = file_name
     
     # Correct the characterization modes
     for (i, ch) in enumerate(json_data['FiberSim_setup']['characterization']):
@@ -391,6 +396,10 @@ def generate_model_files(json_analysis_file_string):
 def deduce_pCa_length_control_properties(json_analysis_file_string,
                                          pCa_struct = []):
     """ Code runs pCa analysis """
+    
+    print('jj')
+    print(json_analysis_file_string)
+    print('\n\n')
 
     # Potentially switch off simulations
     figures_only = False
@@ -470,6 +479,9 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     
     # Set up dir_counter
     dir_counter = 0
+    
+    print('ken was here')
+    print(model_struct)
     
     # Loop through the model files
     for i, mod_f in enumerate(model_struct['model_files']):
