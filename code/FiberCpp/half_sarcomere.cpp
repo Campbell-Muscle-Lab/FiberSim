@@ -2148,6 +2148,8 @@ double half_sarcomere::calculate_titin_force(void)
             // There is always a linear force
             t_strand_force = t_k_stiff * (x_m - x_a - t_offset);
 
+            //printf("hsl: %.0f  x_m: %.0f  x_a: %.0f\n", hs_length, x_m, x_a);
+
             if (!strcmp(t_passive_mode, "exponential"))
             {
                 t_strand_force = t_strand_force +

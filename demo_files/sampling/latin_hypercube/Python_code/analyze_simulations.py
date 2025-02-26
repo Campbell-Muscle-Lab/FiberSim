@@ -102,8 +102,7 @@ def analyze_simulation(data_file_string,
     # Make the additional columns
     d['Ca'] = np.power(10, -d['hs_1_pCa'])
     d['dCadt'] = np.gradient(d['Ca'], d['time'])
-    d['dCadt'] = d['dCadt'].rolling(rolling_n).sum(). \
-        fillna(method='bfill').fillna(method='ffill')
+    d['dCadt'] = d['dCadt'].rolling(rolling_n).sum().ffill().bfill()
     
     # Get some values
     res = dict()
@@ -304,9 +303,18 @@ def summary_figure(top_data_folder, sim_file_string, analysis_folder):
     
     # Get the paths
     data_dirs = [f for f in Path(top_data_folder).iterdir() if f.is_dir()]
+    
+    print('ken\n')
+    print(top_data_folder)
+    print(data_dirs)
+    
     for d in data_dirs:
         dfs = os.path.join(os.path.abspath(str(d)),
                            sim_file_string)
+
+        
+        print(dfs)
+
         
         if not os.path.isfile(dfs):
             continue
@@ -331,7 +339,7 @@ def summary_figure(top_data_folder, sim_file_string, analysis_folder):
 if __name__ == "__main__":
 
     top_data_folder = '../sim_data'
-    sim_file_string = 'sim_output/1/sim_prot_1_r1.txt'
+    sim_file_string = 'sim_output/1/sim_prot_1_1_r1.txt'
 
     excel_data_file_string = '../generated/parameter_values.xlsx'
     analysis_folder = '../analysis'
@@ -349,7 +357,7 @@ if __name__ == "__main__":
         print('Error: %s : %s' % (analysis_folder, e.strerror))
 
     if not os.path.isdir(analysis_folder):
-        print('Making %s')
+        print('Making %s' % analysis_folder)
         os.makedirs(analysis_folder)
 
     pair_plot(excel_data_file_string, analysis_folder)

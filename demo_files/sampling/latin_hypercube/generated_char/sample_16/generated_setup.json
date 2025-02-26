@@ -5,7 +5,7 @@
             "exe_file": "../../../../bin/FiberCpp.exe"
         },
         "model": {
-            "relative_to": "false",
+            "relative_to": "False",
             "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\sampling\\latin_hypercube\\generated\\sample_16\\sim_options.json",
             "model_files": [
                 "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\sampling\\latin_hypercube\\generated_char\\sample_16\\model_1.json"
@@ -14,9 +14,9 @@
         "characterization": [
             {
                 "type": "freeform",
-                "relative_to": "false",
-                "sim_folder": "d:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\code\\FiberPy\\FiberPy\\..\\..\\..\\demo_files\\sampling\\latin_hypercube\\base\\..\\sim_data\\sample_16",
-                "m_n": 9,
+                "relative_to": "False",
+                "sim_folder": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\code\\FiberPy\\FiberPy\\..\\..\\..\\demo_files\\sampling\\latin_hypercube\\base\\..\\sim_data\\sample_16",
+                "m_n": 4,
                 "output_image_formats": [
                     "png"
                 ],

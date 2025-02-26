@@ -185,7 +185,7 @@ def generate_characterization_files(json_analysis_file_string):
         
         # Update the model section
         sample_characterize['FiberSim_setup']['model']['relative_to'] = \
-            'false';
+            'False';
         
         # Set and copy the options file
         temp, options_file_end = os.path.split(base_options_file_string)
@@ -370,7 +370,7 @@ def generate_characterization_files(json_analysis_file_string):
             if (new_ch['relative_to'] == 'this_file'):
                 parent_dir = Path(json_analysis_file_string).parent.absolute()
 
-                new_ch['relative_to'] = 'false'
+                new_ch['relative_to'] = 'False'
                 new_ch['sim_folder'] = os.path.join(
                                         str(parent_dir),
                                         new_ch['sim_folder'],
@@ -449,7 +449,7 @@ def characterize_unloaded_shortening(json_analysis_file_string,
     if (orig_struct['relative_to'] == 'this_file'):
         parent_dir = Path(json_analysis_file_string).parent.absolute()
         
-        new_struct['relative_to'] = 'false'
+        new_struct['relative_to'] = 'False'
         new_struct['sim_folder'] = os.path.join(str(
                 Path(parent_dir,
                      orig_struct['sim_folder'],

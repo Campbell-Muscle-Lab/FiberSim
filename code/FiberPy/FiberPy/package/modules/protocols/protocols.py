@@ -125,7 +125,7 @@ def create_twitch_protocol(time_step=0.001, n_points=600,
     
     pCa = -np.log10(myofil_Ca)
     
-    if (mode_vector == []):
+    if (len(mode_vector) == 0):
         mode_vector = -2 * np.ones(n_points)
     
     if (dhsl == []):
