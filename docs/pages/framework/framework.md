@@ -3,6 +3,7 @@ layout: default
 title: Framework
 has_children: true
 nav_order: 4
+tags: [Mermaid]
 mermaid: true
 ---
 
