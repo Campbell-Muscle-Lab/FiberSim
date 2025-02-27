@@ -3,7 +3,6 @@ layout: default
 title: Framework
 has_children: true
 nav_order: 4
-tags: [Mermaid]
 mermaid: true
 ---
 
@@ -25,16 +24,17 @@ To run a single simulation, you launch FiberCpp with three files:
 
 FiberCpp will perform the calculations and create an output file that summarizes the properties of the muscle system (e.g. force, length, number of bound myosin heads etc.) at each time-point. Depending on the options that were specified, it may also produce a series of status files that provide even more information about the muscle system.
 
-<div class="mermaid">
-  flowchart LR
-    subgraph Single simulation launched via command line
-      direction LR
-      mf@{shape: doc, label: "Model file"} --> fs[FiberSim]
-      pf@{shape: doc, label: "Protocol file"} --> fs
-      of@{shape: doc, label: "Options file"} --> fs
-      fs --> sf@{shape: doc, label: "Summary file"}
-      fs .-> stat_f@{shape: docs, label: "Optional status files"}
-</div>
+```mermaid
+flowchart LR
+  subgraph Single simulation launched via command line
+    direction LR
+    mf@{shape: doc, label: "Model file"} --> fs[FiberSim]
+    pf@{shape: doc, label: "Protocol file"} --> fs
+    of@{shape: doc, label: "Options file"} --> fs
+    fs --> sf@{shape: doc, label: "Summary file"}
+    fs .-> stat_f@{shape: docs, label: "Optional status files"}
+  end
+```
 
 If you wanted, you <i>could</i> run this simulation from the command line by changing to the appropriate directory and typing
 
@@ -70,18 +70,19 @@ You can then launch FiberPy with this file. The Python code will load the batch 
 
 Conceptually, the framework looks like this.
 
-<div class="mermaid">
-  flowchart LR
-    subgraph Single simulation launched via FiberPy
-      direction LR
-      bf@{shape: doc, label: "Batch file"} --> fp[FiberPy]
-      fp --> fs[FiberSim]
-      mf@{shape: doc, label: "Model file"} --> fs
-      pf@{shape: doc, label: "Protocol file"} --> fs
-      of@{shape: doc, label: "Options file"} --> fs
-      fs --> sf@{shape: doc, label: "Summary file"}
-      fs .-> stat_f@{shape: docs, label: "Optional status files"}
-</div>
+```mermaid
+flowchart LR
+  subgraph Single simulation launched via FiberPy
+    direction LR
+    bf@{shape: doc, label: "Batch file"} --> fp[FiberPy]
+    fp --> fs[FiberSim]
+    mf@{shape: doc, label: "Model file"} --> fs
+    pf@{shape: doc, label: "Protocol file"} --> fs
+    of@{shape: doc, label: "Options file"} --> fs
+    fs --> sf@{shape: doc, label: "Summary file"}
+    fs .-> stat_f@{shape: docs, label: "Optional status files"}
+  end
+```
 
 This might not seem like a big advantage until you realize that the job element in the JSON structure is actually an array. In the example above, the array had just a single entry, so FiberPy ran only one simulation. However, you can set the job array to have as many entries as you want.
 
@@ -127,18 +128,19 @@ When launched with this batch file, FiberPy will simulate the same model using 3
 
 The structure looks like this.
 
-<div class="mermaid">
-  flowchart LR
-    subgraph Multiple simulations launched by FiberPy
-      direction LR
-      bf@{shape: doc, label: "Batch file"} --> fp[FiberPy]
-      fp --> fs[FiberSim]
-      mf@{shape: docs, label: "Model files"} --> fs
-      pf@{shape: docs, label: "Protocol files"} --> fs
-      of@{shape: docs, label: "Options files"} --> fs
-      fs --> sf@{shape: docs, label: "Summary files"}
-      fs .-> stat_f@{shape: docs, label: "Optional status files"}
-</div>
+```mermaid
+flowchart LR
+  subgraph Multiple simulations launched by FiberPy
+    direction LR
+    bf@{shape: doc, label: "Batch file"} --> fp[FiberPy]
+    fp --> fs[FiberSim]
+    mf@{shape: docs, label: "Model files"} --> fs
+    pf@{shape: docs, label: "Protocol files"} --> fs
+    of@{shape: docs, label: "Options files"} --> fs
+    fs --> sf@{shape: docs, label: "Summary files"}
+    fs .-> stat_f@{shape: docs, label: "Optional status files"}
+  end
+```
 
 The next step is to add some simple analyses. For example, it's often useful to see the results of the simulations as a figure. We can do this by adding a new element `batch_figures` to the batch file, as shown here.
 
@@ -192,127 +194,143 @@ The next step is to add some simple analyses. For example, it's often useful to 
 
 When FiberPy is launched with this `batch_file`, it will run the simulations for the 3 calcium conditions as before and then create a figure showing superposed simulation traces for all the simulations in the output folder. The figure will be saved in both `png` and `svg` formats.
 
-<div class="mermaid">
-  flowchart LR
-    subgraph Multiple simulations launched by FiberPy
-      direction LR
+```mermaid
+flowchart LR
+  subgraph Multiple simulations launched by FiberPy
+    direction LR
 
-      subgraph FiberPy
-        rs[Launch simulations]
-        cf[Create figures]
-      end
+    subgraph FiberPy
+      rs[Launch simulations]
+      cf[Create figures]
+    end
 
 
-      bf@{shape: doc, label: "Batch file"} --> rs
-      rs --> fs[FiberSim]
-      mf@{shape: docs, label: "Model files"} --> fs
-      pf@{shape: docs, label: "Protocol files"} --> fs
-      fs --> sf@{shape: docs, label: "Summary files"}
-      of@{shape: docs, label: "Options files"} --> fs
-      fs .-> stat_f@{shape: docs, label: "Optional status files"}
-      sf --> cf
-      cf --> ofs@{shape: docs, label: "Output figures"}
-</div>
+    bf@{shape: doc, label: "Batch file"} --> rs
+    rs --> fs[FiberSim]
+    mf@{shape: docs, label: "Model files"} --> fs
+    pf@{shape: docs, label: "Protocol files"} --> fs
+    fs --> sf@{shape: docs, label: "Summary files"}
+    of@{shape: docs, label: "Options files"} --> fs
+    fs .-> stat_f@{shape: docs, label: "Optional status files"}
+    sf --> cf
+    cf --> ofs@{shape: docs, label: "Output figures"}
 
-<div class="mermaid">
-  flowchart LR
-    subgraph Multiple simulations launched by FiberPy
-      direction LR
+  end
 
-      subgraph FiberPy
-        direction TB
-        create_files[Create files]
-        launch_simulations[Launch simulations]
-        perform_analyses[Perform analyses]
-        create_figures[Create figures]
-      end
 
-      subgraph FiberCpp
-        direction TB
-        run_simulations[Run simulations]
-      end
+```
 
-      setup_file@{shape: doc, label: "Setup file"}
-      base_model_file@{shape: doc, label: "Base model file"}
-      base_options_file@{shape: doc, label: "Base options file"}
+```mermaid
+flowchart LR
+  subgraph Multiple simulations launched by FiberPy
+    direction LR
 
-      batch_file@{shape: doc, label: "Batch file"}
-      model_files@{shape: docs, label: "Model files"}
-      protocol_files@{shape: docs, label: "Protocol files"}
-      options_files@{shape: docs, label: "Options files"}
+    subgraph FiberPy
+      direction TB
+      create_files[Create files]
+      launch_simulations[Launch simulations]
+      perform_analyses[Perform analyses]
+      create_figures[Create figures]
+    end
 
-      summary_files@{shape: docs, label: "Summary files"}
-      status_files@{shape: docs, label: "Optional status files"}
+    subgraph FiberCpp
+      direction TB
+      run_simulations[Run simulations]
+    end
 
-      output_data@{shape: docs, label: "Output data"}
-      output_figures@{shape: docs, label: "Output figures"}
+    setup_file@{shape: doc, label: "Setup file"}
+    base_model_file@{shape: doc, label: "Base model file"}
+    base_options_file@{shape: doc, label: "Base options file"}
 
-      setup_file --> create_files
-      setup_file --> launch_simulations
-      setup_file --> perform_analyses
-      setup_file --> create_figures
-      base_model_file --> create_files
-      base_options_file --> create_files
+    batch_file@{shape: doc, label: "Batch file"}
+    model_files@{shape: docs, label: "Model files"}
+    protocol_files@{shape: docs, label: "Protocol files"}
+    options_files@{shape: docs, label: "Options files"}
 
-      create_files --> batch_file
-      create_files --> model_files
-      create_files --> protocol_files
-      create_files --> options_files
+    summary_files@{shape: docs, label: "Summary files"}
+    status_files@{shape: docs, label: "Optional status files"}
 
-      launch_simulations --> run_simulations
-      model_files --> run_simulations
-      protocol_files --> run_simulations
-      options_files --> run_simulations
+    output_data@{shape: docs, label: "Output data"}
+    output_figures@{shape: docs, label: "Output figures"}
 
-      run_simulations --> summary_files
-      run_simulations --> status_files
+    setup_file --> create_files
+    setup_file --> launch_simulations
+    setup_file --> perform_analyses
+    setup_file --> create_figures
+    base_model_file --> create_files
+    base_options_file --> create_files
 
-      summary_files --> perform_analyses
-      summary_files --> create_figures
+    create_files --> batch_file
+    create_files --> model_files
+    create_files --> protocol_files
+    create_files --> options_files
 
-      perform_analyses --> output_data
-      
-      output_data --> create_figures
+    launch_simulations --> run_simulations
+    model_files --> run_simulations
+    protocol_files --> run_simulations
+    options_files --> run_simulations
 
-      create_figures --> output_figures
-</div>
+    run_simulations --> summary_files
+    run_simulations --> status_files
 
-<div class="mermaid">
-  zenuml
-    title Ken
-    @Actor User
-    @DataBase Drive
-    @DataProc FiberPy
-    @DataProc FiberCpp
+    summary_files --> perform_analyses
+    summary_files --> create_figures
 
+    perform_analyses --> output_data
     
+    output_data --> create_figures
 
+    create_figures --> output_figures
+
+
+
+
+
+
+  end
+
+
+```
+
+``` mermaid
+zenuml
+  title Ken
+  @Actor User
+  @DataBase Drive
+  @DataProc FiberPy
+  @DataProc FiberCpp
+
+  
+
+  
+  // 1. Setup
+  // 2. Base model
+  // 3. Base options
+  User->Drive.Provides_files()
+  {
+
+  }
+
+  User->FiberPy.Launches_simulation()
+  {
+    // Needed files
+    Drive -> FiberPy
+
+    // Additional files
+    FiberPy -> Drive
+
+    // Launches FiberCpp
+    FiberPy -> FiberCpp
+
+    // FiberCpp runs simulations
+    // and stores results
     
-    // 1. Setup
-    // 2. Base model
-    // 3. Base options
-    User->Drive.Provides_files()
-    {
+  }
 
-    }
 
-    User->FiberPy.Launches_simulation()
-    {
-      // Needed files
-      Drive -> FiberPy
 
-      // Additional files
-      FiberPy -> Drive
 
-      // Launches FiberCpp
-      FiberPy -> FiberCpp
-
-      // FiberCpp runs simulations
-      // and stores results
-      
-    }
-
-</div>
+```
 
 
 
