@@ -3,6 +3,7 @@ layout: default
 title: Framework
 has_children: true
 nav_order: 4
+mermaid: true
 ---
 
 # Framework
@@ -23,7 +24,7 @@ To run a single simulation, you launch FiberCpp with three files:
 
 FiberCpp will perform the calculations and create an output file that summarizes the properties of the muscle system (e.g. force, length, number of bound myosin heads etc.) at each time-point. Depending on the options that were specified, it may also produce a series of status files that provide even more information about the muscle system.
 
-```mermaid
+<div class="mermaid">
 flowchart LR
   subgraph Single simulation launched via command line
     direction LR
@@ -33,7 +34,7 @@ flowchart LR
     fs --> sf@{shape: doc, label: "Summary file"}
     fs .-> stat_f@{shape: docs, label: "Optional status files"}
   end
-```
+</div>
 
 If you wanted, you <i>could</i> run this simulation from the command line by changing to the appropriate directory and typing
 
@@ -69,7 +70,7 @@ You can then launch FiberPy with this file. The Python code will load the batch 
 
 Conceptually, the framework looks like this.
 
-```mermaid
+<div class="mermaid">
 flowchart LR
   subgraph Single simulation launched via FiberPy
     direction LR
@@ -81,7 +82,7 @@ flowchart LR
     fs --> sf@{shape: doc, label: "Summary file"}
     fs .-> stat_f@{shape: docs, label: "Optional status files"}
   end
-```
+</div>
 
 This might not seem like a big advantage until you realize that the job element in the JSON structure is actually an array. In the example above, the array had just a single entry, so FiberPy ran only one simulation. However, you can set the job array to have as many entries as you want.
 
@@ -127,7 +128,7 @@ When launched with this batch file, FiberPy will simulate the same model using 3
 
 The structure looks like this.
 
-```mermaid
+<div class="mermaid">
 flowchart LR
   subgraph Multiple simulations launched by FiberPy
     direction LR
@@ -139,7 +140,7 @@ flowchart LR
     fs --> sf@{shape: docs, label: "Summary files"}
     fs .-> stat_f@{shape: docs, label: "Optional status files"}
   end
-```
+</div>
 
 The next step is to add some simple analyses. For example, it's often useful to see the results of the simulations as a figure. We can do this by adding a new element `batch_figures` to the batch file, as shown here.
 
@@ -193,7 +194,7 @@ The next step is to add some simple analyses. For example, it's often useful to 
 
 When FiberPy is launched with this `batch_file`, it will run the simulations for the 3 calcium conditions as before and then create a figure showing superposed simulation traces for all the simulations in the output folder. The figure will be saved in both `png` and `svg` formats.
 
-```mermaid
+<div class="mermaid">
 flowchart LR
   subgraph Multiple simulations launched by FiberPy
     direction LR
@@ -217,9 +218,9 @@ flowchart LR
   end
 
 
-```
+</div>
 
-```mermaid
+<div class="mermaid">
 flowchart LR
   subgraph Multiple simulations launched by FiberPy
     direction LR
@@ -289,10 +290,10 @@ flowchart LR
   end
 
 
-```
+</div>
 
-``` mermaid
-zenuml
+<div class="mermaid">
+  zenuml
   title Ken
   @Actor User
   @DataBase Drive
@@ -326,10 +327,7 @@ zenuml
     
   }
 
-
-
-
-```
+</div>
 
 
 

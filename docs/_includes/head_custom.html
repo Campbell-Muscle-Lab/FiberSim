@@ -4,3 +4,7 @@
   {% when "mathjax" %}
     {% include mathjax.html %}
 {% endcase %}
+
+{% if page.mermaid %}
+  {% include mermaid.html %}
+{% endif %}
