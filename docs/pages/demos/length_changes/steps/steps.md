@@ -37,7 +37,7 @@ All of the results from the simulations are written to files in `<FiberSim_repo>
 
 The file `superposed_traces.png` shows pCa, length, force per cross-sectional area (stress), and thick and thin filamnt properties plotted against time.
 
-<img src="images/superposed_traces.png" width="50%">
+<img src="images/superposed_traces.png" width="100%">
 
 The file `rates.png` summarizes the kinetic scheme.
 
