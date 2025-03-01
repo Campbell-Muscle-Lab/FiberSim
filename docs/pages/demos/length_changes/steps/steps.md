@@ -1,26 +1,24 @@
 ---
 layout: default
-title: Steady-state
+title: Steps
 has_children: false
-parent: Length-tension
+parent: Length-changes
 grand_parent: Demos
 nav_order: 1
 ---
 
-# Steady-state
+# Steps
 
 ## Overview
 
-This demo shows how to simulate the steady-state passive and active length-tension curves for a model.
+This demo shows how to simulate the force responses to steps of different sizes.
 
 ## What this demo does
 
 This demo:
 
-+ Runs a set of simulations
-+ Each simulation calculates the properties of a half-sarcomere held at a different length
-+ In each simulation, the fiber starts relaxed but is then maximally activated
-+ Once the simulations have finished, the data are analyzed to determine the passive, active, and total length-tension curves
++ Runs a set of simulations with step stretches of different sizes imposed at different activation levels
+
 ## Instructions
 
 If you need help with these step, check the [installation instructions](../../../installation/installation.html).
@@ -30,12 +28,12 @@ If you need help with these step, check the [installation instructions](../../..
 + Change directory to `<FiberSim_repo>/code/FiberPy/FiberPy`
 + Run the command
 ```
- python FiberPy.py characterize "../../../demo_files/length_tension/steady_state/base/setup.json"
+ python FiberPy.py characterize "../../../demo_files/length_changes/steps/base/setup.json"
  ```
 
 ### Viewing the results
 
-All of the results from the isotonic simulations are written to files in `<FiberSim_repo>/demo_files/length_tension/steady_state/sim_output`
+All of the results from the simulations are written to files in `<FiberSim_repo>/demo_files/length_changes/steps/sim_output`
 
 The file `superposed_traces.png` shows pCa, length, force per cross-sectional area (stress), and thick and thin filamnt properties plotted against time.
 
@@ -45,20 +43,19 @@ The file `rates.png` summarizes the kinetic scheme.
 
 <img src="images/rates.png" width="50%">
 
-The file `length_tension.png` shows the active, passive, and total length-tension curves.
-
-<img src="images/length_tension.png" width="50%">
-
-
-
 ### How this worked
 
 The setup file follows the normal template. The experimental protocols are defined by the `characterization` element.
 
-The new feature in this demo is the `hs_lengths` option in the characterization structure. As you can see from the output figures, the code simulates a pCa 4.5 activation at half-sarcomere lengths ranging from 700 to 1800 nm.
+The new feature in this demo are the specifications for length steps.
 
-The `post_sim_Python_call` generates the length-tension figure which is unique to this demo.
+```
+    "length_step_nm" : [0, 3, 6, -3, -6],
+    "length_step_s": 2,
+    "length_step_ramp_s": 0.001
+```
 
+This means, for each pCa value, run 5 trials where a step is imposed at 2 s that is complete within 0.001 s and is one of the following values 0, 3, 6, -3, -6 nm.
 
 ```text
 {
@@ -78,16 +75,22 @@ The `post_sim_Python_call` generates the length-tension figure which is unique t
             "type": "pCa_length_control",
             "relative_to": "this_file",
             "sim_folder": "../sim_data",
-            "hs_lengths": [700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800],
-            "m_n": 4,
-            "pCa_values": [4.5],
-            "sim_duration_s": 1,
+            "m_n": 16,
+            "pCa_values": [9.0, 6.3, 6.1, 6.0, 4.5],
+            "sim_duration_s": 3.5,
             "time_step_s": 0.001,
-            "pCa_step_up_s": 0.1,
+            "pCa_step_up_s": 0.05,
+            "k_tr_start_s": 3.0,
+            "k_tr_duration_s": 0.02,
+            "k_tr_ramp_s": 0.001,
+            "k_tr_magnitude_nm": 0,
+            "k_tr_fit_time_s": [3.025, 3.95],
+            "length_step_nm" : [0, 3, 6, -3, -6],
+            "length_step_s": 2,
+            "length_step_ramp_s": 0.001,
             "output_image_formats": [ "png" ],
             "figures_only": "False",
-            "trace_figures_on": "False",
-            "post_sim_Python_call": "../Python_code/plot_length_tension.py"
+            "trace_figures_on": "False"
         }
     ]
   }
