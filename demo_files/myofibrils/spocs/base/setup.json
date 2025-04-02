@@ -17,29 +17,30 @@
                 {
                     "class": "muscle",
                     "variable": "no_of_half_sarcomeres",
-                    "multipliers": [15],
+                    "multipliers": [1, 1, 5, 5, 5, 5, 5],
                     "output_type": "int"
                 },
                 {
-                    "class": "thin_parameters",
-                    "variable": "a_k_coop_t_force",
-                    "parameter_number": 2,
-                    "multipliers": [1],
-                    "output_type": "float"
+                    "variable": "thin_kinetics",
+                    "isotype": 1,
+                    "parameter": "a_k_coop_titin_effect",
+                    "multipliers": [0, 1, 0, 1, 1, 1, 1]
                 },
                 {
-                    "class": "thin_parameters",
-                    "variable": "a_k_coop_t_force",
-                    "parameter_number": 3,
-                    "multipliers": [1],
-                    "output_type": "float"
+                    "variable": "c_kinetics",
+                    "isotype": 1,
+                    "state": 1,
+                    "transition": 1,
+                    "parameter_number": 1,
+                    "multipliers": [0, 0, 0, 0, 1, 0, 1]
                 },
                 {
-                    "class": "thin_parameters",
-                    "variable": "a_k_coop_t_force",
-                    "parameter_number": 4,
-                    "multipliers": [1],
-                    "output_type": "float"
+                    "variable": "c_kinetics",
+                    "isotype": 1,
+                    "state": 1,
+                    "transition": 2,
+                    "parameter_number": 1,
+                    "multipliers": [0, 0, 0, 0, 0, 1, 1]
                 }
             ]
          }
@@ -50,11 +51,10 @@
               "relative_to": "this_file",
               "sim_folder": "../sim_data",
               "m_n": 4,
-              "pCa_values": [5.9],
-              "sim_duration_s": 5.0,
+              "pCa_values": [9.0, 6.3, 6.1, 5.9, 4.5],
+              "sim_duration_s": 2,
               "time_step_s": 0.001,
               "pCa_step_up_s": 0.1,
-              "pCa_step_down_s": 4.7,
               "output_image_formats": [ "png" ],
               "figures_only": "False",
               "trace_figures_on": "False",

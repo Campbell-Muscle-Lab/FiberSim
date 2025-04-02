@@ -5,6 +5,7 @@ Entry point for FiberSim_utilities
 
 import sys
 
+from package.modules.display.animate_cb_distributions import animate_cb_distributions as anim_cb
 from package.modules.batch.batch import run_batch
 from package.modules.batch.batch import run_multiple_batch
 from package.modules.output_handler import output_handler as oh
@@ -36,10 +37,13 @@ def parse_inputs():
     if (sys.argv[1] == "movie_with_data"):
         viz.generate_movie_with_data(sys.argv[2])
     
-    # if (sys.argv[1] == "animate_cb_distributions"):
-    #     an = anal.analysis()
-    #     an.animate_cb_distributions(
-    #         sys.argv[2], sys.argv[3])
+    if (sys.argv[1] == "animate_cb_distribs"):
+        if (len(sys.argv) == 5):
+            frames = sys.argv[4]
+        else:
+            frames = []
+        anim_cb(
+            sys.argv[2], sys.argv[3], frames)
 
     if (sys.argv[1] == "spatial_visualization"):
         cm(sys.argv[2], sys.argv[3])

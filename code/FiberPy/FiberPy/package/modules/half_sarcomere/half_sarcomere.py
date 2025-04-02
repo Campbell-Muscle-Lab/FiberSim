@@ -9,6 +9,8 @@ Modified on Monday Jun 22 by Sarah
 import os
 import json
 
+import pathlib
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -23,6 +25,8 @@ class half_sarcomere(dict):
 
         with open(json_file_string) as json_file:
            json_data = json.load(json_file)
+           
+           self.json_file_string = json_file_string
  
            self['hs_data'] = json_data['hs_data']
            self['titin'] = json_data['titin']
@@ -41,46 +45,70 @@ class half_sarcomere(dict):
         -------
         None.
         """
+        
+        # Find number of cb_states
+        no_of_cb_states = self['thick'][0]['m_no_of_states']
 
         # Loops through thick filaments looking for bound heads
         cb_displacements = []
-        for t in self["thick"]:
-            for i, bound_f in enumerate(t['cb_bound_to_a_f']):
-                if (bound_f >= 0):
-                    nf = t['cb_bound_to_a_f'][i]
-                    nn = t['cb_bound_to_a_n'][i]
-                    x1 = t['cb_x'][i]
-                    x2 = self['thin'][nf]['bs_x'][nn]
-                    cb_displacements.append(x1-x2);
+        
+        for st in range(no_of_cb_states):
+            delta_x = []
+            for t in self["thick"]:
+                for i in range(len(t['cb_x'])):
+                    if ((t['cb_state'][i] == (st+1)) & 
+                        (t['cb_bound_to_a_f'][i] > 0)):
+                        nf = t['cb_bound_to_a_f'][i]
+                        nn = t['cb_bound_to_a_n'][i]
+                        x1 = t['cb_x'][i]
+                        x2 = self['thin'][nf]['bs_x'][nn]
+                        delta_x.append(x2-x1)
+                        
+            cb_displacements.append(delta_x)
+                        
 
         # Generate the histogram
-        b = np.linspace(-15, 15, num=200)
-        y, bin_edges = np.histogram(cb_displacements, bins=b)
+        b = np.linspace(-10, 10, num=50)
 
         # Set up for display
         x = b[0:-1]+0.5
-        y = y / (len(self["thick"])*self["thick"][0]["m_no_of_cbs"])
-
         # Display
         no_of_rows = 1
         no_of_cols = 1
 
-        f = plt.figure(constrained_layout=True)
-        f.set_size_inches([4,4])
+        fig = plt.figure(constrained_layout=False)
+        fig.set_size_inches([4,2])
         spec = gridspec.GridSpec(nrows=no_of_rows, ncols=no_of_cols,
-                                 figure=f)
+                                 figure=fig,
+                                 left=0.5,
+                                 right=0.9,
+                                 bottom=0.3,
+                                 hspace=1)
 
-        ax1 = f.add_subplot(spec[0,0])
-        ax1.plot(x,y);
-        #ax1.set_ylim(0,0.15)
+        ax1 = fig.add_subplot(spec[0,0])
+        for st in range(no_of_cb_states):
+            y_temp = cb_displacements[st]
+            if (len(y_temp) > 0):
+                y, bin_edges = np.histogram(cb_displacements[st], bins=b)
+                y = y / (0.2*len(self["thick"])*self["thick"][0]["m_no_of_cbs"])
+            
+                ax1.plot(x,y);
+
         ax1.set_xlabel("Cross-bridge stretch (nm)")
         ax1.set_ylim([0, 0.2])
-        ax1.set_ylabel("Proportion\nof\ncross-bridges")
-
-        plt.show()
+        ax1.set_ylabel("Proportion\nof\ncross-bridges",
+                       rotation=0,
+                       verticalalignment='center')
+        ax1.yaxis.set_label_coords(-0.7, 0.5)
+        
+        # Add in stamp
+        step_string = '%s' % pathlib.Path(self.json_file_string).parts[-1].split('_')[-1]
+        ax1.text(0, 0.2, step_string,
+                 fontsize=8)
+        
         # Image output
-        if (output_file_string):
-            self.save_figure_to_file(f, output_file_string)
+        if (len(output_file_string) > 0):
+            self.save_figure_to_file(fig, output_file_string)
             plt.close()
     
     def draw_filaments(self, output_file_string=""):

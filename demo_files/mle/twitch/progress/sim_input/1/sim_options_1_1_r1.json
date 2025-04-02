@@ -1,0 +1,20 @@
+{
+    "options": {
+        "max_rate": 5000.0,
+        "x_pos_rel_tol": 0.1,
+        "hs_force_control_max_delta_hs_length": 100,
+        "adjacent_bs": 1,
+        "lambda_jitter": 0,
+        "rand_seed": "1",
+        "myofibrils": {
+            "force_tolerance": 1,
+            "max_iterations": 100,
+            "max_delta_hs_length": 300,
+            "multithreading": 0
+        },
+        "rate_files": {
+            "relative_to": "false",
+            "file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\twitch\\threads\\thread_2\\sim_data\\sim_output\\1\\rates.json"
+        }
+    }
+}

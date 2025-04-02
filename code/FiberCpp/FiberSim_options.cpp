@@ -46,6 +46,10 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
 
     lambda_jitter = 0.0;                    /**< default value for lambda jitter */
 
+    m_filament_density_ref_hs_length = GSL_NAN;
+                                            /**< default value for scaling length
+                                                 GSL_NAN implies no adjustment */
+
     dump_precision = 6;                     /**< default value for dump precision */
 
     // Set default values for strings
@@ -293,6 +297,13 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
     {
         JSON_functions::check_JSON_member_number(options, "lambda_jitter");
         lambda_jitter = options["lambda_jitter"].GetDouble();
+    }
+
+    // Check for m_filament_density scaling
+    if (JSON_functions::is_JSON_member(options, "m_filament_density_ref_hs_length"))
+    {
+        JSON_functions::check_JSON_member_number(options, "m_filament_density_ref_hs_length");
+        m_filament_density_ref_hs_length = options["m_filament_density_ref_hs_length"].GetDouble();
     }
 
     // Check for calculate_x_mode

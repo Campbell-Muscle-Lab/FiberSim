@@ -48,7 +48,7 @@ class analysis():
         if (frames):
             hs_files = hs_files[frames[0]:frames[1]]
 
-        # Create an animated gig
+        # Create an animated gif
         with imageio.get_writer(output_gif_file, mode='I') as writer:
             # Now loop through files
             for i,f in enumerate(hs_files):

@@ -33,6 +33,8 @@ struct a_kinetics
     double a_k_on;
     double a_k_off;
     double a_k_coop;
+    double a_k_on_titin_effect;
+    double a_k_coop_titin_effect;
 };
 
 // Constructor
@@ -70,6 +72,13 @@ FiberSim_model::FiberSim_model(char JSON_model_file_string[],
     }
 
     set_FiberSim_model_parameters_from_JSON_file_string(JSON_model_file_string);
+
+    // Check whether we need to adjust m_filament_density
+    if (!gsl_isnan(p_fs_options->m_filament_density_ref_hs_length))
+    {
+        m_filament_density = m_filament_density * (initial_hs_length /
+            p_fs_options->m_filament_density_ref_hs_length);
+    }
 
     if (strlen(p_fs_options->log_folder) > 0)
     {
@@ -360,6 +369,25 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
             p_a_kinetics[i]->a_k_on = thin_kin[i]["a_k_on"].GetDouble();
             p_a_kinetics[i]->a_k_off = thin_kin[i]["a_k_off"].GetDouble();
             p_a_kinetics[i]->a_k_coop = thin_kin[i]["a_k_coop"].GetDouble();
+
+            if (JSON_functions::check_JSON_member_exists(thin_kin[i], "a_k_on_titin_effect"))
+            {
+                p_a_kinetics[i]->a_k_on_titin_effect = thin_kin[i]["a_k_on_titin_effect"].GetDouble();
+            }
+            else
+            {
+                p_a_kinetics[i]->a_k_on_titin_effect = 0.0;
+            }
+
+            if (JSON_functions::check_JSON_member_exists(thin_kin[i], "a_k_coop_titin_effect"))
+            {
+                p_a_kinetics[i]->a_k_coop_titin_effect = thin_kin[i]["a_k_coop_titin_effect"].GetDouble();
+            }
+            else
+            {
+                p_a_kinetics[i]->a_k_coop_titin_effect = 0.0;
+            }
+
         }
     }
     else
@@ -371,6 +399,8 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         p_a_kinetics[0]->a_k_on = thin_parameters["a_k_on"].GetDouble();
         p_a_kinetics[0]->a_k_off = thin_parameters["a_k_off"].GetDouble();
         p_a_kinetics[0]->a_k_coop = thin_parameters["a_k_coop"].GetDouble();
+        p_a_kinetics[0]->a_k_on_titin_effect = 0.0;
+        p_a_kinetics[0]->a_k_coop_titin_effect = 0.0;
     }
 
     // Load the thick_parameters

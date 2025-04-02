@@ -207,6 +207,14 @@ def generate_model_files(json_analysis_file_string):
                     adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1] \
                               ['transition'][a['transition']-1]['rate_parameters'] = \
                                   y.tolist()
+                                  
+            elif (a['variable'] == 'thin_kinetics'):
+                
+                base_value = adj_model[a['variable']][a['isotype']-1][a['parameter']]
+                value = base_value * a['multipliers'][i]
+                
+                adj_model[a['variable']][a['isotype']-1][a['parameter']] = \
+                    float(value)
                 
             elif (a['variable'].endswith('isotype_proportions')):
                 

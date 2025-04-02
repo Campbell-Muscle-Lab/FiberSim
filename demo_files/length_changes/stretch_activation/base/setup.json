@@ -1,0 +1,52 @@
+{
+  "FiberSim_setup":
+  {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../../bin/FiberCpp.exe"
+    },
+    "model": {
+        "relative_to": "this_file",
+        "options_file": "sim_options.json",
+        "manipulations":
+        {
+            "base_model": "model.json",
+            "generated_folder": "../generated",
+            "adjustments":
+            [
+                {
+                    "variable": "m_kinetics",
+                    "isotype": 1,
+                    "state": 5,
+                    "transition": 1,
+                    "parameter_number": 1,
+                    "multipliers": [1, 0]
+                }
+            ]
+        }
+    },
+    "characterization": [
+        {
+            "type": "pCa_length_control",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data",
+            "m_n": 9,
+            "pCa_values": [9.0, 6.3, 6.1, 5.9, 5.7, 5.5, 5.3, 5.1, 4.5],
+            "sim_duration_s": 4,
+            "time_step_s": 0.001,
+            "pCa_step_up_s": 0.1,
+            "k_tr_start_s": 3.9,
+            "k_tr_duration_s": 0.02,
+            "k_tr_ramp_s": 0.001,
+            "k_tr_magnitude_nm": 0,
+            "k_tr_fit_time_s": [3.925, 3.95],
+            "length_step_nm" : [0, 3, 6],
+            "length_step_s": 2,
+            "length_step_ramp_s": 0.001,
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False"
+        }
+    ]
+  }
+}

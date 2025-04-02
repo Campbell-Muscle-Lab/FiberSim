@@ -64,6 +64,8 @@ struct a_kinetics
     double a_k_on;
     double a_k_off;
     double a_k_coop;
+    double a_k_on_titin_effect;
+    double a_k_coop_titin_effect;
 };
 
 // Constructor
@@ -2556,16 +2558,21 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
     double coop_boost = 0.0;
 
+    double titin_k_on_boost;
+    double titin_k_coop_boost;
+
     int thin_filament_repeat = 1;
 
     gsl_vector_short* bs_indices;
+
+    // Code
 
     // Thin filament kinetics are faster than myosin kinetics, so run this multiple times
     // with a short time-step
 
     double local_time_step = time_step / (double)thin_filament_repeat;
 
-    // Code
+    // Allocate space
     bs_indices = gsl_vector_short_alloc(a_bs_per_unit);
 
     // Update node forces
@@ -2630,14 +2637,25 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
                     int iso_type = gsl_vector_short_get(p_af[a_counter]->bs_iso,
                         gsl_vector_short_get(bs_indices, 0));
 
+                    // Deduce titin effects
+                    titin_k_on_boost = (1.0 +
+                        (hs_inter_hs_titin_force_effect *
+                            p_fs_model->p_a_kinetics[iso_type-1]->a_k_on_titin_effect));
+                    
+                    titin_k_coop_boost = (1.0 + 
+                        (hs_inter_hs_titin_force_effect *
+                            p_fs_model->p_a_kinetics[iso_type-1]->a_k_coop_titin_effect));
+
                     if (gsl_vector_short_get(p_af[a_counter]->unit_status, unit_counter) == 1)
                     {
                         // Site is off and can turn on
-                        coop_boost = p_fs_model->p_a_kinetics[iso_type - 1]->a_k_coop *
-                            (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter);
+                        coop_boost = titin_k_coop_boost *
+                                        p_fs_model->p_a_kinetics[iso_type - 1]->a_k_coop *
+                                        (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter);
 
-                        rate = p_fs_model->p_a_kinetics[iso_type - 1]->a_k_on *
-                                Ca_conc * (1.0 + coop_boost);
+                        rate = titin_k_on_boost *
+                                    p_fs_model->p_a_kinetics[iso_type - 1]->a_k_on *
+                                    Ca_conc * (1.0 + coop_boost);
 
                         // Test event with a random number
                         rand_double = gsl_rng_uniform(rand_generator);
@@ -2664,7 +2682,8 @@ void half_sarcomere::thin_filament_kinetics(double time_step, double Ca_conc)
 
                         if (unit_occupied == 0)
                         {
-                            coop_boost = p_fs_model->p_a_kinetics[iso_type - 1]->a_k_coop *
+                            coop_boost = titin_k_coop_boost *
+                                p_fs_model->p_a_kinetics[iso_type - 1]->a_k_coop *
                                 (2.0 - (double)gsl_vector_short_get(p_af[a_counter]->active_neighbors, unit_counter));
 
                             rate = p_fs_model->p_a_kinetics[iso_type - 1]->a_k_off * (1.0 + coop_boost);

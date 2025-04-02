@@ -517,10 +517,7 @@ Gemfile.lock
 **/demo_files/**/fitting/**/progress/**/*.*
 **/demo_files/**/fitting/**/working/**/*.*
 **/demo_files/**/sim_output/**/*.*
-
-
-
-
+**/demo_files/**/threads/**/*.*
 
 
 

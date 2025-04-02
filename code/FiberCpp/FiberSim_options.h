@@ -56,6 +56,10 @@ public:
                                              simulation 'collapses' and gives up trying to
                                              keep the calculations going */
 
+    double m_filament_density_ref_hs_length;
+                                        /**< double with reference length to scale m_filament density
+                                             GSL_NAN means no scaling */
+
     int myofibril_multithreading;       /**< int defining whether to implement multi-threading
                                              for myofibril calculations
                                              1 means yes

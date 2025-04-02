@@ -134,7 +134,7 @@ muscle::muscle(char set_model_file_string[], char set_options_file_string[])
 	// Initialise_status_counter
 	dump_status_counter = 1;
 
-	printf("Muscle created %i half-sarcomeres\n", p_fs_model[0]->no_of_half_sarcomeres);
+	printf("Muscle created %i half-sarcomere(s)\n", p_fs_model[0]->no_of_half_sarcomeres);
 
 	// Initialized the clock
 	last_time = std::chrono::high_resolution_clock::now();
@@ -266,7 +266,7 @@ void muscle::implement_time_step(int protocol_index)
 	m_time_s = m_time_s + time_step_s;
 
 	// Check whether we need to calculate inter_hs_forces
-	if (p_fs_model[0]->no_of_half_sarcomeres > 1)
+	if ((p_fs_model[0]->no_of_half_sarcomeres > 1) || (!(p_sc == NULL)))
 	{
 		if (!gsl_isnan(gsl_vector_get(p_fs_model[0]->inter_hs_t_force_effects, 0)))
 		{

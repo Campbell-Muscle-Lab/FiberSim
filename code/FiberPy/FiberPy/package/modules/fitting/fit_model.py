@@ -14,6 +14,9 @@ import subprocess
 
 import concurrent.futures
 
+import emcee
+import corner
+
 import numpy as np
 import pandas as pd
 
@@ -105,6 +108,8 @@ def fit_model(json_analysis_file_string):
     # Set up the optimizer
     if (fitting_struct['optimizer'] == 'particle_swarm'):
         pso(p, json_analysis_file_string, progress_data)
+    elif (fitting_struct['optimizer'] == 'emcee'):
+        emcee_analysis(p, json_analysis_file_string, progress_data)
     else:
         bnds = []
         for i in range(no_of_parameters):
@@ -114,6 +119,127 @@ def fit_model(json_analysis_file_string):
         minimize(run_single, p, (json_analysis_file_string, progress_data),
                  method=fitting_struct['optimizer'],
                  bounds=bnds)
+        
+def emcee_analysis(p_vector, json_analysis_file_string, progress_data,
+                  f_particles = 2,
+                  max_iterations = 500):
+    """ Run a Markov chain Monte Carlo (MCMC) Ensemble sampler """
+        
+    # Set the number of walkers
+    no_of_dim = len(p_vector)
+    no_of_walkers = round(f_particles * no_of_dim)
+    
+    # Create a starting point and clip to the constrained range
+    pos = p_vector + 0.1 * np.random.randn(no_of_walkers, no_of_dim)
+
+    pos = np.clip(pos, 0, 1)
+
+    # Set up the backend
+    
+    # Set the file
+    progress_data['mcmc_progress_file_string'] = os.path.join(
+        progress_data['progress_folder'], 'mcmc_progress_file.h5') 
+        
+    backend = emcee.backends.HDFBackend(
+        progress_data['mcmc_progress_file_string'])
+    
+    backend.reset(no_of_walkers, no_of_dim)
+    
+    # Set up a file for the corner plot
+    progress_data['mcmc_corner_file_string'] = os.path.join(
+        progress_data['progress_folder'], 'mcmc_corner_file.png')
+
+    # Create the sampler    
+    sampler = emcee.EnsembleSampler(
+                no_of_walkers, no_of_dim,
+                emcee_walker,
+                backend=backend,
+                moves=[
+                    (emcee.moves.DEMove(), 0.8),
+                    (emcee.moves.DESnookerMove(), 0.2)],
+                vectorize=True,
+                args=(json_analysis_file_string, progress_data))
+    
+    # Run
+    burnin = 0
+    thin = 1
+    labels = list(map(r"$\theta_{{{0}}}$".format, range(1, no_of_dim + 1)))
+    range_tuple = []
+    for i in range(no_of_dim):
+        range_tuple.append((0, 1))
+
+
+    for sample in sampler.sample(pos, iterations = max_iterations):
+
+        samples = sampler.get_chain(discard=burnin, flat=True, thin=thin)
+        
+        fig = corner.corner(samples, labels=labels,
+                            color='blue',
+                            range=range_tuple)
+                            
+        fig.savefig(progress_data['mcmc_corner_file_string'])
+
+def log_prior(p_vector):
+    
+    if (np.any(p_vector < 0) or np.any(p_vector > 1)):
+        return -np.inf
+    else:
+        return 0
+
+def emcee_walker(p_array, json_analysis_file_string, progress_data):
+    """ Evaluates the system for an array of p_vectors """
+    
+    # Work out the size of the system
+    if (len(p_array.shape) == 2):
+        no_of_walkers, no_of_dimensions = p_array.shape
+    else:
+        no_of_walkers = 1
+        no_of_dimensions = p_array.shape[0]
+        p_array = np.asarray([p_array])
+    
+    # Work out log_prior
+    lp = np.nan * np.ones(no_of_walkers)
+    
+    for i in range(no_of_walkers):
+        lp[i] = log_prior(p_array[i,:])
+        
+        if not np.isfinite(lp[i]):
+            lp[i] = -np.inf
+    
+    # Now do the FiberSim evaluation
+    least_squares_e = evaluate_positions(p_array, json_analysis_file_string,
+                                         progress_data)
+    
+    print(least_squares_e)
+            
+    least_squares_e = -0.5 * least_squares_e
+
+    # Return
+    return (lp + least_squares_e)
+    
+    # lp = log_prior(p)
+    
+    # if not np.isfinite(lp):
+    #     return -np.inf
+    
+    # # least_squares_e = test_function2(p)
+
+    # least_squares_e = run_single(p, json_analysis_file_string, progress_data)    
+    
+    # e = -0.5 * least_squares_e
+        
+    # return (lp + e)
+
+def test_function2(p):
+    n = 100
+    x = np.linspace(-10, 10, n)
+    y_test = 0.2 + 0.7 * x/(1+np.exp(-x))
+    y_data = p[0] + p[1] * x /  (1+np.exp(-x))
+    
+    e = np.sum((y_test - y_data)**2)
+    
+    return e
+    
         
 def pso(p_vector, json_analysis_file_string, progress_data,
         f_particles = 2, bounds = [0, 1],
@@ -267,6 +393,8 @@ def run_single(p_vector, json_analysis_file_string, progress_data):
     print(json_analysis_file_string)
     print('\n')
     
+    print(p_vector)
+    
     with open(json_analysis_file_string, 'r') as f:
         json_data = json.load(f)
         model_struct = json_data['FiberSim_setup']['model']
@@ -332,6 +460,85 @@ def run_single(p_vector, json_analysis_file_string, progress_data):
     
     # Return error
     return e
+
+def evaluate_positions(p_array, json_analysis_file_string, progress_data):
+    """ Evaluates an array of p_vectors """
+    
+    # Open the analysis_file_string and check for thread_folder
+    with open(json_analysis_file_string, 'r') as f:
+        json_data = json.load(f)
+   
+    # Deduce the base directory
+    model_struct = json_data['FiberSim_setup']['model']
+    if (model_struct['relative_to'] == 'this_file'):
+        model_base_dir = Path(json_analysis_file_string).parent.absolute()
+    else:
+        model_base_dir = model_struct['relative_to']
+    
+    # Work out the char structure
+    char_struct = json_data['FiberSim_setup']['characterization'][0]
+    
+    print(char_struct)
+
+    # Set the thread dir, try to clean it, make it if necessary
+    thread_dir = json_data['FiberSim_setup']['model']['fitting']['thread_folder']
+    thread_dir = str(Path(os.path.join(model_base_dir, thread_dir)).resolve())
+    
+    try:
+        print('Trying to clean: %s' % thread_dir)
+        shutil.rmtree(thread_dir, ignore_errors = True)
+    except OSError as e:
+        print('Error: %s : %s' % (thread_dir, e.strerror))
+    
+    # Check the thread dir is there
+    if not os.path.isdir(thread_dir):
+        os.makedirs(thread_dir)
+        
+    # Work out the size of the system
+    if (len(p_array.shape) == 2):
+        no_of_p_vectors, no_of_dimensions = p_array.shape
+    else:
+        no_of_p_vectors = 1
+        no_of_dimensions = p_array.shape[0]
+    
+    pars = []
+    for i in range(no_of_p_vectors):
+        par_set = dict()
+        par_set['id'] = (i+1)
+        par_set['x'] = p_array[i,:]
+        par_set['json_analysis_file_string'] = json_analysis_file_string
+        par_set['thread_space'] = \
+            str(Path(os.path.join(thread_dir,
+                                  ('thread_%i' % (i+1)))).resolve())
+        par_set['model_base_dir'] = model_base_dir
+        par_set['sim_folder'] = return_sim_dir(char_struct)
+        par_set['Python_objective_call'] = \
+            model_struct['fitting']['Python_objective_call']
+        if ('Python_best_call' in model_struct['fitting']):
+            par_set['Python_best_call'] = \
+                model_struct['fitting']['Python_best_call']                    
+        pars.append(par_set)
+
+    # Run the simulation            
+    with concurrent.futures.ThreadPoolExecutor(max_workers = 100) as executor:
+        executor.map(thread_worker, pars)
+        
+    # Now analyze the simulations
+    particle_value = np.nan * np.ones(no_of_p_vectors)
+    for i in range(no_of_p_vectors):
+        print('Evaluating fit for particle: %i' % (i+1))
+        
+        # Need to run this in series
+        series_setup_file_string = str(Path(os.path.join(
+            pars[i]['thread_space'],
+            'working',
+            'series_setup.json')).resolve())
+        characterize_model.characterize_model(series_setup_file_string)
+        particle_value[i] = thread_evaluate(pars[i], progress_data)
+        
+    # Return
+    return particle_value
+    
 
 def thread_worker(pars):
     
@@ -441,6 +648,10 @@ def thread_evaluate(pars, progress_data):
     for err_lab in error_cpt_labels:
         if ('error_cpt' in err_lab):
             prog_d[err_lab] = trial_errors[err_lab][0]
+            
+    for err_lab in error_cpt_labels:
+        if ('test_value' in err_lab):
+            prog_d[err_lab] = trial_errors[err_lab][0]
     
     # If there is a progress file, append the new entry to the dataframe
     trial_df = pd.DataFrame(data=prog_d, index=[0])
@@ -521,7 +732,7 @@ def return_sim_setups(orig_setup, pars):
         # Create a new characterization
         new_ch = dict()
         orig_ch = ch
-    
+   
         for k in orig_ch.keys():
             new_ch[k] = orig_ch[k]
             
@@ -535,7 +746,12 @@ def return_sim_setups(orig_setup, pars):
         if ('protocol_files' in orig_ch):
             for (i, pf) in enumerate(orig_ch['protocol_files']):
                 new_ch['protocol_files'][i] = str(Path(
-                    os.path.join(pars['model_base_dir'], pf)).resolve())
+                    os.path.join(new_ch['sim_folder'], pf)).resolve())
+                
+        if ('protocol' in orig_ch):
+            new_ch['protocol']['protocol_folder'] = str(Path(
+                os.path.join(new_ch['sim_folder'],
+                             orig_ch['protocol']['protocol_folder'])).resolve())
         
         # Add in the characterization with some adjustments for figures
         no_figs_setup['FiberSim_setup']['characterization'].append(copy.deepcopy(new_ch))
