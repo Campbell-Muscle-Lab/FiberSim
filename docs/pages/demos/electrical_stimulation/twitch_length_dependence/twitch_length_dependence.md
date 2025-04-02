@@ -42,7 +42,7 @@ All of the results from the simulation are written to files in `<FiberSim_repo>/
 
 The file `superposed_traces.png` shows pCa, length, force per cross-sectional area (stress), and thick and thin filament properties plotted against time.
 
-<img src="images/superposed_traces.png" width="50%">
+<img src="images/superposed_traces.png" width="100%">
 
 The first three columns show isometric twitches for the base model at the three lengths. Note that the baseline force (the passive force) increases with length. This reflects the increased stress in the titin molecules. The twitch force also increases markedly with length. If you look at the 5th row of the figure, you can seee that the SRX (blue) myosin population drops with length while the DRX population (orange) increases. Since more heads are available to bind actin (green) when the thin filament activates (4th row of figure), the peak twitch force increases too. The increased number of attached cross-bridges enhances cooperative activation of the thin filament (shown by the prolonged thin filament activation, orange traces).
 
