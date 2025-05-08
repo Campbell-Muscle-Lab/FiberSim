@@ -1,7 +1,10 @@
 name: fibersim
 channels:
   - defaults
+  - conda-forge
 dependencies:
+  - emcee=2.2.1
+  - corner
   - _anaconda_depends=2025.02=py311_mkl_0
   - abseil-cpp=20211102.0=hd77b12b_0
   - aiobotocore=2.19.0=py311haa95532_0
