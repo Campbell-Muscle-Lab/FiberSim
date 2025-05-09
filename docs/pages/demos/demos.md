@@ -41,3 +41,16 @@ The setup file describes the experimental protocol (e.g. pCa levels, length-chan
 The options file provides fine control over the way FiberCpp runs simulations and, if desired, how FiberCpp will write status files to disk.
 
 <img src="images/FiberSim_workflow.png">
+
+## Run the Demos in JupyterLab
+
+A jupyter notebook containing all of the demos is included in the GitHub repository. To run the demos using JupyterLab:
+
++ Follow the instructions in Installation
++ Open an Anaconda prompt
++ Activate the FiberSim environment using `conda activate FiberSim`
++ Install JupyterLab using `conda install -c conda-forge jupyterlab`
++ Run the command `jupyter lab`
++ A new tab should open in your web browser. From there, navigate to `Demos.ipynb`, open it, and run any demo
+	+ If you don't see `Demos.ipynb` in the file panel, try moving it to a folder that JupyterLab can access
+	+ If necessary, the file will prompt you to input the correct directory `<FiberSim_repo>/code/FiberPy/FiberPy`
