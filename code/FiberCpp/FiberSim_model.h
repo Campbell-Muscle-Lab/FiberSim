@@ -12,6 +12,8 @@
 #include "rapidjson/document.h"
 #endif
 
+#include <string>
+
 #include "global_definitions.h"
 #include "gsl_vector.h"
 
@@ -21,6 +23,8 @@ class iso_scheme;
 class model_hs_variation;
 
 struct a_kinetics;
+
+using namespace std;
 
 class FiberSim_model
 {
@@ -256,6 +260,11 @@ public:
      * @param json_file_string a char[] holding the filename for the JSON file
      */
     void set_FiberSim_model_parameters_from_JSON_file_string(char JSON_file_string[]);
+
+    /**
+    * a function making it easier to assign values
+    */
+    void check_and_assign_double(const rapidjson::Value& doc, string tag, double* p_double, double default_value);
 
     /**
     * a function that creates a kinetic scheme

@@ -16,7 +16,7 @@ from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
 
 
-def fit_pCa_data(x,y):
+def fit_pCa_data(x, y, no_of_fit_points = 1000):
     """ Fits Hill-curve to x-y data """
 
     def y_pCa(x_data, pCa_50, n_H, y_min, y_amp):
@@ -32,21 +32,21 @@ def fit_pCa_data(x,y):
         return y
 
     try:
-        min_bounds = [3.0, 0.01, -np.inf, 0]
-        max_bounds = [10.0, 100.0, np.inf, np.inf]
+        min_bounds = [4.0, 0.01, -np.inf, 0]
+        max_bounds = [8.0, 100.0, np.inf, np.inf]
         popt, pcov = curve_fit(y_pCa, x, y,
                                [6.0, 2, np.amax([0, np.amin(y)]), np.amax([0, np.amax(y)])],
                                bounds=(min_bounds, max_bounds))
     except:
         print('fit_pCa_data failed')
-        popt = [10.0, 100.0, -1e3, 1e5]
+        popt = [6.0, 10.0, 0, 1e5]
 
     d = dict()
     d['pCa_50'] = popt[0]
     d['n_H']    = popt[1]
     d['y_min']  = popt[2]
     d['y_amp']  = popt[3]
-    d['x_fit']  = np.linspace(9.0, 4, 1000)
+    d['x_fit']  = np.linspace(9.0, 4, no_of_fit_points)
     d['y_fit']  = y_pCa(d['x_fit'], *popt)
     d['y_predict'] = y_pCa(x, *popt)
 

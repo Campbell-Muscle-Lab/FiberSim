@@ -5,6 +5,7 @@
  */
 
 #include <cstdio>
+#include <string>
 
 #include "FiberSim_model.h"
 #include "FiberSim_options.h"
@@ -414,54 +415,22 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     JSON_functions::check_JSON_member_object(doc, "titin_parameters");
     const rapidjson::Value& titin_parameters = doc["titin_parameters"];
 
-    JSON_functions::check_JSON_member_string(titin_parameters, "t_passive_mode");
-    sprintf_s(t_passive_mode, _MAX_PATH, titin_parameters["t_passive_mode"].GetString());
+    //JSON_functions::check_JSON_member_string(titin_parameters, "t_passive_mode");
+    //sprintf_s(t_passive_mode, _MAX_PATH, titin_parameters["t_passive_mode"].GetString());
 
-    JSON_functions::check_JSON_member_number(titin_parameters, "t_k_stiff");
-    t_k_stiff = titin_parameters["t_k_stiff"].GetDouble();
-
-    if (!strcmp(t_passive_mode, "exponential"))
-    {
-        JSON_functions::check_JSON_member_number(titin_parameters, "t_sigma");
-        t_sigma = titin_parameters["t_sigma"].GetDouble();
-
-        JSON_functions::check_JSON_member_number(titin_parameters, "t_L");
-        t_L = titin_parameters["t_L"].GetDouble();
-    }
-
-    if (JSON_functions::check_JSON_member_exists(titin_parameters, "t_offset"))
-    {
-        JSON_functions::check_JSON_member_number(titin_parameters, "t_offset");
-        t_offset = titin_parameters["t_offset"].GetDouble();
-    }
-    else
-    {
-        t_offset = 0.0;
-    }
+    check_and_assign_double(titin_parameters, "t_k_stiff", &t_k_stiff, 0.0);
+    check_and_assign_double(titin_parameters, "t_sigma", &t_sigma, 0.0);
+    check_and_assign_double(titin_parameters, "t_L", &t_L, 1e6);
+    check_and_assign_double(titin_parameters, "t_offset", &t_offset, 0.0);
 
     // Load the extracellular_parameters
     JSON_functions::check_JSON_member_object(doc, "extracellular_parameters");
     const rapidjson::Value& extracellular_parameters = doc["extracellular_parameters"];
 
-    JSON_functions::check_JSON_member_string(extracellular_parameters, "e_passive_mode");
-    sprintf_s(e_passive_mode, _MAX_PATH, extracellular_parameters["e_passive_mode"].GetString());
-
-    if (!strcmp(e_passive_mode, "exponential"))
-    {
-        JSON_functions::check_JSON_member_number(extracellular_parameters, "e_sigma");
-        e_sigma = extracellular_parameters["e_sigma"].GetDouble();
-
-        JSON_functions::check_JSON_member_number(extracellular_parameters, "e_L");
-        e_L = extracellular_parameters["e_L"].GetDouble();
-    }
-    else
-    {
-        JSON_functions::check_JSON_member_number(extracellular_parameters, "e_k_stiff");
-        e_k_stiff = extracellular_parameters["e_k_stiff"].GetDouble();
-    }
-
-    JSON_functions::check_JSON_member_number(extracellular_parameters, "e_slack_length");
-    e_slack_length = extracellular_parameters["e_slack_length"].GetDouble();
+    check_and_assign_double(extracellular_parameters, "e_slack_length", &e_slack_length, 1000.0);
+    check_and_assign_double(extracellular_parameters, "e_sigma", &e_sigma, 0.0);
+    check_and_assign_double(extracellular_parameters, "e_L", &e_L, 1e6);
+    check_and_assign_double(extracellular_parameters, "e_k_stiff", &e_k_stiff, 0.0);
 
     // Inter_half-sarcomere effects
     if (JSON_functions::is_JSON_member(doc, "inter_half_sarcomere_parameters"))
@@ -624,6 +593,26 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     {
         fprintf_s(p_fs_options->log_file, "Finished setting model data\n");
     }
+}
+
+void FiberSim_model::check_and_assign_double(const rapidjson::Value& doc, string tag, double* p_double, double default_value)
+{
+    // Variables
+    char tag_string[_MAX_PATH];
+
+    // Code
+    sprintf_s(tag_string, _MAX_PATH, "%s", tag.c_str());
+
+    if (JSON_functions::check_JSON_member_exists(doc, tag_string))
+    {
+        *p_double = doc[tag_string].GetDouble();
+    }
+    else
+    {
+        *p_double = default_value;
+    }
+
+    printf("%s: %g\n", tag_string, *p_double);
 }
 
 kinetic_scheme* FiberSim_model::create_kinetic_scheme(const rapidjson::Value& ks)

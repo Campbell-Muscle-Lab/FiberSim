@@ -247,16 +247,28 @@ def pso(p_vector, json_analysis_file_string, progress_data,
         initial_vel = 0.1,
         vel_bounds = [0.02, 0.2],
         vel_factor = 1,
+        no_of_iterations = 100,
         jitter = 0.03,
-        throw = 15):
+        throw = 1000,
+        resize_bounds = 15,
+        resize_bounds_factor = 0.75):
     
     # Set the number of particles
     n_particles = round(f_particles * len(p_vector))
     
     # Set the initial values
     rng = np.random.default_rng()
-    x = rng.random([n_particles, len(p_vector)])
+    x = bounds[0] + (bounds[1] - bounds[0]) * \
+            rng.random([n_particles, len(p_vector)])
     x[0,:] = p_vector
+    
+    # Set bounds for each parameter
+    x_bounds = np.zeros([len(p_vector), 2])
+    x_bounds[:, 0] = bounds[0]
+    x_bounds[:, 1] = bounds[1]
+    
+    # Add the bounds to the progress data
+    progress_data['x_bounds'] = x_bounds
 
     # Set the initial values
     global_best_value = np.Inf
@@ -265,6 +277,7 @@ def pso(p_vector, json_analysis_file_string, progress_data,
     particle_best_x = np.NaN * np.ones([n_particles, len(p_vector)])
     v = initial_vel * np.ones([n_particles, len(p_vector)])
     particle_max_vel = vel_bounds[-1] * np.ones(n_particles)
+
     
     # Open the analysis_file_string and check for thread_folder
     with open(json_analysis_file_string, 'r') as f:
@@ -284,7 +297,7 @@ def pso(p_vector, json_analysis_file_string, progress_data,
     
     print(char_struct)
     
-    for iter in range(100):
+    for iter in range(no_of_iterations):
         
         # Set the thread_dir, try to clean it, make it if necessary
         thread_dir = json_data['FiberSim_setup']['model']['fitting']['thread_folder']
@@ -365,25 +378,59 @@ def pso(p_vector, json_analysis_file_string, progress_data,
                     # Add in some jitter
                     x[i,j] = x[i,j] + jitter * (rng.random() - 0.5)
                     
-                    if (x[i,j] < bounds[0]):
-                        x[i,j] = bounds[0]
-                    if (x[i,j] > bounds[-1]):
-                        x[i,j] = bounds[-1]
+                    if (x[i,j] < x_bounds[j, 0]):
+                        x[i,j] = x_bounds[j, 0]
+                    if (x[i,j] > x_bounds[j, 1]):
+                        x[i,j] = x_bounds[j, 1]
                         
                 particle_max_vel[i] = particle_max_vel[i] * vel_factor
                 if (particle_max_vel[i] < vel_bounds[0]):
                     particle_max_vel[i] = vel_bounds[0]
-                        
-            # Throw
-            if ((iter % throw) == (throw-1)):
-                # Throw out 1/3 of particles
-                for i in range(round(n_particles / 3)):
-                    for j in range(len(p_vector)):
-                        x[i,j] = rng.random()
-                        v[i,j] = 0
-                    particle_best_value[i] = np.Inf
-                    particle_best_x[i,:] = x[i,:]
-                    particle_max_vel[i] = vel_bounds[-1]
+                    
+        # Resize bounds if appropriate
+        if ((iter % resize_bounds) == (resize_bounds-1)):
+            # Adjust the bounds
+            for i in range(len(p_vector)):
+                
+                x_old_range = (x_bounds[i, 1] - x_bounds[i, 0])
+                x_new_range = resize_bounds_factor * x_old_range
+                
+                # Try to center the range around the best point
+                x_bounds[i, 0] = global_best_x[i] - (0.5 * x_new_range)
+                x_bounds[i, 1] = global_best_x[i] + (0.5 * x_new_range)
+                
+                # If you are clipping, preserve the range
+                if (x_bounds[i, 0] < bounds[0]):
+                    x_bounds[i, 0] = bounds[0]
+                    x_bounds[i, 1] = bounds[0] + x_new_range
+                    
+                if (x_bounds[i, 1] > bounds[1]):
+                    x_bounds[i, 1] = bounds[1]
+                    x_bounds[i, 0] = bounds[1] - x_new_range
+            
+            # Now reset particles within the bounds
+            for i in range(n_particles):
+                for j in range(len(p_vector)):
+                    x[i, j] = x_bounds[j, 0] + (rng.random() *
+                                                (x_bounds[j, 1] - x_bounds[j, 0]))
+                
+                particle_best_value[i] = np.Inf
+                particle_best_x[i,:] = x[i,:]
+                particle_max_vel[i] = resize_bounds_factor * particle_max_vel[i]
+            
+            progress_data['x_bounds'] = x_bounds
+       
+                    
+        # Throw
+        if ((iter % throw) == (throw-1)):
+            # Throw out 1/3 of particles
+            for i in range(round(n_particles / 3)):
+                for j in range(len(p_vector)):
+                    x[i,j] = rng.random()
+                    v[i,j] = 0
+                particle_best_value[i] = np.Inf
+                particle_best_x[i,:] = x[i,:]
+                particle_max_vel[i] = vel_bounds[-1]
                     
                     
 def run_single(p_vector, json_analysis_file_string, progress_data):
@@ -642,7 +689,7 @@ def thread_evaluate(pars, progress_data):
     p_vector = pars['x']
     for i in range(len(p_vector)):
         prog_d['p_%i' % (i+1)] = p_vector[i]
-    prog_d['error_total'] = trial_errors['error_total'][0]
+    prog_d['error_total'] = trial_errors['error_total'][0] 
     
     error_cpt_labels = trial_errors.columns
     for err_lab in error_cpt_labels:
@@ -702,7 +749,13 @@ def return_sim_setups(orig_setup, pars):
         os.path.join(pars['thread_space'],
                      'working',
                      orig_setup['FiberSim_setup']['model']['options_file'])).resolve())
+    
+    # Check for isotype_clones
+    if ('isotype_clones' in orig_setup['FiberSim_setup']['model']):
+        new_setup['FiberSim_setup']['model']['isotype_clones'] = \
+            orig_setup['FiberSim_setup']['model']['isotype_clones']
    
+    # Now handle manipulations
     manip = dict()
     manip['base_model'] = str(Path(
         os.path.join(pars['thread_space'],
@@ -804,8 +857,13 @@ def return_adjustments(manipulations, p_vector):
             linked_a['variable'] = a['variable']
             linked_a['isotype'] = digits[0]
             linked_a['state'] = digits[1]
-            linked_a['transition'] = digits[2]
-            linked_a['parameter_number'] = digits[3]
+            
+            if not ('extension' in a):
+                linked_a['transition'] = digits[2]
+                linked_a['parameter_number'] = digits[3]
+            else:
+                linked_a['extension'] = a['extension']
+
             linked_a['multipliers'] = []
             if ('factor_mode' in a):
                 if (a['factor_mode'] == "log"):
@@ -1036,6 +1094,7 @@ def plot_progress(progress_data):
                        markerfacecolor='none',
                        label=best_label)
             x = x + 1
+            
     ax[1].set_xlabel('Components')
     ax[1].set_ylabel('log_{10} (Component errors)')
     x_ticks = np.arange(x+1)
@@ -1065,7 +1124,13 @@ def plot_progress(progress_data):
             ax[2].plot(x, df[col_lab].iloc[best_row_ind], 'ro',
                        markerfacecolor = 'none',
                        label = best_label)
+            
+            if ('x_bounds' in progress_data):
+                xb = progress_data['x_bounds'][x-1, :]
+                ax[2].plot([x, x], xb, 'c-')
+            
             x = x + 1
+            
     ax[2].set_xlabel('Parameters')
     ax[2].set_ylabel('p value')
     y_ticks = [0, 1]

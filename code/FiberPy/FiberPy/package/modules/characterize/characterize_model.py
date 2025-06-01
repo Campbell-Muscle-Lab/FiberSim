@@ -194,6 +194,25 @@ def generate_model_files(json_analysis_file_string):
                     
                     adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1]['extension'] = \
                         value
+                        
+                elif ('relative_to' in a):
+                    # Special case where parameter is relative to another kinetics parameter
+                    # Pull out the relative to parameters
+                    
+                    digits = [int(s) for s in re.findall(r'\d+', a['relative_to'])]
+                    
+                    y = np.asarray(adj_model[a['variable']][digits[0]-1]['state'][digits[1]-1] \
+                                   ['transition'][digits[2]-1]['rate_parameters'],
+                                   dtype = np.float32)
+                        
+                    base_value = y[digits[3]-1]
+                    value = base_value * a['multipliers'][i]
+
+                    y[a['parameter_number'] - 1] = value
+                    adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1] \
+                              ['transition'][a['transition']-1]['rate_parameters'] = \
+                                  y.tolist()                   
+                        
                 else:
                     # Transition parameters
                     y = np.asarray(adj_model[a['variable']][a['isotype']-1]['state'][a['state']-1] \
@@ -466,6 +485,11 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
         length_steps = pCa_struct['length_step_nm']
     else:
         length_steps = [0]
+        
+    if ('m_isotype_profiles' in pCa_struct):
+        m_isotype_profiles = pCa_struct['m_isotype_profiles']
+    else:
+        m_isotype_profiles = [np.NaN]
     
     # Deduce the base_dir
     if ('relative_to' in pCa_struct):
@@ -500,268 +524,283 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
             # Now loop through the length_steps
             for k, length_step in enumerate(length_steps):
                 
-                # Update dir_counter
-                dir_counter = dir_counter + 1
-                
-                # Create the input and output directories           
-                sim_input_dir = os.path.join(base_dir,
-                                             'sim_input',
-                                             ('%i' % dir_counter))
-                if not os.path.isdir(sim_input_dir):
-                    os.makedirs(sim_input_dir)
+                # Now loop through m_isotype profiles
+                for l, m_iso_profile in enumerate(m_isotype_profiles):
                     
-                sim_output_dir = os.path.join(base_dir,
-                                              'sim_output',
-                                              ('%i' % dir_counter))
-                if not os.path.isdir(sim_output_dir):
-                    os.makedirs(sim_output_dir)
-                   
-                # Copy the model and options files to the sim_input dir
-                # adjusting half-sarcomere length as appropriate
-                if (model_struct['relative_to'] == 'this_file'):
-                    model_dir = Path(json_analysis_file_string).parent.absolute()
-                    orig_model_file = os.path.join(model_dir, mod_f)
-                else:
-                    orig_model_file = mod_f
-                
-                # Adjust hsl by loading model, adjusting hsl and re-writing
-                with open(orig_model_file, 'r') as f:
-                    m = json.load(f)
-                    m['muscle']['initial_hs_length'] = float(hsl)
+                    # Update dir_counter
+                    dir_counter = dir_counter + 1
                     
-                    # Over-ride m_n if appropriate
-                    if ('m_n' in pCa_struct):
-                        m['thick_structure']['m_n'] = pCa_struct['m_n']
+                    # Create the input and output directories           
+                    sim_input_dir = os.path.join(base_dir,
+                                                 'sim_input',
+                                                 ('%i' % dir_counter))
+                    if not os.path.isdir(sim_input_dir):
+                        os.makedirs(sim_input_dir)
                         
-                fn = re.split('/|\\\\', orig_model_file)[-1]
-                model_file = os.path.join(sim_input_dir, fn)
-    
-                with open(model_file, 'w') as f:
-                    json.dump(m, f, indent=4)
-                
-                # Work out the path for the base options file
-                if (model_struct['relative_to'] == 'this_file'):
-                    model_dir = Path(json_analysis_file_string).parent.absolute()
-                    orig_options_file = os.path.join(model_dir,
-                                                     model_struct['options_file'])
-                else:
-                    orig_options_file = model_struct['options_file']
-    
-                # Load the options data
-                with open(orig_options_file, 'r') as f:
-                    orig_options_data = json.load(f)
-    
-                # Adjust the options struct if we have randomized repeats
-                if ('randomized_repeats' in pCa_struct):
-                    rand_repeats = pCa_struct['randomized_repeats']
-                    orig_options_data['options']['rand_seed'] = "random"
-                else:
-                    rand_repeats = 1
-               
-                # Loop through the pCa values
-                for pCa_counter,pCa in enumerate(pCa_struct['pCa_values']):
+                    sim_output_dir = os.path.join(base_dir,
+                                                  'sim_output',
+                                                  ('%i' % dir_counter))
+                    if not os.path.isdir(sim_output_dir):
+                        os.makedirs(sim_output_dir)
+                       
+                    # Copy the model and options files to the sim_input dir
+                    # adjusting half-sarcomere length as appropriate
+                    if (model_struct['relative_to'] == 'this_file'):
+                        model_dir = Path(json_analysis_file_string).parent.absolute()
+                        orig_model_file = os.path.join(model_dir, mod_f)
+                    else:
+                        orig_model_file = mod_f
                     
-                    # Loop through the rand_repeats, creating a job for each repeat
-                    for rep in range(rand_repeats):
+                    # Adjust hsl by loading model, adjusting hsl and re-writing
+                    with open(orig_model_file, 'r') as f:
+                        m = json.load(f)
+                        m['muscle']['initial_hs_length'] = float(hsl)
                         
-                        # Copy the orig_options_struct for local changes
-                        # within the rep
-                        rep_options_data = copy.deepcopy(orig_options_data)
-                        
-                        # Update the options file to dump to a local directory
-                        if ('status_files' in rep_options_data['options']):
-                            rep_options_data['options']['status_files']['status_folder'] = \
-                                os.path.join(sim_output_dir,
-                                            ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
-                                                          (pCa_counter + 1), (rep+1))))
-                                
-                        if ((pCa_counter==0) and (rep == 0)):
-                            # If it is the first pCa_value for the model and the first rep,
-                            # update the options file to dump rates
-                            rep_options_data['options']['rate_files'] = dict()
-                            rep_options_data['options']['rate_files']['relative_to'] = \
-                                'false'
-                            rep_options_data['options']['rate_files']['file'] = \
-                                os.path.join(sim_output_dir, 'rates.json')
-                        
-                        # Create the new options file
-                        options_file = os.path.join(
-                            sim_input_dir,
-                            ('sim_options_%i_r%i.json' % (pCa_counter+1,
-                                                          rep+1)))
-            
-                        with open(options_file, 'w') as f:
-                                json.dump(rep_options_data, f, indent=4)
+                        # Over-ride m_n if appropriate
+                        if ('m_n' in pCa_struct):
+                            m['thick_structure']['m_n'] = pCa_struct['m_n']
+                            
+                    # Set the m_isotype_profile
+                    print('m_isotype_profiles')
+                    print(m_isotype_profiles)
+                    if (isinstance(m_isotype_profiles[l], str)):
+                        m['m_parameters']['m_isotype_ints'] = \
+                            return_m_isotype_ints(m, m_isotype_profiles[l])
+                            
+                        # If there was an m_isotype proportion, delete it
+                        if ('m_isotype_proportions' in m['m_parameters']):
+                            del m['m_parameters']['m_isotype_proportions']
+                    
+                            
+                    fn = re.split('/|\\\\', orig_model_file)[-1]
+                    model_file = os.path.join(sim_input_dir, fn)
         
-                        # Make a protocol, thinking about whether we need smaller
-                        # time steps for k_tr
-                        if not ('k_tr_start_s' in pCa_struct):
-                            n_points = int(pCa_struct['sim_duration_s'] /
-                                           pCa_struct['time_step_s'])
-                            dt = pCa_struct['time_step_s'] * np.ones(n_points)
-                            pCa_vector = pCa * np.ones(n_points)
-                            delta_hsl = np.zeros(n_points)
-                            mode_vector = -2 * np.ones(n_points)
-                        else:
-                            # Pre-phase
-                            if not ('length_step_nm' in pCa_struct):
-                                pre_points = int(pCa_struct['k_tr_start_s'] /
-                                                 pCa_struct['time_step_s'])
-                                pre_dt = pCa_struct['time_step_s'] * np.ones(pre_points)
-                                pre_pCa = pCa * np.ones(pre_points)
-                                pre_delta_hsl = np.zeros(pre_points)
-                                pre_mode_vector = -2 * np.ones(pre_points)
-                            else:
-                                # Break up pre_ktr period into before length step,
-                                # during length step and after length step
-                                pre_1_points = int(pCa_struct['length_step_s'] /
-                                                   pCa_struct['time_step_s'])
-                                pre_1_dt = pCa_struct['time_step_s'] * np.ones(pre_1_points)
-                                pre_1_delta_hsl = np.zeros(pre_1_points)
-                                pre_1_mode_vector = -2 * np.ones(pre_1_points)
-                                
-                                ramp_time_step = pCa_struct['time_step_s']  / 10
-                                step_ramp_points = int(pCa_struct['length_step_ramp_s'] /
-                                                       ramp_time_step)
-                                step_ramp_dt = ramp_time_step * np.ones(step_ramp_points)
-                                step_ramp_inc = length_step / float(step_ramp_points)
-                                step_ramp_delta_hsl = step_ramp_inc * np.ones(step_ramp_points)
-                                step_ramp_mode_vector = -1 * np.ones(step_ramp_points)
-                                
-                                pre_2_points = int((pCa_struct['k_tr_start_s'] -
-                                                        pCa_struct['length_step_s'] -
-                                                        pCa_struct['length_step_ramp_s']) /
-                                                   pCa_struct['time_step_s'])
-                                pre_2_dt = pCa_struct['time_step_s'] * np.ones(pre_2_points)
-                                pre_2_delta_hsl = np.zeros(pre_2_points)
-                                pre_2_mode_vector = -2 * np.ones(pre_2_points)
-                                
-                                # Assemble into pre arrays
-                                pre_points = pre_1_points + step_ramp_points + pre_2_points
-                                pre_dt = np.hstack((pre_1_dt,
-                                                    step_ramp_dt,
-                                                    pre_2_dt))
-                                pre_pCa = pCa * np.ones(pre_points)
-                                pre_delta_hsl = np.hstack((pre_1_delta_hsl,
-                                                           step_ramp_delta_hsl,
-                                                           pre_2_delta_hsl))
-                                pre_mode_vector = np.hstack((pre_1_mode_vector,
-                                                             step_ramp_mode_vector,
-                                                             pre_2_mode_vector))
-                                
-                            
-                            # k_tr
-                            k_tr_time_step = pCa_struct['time_step_s'] / 10
-                            k_tr_points = int(pCa_struct['k_tr_duration_s'] / k_tr_time_step)
-                            k_tr_ramp_points = int(pCa_struct['k_tr_ramp_s'] / k_tr_time_step)
-                            ramp_inc = pCa_struct['k_tr_magnitude_nm'] / \
-                                        float(k_tr_ramp_points)
-                            
-                            k_tr_dt = k_tr_time_step * np.ones(k_tr_points)
-                            k_tr_pCa = pCa * np.ones(k_tr_points)
-                            k_tr_delta_hsl = np.zeros(k_tr_points)
-                            vi = np.arange(0, k_tr_ramp_points+1)
-                            k_tr_delta_hsl[vi] = -ramp_inc
-                            vi = np.arange(k_tr_points-1-k_tr_ramp_points, k_tr_points)
-                            k_tr_delta_hsl[vi] = ramp_inc
-                            k_tr_mode_vector = -np.ones(k_tr_points)
-    
-                            # Post
-                            post_points = int((pCa_struct['sim_duration_s'] -
-                                               pCa_struct['k_tr_start_s'] -
-                                               pCa_struct['k_tr_duration_s']) /
-                                              pCa_struct['time_step_s'])
-                            post_dt = pCa_struct['time_step_s'] * np.ones(post_points)
-                            post_pCa = pCa * np.ones(post_points)
-                            post_delta_hsl = np.zeros(post_points)
-                            post_mode_vector = -2 * np.ones(post_points)
-                            
-                            # Stack together
-                            dt = np.hstack((pre_dt, k_tr_dt, post_dt))
-                            pCa_vector = np.hstack((pre_pCa, k_tr_pCa, post_pCa))
-                            delta_hsl = np.hstack((pre_delta_hsl,
-                                                   k_tr_delta_hsl,
-                                                   post_delta_hsl))
-                            mode_vector = np.hstack((pre_mode_vector,
-                                                     k_tr_mode_vector,
-                                                     post_mode_vector))
-                            
-                        # Now adjust the pCa_vector for step_up and step_down
-                        # if required
-                        t = np.cumsum(dt)
-                        if ('pCa_start' not in pCa_struct):
-                            pCa_start = 9.0
-                        else:
-                            pCa_start = pCa_struct['pCa_start']
-                        
-                        if ('pCa_stop' not in pCa_struct):
-                            pCa_stop = 9.0
-                        else:
-                            pCa_stop = pCa_struct['pCa_stop']
-                            
-                        if ('pCa_step_up_s' in pCa_struct):
-                            pCa_vector[t < pCa_struct['pCa_step_up_s']] = pCa_start
-                        
-                        if ('pCa_step_down_s' in pCa_struct):
-                            pCa_vector[t > pCa_struct['pCa_step_down_s']] = pCa_stop
-                        
-                        # Now make the protocol
-                        df = pd.DataFrame({'dt': dt,
-                                           'pCa': pCa_vector,
-                                           'delta_hsl': delta_hsl,
-                                           'mode': mode_vector})
-                        
-                        prot_file_string = os.path.join(sim_input_dir,
-                                                        ('prot_pCa_%.0f_s_%.0f_r%i.txt' %
-                                                         (10*pCa, 10*length_step, rep+1)))
-                        
-                        # Write protocol if required
-                        if not figures_only:
-                            prot.write_protocol_to_file(df, prot_file_string)
+                    with open(model_file, 'w') as f:
+                        json.dump(m, f, indent=4)
                     
-                        # Create the job
-                        j = dict()
-                        j['relative_to'] = 'False'
-                        j['protocol_file'] = prot_file_string
-                        j['results_file'] = os.path.join(sim_output_dir,
-                                                         ('sim_pCa_%.0f_s_%.0f_r%i.txt' %
-                                                          (10*pCa, 10*length_step, rep+1)))
-                        j['model_file'] = model_file
-                        j['options_file'] = options_file
-                    
-                        # If required, create an output_handler and add it to
-                        # the job
-                        if (trace_figures_on == True):
-                            print('Need to fix trace figures')
-                            exit(1)
-                            # Create the structure for the output handler
-                            oh = dict()
-                            oh['templated_images'] = []
-                            tf = dict()
-                            tf['relative_to'] = 'this_file'
+                    # Work out the path for the base options file
+                    if (model_struct['relative_to'] == 'this_file'):
+                        model_dir = Path(json_analysis_file_string).parent.absolute()
+                        orig_options_file = os.path.join(model_dir,
+                                                         model_struct['options_file'])
+                    else:
+                        orig_options_file = model_struct['options_file']
+        
+                    # Load the options data
+                    with open(orig_options_file, 'r') as f:
+                        orig_options_data = json.load(f)
+        
+                    # Adjust the options struct if we have randomized repeats
+                    if ('randomized_repeats' in pCa_struct):
+                        rand_repeats = pCa_struct['randomized_repeats']
+                        orig_options_data['options']['rand_seed'] = "random"
+                    else:
+                        rand_repeats = 1
+                   
+                    # Loop through the pCa values
+                    for pCa_counter,pCa in enumerate(pCa_struct['pCa_values']):
+                        
+                        # Loop through the rand_repeats, creating a job for each repeat
+                        for rep in range(rand_repeats):
                             
-                            tf['template_file_string'] = os.path.join(
-                                                            '..',
-                                                            base_dir,
-                                                            'template',
-                                                            'template_summary.json')
-                            tf['output_file_string'] = os.path.join(
-                                                            sim_output_dir,
-                                                            ('sim_pCa_%.0f_r%i' %
-                                                             (10*pCa, rep+1)))
-                            tf['output_image_formats'] = pCa_struct['output_image_formats']
-                            oh['templated_images'].append(tf)
+                            # Copy the orig_options_struct for local changes
+                            # within the rep
+                            rep_options_data = copy.deepcopy(orig_options_data)
                             
-                            # Now add it to the job, and write it to file
-                            j['output_handler_file'] = os.path.join(
-                                                        sim_input_dir,
-                                                        ('output_handler_pCa_%.0f_r%i.json' %
-                                                            (10*pCa, rep+1)))
+                            # Update the options file to dump to a local directory
+                            if ('status_files' in rep_options_data['options']):
+                                rep_options_data['options']['status_files']['status_folder'] = \
+                                    os.path.join(sim_output_dir,
+                                                ('%s_%i_r%i' % (rep_options_data['options']['status_files']['status_folder'],
+                                                              (pCa_counter + 1), (rep+1))))
+                                    
+                            if ((pCa_counter==0) and (rep == 0)):
+                                # If it is the first pCa_value for the model and the first rep,
+                                # update the options file to dump rates
+                                rep_options_data['options']['rate_files'] = dict()
+                                rep_options_data['options']['rate_files']['relative_to'] = \
+                                    'false'
+                                rep_options_data['options']['rate_files']['file'] = \
+                                    os.path.join(sim_output_dir, 'rates.json')
                             
-                            with open(j['output_handler_file'], 'w') as f:
-                                json.dump(oh, f, indent=4)        
+                            # Create the new options file
+                            options_file = os.path.join(
+                                sim_input_dir,
+                                ('sim_options_%i_r%i.json' % (pCa_counter+1,
+                                                              rep+1)))
+                
+                            with open(options_file, 'w') as f:
+                                    json.dump(rep_options_data, f, indent=4)
             
-                        pCa_lc_b['job'].append(j)
+                            # Make a protocol, thinking about whether we need smaller
+                            # time steps for k_tr
+                            if not ('k_tr_start_s' in pCa_struct):
+                                n_points = int(pCa_struct['sim_duration_s'] /
+                                               pCa_struct['time_step_s'])
+                                dt = pCa_struct['time_step_s'] * np.ones(n_points)
+                                pCa_vector = pCa * np.ones(n_points)
+                                delta_hsl = np.zeros(n_points)
+                                mode_vector = -2 * np.ones(n_points)
+                            else:
+                                # Pre-phase
+                                if not ('length_step_nm' in pCa_struct):
+                                    pre_points = int(pCa_struct['k_tr_start_s'] /
+                                                     pCa_struct['time_step_s'])
+                                    pre_dt = pCa_struct['time_step_s'] * np.ones(pre_points)
+                                    pre_pCa = pCa * np.ones(pre_points)
+                                    pre_delta_hsl = np.zeros(pre_points)
+                                    pre_mode_vector = -2 * np.ones(pre_points)
+                                else:
+                                    # Break up pre_ktr period into before length step,
+                                    # during length step and after length step
+                                    pre_1_points = int(pCa_struct['length_step_s'] /
+                                                       pCa_struct['time_step_s'])
+                                    pre_1_dt = pCa_struct['time_step_s'] * np.ones(pre_1_points)
+                                    pre_1_delta_hsl = np.zeros(pre_1_points)
+                                    pre_1_mode_vector = -2 * np.ones(pre_1_points)
+                                    
+                                    ramp_time_step = pCa_struct['time_step_s']  / 10
+                                    step_ramp_points = int(pCa_struct['length_step_ramp_s'] /
+                                                           ramp_time_step)
+                                    step_ramp_dt = ramp_time_step * np.ones(step_ramp_points)
+                                    step_ramp_inc = length_step / float(step_ramp_points)
+                                    step_ramp_delta_hsl = step_ramp_inc * np.ones(step_ramp_points)
+                                    step_ramp_mode_vector = -1 * np.ones(step_ramp_points)
+                                    
+                                    pre_2_points = int((pCa_struct['k_tr_start_s'] -
+                                                            pCa_struct['length_step_s'] -
+                                                            pCa_struct['length_step_ramp_s']) /
+                                                       pCa_struct['time_step_s'])
+                                    pre_2_dt = pCa_struct['time_step_s'] * np.ones(pre_2_points)
+                                    pre_2_delta_hsl = np.zeros(pre_2_points)
+                                    pre_2_mode_vector = -2 * np.ones(pre_2_points)
+                                    
+                                    # Assemble into pre arrays
+                                    pre_points = pre_1_points + step_ramp_points + pre_2_points
+                                    pre_dt = np.hstack((pre_1_dt,
+                                                        step_ramp_dt,
+                                                        pre_2_dt))
+                                    pre_pCa = pCa * np.ones(pre_points)
+                                    pre_delta_hsl = np.hstack((pre_1_delta_hsl,
+                                                               step_ramp_delta_hsl,
+                                                               pre_2_delta_hsl))
+                                    pre_mode_vector = np.hstack((pre_1_mode_vector,
+                                                                 step_ramp_mode_vector,
+                                                                 pre_2_mode_vector))
+                                    
+                                
+                                # k_tr
+                                k_tr_time_step = pCa_struct['time_step_s'] / 10
+                                k_tr_points = int(pCa_struct['k_tr_duration_s'] / k_tr_time_step)
+                                k_tr_ramp_points = int(pCa_struct['k_tr_ramp_s'] / k_tr_time_step)
+                                ramp_inc = pCa_struct['k_tr_magnitude_nm'] / \
+                                            float(k_tr_ramp_points)
+                                
+                                k_tr_dt = k_tr_time_step * np.ones(k_tr_points)
+                                k_tr_pCa = pCa * np.ones(k_tr_points)
+                                k_tr_delta_hsl = np.zeros(k_tr_points)
+                                vi = np.arange(0, k_tr_ramp_points+1)
+                                k_tr_delta_hsl[vi] = -ramp_inc
+                                vi = np.arange(k_tr_points-1-k_tr_ramp_points, k_tr_points)
+                                k_tr_delta_hsl[vi] = ramp_inc
+                                k_tr_mode_vector = -np.ones(k_tr_points)
+        
+                                # Post
+                                post_points = int((pCa_struct['sim_duration_s'] -
+                                                   pCa_struct['k_tr_start_s'] -
+                                                   pCa_struct['k_tr_duration_s']) /
+                                                  pCa_struct['time_step_s'])
+                                post_dt = pCa_struct['time_step_s'] * np.ones(post_points)
+                                post_pCa = pCa * np.ones(post_points)
+                                post_delta_hsl = np.zeros(post_points)
+                                post_mode_vector = -2 * np.ones(post_points)
+                                
+                                # Stack together
+                                dt = np.hstack((pre_dt, k_tr_dt, post_dt))
+                                pCa_vector = np.hstack((pre_pCa, k_tr_pCa, post_pCa))
+                                delta_hsl = np.hstack((pre_delta_hsl,
+                                                       k_tr_delta_hsl,
+                                                       post_delta_hsl))
+                                mode_vector = np.hstack((pre_mode_vector,
+                                                         k_tr_mode_vector,
+                                                         post_mode_vector))
+                                
+                            # Now adjust the pCa_vector for step_up and step_down
+                            # if required
+                            t = np.cumsum(dt)
+                            if ('pCa_start' not in pCa_struct):
+                                pCa_start = 9.0
+                            else:
+                                pCa_start = pCa_struct['pCa_start']
+                            
+                            if ('pCa_stop' not in pCa_struct):
+                                pCa_stop = 9.0
+                            else:
+                                pCa_stop = pCa_struct['pCa_stop']
+                                
+                            if ('pCa_step_up_s' in pCa_struct):
+                                pCa_vector[t < pCa_struct['pCa_step_up_s']] = pCa_start
+                            
+                            if ('pCa_step_down_s' in pCa_struct):
+                                pCa_vector[t > pCa_struct['pCa_step_down_s']] = pCa_stop
+                            
+                            # Now make the protocol
+                            df = pd.DataFrame({'dt': dt,
+                                               'pCa': pCa_vector,
+                                               'delta_hsl': delta_hsl,
+                                               'mode': mode_vector})
+                            
+                            prot_file_string = os.path.join(sim_input_dir,
+                                                            ('prot_pCa_%.0f_s_%.0f_r%i.txt' %
+                                                             (10*pCa, 10*length_step, rep+1)))
+                            
+                            # Write protocol if required
+                            if not figures_only:
+                                prot.write_protocol_to_file(df, prot_file_string)
+                        
+                            # Create the job
+                            j = dict()
+                            j['relative_to'] = 'False'
+                            j['protocol_file'] = prot_file_string
+                            j['results_file'] = os.path.join(sim_output_dir,
+                                                             ('sim_pCa_%.0f_s_%.0f_r%i.txt' %
+                                                              (10*pCa, 10*length_step, rep+1)))
+                            j['model_file'] = model_file
+                            j['options_file'] = options_file
+                        
+                            # If required, create an output_handler and add it to
+                            # the job
+                            if (trace_figures_on == True):
+                                print('Need to fix trace figures')
+                                exit(1)
+                                # Create the structure for the output handler
+                                oh = dict()
+                                oh['templated_images'] = []
+                                tf = dict()
+                                tf['relative_to'] = 'this_file'
+                                
+                                tf['template_file_string'] = os.path.join(
+                                                                '..',
+                                                                base_dir,
+                                                                'template',
+                                                                'template_summary.json')
+                                tf['output_file_string'] = os.path.join(
+                                                                sim_output_dir,
+                                                                ('sim_pCa_%.0f_r%i' %
+                                                                 (10*pCa, rep+1)))
+                                tf['output_image_formats'] = pCa_struct['output_image_formats']
+                                oh['templated_images'].append(tf)
+                                
+                                # Now add it to the job, and write it to file
+                                j['output_handler_file'] = os.path.join(
+                                                            sim_input_dir,
+                                                            ('output_handler_pCa_%.0f_r%i.json' %
+                                                                (10*pCa, rep+1)))
+                                
+                                with open(j['output_handler_file'], 'w') as f:
+                                    json.dump(oh, f, indent=4)        
+                
+                            pCa_lc_b['job'].append(j)
 
     # Now create the analysis section
     batch_figs = dict()
@@ -2174,3 +2213,82 @@ def return_base_dir(struct, file_string):
         elif not (struct['relative_to'] == 'False'):
             base_dir = struct['relative_to']
     return base_dir
+
+def return_m_isotype_ints(model_dict, m_profile):
+    """ Returns an array of m_isotyp_ints that sets the isotype of
+        each myosin """
+        
+    # Create an empty array of m_isotypes
+    m_iso_int = []
+    
+    if m_profile.startswith('all'):
+        iso_int = int(m_profile[4])
+        
+        # Set m_isotype_ints to a constant array of iso_int
+        for crown_counter in range(model_dict['thick_structure']['m_crowns_per_filament']):
+            for hub_counter in range(model_dict['thick_structure']['m_hubs_per_crown']):
+                for d_counter in range(model_dict['thick_structure']['m_myosins_per_hub']):
+                    m_iso_int.append(iso_int)
+                    
+    if m_profile.startswith('dimer'):
+        
+        iso_int_a = int(m_profile[6])
+        iso_int_b = int(m_profile[8])
+        
+        # Set m_isotype_ints to a constant array of iso_int
+        for crown_counter in range(model_dict['thick_structure']['m_crowns_per_filament']):
+            for hub_counter in range(model_dict['thick_structure']['m_hubs_per_crown']):
+                m_iso_int.append(iso_int_a)
+                m_iso_int.append(iso_int_b)
+                
+    if m_profile.startswith('p'):
+        
+        iso_p_a = int(m_profile[2])
+        iso_p_b = int(m_profile[4])
+        iso_c_a = int(m_profile[8])
+        iso_c_b = int(m_profile[10])
+        iso_c_c = int(m_profile[12])
+        iso_c_d = int(m_profile[14])
+        iso_c_e = int(m_profile[16])
+        iso_c_f = int(m_profile[18])
+        iso_d_a = int(m_profile[22])
+        iso_d_b = int(m_profile[24])
+        
+        # Set m_isotype_ints to a constant array of iso_int
+        for crown_counter in range(model_dict['thick_structure']['m_crowns_per_filament']):
+            if (crown_counter < (model_dict['mybpc_structure']['c_thick_proximal_node'] - 1)):
+                # P-zone
+                for hub_counter in range(model_dict['thick_structure']['m_hubs_per_crown']):
+                    m_iso_int.append(iso_p_a)
+                    m_iso_int.append(iso_p_b)
+
+            elif (crown_counter >= (model_dict['mybpc_structure']['c_thick_proximal_node'] +
+                                   ((model_dict['mybpc_structure']['c_thick_stripes']) *
+                                        model_dict['mybpc_structure']['c_thick_node_spacing']) - 1)):
+                # D-zone
+                for hub_counter in range(model_dict['thick_structure']['m_hubs_per_crown']):
+                    m_iso_int.append(iso_d_a)
+                    m_iso_int.append(iso_d_b)
+                    
+            else:
+                # C-zone
+                
+                # Work out which stripe we are in
+                stripe_index = (1 + crown_counter- 
+                                        model_dict['mybpc_structure']['c_thick_proximal_node']) % 3
+                
+                if (stripe_index == 0):
+                    x = iso_c_a
+                    y = iso_c_b
+                elif (stripe_index == 1):
+                    x = iso_c_c
+                    y = iso_c_d
+                else:
+                    x = iso_c_e
+                    y = iso_c_f
+
+                for hub_counter in range(model_dict['thick_structure']['m_hubs_per_crown']):
+                    m_iso_int.append(x)
+                    m_iso_int.append(y)
+                    
+    return m_iso_int

@@ -1,0 +1,44 @@
+{
+  "FiberSim_setup":
+  {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../../bin/FiberCpp.exe"
+    },
+    "model": {
+      "relative_to": "this_file",
+      "options_file": "sim_options.json",
+      "model_files": ["model.json"]
+    },
+    "characterization": [
+        {
+            "type": "twitch",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data",
+            "hs_lengths": [750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200],
+            "xhs_lengths": [900, 950, 1000],
+            "m_n": 4,
+            "protocol":
+            {
+                "protocol_folder": "../protocols",
+                "data": [
+                    {
+                        "time_step_s": 0.001,
+                        "n_points": 400,
+                        "stimulus_times_s": [0.1],
+                        "Ca_content": 1e-3,
+                        "stimulus_duration_s": 0.01,
+                        "k_leak": 6e-4,
+                        "k_act": 8.2e-2,
+                        "k_serca": 20
+                    }
+                ]
+            },
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False",
+            "post_sim_Python_call": "../Python_code/plot_length_tension.py"
+        }
+    ]
+  }
+}

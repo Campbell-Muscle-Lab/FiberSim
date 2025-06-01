@@ -1,0 +1,174 @@
+{
+    "FiberSim_batch": {
+        "FiberCpp_exe": {
+            "exe_file": "d:/ken/github/campbellmusclelab/models/FiberSim/bin/FiberCpp.exe"
+        },
+        "job": [
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\prot_pCa_70_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\1\\sim_pCa_70_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\sim_options_1_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\prot_pCa_63_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\1\\sim_pCa_63_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\sim_options_2_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\prot_pCa_61_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\1\\sim_pCa_61_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\sim_options_3_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\prot_pCa_59_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\1\\sim_pCa_59_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\sim_options_4_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\prot_pCa_57_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\1\\sim_pCa_57_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\sim_options_5_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\prot_pCa_55_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\1\\sim_pCa_55_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\sim_options_6_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\prot_pCa_53_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\1\\sim_pCa_53_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\sim_options_7_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\prot_pCa_45_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\1\\sim_pCa_45_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\1\\sim_options_8_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\prot_pCa_70_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\2\\sim_pCa_70_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\sim_options_1_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\prot_pCa_63_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\2\\sim_pCa_63_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\sim_options_2_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\prot_pCa_61_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\2\\sim_pCa_61_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\sim_options_3_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\prot_pCa_59_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\2\\sim_pCa_59_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\sim_options_4_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\prot_pCa_57_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\2\\sim_pCa_57_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\sim_options_5_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\prot_pCa_55_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\2\\sim_pCa_55_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\sim_options_6_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\prot_pCa_53_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\2\\sim_pCa_53_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\sim_options_7_r1.json"
+            },
+            {
+                "relative_to": "False",
+                "protocol_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\prot_pCa_45_s_0_r1.txt",
+                "results_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\2\\sim_pCa_45_s_0_r1.txt",
+                "model_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\model_1.json",
+                "options_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_input\\2\\sim_options_8_r1.json"
+            }
+        ],
+        "batch_figures": {
+            "pCa_curves": [
+                {
+                    "relative_to": "False",
+                    "results_folder": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output",
+                    "data_field": "hs_1_force",
+                    "output_data_file_string": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\pCa_analysis.xlsx",
+                    "output_image_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\force_pCa",
+                    "output_image_formats": [
+                        "png"
+                    ],
+                    "formatting": {
+                        "y_axis_label": "Force (N m$^{\\mathregular{-2}}$)",
+                        "high_pCa_tick": 7.0
+                    }
+                }
+            ],
+            "rates": [
+                {
+                    "relative_to": "False",
+                    "results_folder": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output",
+                    "output_image_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\rates",
+                    "output_image_formats": [
+                        "png"
+                    ]
+                }
+            ],
+            "superposed_traces": [
+                {
+                    "relative_to": "False",
+                    "results_folder": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output",
+                    "output_image_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\superposed_traces",
+                    "output_image_formats": [
+                        "png"
+                    ]
+                }
+            ],
+            "k_tr_analysis": [
+                {
+                    "relative_to": "False",
+                    "results_folder": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output",
+                    "output_data_file_string": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\k_tr_analysis.xlsx",
+                    "output_image_file": "D:\\Ken\\GitHub\\CampbellMuscleLab\\Models\\FiberSim\\demo_files\\mle\\force_pCa\\target_data\\sim_output\\k_tr_analysis",
+                    "k_tr_fit_time_s": [
+                        0.525,
+                        0.95
+                    ],
+                    "output_image_formats": [
+                        "png"
+                    ]
+                }
+            ]
+        }
+    }
+}

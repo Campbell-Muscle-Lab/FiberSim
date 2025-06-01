@@ -15,7 +15,7 @@
         "progress_folder": "../progress",
         "thread_folder": "../threads",
         "Python_objective_call": "../Python_code/return_fit.py",
-        "optimizer": "emcee",
+        "optimizer": "particle_swarm",
         "single_run": "False",
         "adjustments":
         [

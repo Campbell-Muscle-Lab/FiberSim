@@ -295,27 +295,10 @@ half_sarcomere::half_sarcomere(
     c_no_of_pc_states = p_fs_model->p_c_scheme[0]->no_of_states;
     c_no_of_pcs = p_mf[0]->c_no_of_pcs;
 
-    sprintf_s(t_passive_mode, _MAX_PATH, p_fs_model->t_passive_mode);
     t_k_stiff = p_fs_model->t_k_stiff;
     t_offset = p_fs_model->t_offset;
-    if (!strcmp(t_passive_mode, "exponential"))
-    {
-        t_sigma = p_fs_model->t_sigma;
-        t_L = p_fs_model->t_L;
-    }
-
-    // Extracellular parameters
-    sprintf_s(e_passive_mode, _MAX_PATH, p_fs_model->e_passive_mode);
-    if (!strcmp(e_passive_mode, "exponential"))
-    {
-        e_sigma = p_fs_model->e_sigma;
-        e_L = p_fs_model->e_L;
-    }
-    else
-    {
-        e_k_stiff = p_fs_model->e_k_stiff;
-    }
-    e_slack_length = p_fs_model->e_slack_length;
+    t_sigma = p_fs_model->t_sigma;
+    t_L = p_fs_model->t_L;
 
     m_k_cb = p_fs_model->m_k_cb;
 
@@ -1602,16 +1585,13 @@ void half_sarcomere::calculate_sp_F_and_G(gsl_vector* x)
             temp = gsl_vector_get(sp_G, thick_node_index);
             gsl_vector_set(sp_G, thick_node_index, temp - f_temp);
 
-            if (!strcmp(t_passive_mode, "exponential"))
+            if (t_sigma != 0.0)
             {
                 // Exponential portion of G
                 double x_diff = gsl_vector_get(x, thick_node_index) -
                     gsl_vector_get(x, thin_node_index) - t_offset;
 
                 f_temp = GSL_SIGN(x_diff) * t_sigma * (exp(fabs(x_diff) / t_L) - 1);
-
-//                f_temp = t_sigma * exp(
-//                    (gsl_vector_get(x, thick_node_index) - gsl_vector_get(x, thin_node_index)) / t_L);
 
                 temp = gsl_vector_get(sp_G, thin_node_index);
                 gsl_vector_set(sp_G, thin_node_index, temp - f_temp);
@@ -1842,14 +1822,10 @@ void half_sarcomere::calculate_g_vector(gsl_vector* x_trial)
             double x_a = gsl_vector_get(x_trial, thin_node_index);
             double x_m = gsl_vector_get(x_trial, thick_node_index);
 
-            // There is always a linear component
-            g_adjustment = t_k_stiff * (x_a - x_m + t_offset);
-
-            if (!strcmp(t_passive_mode, "exponential"))
-            {
-                g_adjustment = g_adjustment -
-                    GSL_SIGN(x_m - x_a) * t_sigma * (exp(fabs(x_m - x_a - t_offset) / t_L) - 1);
-            }
+            // Ttitin force
+            g_adjustment = (t_k_stiff * (x_a - x_m + t_offset)) -
+                    (GSL_SIGN(x_m - x_a) * t_sigma *
+                        (exp(fabs(x_m - x_a - t_offset) / t_L) - 1));
 
             gsl_vector_set(g_vector, thin_node_index,
                 gsl_vector_get(g_vector, thin_node_index) + g_adjustment);
@@ -2147,16 +2123,10 @@ double half_sarcomere::calculate_titin_force(void)
 
             double x_a = gsl_vector_get(x_vector, thin_node_index);
 
-            // There is always a linear force
-            t_strand_force = t_k_stiff * (x_m - x_a - t_offset);
-
-            //printf("hsl: %.0f  x_m: %.0f  x_a: %.0f\n", hs_length, x_m, x_a);
-
-            if (!strcmp(t_passive_mode, "exponential"))
-            {
-                t_strand_force = t_strand_force +
-                    GSL_SIGN(x_m - x_a - t_offset) * t_sigma * (exp(fabs(x_m - x_a - t_offset) / t_L) - 1);
-            }
+            // Titin force
+            t_strand_force = (t_k_stiff * (x_m - x_a - t_offset)) + 
+                    (GSL_SIGN(x_m - x_a - t_offset) * t_sigma *
+                        (exp(fabs(x_m - x_a - t_offset) / t_L) - 1));
 
             // Update
             holder = holder + t_strand_force;
@@ -2169,7 +2139,9 @@ double half_sarcomere::calculate_titin_force(void)
 
     // Adjust for nm scale of filaments
     // Normalize to the number of thick filaments in the calculation
-    holder = holder * 1e-9 / (double)m_n;
+    holder = holder * (1.0 - p_fs_model->prop_fibrosis) *
+                p_fs_model->prop_myofilaments * p_fs_model->m_filament_density * 
+                1e-9 / (double)m_n;
 
     // Return
     return holder;
@@ -2180,25 +2152,14 @@ double half_sarcomere::calculate_extracellular_force(void)
     //! Calculate the extracellular contribution to total force
     
     // Variables
-    double pas_force = 0.0;
+    double pas_force;
 
     // Code
 
-    if (!strcmp(e_passive_mode, "exponential"))
-    {
-        if (hs_length >= e_slack_length)
-            pas_force = p_fs_model->prop_fibrosis *
-                e_sigma * (exp((hs_length - e_slack_length) / e_L) - 1.0);
-        else
-            pas_force = p_fs_model->prop_fibrosis *
-                e_sigma * (exp(-(hs_length - e_slack_length) / e_L) - 1.0);
-    }
-    
-    if (!strcmp(e_passive_mode, "linear"))
-    {
-        pas_force = p_fs_model->prop_fibrosis *
-            e_k_stiff * (hs_length - e_slack_length);
-    }
+    pas_force = p_fs_model->prop_fibrosis *
+        ((p_fs_model->e_k_stiff * (hs_length - p_fs_model->e_slack_length)) +
+            (p_fs_model->e_sigma * GSL_SIGN(hs_length - p_fs_model->e_slack_length) *
+                (exp(fabs(hs_length - p_fs_model->e_slack_length) / p_fs_model->e_L) - 1.0)));
 
     return pas_force;
 }
@@ -3767,7 +3728,6 @@ void half_sarcomere::write_hs_status_to_file(char output_file_string[])
     // Titin parameters
 
     fprintf(output_file, "\"titin\": {\n");
-    fprintf(output_file, "\t\"t_passive_mode\": \"%s\",\n", t_passive_mode);
     fprintf(output_file, "\t\"t_k_stiff\": %.*F,\n", p_fs_options->dump_precision, t_k_stiff);
     fprintf(output_file, "\t\"t_offset\": %.*F,\n", p_fs_options->dump_precision, t_offset);
     fprintf(output_file, "\t\"t_sigma\": %.*F,\n", p_fs_options->dump_precision, t_sigma);
