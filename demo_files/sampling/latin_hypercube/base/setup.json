@@ -2,8 +2,8 @@
   "FiberSim_setup":
   {
     "FiberCpp_exe": {
-      "relative_to": "this_file`",
-      "exe_file": "../../../../bin/FiberCpp.exe"
+      "relative_to": "this_file",
+      "exe_file": "../../../../../bin/FiberCpp.exe"
     },
     "model": {
       "relative_to": "this_file",
@@ -12,6 +12,7 @@
       {
         "no_of_samples": 30,
         "base_model": "model.json",
+        "options_file": "sim_options.json",
         "generated_folder": "../generated",
         "adjustments":
         [
