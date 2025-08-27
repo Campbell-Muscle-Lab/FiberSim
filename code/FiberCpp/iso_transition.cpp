@@ -100,6 +100,16 @@ double iso_transition::calculate_rate(double x, half_sarcomere* p_hs)
 		rate = amp * exp(-k * x);
 	}
 
+	if (!strcmp(rate_type, "exp_from_M_line"))
+	{
+		double amp = gsl_vector_get(rate_parameters, 0);
+		double k = gsl_vector_get(rate_parameters, 1);
+
+		double dist_from_M_line = p_hs->hs_length - x;
+
+		rate = amp * exp(-k * dist_from_M_line);
+	}
+
 	if (!strcmp(rate_type, "wall_from_Z_line"))
 	{
 		double amp = gsl_vector_get(rate_parameters, 0);

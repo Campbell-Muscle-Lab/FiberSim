@@ -77,7 +77,9 @@
           {
             "new_number": 2,
             "rate_type": "constant",
-            "rate_parameters": [2]
+            "rate_parameters": [0.5],
+            "xrate_type": "exp_from_M_line",
+            "xrate_parameters": [5, 0.002]
           }
         ]
       },
@@ -87,30 +89,10 @@
         [
           {
             "new_number": 1,
-            "rate_type": "exponential",
-            "rate_parameters": [100, 30, 100, 0]
-          }
-        ]
-      },
-      {
-        "number": 3,
-        "transition":
-        [
-          {
-            "new_number": 4,
-            "rate_type": "constant",
-            "rate_parameters": [2]
-          }
-        ]
-      },
-      {
-        "number": 4,
-        "transition":
-        [
-          {
-            "new_number": 3,
-            "rate_type": "exponential",
-            "rate_parameters": [10, 30, 100, 0]
+            "rate_type": "gaussian",
+            "rate_parameters": [10, 100, 200, 0],
+            "xrate_type": "exponential",
+            "xrate_parameters": [5, 20, 80, 0]
           }
         ]
       }
@@ -144,7 +126,7 @@
             {
               "new_state": 3,
               "rate_type": "gaussian_hsl",
-              "rate_parameters": [ 500 ]
+              "rate_parameters": [ 200 ]
             }
           ]
         },
@@ -156,7 +138,7 @@
               {
                 "new_state": 2,
                 "rate_type": "exp_wall",
-                "rate_parameters": [500, 0.75, 4, 4]
+                "rate_parameters": [200, 0.75, 4, 4]
               }
             ]
           }
