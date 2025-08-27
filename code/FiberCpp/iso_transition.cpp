@@ -146,6 +146,18 @@ double iso_transition::calculate_rate(double x, half_sarcomere* p_hs)
 		rate = base + (amp * exp(-k * fabs(x - x_mid)));
 	}
 
+	if (!strcmp(rate_type, "exponential_from_M_line"))
+	{
+		double amp = gsl_vector_get(rate_parameters, 0);
+		double x_half = gsl_vector_get(rate_parameters, 1);
+
+		double k = -log(0.5) / x_half;
+
+		double dx_from_M_line = p_hs->hs_length - x;
+
+		rate = amp * exp(-k * fabs(dx_from_M_line));
+	}
+
 	// Curtail at max rate
 
 	if (rate > (p_options->max_rate))

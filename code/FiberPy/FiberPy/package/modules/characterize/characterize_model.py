@@ -227,6 +227,21 @@ def generate_model_files(json_analysis_file_string):
                               ['transition'][a['transition']-1]['rate_parameters'] = \
                                   y.tolist()
                                   
+            elif ('iso_switching' in a['variable']):
+                y = np.asarray(adj_model[a['variable']]['type'][a['type']-1] \
+                               ['transition'][a['transition']-1]['rate_parameters'],
+                               dtype = np.float32)
+                    
+                base_value = y[a['parameter_number'] - 1]
+                value = base_value * a['multipliers'][i]
+                
+                y[a['parameter_number']-1] = value
+                
+                adj_model[a['variable']]['type'][a['type']-1] \
+                    ['transition'][a['transition']-1]['rate_parameters'] = \
+                        y.tolist()                           
+                    
+                                  
             elif (a['variable'] == 'thin_kinetics'):
                 
                 base_value = adj_model[a['variable']][a['isotype']-1][a['parameter']]
