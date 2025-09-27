@@ -1,0 +1,65 @@
+{
+  "FiberSim_setup":
+  {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../../bin/FiberCpp.exe"
+    },
+    "model": {
+      "relative_to": "this_file",
+      "options_file": "sim_options.json",
+      "model_files": ["model.json"]
+    },
+    "characterization": [
+        {
+            "type": "freeform",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data/release",
+            "m_n": 16,
+            "protocol_files": [
+                "../protocols/release/protocol_1.txt",
+                "../protocols/release/protocol_2.txt",
+                "../protocols/release/protocol_3.txt",
+                "../protocols/release/protocol_4.txt",
+                "../protocols/release/protocol_5.txt",
+                "../protocols/release/protocol_6.txt",
+                "../protocols/release/protocol_7.txt",
+                "../protocols/release/protocol_8.txt"
+            ],
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False"
+        },
+        {
+            "type": "twitch",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data/afterload",
+            "m_n": 16,
+            "protocol":
+            {
+                "protocol_folder": "../protocols/afterload",
+                "data": [
+                    {
+                        "time_step_s": 0.001,
+                        "n_points": 400,
+                        "stimulus_times_s": [0.1],
+                        "Ca_content": 1e-3,
+                        "stimulus_duration_s": 0.01,
+                        "k_leak": 6e-4,
+                        "k_act": 8.2e-2,
+                        "k_serca": 20,
+                        "afterload":
+                        {
+                            "load": [5000, 15000, 30000, 45000, 60000, 75000, 85000, 95000],
+                            "break_delta_hs_length": [1, 1, 1, 1, 1, 1, 1, 1, 1]
+                        }
+                    }
+                ]
+            },
+            "output_image_formats": [ "png" ],
+            "figures_only": "False",
+            "trace_figures_on": "False"
+        }
+    ]
+  }
+}

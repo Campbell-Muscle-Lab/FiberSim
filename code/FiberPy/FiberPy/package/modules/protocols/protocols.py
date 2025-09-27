@@ -139,7 +139,5 @@ def create_twitch_protocol(time_step=0.001, n_points=600,
     
     
     
-    
-    
 
 
