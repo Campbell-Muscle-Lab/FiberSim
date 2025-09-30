@@ -15,16 +15,13 @@
             "type": "freeform",
             "relative_to": "this_file",
             "sim_folder": "../sim_data/release",
-            "m_n": 16,
+            "m_n": 4,
             "protocol_files": [
                 "../protocols/release/protocol_1.txt",
                 "../protocols/release/protocol_2.txt",
                 "../protocols/release/protocol_3.txt",
                 "../protocols/release/protocol_4.txt",
-                "../protocols/release/protocol_5.txt",
-                "../protocols/release/protocol_6.txt",
-                "../protocols/release/protocol_7.txt",
-                "../protocols/release/protocol_8.txt"
+                "../protocols/release/protocol_5.txt"
             ],
             "output_image_formats": [ "png" ],
             "figures_only": "False",
@@ -34,7 +31,7 @@
             "type": "twitch",
             "relative_to": "this_file",
             "sim_folder": "../sim_data/afterload",
-            "m_n": 16,
+            "m_n": 4,
             "protocol":
             {
                 "protocol_folder": "../protocols/afterload",
@@ -50,7 +47,7 @@
                         "k_serca": 20,
                         "afterload":
                         {
-                            "load": [5000, 15000, 30000, 45000, 60000, 75000, 85000, 95000],
+                            "load": [5000, 15000, 30000, 45000, 60000],
                             "break_delta_hs_length": [1, 1, 1, 1, 1, 1, 1, 1, 1]
                         }
                     }
