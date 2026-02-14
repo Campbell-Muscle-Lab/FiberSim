@@ -52,7 +52,6 @@ def run_batch(json_batch_file_string=[],
         base_directory = exe_structure['relative_to']
         exe_string = os.path.join(base_directory, exe_string)
 
-
     # Parse the job data into a list of command strings
     job_data = batch_structure['job']
     command_strings = []
