@@ -1,6 +1,6 @@
 {
   "options": {
-    "max_rate": 5e4,
+    "max_rate": 5e3,
     "x_pos_rel_tol": 1e-1,
     "hs_force_control_max_delta_hs_length": 100,
     "adjacent_bs": 1,

@@ -4,10 +4,14 @@ import json
 
 import shutil
 
+import numpy as np
+import pandas as pd
+
 from pathlib import Path
 
 from .characterize_utilities import \
         create_sim_input_and_output_dirs, \
+        prepare_clean_dir, \
         prepare_protocols, \
         prepare_repeats, \
         prepare_simulation_dir, \
@@ -18,9 +22,12 @@ from .characterize_utilities import \
         return_model_file_strings, \
         return_options_file_string, \
         return_run_mode, \
-        update_and_write_model_file
+        update_and_write_model_file, \
+        update_setup_file_string_with_new_char
 
 from ..batch import batch
+
+from ..utilities import utilities as ut
 
 def twitch_loads(json_analysis_file_string, char_index = 0):
     """ Twitch loads runs simulations of twitch contractions where the muscle shortens
@@ -58,30 +65,65 @@ def twitch_loads(json_analysis_file_string, char_index = 0):
         protocol_file_strings = []
         no_of_protocols = 1
 
-    # # Get the options_dict
-    # with open(orig_options_file_string, 'r') as f:
-    #     options_dict = json.load(f)
+    # Create a working version of the setup file - this will be modified
+    # in successive loops to implement different modes
+    working_dir = return_base_dir(json_analysis_file_string,
+                        'characterization',
+                        append_key = 'working_folder',
+                        dict_index = char_index)
+    
+    prepare_clean_dir(working_dir)
+    
+    working_analysis_file_string = os.path.join(
+        working_dir,
+        str(Path(json_analysis_file_string).name) )
 
-    # Prep isometric and loaded sim_dirs
+    # Adjust the model paths to account for the new working file
+    setup_folder = str(Path(json_analysis_file_string).parent.name)
+    json_dict['FiberSim_setup']['model']['options_file'] = \
+        os.path.join('..',
+                     setup_folder,
+                     json_dict['FiberSim_setup']['model']['options_file'])
+    for (i, mf) in enumerate(json_dict['FiberSim_setup']['model']['model_files']):
+        json_dict['FiberSim_setup']['model']['model_files'][i] = \
+            os.path.join('..',
+                         setup_folder,
+                         mf)
+    
+    # Tidy up
+    working_analysis_file_string = str(Path(working_analysis_file_string).resolve())
+
+    # Prep isometric, loaded, and loaded_release sim_dirs
     isometric_sim_dir = os.path.join(top_sim_dir, 'isometric')
     prepare_simulation_dir(isometric_sim_dir, run_mode)
 
     loaded_sim_dir = os.path.join(top_sim_dir, 'loaded')
     prepare_simulation_dir(loaded_sim_dir, run_mode)
 
+    loaded_release_sim_dir = os.path.join(top_sim_dir, 'loaded_release')
+    prepare_simulation_dir(loaded_release_sim_dir, run_mode)
+
     # Loop through the simulations twice, the first time
     # we are in isometric mode to establish the peak time and force
     # the second time, we are in loaded mode
 
-    for mode_i in range(2):
+    for mode_i in range(3):
+
+        # Write the setup_file - first time around it's the original
+        # analysis file, after that, it's being modified
+        update_setup_file_string_with_new_char(
+            json_dict, char_dict, char_index,
+            working_analysis_file_string)
 
         # Set some stuff up
         if (mode_i == 0):
             sim_dir = isometric_sim_dir
             impose_afterloads = False
-
-        else:
+        elif (mode_i == 1):
             sim_dir = loaded_sim_dir
+            impose_afterloads = True
+        elif( mode_i == 2):
+            sim_dir = loaded_release_sim_dir
             impose_afterloads = True
 
         # Set up a dir counter
@@ -126,7 +168,7 @@ def twitch_loads(json_analysis_file_string, char_index = 0):
                         shutil.copy(protocol_file_strings[prot_index], new_protocol_file_string)
 
                     # Create needed repeats
-                    repeat_jobs = prepare_repeats(json_analysis_file_string,
+                    repeat_jobs = prepare_repeats(working_analysis_file_string,
                                                   sim_input_dir,
                                                   sim_output_dir,
                                                   new_model_file_string,
@@ -155,18 +197,55 @@ def twitch_loads(json_analysis_file_string, char_index = 0):
                                    char_index)
 
         # Write the batch
-        batch_file_string = os.path.join(isometric_sim_dir, 'batch.json')
+        batch_file_string = os.path.join(sim_dir, 'batch.json')
 
         with open(batch_file_string, 'w') as f:
             json.dump(isometric_batch, f, indent = 4)
 
         # Now run it
-        batch.run_batch(batch_file_string)
+        if not (run_mode == 'figures_only'):
+            batch.run_batch(batch_file_string)
 
         # If we are in the first loop, we have to pull off the
         # peak times and forces to use for the second loop
         if (mode_i == 0):
             # Run the analysis
+            (max_f, max_f_time_s) = analyze_twitches(sim_dir)
 
+            rel_loads = char_dict['protocol']['data'][prot_index]['afterload']['rel_load']
+            for i in range(len(rel_loads)):
+                char_dict['protocol']['data'][prot_index]['afterload']['load'][i] = \
+                    rel_loads[i] * max_f
 
-    
+        if (mode_i == 1):
+            for i in range(len(rel_loads)):
+                char_dict['protocol']['data'][prot_index]['afterload']['min_init_time_s'][i] = \
+                    max_f_time_s
+
+        
+
+def analyze_twitches(sim_dir):
+    """ Analyzes the twitches to get the peak force and times """
+
+    # Pull off the results files
+    results_files = ut.return_sim_results_files_in_nested_dir(sim_dir);
+
+    # Prepare arrays for max force and time
+    max_force_array = np.nan * np.ones(len(results_files))
+    max_force_time_s_array = np.nan * np.ones(len(results_files))
+
+    # Cycle through the files
+    for (i, f) in enumerate(results_files):
+
+        d = pd.read_csv(f, sep='\t')
+
+        max_force_array[i] = d['m_force'].max()
+        max_force_idx = d['m_force'].idxmax()
+        max_force_time_s_array[i] = d['time'].iloc[max_force_idx]
+
+    # Pull off the data
+    max_force = np.max(max_force_array)
+    max_idx = np.argmax(max_force_array)
+    time_s_at_max_force = max_force_time_s_array[max_idx]
+
+    return (max_force, time_s_at_max_force)

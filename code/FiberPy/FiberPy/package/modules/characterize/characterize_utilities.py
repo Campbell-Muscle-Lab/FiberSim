@@ -14,7 +14,6 @@ def return_run_mode(json_analysis_file_string, char_index = 0):
     # Load the analysis file
     with open(json_analysis_file_string, 'r') as f:
         json_dict = json.load(f)
-
     # Pull off the char_dict
     char_dict = json_dict['FiberSim_setup']['characterization'][char_index]
 
@@ -452,3 +451,12 @@ def return_superposed_traces_fig_dict(sim_output_dir, char_dict):
            fig['formatting'] = char_dict['formatting']
 
     return fig
+
+def update_setup_file_string_with_new_char(
+    json_dict, char_dict, char_index, new_setup_file_string):
+    """ Inserts the char_dict into the setup and writes the file """
+
+    json_dict['FiberSim_setup']['characterization'][char_index] = char_dict
+
+    with open(new_setup_file_string, 'w') as f:
+        json.dump(json_dict, f, indent=4)

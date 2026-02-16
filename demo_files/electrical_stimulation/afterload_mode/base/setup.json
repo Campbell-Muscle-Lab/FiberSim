@@ -15,14 +15,17 @@
             "type": "twitch_loads",
             "relative_to": "this_file",
             "sim_folder": "../sim_data",
-            "m_n": 4,
+            "working_folder": "../working",
+            "run_mode": "xfigures_only",
+            "randomized_repeats": 10,
+            "m_n": 36,
             "protocol":
             {
                 "protocol_folder": "../protocols",
                 "data": [
                     {
                         "time_step_s": 0.001,
-                        "n_points": 400,
+                        "n_points": 600,
                         "stimulus_times_s": [0.1],
                         "Ca_content": 1e-3,
                         "stimulus_duration_s": 0.01,
@@ -31,8 +34,10 @@
                         "k_serca": 20,
                         "afterload":
                         {
-                            "load": [20000, 30000, 30000, 30000, 45000, 100000],
-                            "break_delta_hs_length": [1, 1, 4, 8, 1, 1]
+                            "load": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            "rel_load": [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+                            "break_delta_hs_length": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            "min_init_time_s": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                         }
                     }
                 ]

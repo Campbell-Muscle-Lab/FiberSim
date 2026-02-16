@@ -511,11 +511,11 @@ Gemfile.lock
 # Demo files
 **/demo_files/**/sim_data/**/*.*
 **/demo_files/**/generated/**/*.*
+**/demo_files/**/working/**/*.*
 **/demo_files/**/generated_char/**/*.*
 **/demo_files/**/analysis/**/*.*
 **/demo_files/**/protocols/**/*.*
 **/demo_files/**/fitting/**/progress/**/*.*
-**/demo_files/**/fitting/**/working/**/*.*
 **/demo_files/**/sim_output/**/*.*
 **/demo_files/**/threads/**/*.*
 **/demo_files/**/mle/**/progress/**/*.*

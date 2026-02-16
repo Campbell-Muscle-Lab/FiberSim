@@ -82,6 +82,8 @@ FiberSim_options::FiberSim_options(char JSON_options_file_string[])
     afterload_factor_s = GSL_POSINF;        /**< default value for afterload factor s */
     afterload_factor_multiplier = 1.0;      /**< default value for afterload multiplier */
 
+    afterload_min_init_time_s = 0;          /**< min time in s to initiate afterload */
+
     start_status_time_step = 0;             /**< default value */
     stop_status_time_step = 0;              /**< default value */
     skip_status_time_step = 0;              /**< default value */
@@ -371,6 +373,11 @@ void FiberSim_options::set_FiberSim_options_from_JSON_file_string(char JSON_file
         if (JSON_functions::check_JSON_member_exists(afterload, "factor_multiplier"))
         {
             afterload_factor_multiplier = afterload["factor_multiplier"].GetDouble();
+        }
+
+        if (JSON_functions::check_JSON_member_exists(afterload, "min_init_time_s"))
+        {
+            afterload_min_init_time_s = afterload["min_init_time_s"].GetDouble();
         }
     }
 
