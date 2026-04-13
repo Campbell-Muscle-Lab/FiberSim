@@ -152,6 +152,9 @@ public:
     double afterload_factor_multiplier; /** double defining the factor to increase the
                                                 afterload */
 
+    double afterload_min_init_time_s;   /**< min time in s at which to initiate the
+                                                afterload control */
+
     // Functions
 
     /**

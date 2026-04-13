@@ -24,6 +24,8 @@ from ..batch import batch
 
 # from .characterize_functions import characterize_fv_with_pCa_and_isometric_force
 
+from .twitch_loads import twitch_loads
+
 
 def characterize_model(json_analysis_file_string):
     """ Code takes a json struct that includes a model file, and run the
@@ -55,7 +57,7 @@ def characterize_model(json_analysis_file_string):
    
     # Pull off the characterization tasks
     char_struct = anal_struct['characterization']
-    for ch in char_struct:
+    for (char_id, ch) in enumerate(char_struct):
         if (ch['type'] == 'pCa_length_control'):
             deduce_pCa_length_control_properties(json_analysis_file_string,
                                                  pCa_struct = ch)
@@ -71,6 +73,10 @@ def characterize_model(json_analysis_file_string):
             characterize_fv_with_pCa_and_isometric_force(
                 json_analysis_file_string,
                 ch)
+
+        if (ch['type'] == "twitch_loads"):
+            twitch_loads(json_analysis_file_string,
+                         char_index= char_id)
             
         # Run post-Python_function
         if ('post_sim_Python_call' in ch):
@@ -504,7 +510,7 @@ def deduce_pCa_length_control_properties(json_analysis_file_string,
     if ('m_isotype_profiles' in pCa_struct):
         m_isotype_profiles = pCa_struct['m_isotype_profiles']
     else:
-        m_isotype_profiles = [np.NaN]
+        m_isotype_profiles = [np.nan]
     
     # Deduce the base_dir
     if ('relative_to' in pCa_struct):

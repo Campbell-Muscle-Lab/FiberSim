@@ -1,0 +1,89 @@
+{
+  "FiberSim_setup":
+  {
+    "FiberCpp_exe": {
+      "relative_to": "this_file",
+      "exe_file": "../../../../bin/FiberCpp.exe"
+    },
+    "model": {
+      "relative_to": "this_file",
+      "options_file": "sim_options.json",
+      "manipulations":
+      {
+            "base_model": "model_3.json",
+            "generated_folder": "../generated",
+            "adjustments":
+            [
+                {
+                    "variable": "m_kinetics",
+                    "isotype": 1,
+                    "state": 2,
+                    "transition": 2,
+                    "parameter_number": 1,
+                    "multipliers": [1, 1, 1, 1, 1, 1, 1]
+                },
+                {
+                    "variable": "c_kinetics",
+                    "isotype": 1,
+                    "state": 1,
+                    "transition": 1,
+                    "parameter_number": 1,
+                    "multipliers": [0, 0, 1, 1, 0, 1, 1]
+                },
+                {
+                    "variable": "c_kinetics",
+                    "isotype": 1,
+                    "state": 1,
+                    "transition": 2,
+                    "parameter_number": 1,
+                    "multipliers": [0, 1, 0, 1, 1, 0, 1]
+                },
+                {
+                    "class": "mybpc_parameters",
+                    "variable": "c_binds_only_to_active",
+                    "multipliers": [0, 1, 1, 1, 0, 0, 0],
+                    "output_type": "int"
+                }
+
+            ]
+        }
+    },
+    "characterization": [
+        {
+            "type": "twitch_loads",
+            "relative_to": "this_file",
+            "sim_folder": "../sim_data_delay",
+            "working_folder": "../working",
+            "trial_modes": 
+              ["isometric", "release_at_defined_time"],
+            "run_mode": "xfigures_only",
+            "randomized_repeats": 1,
+            "m_n": 9,
+            "protocol":
+            {
+                "protocol_folder": "../protocols",
+                "data": [
+                    {
+                        "time_step_s": 0.001,
+                        "n_points": 800,
+                        "stimulus_times_s": [0.1],
+                        "Ca_content": 1e-3,
+                        "stimulus_duration_s": 0.01,
+                        "k_leak": 6e-4,
+                        "k_act": 8.2e-2,
+                        "k_serca": 20,
+                        "afterload":
+                        {
+                            "load": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            "rel_load": [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05],
+                            "break_delta_hs_length": [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+                            "min_init_time_s": [0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.40, 0.425, 0.45, 0.475, 0.5, 0.525, 0.55, 0.575, 0.6]
+                        }
+                    }
+                ]
+            },
+            "output_image_formats": [ "png" ]
+        }
+    ]
+  }
+}

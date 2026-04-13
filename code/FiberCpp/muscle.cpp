@@ -518,6 +518,8 @@ size_t muscle::afterload_time_step(int protocol_index)
 
 	double afterload;							// the afterload to work against
 
+	double afterload_min_init_time_s;			// min time in s to initate the afterload
+
 	// Code
 
 	// Extract the time-step and pCa
@@ -530,6 +532,8 @@ size_t muscle::afterload_time_step(int protocol_index)
 	{
 		afterload = afterload * p_fs_options->afterload_factor_multiplier;
 	}
+
+	afterload_min_init_time_s = p_fs_options->afterload_min_init_time_s;
 
 	// Check what kind of muscle we have
 	if ((p_fs_model[0]->no_of_half_sarcomeres == 1) && (p_sc == NULL))
@@ -578,7 +582,9 @@ size_t muscle::afterload_time_step(int protocol_index)
 			m_length = m_length + adjustment;
 			lattice_iterations = p_hs[0]->update_lattice(time_step_s, adjustment);
 
-			if ((afterload_mode == 0) && (p_hs[0]->hs_force >= afterload))
+			if ((afterload_mode == 0) &&
+				(m_force >= afterload) &&
+				(m_time_s >= afterload_min_init_time_s))
 			{
 				// Switch to isotonic mode
 				afterload_mode = 1;
@@ -641,7 +647,9 @@ size_t muscle::afterload_time_step(int protocol_index)
 			// Length control
 			lattice_iterations = length_control_myofibril_with_series_compliance(protocol_index);
 
-			if ((afterload_mode == 0) && (m_force >= afterload))
+			if ((afterload_mode == 0) &&
+				(m_force >= afterload) &&
+				(m_time_s >= afterload_min_init_time_s))
 			{
 				afterload_mode = 1;
 			}

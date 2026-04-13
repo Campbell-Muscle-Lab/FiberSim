@@ -111,6 +111,11 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 			(1.0 + (gsl_max(node_force, 0.0) * gsl_vector_get(rate_parameters, 1)));
 	}
 
+	if (!strcmp(rate_type, "force_negative"))
+	{
+		rate = gsl_vector_get(rate_parameters, 0) - (node_force * gsl_vector_get(rate_parameters, 1));
+	}
+
 	// Force and adjacent hs dependent
 	if (!strcmp(rate_type, "force_and_adjacent_hs_dependent"))
 	{
