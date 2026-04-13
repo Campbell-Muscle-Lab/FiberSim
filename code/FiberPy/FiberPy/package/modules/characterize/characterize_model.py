@@ -1589,6 +1589,12 @@ def deduce_freeform_properties(json_analysis_file_string,
             prot_file_string = os.path.join(prot_dir,
                                             'protocol_%i.txt' % (i+1))
             
+            # Assign a default mode vector
+            mv = []
+            # Over-write if necessary
+            if ('load_file' in ps):
+                mv = np.loadtxt(os.path.join(base_dir, ps['load_file']))
+            
             p = prot.create_twitch_protocol(
                     time_step = ps['time_step_s'],
                     n_points = ps['n_points'],
@@ -1597,7 +1603,8 @@ def deduce_freeform_properties(json_analysis_file_string,
                     stimulus_duration_s = ps['stimulus_duration_s'],
                     k_leak = ps['k_leak'],
                     k_act = ps['k_act'],
-                    k_serca = ps['k_serca'])
+                    k_serca = ps['k_serca'],
+                    mode_vector = mv)
             
             # Create the job
             if not figures_only:
