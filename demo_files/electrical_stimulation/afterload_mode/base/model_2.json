@@ -42,7 +42,7 @@
     "a_k_stiff": 10,
     "a_k_on": 1.5e8,
     "a_k_off": 100,
-    "a_k_coop": 5
+    "a_k_coop": 10
   },
   "thick_parameters":
   {
@@ -78,7 +78,7 @@
             {
               "new_state": 2,
               "rate_type": "force_dependent",
-              "rate_parameters": [ 10, 300]
+              "rate_parameters": [ 5, 400]
             }
           ]
         },
@@ -89,45 +89,40 @@
           "transition": [
             {
               "new_state": 1,
-              "rate_type": "constant",
-              "rate_parameters": [ 200 ]
+              "rate_type": "force_dependent",
+              "rate_parameters": [ 200, 0]
             },
             {
               "new_state": 3,
               "rate_type": "gaussian_hsl",
-              "rate_parameters": [ 500 ]
+              "rate_parameters": [ 50 ]
             }
           ]
         },
         {
             "number": 3,
             "type": "A",
-            "extension": 0.0,
+            "extension": 5.0,
             "transition": [
               {
-                "new_state": 2,
-                "rate_type": "poly",
-                "rate_parameters": [ 500, 10, 4]
-              },
-              {
                 "new_state": 4,
-                "rate_type": "constant",
-                "rate_parameters": [ 100]
+                "rate_type": "exp_wall",
+                "rate_parameters": [ 300, 3, 2, 7]
               }
             ]
         },
         {
-            "number": 2,
-            "type": "A",
-            "extension": 5.0,
-            "transition": [
-              {
-                "new_state": 2,
-                "rate_type": "exp_wall",
-                "rate_parameters": [ 500, 3, 2, 7]
-              }
-            ]
-        }
+          "number": 4,
+          "type": "D",
+          "extension": 0,
+          "transition": [
+            {
+              "new_state": 2,
+              "rate_type": "constant",
+              "rate_parameters": [ 1000, 0]
+            }
+          ]
+          }
       ]
     }
   ],
@@ -141,7 +136,7 @@
     "c_sd_angle_deviation": 30
   },
   "mybpc_parameters": {
-    "c_k_stiff": 0.0001,
+    "c_k_stiff": 0.001,
     "c_isotype_proportions": [ 1 ]
   },
   "c_kinetics": [
@@ -160,7 +155,7 @@
             {
                 "new_state": 3,
                 "rate_type": "gaussian_pc",
-                "rate_parameters": [ 0, 0.001]
+                "rate_parameters": [ 200, 0.01]
             }
           ]
         },

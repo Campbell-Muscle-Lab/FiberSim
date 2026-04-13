@@ -521,6 +521,11 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
         }
     }
 
+    if (JSON_functions::check_JSON_member_exists(mybpc_parameters, "c_binds_only_to_active"))
+        c_binds_only_to_active = mybpc_parameters["c_binds_only_to_active"].GetInt();
+    else
+        c_binds_only_to_active = 1;
+
     // If there is an array of isotypes, save it to the appropriate short vector
     if (JSON_functions::is_JSON_member(mybpc_parameters, "c_isotype_ints"))
     {

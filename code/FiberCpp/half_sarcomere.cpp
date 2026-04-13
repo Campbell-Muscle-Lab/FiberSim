@@ -3187,9 +3187,12 @@ int half_sarcomere::return_c_transition(double time_step, int m_counter, int pc_
                         continue;       // binding site is already occupied
                     }
 
-                    if (gsl_vector_short_get(p_af[a_f]->bs_state, bs_ind) == 1)
+                    if (p_fs_model->c_binds_only_to_active)
                     {
-                        continue;       // binding site is off
+                        if (gsl_vector_short_get(p_af[a_f]->bs_state, bs_ind) == 1)
+                        {
+                            continue;       // binding site is off
+                        }
                     }
 
                     // Transition is possible

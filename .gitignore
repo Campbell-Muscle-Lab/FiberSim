@@ -520,6 +520,7 @@ Gemfile.lock
 **/demo_files/**/threads/**/*.*
 **/demo_files/**/mle/**/progress/**/*.*
 **/demo_files/**/target_data/**/sim_input/**/*.*
+**/demo_files/**/electrical_stimulation/**/sim_data_*/**/*.*
 !**/demo_files/**/target_data/**/sim_output/**/*.xlsx
 
 

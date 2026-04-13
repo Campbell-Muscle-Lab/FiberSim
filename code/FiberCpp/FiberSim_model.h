@@ -226,6 +226,9 @@ public:
 
     int c_no_of_pc_states;              /**< max number of MyBPC states */
 
+    int c_binds_only_to_active;         /**< 1 means mybpc can only bind to active sites (default)
+                                             0 means can bind to any unbound site on actin */
+
     gsl_vector* c_isotype_props;	    /**< gsl_vector holding the C-protein isotypes proportions */
 
     gsl_vector_short* c_isotype_ints;   /**< gsl_vector_short holding C-protein isotype */

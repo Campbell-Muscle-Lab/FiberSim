@@ -49,6 +49,9 @@ def twitch_loads(json_analysis_file_string, char_index = 0):
                                  append_key = 'sim_folder',
                                  dict_index = char_index)
 
+    # Prepare the top sim dir
+    prepare_simulation_dir(top_sim_dir, run_mode)
+
     # Pull off the char_dict
     with open(json_analysis_file_string, 'r') as f:
         json_dict = json.load(f)
@@ -93,21 +96,24 @@ def twitch_loads(json_analysis_file_string, char_index = 0):
     # Tidy up
     working_analysis_file_string = str(Path(working_analysis_file_string).resolve())
 
-    # Prep isometric, loaded, and loaded_release sim_dirs
-    isometric_sim_dir = os.path.join(top_sim_dir, 'isometric')
-    prepare_simulation_dir(isometric_sim_dir, run_mode)
+    # Set a default mode
+    if not ('trial_modes' in char_dict):
+        char_dict['trial_modes'] = ['isometric']
 
-    loaded_sim_dir = os.path.join(top_sim_dir, 'loaded')
-    prepare_simulation_dir(loaded_sim_dir, run_mode)
+    # Set the number of modes
+    no_of_trial_modes = len(char_dict['trial_modes'])
 
-    loaded_release_sim_dir = os.path.join(top_sim_dir, 'loaded_release')
-    prepare_simulation_dir(loaded_release_sim_dir, run_mode)
+    # Prepare the directories
+    mode_sim_dir = []
+    for i in range(no_of_trial_modes):
+        mode_sim_dir.append(os.path.join(top_sim_dir, ('%i' % (i+1))))
+        prepare_simulation_dir(mode_sim_dir[i], run_mode)
 
     # Loop through the simulations twice, the first time
     # we are in isometric mode to establish the peak time and force
     # the second time, we are in loaded mode
 
-    for mode_i in range(3):
+    for mode_i in range(no_of_trial_modes):
 
         # Write the setup_file - first time around it's the original
         # analysis file, after that, it's being modified
@@ -116,14 +122,10 @@ def twitch_loads(json_analysis_file_string, char_index = 0):
             working_analysis_file_string)
 
         # Set some stuff up
-        if (mode_i == 0):
-            sim_dir = isometric_sim_dir
+        sim_dir = mode_sim_dir[mode_i]
+        if (char_dict['trial_modes'][mode_i] == 'isometric'):
             impose_afterloads = False
-        elif (mode_i == 1):
-            sim_dir = loaded_sim_dir
-            impose_afterloads = True
-        elif( mode_i == 2):
-            sim_dir = loaded_release_sim_dir
+        else:
             impose_afterloads = True
 
         # Set up a dir counter
@@ -144,6 +146,9 @@ def twitch_loads(json_analysis_file_string, char_index = 0):
                 (sim_input_dir, sim_output_dir) = \
                     create_sim_input_and_output_dirs(sim_dir,
                                                      dir_counter = dir_counter)
+
+                print(sim_output_dir)
+                print(hs_lengths)
 
                 # Set the new model_file_string
                 new_model_file_string= os.path.join(sim_input_dir,
@@ -206,33 +211,66 @@ def twitch_loads(json_analysis_file_string, char_index = 0):
         if not (run_mode == 'figures_only'):
             batch.run_batch(batch_file_string)
 
-        # If we are in the first loop, we have to pull off the
-        # peak times and forces to use for the second loop
-        if (mode_i == 0):
-            # Run the analysis
-            (max_f, max_f_time_s) = analyze_twitches(sim_dir)
+        # If there is going to be another loop, analyze the first mode (assumed isometric)
+        if ( (mode_i == 0) and (no_of_trial_modes > 1) ):
+            twitch_data = analyze_twitches(mode_sim_dir[mode_i])
 
-            rel_loads = char_dict['protocol']['data'][prot_index]['afterload']['rel_load']
-            for i in range(len(rel_loads)):
-                char_dict['protocol']['data'][prot_index]['afterload']['load'][i] = \
-                    rel_loads[i] * max_f
+        # Now update the char_dict for different modes
+        next_mode_i = mode_i + 1
 
-        if (mode_i == 1):
-            for i in range(len(rel_loads)):
-                char_dict['protocol']['data'][prot_index]['afterload']['min_init_time_s'][i] = \
-                    max_f_time_s
+        if (next_mode_i < no_of_trial_modes):
 
-        
+            if (char_dict['trial_modes'][next_mode_i] == 'afterload'):
+                rel_loads = char_dict['protocol']['data'][prot_index]['afterload']['rel_load']
+                for i in range(len(rel_loads)):
+                    char_dict['protocol']['data'][prot_index]['afterload']['load'][i] = \
+                        twitch_data['pas_force'] + \
+                            (rel_loads[i] * (twitch_data['max_force'] - 
+                                             twitch_data['pas_force']))
+                    char_dict['protocol']['data'][prot_index]['afterload']['min_init_time_s'][i] = 0.0
 
-def analyze_twitches(sim_dir):
+            if (char_dict['trial_modes'][next_mode_i] == 'release_at_max_force'):
+                rel_loads = char_dict['protocol']['data'][prot_index]['afterload']['rel_load']
+                for i in range(len(rel_loads)):
+                    char_dict['protocol']['data'][prot_index]['afterload']['load'][i] = \
+                        twitch_data['pas_force'] + \
+                            (rel_loads[i] * (twitch_data['max_force'] - 
+                                             twitch_data['pas_force']))
+                    char_dict['protocol']['data'][prot_index]['afterload']['min_init_time_s'][i] = \
+                        twitch_data['time_s_at_max_force']
+
+            if (char_dict['trial_modes'][next_mode_i] == 'release_at_max_thin_act'):
+                rel_loads = char_dict['protocol']['data'][prot_index]['afterload']['rel_load']
+                for i in range(len(rel_loads)):
+                    char_dict['protocol']['data'][prot_index]['afterload']['load'][i] = \
+                        twitch_data['pas_force'] + \
+                            (rel_loads[i] * (twitch_data['max_force'] - 
+                                             twitch_data['pas_force']))
+                    char_dict['protocol']['data'][prot_index]['afterload']['min_init_time_s'][i] = \
+                        twitch_data['time_s_at_max_thin_act']
+
+            if (char_dict['trial_modes'][next_mode_i] == 'release_at_defined_time'):
+                rel_loads = char_dict['protocol']['data'][prot_index]['afterload']['rel_load']
+                for i in range(len(rel_loads)):
+                    char_dict['protocol']['data'][prot_index]['afterload']['load'][i] = \
+                        twitch_data['pas_force'] + \
+                            (rel_loads[i] * (twitch_data['max_force'] - 
+                                             twitch_data['pas_force']))
+
+def analyze_twitches(sim_dir, twitch_pas_points = 90):
     """ Analyzes the twitches to get the peak force and times """
 
     # Pull off the results files
     results_files = ut.return_sim_results_files_in_nested_dir(sim_dir);
 
     # Prepare arrays for max force and time
-    max_force_array = np.nan * np.ones(len(results_files))
-    max_force_time_s_array = np.nan * np.ones(len(results_files))
+    no_of_files = len(results_files)
+    max_force_array = np.nan * np.ones(no_of_files)
+    max_force_time_s_array = np.nan * np.ones(no_of_files)
+    max_thin_act_array = np.nan * np.ones(no_of_files)
+    max_thin_act_time_s_array = np.nan * np.ones(no_of_files)
+    pas_force_array = np.nan * np.ones(no_of_files)
+    pas_force_time_s_array = np.nan * np.ones(no_of_files)
 
     # Cycle through the files
     for (i, f) in enumerate(results_files):
@@ -242,10 +280,32 @@ def analyze_twitches(sim_dir):
         max_force_array[i] = d['m_force'].max()
         max_force_idx = d['m_force'].idxmax()
         max_force_time_s_array[i] = d['time'].iloc[max_force_idx]
+        max_thin_act_array[i] = d['hs_1_a_pop_2'].max()
+        max_thin_act_idx = d['hs_1_a_pop_2'].idxmax()
+        max_thin_act_time_s_array[i] = d['time'].iloc[max_thin_act_idx]
+
+        # Calculate the first derivative of force to try and get twitch start
+        d['dm_force_dt'] = d['m_force'].diff()
+        max_dfdt_idx = d['dm_force_dt'].idxmax()
+        pas_force_idx = twitch_pas_points
+        pas_force_array[i] = d['m_force'].iloc[twitch_pas_points]
+        pas_force_time_s_array[i] = d['time'].iloc[pas_force_idx]
 
     # Pull off the data
-    max_force = np.max(max_force_array)
-    max_idx = np.argmax(max_force_array)
-    time_s_at_max_force = max_force_time_s_array[max_idx]
+    twitch_data = dict()
+    
+    max_pas_force_idx = np.argmax(pas_force_array)
+    twitch_data['pas_force'] = float(pas_force_array[max_pas_force_idx])
+    twitch_data['pas_force_time_s'] = float(pas_force_time_s_array[max_pas_force_idx])
 
-    return (max_force, time_s_at_max_force)
+    twitch_data['max_force'] = float(np.max(max_force_array))
+    max_force_idx = np.argmax(max_force_array)
+    twitch_data['time_s_at_max_force'] = float(max_force_time_s_array[max_force_idx])
+
+    max_thin_act_idx = np.argmax(max_thin_act_array)
+    twitch_data['time_s_at_max_thin_act'] = float(max_thin_act_time_s_array[max_thin_act_idx])
+
+    # print(twitch_data)
+    # exit(1)
+
+    return twitch_data

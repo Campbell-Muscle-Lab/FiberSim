@@ -49,6 +49,7 @@ def return_FiberCpp_exe_dict(json_analysis_file_string):
 def return_base_dir(json_analysis_file_string,
                     dict_key,
                     append_key = [],
+                    append_two_keys = [],
                     append_string = [],
                     dict_index = 0):
     """ Return the base directory for the specified dict
@@ -72,6 +73,8 @@ def return_base_dir(json_analysis_file_string,
             base_dir = target_dict['relative_to']
         if not (append_key == []):
             base_dir = os.path.join(base_dir, target_dict[append_key])
+        if not (append_two_keys == []):
+            base_dir = os.path.join(base_dir, target_dict[append_two_keys[0]][append_two_keys[1]])
         if not (append_string == []):
             base_dir = os.path.join(base_dir, append_string)
     else:
@@ -125,6 +128,8 @@ def return_hs_lengths(json_analysis_file_string, char_index = 0):
     """ Return the list of half-sarcomere lengths for the characterization with
     a zero-based index of char_index (default is 0) """
     
+    print(json_analysis_file_string)
+
     # Load the analysis file
     with open(json_analysis_file_string, 'r') as f:
         json_dict = json.load(f)
@@ -137,13 +142,14 @@ def return_hs_lengths(json_analysis_file_string, char_index = 0):
     if ('hs_lengths' in char_dict):
         hs_lengths = char_dict['hs_lengths']
     else:
+        # We just want the hs_length in the first model, additional model files
+        # are likely manipulations
         hs_lengths = []
         model_file_strings = return_model_file_strings(json_analysis_file_string);
-        for mfs in model_file_strings:
-            with open(mfs, 'r') as f:
-                model_dict = json.load(f)
-            
-            hs_lengths.append(model_dict['muscle']['initial_hs_length'])
+        with open(model_file_strings[0], 'r') as f:
+            model_dict = json.load(f)
+             
+        hs_lengths.append(model_dict['muscle']['initial_hs_length'])
         
     # Return
     return hs_lengths
