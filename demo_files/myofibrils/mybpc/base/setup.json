@@ -21,7 +21,7 @@
                 "state": 1,
                 "transition": 1,
                 "parameter_number": 1,
-                "multipliers": [0, 0, 0, 1, 1, 1]
+                "multipliers": [0, 0, 1, 1]
             },
             {
                 "variable": "c_kinetics",
@@ -29,12 +29,12 @@
                 "state": 1,
                 "transition": 2,
                 "parameter_number": 1,
-                "multipliers": [0, 1, 1, 0, 1, 1]
+                "multipliers": [0,1,0, 1]
             },
             {
                 "class": "mybpc_parameters",
                 "variable": "c_k_stiff",
-                "multipliers": [1, 0, 1, 1, 0, 1],
+                "multipliers": [1,1,1,1],
                 "output_type": "float"
             },
             {
@@ -43,7 +43,7 @@
                 "state": 1,
                 "transition": 1,
                 "parameter_number": 5,
-                "multipliers": [0, 1, 1, 0.1, 0.1, 0.1]
+                "multipliers": [0,0,0.1,0.1]
             },
             {
                 "variable": "m_kinetics",
@@ -51,7 +51,7 @@
                 "state": 1,
                 "transition": 1,
                 "parameter_number": 6,
-                "multipliers": [0, 1, 1, 0.1, 0.1, 0.1]
+                "multipliers": [0,0,0.1,0.1]
             }
         ]
       }
@@ -62,7 +62,7 @@
             "type": "pCa_length_control",
             "relative_to": "this_file",
             "sim_folder": "../sim_data",
-            "m_n": 36,
+            "m_n": 4,
             "pCa_values": [4.5],
             "sim_duration_s": 1.5,
             "time_step_s": 0.001,
