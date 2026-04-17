@@ -116,6 +116,8 @@ Please note that the specific modes are generated following adjustments structur
    + MyBPC binds to actin and stabilized SRX
         + Transition 1 is set to 1
         + Transition 2 is set to 1
+    
+
 ```
     "model":
     {
