@@ -22,7 +22,8 @@ using namespace std::filesystem;
 
 // Constructor
 kinetic_scheme::kinetic_scheme(const rapidjson::Value& m_ks,
-	FiberSim_model* set_p_fs_model, FiberSim_options * set_p_fs_options)
+	FiberSim_model* set_p_fs_model, FiberSim_options * set_p_fs_options,
+	string set_scheme_type)
 {
 	// Initialise
 
@@ -54,6 +55,9 @@ kinetic_scheme::kinetic_scheme(const rapidjson::Value& m_ks,
 
 	// Now that we know the state properties, set the transition types
 	set_transition_types();
+
+	// Set the scheme
+	scheme_type = set_scheme_type;
 }
 
 // Destructor
@@ -150,19 +154,27 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[], cha
 	//! Writes rate functions to output file
 
 	// Variables
-	int counter = 0;
+	int r_counter = 0;
 
 	double x_limit = 10;
 	double x_bin = 0.5;
 
-	m_state* p_m_state;			// pointer to an m_state
-	transition* p_trans;		// pointer to a transition
+	m_state* p_m_state;				// pointer to an m_state
+	transition* p_trans;			// pointer to a transition
 
-	int new_state;				// integer for new state
+	int new_state;					// integer for new state
+
+	int no_of_mybpc_states = 1;		// integer for number of mybpc states
 
 	FILE* output_file;
 
 	// Code
+
+	// Get the number of mybpc states
+	if (scheme_type == "myosin")
+	{
+		no_of_mybpc_states = p_hs->p_fs_model->p_c_scheme[0]->no_of_states;
+	}
 
 	// Make sure directory exists
 	path output_file_path(output_file_string);
@@ -193,35 +205,19 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[], cha
 	}
 
 	// Write the JSON bracket
-	fprintf_s(output_file, "\t\t\t{\n\"scheme\":\n\"\n");
-
-	// Cycle through transitions and rates writing the column headers
-	for (int state_counter = 0; state_counter < no_of_states; state_counter++)
+	for (int c_counter = 0; c_counter < no_of_mybpc_states; c_counter++)
 	{
-		p_m_state = p_m_states[state_counter];
 
-		for (int t_counter = 0; t_counter < max_no_of_transitions; t_counter++)
+		fprintf_s(output_file, "\t\t\t{\n");
+		if (scheme_type == "myosin")
 		{
-			p_trans = p_m_state->p_transitions[t_counter];
-			new_state = p_trans->new_state;
-
-			if (new_state > 0)
-			{
-				// It's a transition
-				counter = counter + 1;
-				if (counter == 1)
-					fprintf_s(output_file, "x\tr_%i", counter);
-				else
-					fprintf_s(output_file, "\tr_%i", counter);
-			}
+			fprintf_s(output_file, "\t\t\t\t\"mybpc_state\": %i,\n", c_counter + 1);
 		}
-	}
-	fprintf_s(output_file, "\n");
+		fprintf_s(output_file, "\t\t\t\t\"scheme\":\n\"\n");
 
-	// Cycle through x values and bins
-	for (double x = -x_limit; x <= x_limit; x = x + x_bin)
-	{
-		fprintf_s(output_file, "%8g", x);
+		// Cycle through transitions and rates writing the column headers
+
+		r_counter = 0;
 
 		for (int state_counter = 0; state_counter < no_of_states; state_counter++)
 		{
@@ -235,18 +231,53 @@ void kinetic_scheme::write_rate_functions_to_file(char output_file_string[], cha
 				if (new_state > 0)
 				{
 					// It's a transition
-					double x_ext = p_m_state->extension;
-					double rate = p_trans->calculate_rate(x, x_ext, 0, 0, 0, 0, p_hs);
-
-					fprintf_s(output_file, "\t%8g", rate);
+					r_counter = r_counter + 1;
+					if (r_counter == 1)
+						fprintf_s(output_file, "x\tr_%i", r_counter);
+					else
+						fprintf_s(output_file, "\tr_%i", r_counter);
 				}
 			}
 		}
 		fprintf_s(output_file, "\n");
-	}
 
-	// Close the JSON bracket
-	fprintf_s(output_file, "\"\n\t\t\t}%s\n", JSON_append_string);
+		// Cycle through x values and bins
+		for (double x = -x_limit; x <= x_limit; x = x + x_bin)
+		{
+			fprintf_s(output_file, "%8g", x);
+
+			for (int state_counter = 0; state_counter < no_of_states; state_counter++)
+			{
+				p_m_state = p_m_states[state_counter];
+
+				for (int t_counter = 0; t_counter < max_no_of_transitions; t_counter++)
+				{
+					p_trans = p_m_state->p_transitions[t_counter];
+					new_state = p_trans->new_state;
+
+					if (new_state > 0)
+					{
+						// It's a transition
+						double x_ext = p_m_state->extension;
+						double rate = p_trans->calculate_rate(x, x_ext, 0, c_counter+1, 1, 0, p_hs);
+
+						fprintf_s(output_file, "\t%8g", rate);
+					}
+				}
+			}
+			fprintf_s(output_file, "\n");
+		}
+
+		// Close the JSON bracket
+		if (c_counter < (no_of_mybpc_states - 1))
+		{
+			fprintf_s(output_file, "\"\n\t\t\t},%s\n", JSON_append_string);
+		}
+		else
+		{
+			fprintf_s(output_file, "\"\n\t\t\t}%s\n", JSON_append_string);
+		}
+	}
 
 	fclose(output_file);
 }

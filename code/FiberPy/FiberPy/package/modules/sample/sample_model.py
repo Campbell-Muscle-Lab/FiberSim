@@ -24,6 +24,12 @@ from scipy.stats import qmc
 from ..protocols import protocols as prot
 from ..batch import batch
 
+from ..characterize.characterize_utilities import \
+    return_FiberCpp_exe_dict, \
+    return_base_dir, \
+    return_model_file_strings, \
+    return_options_file_string, \
+    prepare_clean_dir
 
 def sample_model(json_analysis_file_string):
     """ Code takes a json struct that includes a model file
@@ -39,26 +45,26 @@ def sample_model(json_analysis_file_string):
         json_data = json.load(f)
         anal_struct = json_data['FiberSim_setup']
       
-    # Check whether we can skip simulations
-    ch = anal_struct['characterization'][0]
-    if not (ch['figures_only'] == 'True'):
-        # If there is a sampling section, use that to create the
-        # appropriate models
-       
-        if ("sampling" in anal_struct['model']):
-            characterization_files = \
-                generate_characterization_files(json_analysis_file_string)
+    # Check that we have a sampling model
+    if not ("sampling" in anal_struct["model"]):
+        print('Error, no sampling structure in: %s' %
+              json_analysis_file_string)
+        exit(1)
+
+    # Generate the characterization files
+    characterization_files = \
+        generate_characterization_files(json_analysis_file_string)
                 
-        # Generate a sequence of command strings
-        command_strings = []
+    # Generate a sequence of command strings
+    command_strings = []
         
-        for cf in characterization_files:
-            cs = 'python FiberPy.py characterize %s' % cf
-            command_strings.append(cs)
-    
-        # Now run them        
-        batch_command_strings(command_strings)
-    
+    for cf in characterization_files:
+        cs = 'python FiberPy.py characterize %s' % cf
+        command_strings.append(cs)
+
+    # Now run them        
+    batch_command_strings(command_strings)
+
     # Run post-Python_function
     if ('sampling' in anal_struct['model']):
         if ('post_sim_Python_call' in anal_struct['model']['sampling']):
@@ -84,73 +90,42 @@ def generate_characterization_files(json_analysis_file_string):
         json_data = json.load(f)
         model_struct = json_data['FiberSim_setup']['model']
         sampling_struct = model_struct['sampling']
+        char_struct = json_data['FiberSim_setup']['characterization']
     
     # Deduce the base model file string
-    if (model_struct['relative_to'] == 'this_file'):
-        model_working_dir = Path(json_analysis_file_string).parent.absolute()
-        base_model_file_string = os.path.join(model_working_dir,
-                                              sampling_struct['base_model'])
-        base_model_file_string = str(Path(base_model_file_string).resolve())
-    else:
-        base_model_file_string = sampling_struct['base_model']
-
+    base_dir = return_base_dir(json_analysis_file_string, 'model')
+    base_model_file_string = str(Path(os.path.join(base_dir,
+                                                   sampling_struct['base_model'])).resolve().absolute())
     # Deduce the base options file string
-    if (model_struct['relative_to'] == 'this_file'):
-        model_working_dir = Path(json_analysis_file_string).parent.absolute()
-        base_options_file_string = os.path.join(model_working_dir,
-                                              model_struct['options_file'])
-        base_options_file_string = str(Path(base_options_file_string).resolve())
-    else:
-        base_options_file_string = model_struct['options_file']
+    base_options_file_string = return_options_file_string(json_analysis_file_string)
 
-    # Now deduce where to put the adjusted model files
-    if (model_struct['relative_to'] == 'this_file'):
-        top_generated_dir = os.path.join(Path(json_analysis_file_string).parent.absolute(),
-                                     sampling_struct['generated_folder'])
-        top_generated_dir = str(Path(top_generated_dir).resolve())
-    else:
-        top_generated_dir = sampling_struct['generated_folder']
-       
-    # Clean the generated dir
-    try:
-        print('Trying to remove %s' % top_generated_dir)
-        shutil.rmtree(top_generated_dir, ignore_errors = True)
-    except OSError as e:
-        print('Error: %s : %s' % (top_generated_dir, e.strerror))
-        
-    if not os.path.isdir(top_generated_dir):
-        os.makedirs(top_generated_dir)
+    # Now deduce where to put the adjusted model files, and prep it
+    top_generated_dir = str(Path(os.path.join(base_dir,
+                                              sampling_struct['generated_folder'])).resolve().absolute())
+    prepare_clean_dir(top_generated_dir)
         
     # We also need to wipe the char folder
     generated_char_dir = '%s_char' % top_generated_dir
-    try:
-        print('Trying to remove %s' % generated_char_dir)
-        shutil.rmtree(generated_char_dir, ignore_errors = True)
-    except OSError as e:
-        print('Error: %s : %s' % (generated_char_dir, e.strerror))
+    prepare_clean_dir(generated_char_dir)
         
-    if not os.path.isdir(generated_char_dir):
-        os.makedirs(generated_char_dir)
+    # Finally, we need to prep the sim directory for each charactization
+    # Keep track of the characterization directories as we go
+    ch_dirs = [];
+    sim_dirs = []
+    for (char_id, ch) in enumerate(char_struct):
+
+        char_dir = return_base_dir(json_analysis_file_string,
+                                   'characterization',
+                                   dict_index = char_id)
+
+        ch_dirs.append(char_dir)
+
+        sim_dir_id = str(Path(os.path.join(char_dir,
+                                           ch['sim_folder'])).resolve().absolute())
+        prepare_clean_dir(sim_dir_id)
+
+        sim_dirs.append(sim_dir_id)
         
-    # Finally, we need to clean out the sim directory
-    char_struct = json_data['FiberSim_setup']['characterization']
-    for ch in char_struct:
-        if (ch['relative_to'] == 'this_file'):
-            working_dir = Path(json_analysis_file_string).parent.absolute()
-        else:
-            working_dir = ch['relative_to']
-        
-        sim_output_dir = str(Path(os.path.join(working_dir, ch['sim_folder'])).resolve())
-        
-        try:
-            print('Trying to remove %s' % sim_output_dir)
-            shutil.rmtree(sim_output_dir, ignore_errors = True)
-        except OSError as e:
-            print('Error: %s : %s' % (sim_output_dir, e.strerror))
-        
-        if not os.path.isdir(sim_output_dir):
-            os.makedirs(sim_output_dir)
-    
     # Now deduce parameters for the sampling
     adjustments = sampling_struct['adjustments']
     no_of_parameters = len(adjustments)
@@ -180,22 +155,25 @@ def generate_characterization_files(json_analysis_file_string):
         sample_gen_dir = os.path.join(top_generated_dir,
                                       ('sample_%i' % (sample_counter + 1)))
         
-        if not os.path.isdir(sample_gen_dir):
-            os.makedirs(sample_gen_dir)
-        
+        prepare_clean_dir(sample_gen_dir)
+
+        # Update the FiberCpp_exe section
+        sample_characterize['FiberSim_setup']['FiberCpp_exe'] = \
+            return_FiberCpp_exe_dict(json_analysis_file_string)
+             
         # Update the model section
         sample_characterize['FiberSim_setup']['model']['relative_to'] = \
             'False';
         
         # Set and copy the options file
         temp, options_file_end = os.path.split(base_options_file_string)
-        new_options_file_string = os.path.join(sample_gen_dir, options_file_end)
+        new_options_file_string = str(Path(
+            os.path.join(sample_gen_dir, options_file_end)).absolute().resolve())
         sample_characterize['FiberSim_setup']['model']['options_file'] = \
             new_options_file_string
             
         shutil.copy(base_options_file_string,
                     new_options_file_string)
-        
         
         # Delete the sampling and replace with manipulations
         del sample_characterize['FiberSim_setup']['model']['sampling']
@@ -206,8 +184,8 @@ def generate_characterization_files(json_analysis_file_string):
         
         # Create and copy the model file
         temp, model_file_end = os.path.split(base_model_file_string)
-        new_model_file_string = os.path.join(sample_gen_dir,
-                                             model_file_end)
+        new_model_file_string = str(Path(os.path.join(sample_gen_dir,
+                                             model_file_end)).absolute().resolve())
         sample_characterize['FiberSim_setup']['model'] \
             ['manipulations']['base_model'] = new_model_file_string
             
@@ -223,192 +201,170 @@ def generate_characterization_files(json_analysis_file_string):
         
         sample_characterize['FiberSim_setup']['model'] \
             ['manipulations']['generated_folder'] = temp_generated_dir
-            
-        # Pull off the twitch protocol. We need the characterize struct
-        # for that, but also later
-        characterize_struct = \
-            sample_characterize['FiberSim_setup']['characterization'][0]
-            
-        if ('twitch_protocol' in characterize_struct):
-            tw_protocol = characterize_struct['twitch_protocol']
 
-        # Make an array of adjustments
-        adjusts = []
-        
-        # Make a dict of parameter values
-        par_values = dict()
-        
-        for par_counter in range(no_of_parameters):
-            # Copy the adjustments
-            sample_adj = sampling_struct['adjustments'][par_counter]
-            characterize_adj = copy.deepcopy(sample_adj)
+        # Now loop through the characterize structs - we need to do this here
+        # in case we have to adapt the twitch protocol for the characterization
+        for (char_id, ch) in enumerate(sample_characterize['FiberSim_setup']['characterization']):
             
-            if (sample_adj['variable'].startswith('Ca_transient_')):
-                # Pull off the key
-                twitch_key = sample_adj['variable'].split('Ca_transient_')[-1]
-                
-                # Get the base value
-                base_value = tw_protocol[twitch_key]
-                
-                # Now deduce the multiplier
-                span = sample_adj['factor_bounds'][1] - sample_adj['factor_bounds'][0]
-                
-                sample_m = sample_values[sample_counter][par_counter]
-                
-                characterize_m = sample_adj['factor_bounds'][0] + \
-                    (sample_m * span)
-                    
-                if ('factor_mode' in sample_adj) and (sample_adj['factor_mode'] == 'log'):
-                    characterize_m = np.power(10, characterize_m)
-                    
-                tw_protocol[twitch_key] = characterize_m * base_value
-                
-                # Store the value
-                par_values[sample_adj['variable']] = tw_protocol[twitch_key]
-                
-                continue
-            
-            if ((sample_adj['variable'] == 'm_kinetics') or
-                    (sample_adj['variable'] == 'c_kinetics')):
+            if ('twitch_protocol' in ch):
+                tw_protocol = ch['twitch_protocol']
 
-                # Special case for kinetics
-                if ('extension' in sample_adj):
-                    base_value = base_model[sample_adj['variable']][sample_adj['isotype']-1]\
-                        ['state'][sample_adj['state']-1]['extension']
+            # Make an array of adjustments
+            adjusts = []
+        
+            # Make a dict of parameter values
+            par_values = dict()
+        
+            for par_counter in range(no_of_parameters):
+                # Copy the adjustments
+                sample_adj = sampling_struct['adjustments'][par_counter]
+                characterize_adj = copy.deepcopy(sample_adj)
+            
+                if (sample_adj['variable'].startswith('Ca_transient_')):
+                    # Pull off the key
+                    twitch_key = sample_adj['variable'].split('Ca_transient_')[-1]
+                
+                    # Get the base value
+                    base_value = tw_protocol[twitch_key]
+                
+                    # Now deduce the multiplier
+                    span = sample_adj['factor_bounds'][1] - sample_adj['factor_bounds'][0]
+                
+                    sample_m = sample_values[sample_counter][par_counter]
+                
+                    characterize_m = sample_adj['factor_bounds'][0] + \
+                        (sample_m * span)
+                    
+                    if ('factor_mode' in sample_adj) and (sample_adj['factor_mode'] == 'log'):
+                        characterize_m = np.power(10, characterize_m)
+                    
+                    tw_protocol[twitch_key] = characterize_m * base_value
+                
+                    # Store the value
+                    par_values[sample_adj['variable']] = tw_protocol[twitch_key]
+                
+                    continue
+            
+                if ((sample_adj['variable'] == 'm_kinetics') or
+                        (sample_adj['variable'] == 'c_kinetics')):
+
+                    # Special case for kinetics
+                    if ('extension' in sample_adj):
+                        base_value = base_model[sample_adj['variable']][sample_adj['isotype']-1]\
+                            ['state'][sample_adj['state']-1]['extension']
                         
-                    # Store the key
-                    par_key = '%s_isotype_%i_state_%i_extension' % \
-                                (sample_adj['variable'], sample_adj['isotype'],
-                                 sample_adj['state'])
-                else:
-                    # Transition parameters
-                    y = np.asarray(base_model[sample_adj['variable']][sample_adj['isotype']-1] \
-                                       ['state'][sample_adj['state']-1] \
-                                       ['transition'][sample_adj['transition']-1]\
-                                       ['rate_parameters'],
-                              dtype = np.float32)
+                        # Store the key
+                        par_key = '%s_isotype_%i_state_%i_extension' % \
+                                    (sample_adj['variable'], sample_adj['isotype'],
+                                     sample_adj['state'])
+                    else:
+                        # Transition parameters
+                        y = np.asarray(base_model[sample_adj['variable']][sample_adj['isotype']-1] \
+                                           ['state'][sample_adj['state']-1] \
+                                           ['transition'][sample_adj['transition']-1]\
+                                           ['rate_parameters'],
+                                  dtype = np.float32)
                     
-                    base_value = y[sample_adj['parameter_number'] - 1]
+                        base_value = y[sample_adj['parameter_number'] - 1]
                     
-                    # Store the key
-                    par_key = '%s_isotype_%i_scheme_%i_transition_%i_parameter_%i' % \
-                                (sample_adj['variable'], sample_adj['isotype'],
-                                 sample_adj['state'], sample_adj['transition'],
-                                 sample_adj['parameter_number'])
+                        # Store the key
+                        par_key = '%s_isotype_%i_scheme_%i_transition_%i_parameter_%i' % \
+                                    (sample_adj['variable'], sample_adj['isotype'],
+                                     sample_adj['state'], sample_adj['transition'],
+                                     sample_adj['parameter_number'])
                 
-                # Now work out the values
-                characterize_adj['base_value'] = float(base_value)
+                    # Now work out the values
+                    characterize_adj['base_value'] = float(base_value)
                 
-                # Now deduce the multiplier
+                    # Now deduce the multiplier
+                    span = sample_adj['factor_bounds'][1] - sample_adj['factor_bounds'][0]
+                
+                    sample_m = sample_values[sample_counter][par_counter]
+                
+                    characterize_m = sample_adj['factor_bounds'][0] + \
+                        (sample_m * span)
+                    
+                    if ('factor_mode' in sample_adj) and (sample_adj['factor_mode'] == 'log'):
+                        characterize_m = np.power(10, characterize_m)
+
+                    characterize_adj['multipliers'] = []
+                    characterize_adj['multipliers'].append(characterize_m)
+                
+                    characterize_adj['output_type'] = 'float'
+                
+                    # Add it in
+                    adjusts.append(characterize_adj)
+                               
+                    par_values[par_key] = base_value * characterize_m
+                
+                    continue
+            
+            
+                # Everything else
+                base_value = base_model[sample_adj['class']][sample_adj['variable']]
                 span = sample_adj['factor_bounds'][1] - sample_adj['factor_bounds'][0]
-                
                 sample_m = sample_values[sample_counter][par_counter]
-                
                 characterize_m = sample_adj['factor_bounds'][0] + \
                     (sample_m * span)
-                    
                 if ('factor_mode' in sample_adj) and (sample_adj['factor_mode'] == 'log'):
                     characterize_m = np.power(10, characterize_m)
-
                 characterize_adj['multipliers'] = []
                 characterize_adj['multipliers'].append(characterize_m)
-                
                 characterize_adj['output_type'] = 'float'
-                
-                # Add it in
+
+                 # Add it in
                 adjusts.append(characterize_adj)
-                               
+            
+                # Store the value
+                par_key = '%s_%s' % (sample_adj['class'], sample_adj['variable'])
                 par_values[par_key] = base_value * characterize_m
                 
-                continue
-            
-            
-            # Everything else
-            base_value = base_model[sample_adj['class']][sample_adj['variable']]
-            span = sample_adj['factor_bounds'][1] - sample_adj['factor_bounds'][0]
-            sample_m = sample_values[sample_counter][par_counter]
-            characterize_m = sample_adj['factor_bounds'][0] + \
-                (sample_m * span)
-            if ('factor_mode' in sample_adj) and (sample_adj['factor_mode'] == 'log'):
-                characterize_m = np.power(10, characterize_m)
-            characterize_adj['multipliers'] = []
-            characterize_adj['multipliers'].append(characterize_m)
-            characterize_adj['output_type'] = 'float'
-
-             # Add it in
-            adjusts.append(characterize_adj)
-            
-            # Store the value
-            par_key = '%s_%s' % (sample_adj['class'], sample_adj['variable'])
-            par_values[par_key] = base_value * characterize_m
+            # Make a dataframe from the par_values
+            par_df = pd.DataFrame([par_values])
+        
+            if (sample_counter == 0):
+                collated_parameters = par_df
+            else:
+                collated_parameters = pd.concat([collated_parameters, par_df],
+                                                ignore_index = True)
+        
+            # Add the adjustments into sample_characterize
+            sample_characterize['FiberSim_setup'] \
+                ['model']['manipulations']['adjustments'] = adjusts
                 
-        # Make a dataframe from the par_values
-        par_df = pd.DataFrame([par_values])
+            if (ch['type'] == 'unloaded_shortening'):
+                new_ch = characterize_unloaded_shortening(json_analysis_file_string,
+                                                      sample_counter,
+                                                      sample_gen_dir,
+                                                      tw_protocol)
         
-        if (sample_counter == 0):
-            collated_parameters = par_df
-        else:
-            collated_parameters = pd.concat([collated_parameters, par_df],
-                                            ignore_index = True)
-        
-        # Add the adjustments into sample_characterize
-        sample_characterize['FiberSim_setup'] \
-            ['model']['manipulations']['adjustments'] = adjusts
-                
-        if (characterize_struct['type'] == 'unloaded_shortening'):
-            ch = characterize_unloaded_shortening(json_analysis_file_string,
-                                                  sample_counter,
-                                                  sample_gen_dir,
-                                                  tw_protocol)
-            # Repack
-            sample_characterize['FiberSim_setup']['characterization'][0] = ch
-        
-        else:
-            # Adjust the output dir
-            new_ch = copy.deepcopy(characterize_struct)
-            
-            if (new_ch['relative_to'] == 'this_file'):
-                parent_dir = Path(json_analysis_file_string).parent.absolute()
+            else:
+                # Adjust the output dir
+                new_ch = copy.deepcopy(ch)
 
                 new_ch['relative_to'] = 'False'
-                new_ch['sim_folder'] = os.path.join(
-                                        str(parent_dir),
-                                        new_ch['sim_folder'],
-                                        ('sample_%i' % (sample_counter + 1)))
-            else:
-                print('More work on paths required')
-                exit(1)
-                            
-            sample_characterize['FiberSim_setup']['characterization'][0] = \
-                new_ch
+                new_ch['sim_folder'] = str(Path(os.path.join(sim_dirs[char_id],
+                                                             ('sample_%i' % (sample_counter + 1)))).
+                                            absolute().resolve())
            
-        # Check the relative dir
-        if (json_data['FiberSim_setup']['model']['relative_to'] == 'this_file'):
-            parent_dir = Path(json_analysis_file_string).parent.absolute()
-        else:
-            print('More work required')
-            exit(1)
+            # Adjust the post-sim Python call
+            if ('post_sim_Python_call' in ch):
+                new_ch['post_sim_Python_call'] = str(Path(
+                    os.path.join(char_dirs(ch_id),ch['post_sim_Python_call'])).resolve().absolute())
 
-        # Adjust the post-sim Python call
-        if ('post_sim_Python_call' in sample_characterize['FiberSim_setup']['characterization'][0]):
-            temp_string = sample_characterize['FiberSim_setup']['characterization'][0]['post_sim_Python_call']
-            temp_string = os.path.join(parent_dir, temp_string)
-            temp_string = str(Path(temp_string).resolve())
-            sample_characterize['FiberSim_setup']['characterization'][0]['post_sim_Python_call'] = \
-                temp_string
+            # Repack
+            sample_characterize['FiberSim_setup']['characterization'][char_id] = new_ch
         
-        # Create a file name for the characterization file
-        characterization_file_string = \
-            os.path.join(sample_gen_dir,
-                         ('characterize_%i.json' % (sample_counter+1)))
-                
-        print(sample_characterize)
+            # Create a file name for the characterization file
+            characterization_file_string = \
+                os.path.join(sample_gen_dir,
+                             ('characterize_%i.json' % (sample_counter+1)))
             
-        with open(characterization_file_string, 'w') as f:
-            json.dump(sample_characterize, f, indent=4)
+            with open(characterization_file_string, 'w') as f:
+                json.dump(sample_characterize, f, indent=4)
             
-        # Append to the list
-        characterization_file_strings.append(characterization_file_string)
+            # Append to the list
+            characterization_file_strings.append(characterization_file_string)
         
     # Display the parameter values
     print(collated_parameters)

@@ -273,5 +273,5 @@ public:
     * a function that creates a kinetic scheme
     * @param
     */
-    kinetic_scheme* create_kinetic_scheme(const rapidjson::Value& ks);
+    kinetic_scheme* create_kinetic_scheme(const rapidjson::Value& ks, string scheme_type);
 };

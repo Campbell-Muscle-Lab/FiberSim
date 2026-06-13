@@ -60,7 +60,8 @@ public:
 	* @param x double defining the cb_x position - the bs_x position
 	* @return the rate in units of s^-1
 	*/
-	double calculate_rate(double x, double x_ext, double node_force,
+	double calculate_rate(double x, double x_ext,
+							double node_force,
 							int mybpc_state, int mybpc_iso,
 							short int active_neigh,
 							half_sarcomere* p_hs);

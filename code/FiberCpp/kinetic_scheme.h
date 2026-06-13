@@ -34,6 +34,9 @@ public:
 
 	int max_no_of_transitions;			/**< int defining the maximum number of transitions from a state */
 
+	string scheme_type;					/**< string defining the type of kinetic scheme, can be
+												"myosin", or "mybpc" */
+
 	m_state* p_m_states[MAX_NO_OF_KINETIC_STATES];
 										/**< pointer to an array of m_state objects */
 
@@ -44,7 +47,8 @@ public:
 	* takes a FiberSim_model and parses it to give the kinetic scheme
 	*/
 	kinetic_scheme(const rapidjson::Value& m_ks, FiberSim_model* set_p_fs_model,
-		FiberSim_options* set_p_fs_options);
+		FiberSim_options* set_p_fs_options,
+		string scheme_type);
 
 	/**
 	* Destructor

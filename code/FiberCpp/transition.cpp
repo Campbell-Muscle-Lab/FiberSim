@@ -432,6 +432,41 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 					gsl_pow_int(x + x_center, (int)gsl_vector_get(rate_parameters, 2)));
 
 	}
+	
+	// Poly mybpc_dependent
+	if (!strcmp(rate_type, "poly_mybpc_dependent"))
+	{
+		// Variables
+		FiberSim_model* p_model = p_parent_m_state->p_parent_scheme->p_fs_model;
+
+		double base = gsl_vector_get(rate_parameters, 0);
+		double multiplier = gsl_vector_get(rate_parameters, 1);
+		double p = gsl_vector_get(rate_parameters, 2);
+
+		double modifier_base;
+		double modifier_multiplier;
+		double modifier_p;
+
+		int no_of_c_states = p_model->c_no_of_pc_states;
+
+		int no_of_modifiers = 3;
+
+		if (mybpc_state > 0)
+		{
+			int mod_index = 3 + ((mybpc_iso - 1) * no_of_modifiers * no_of_c_states) +
+				(no_of_modifiers * (mybpc_state - 1));
+
+			modifier_base = gsl_vector_get(rate_parameters, mod_index);
+			modifier_multiplier = gsl_vector_get(rate_parameters, mod_index);
+			modifier_p = gsl_vector_get(rate_parameters, mod_index + 2);
+
+			base = base * modifier_base;
+			multiplier = multiplier * modifier_multiplier;
+			p = p * modifier_p;
+		}
+
+		rate = base + (multiplier * pow(x, p));
+	}
 
 	// Poly_asymmetric
 	if (!strcmp(rate_type, "poly_asym"))
@@ -646,37 +681,29 @@ double transition::calculate_rate(double x, double x_ext, double node_force,
 
 		double modifier_k0;
 		double modifier_d;
+		double modifier_x_wall;
+
+		double beta;
 
 		int no_of_c_isotypes = p_model->c_no_of_isotypes;
 		int no_of_c_states = p_model->c_no_of_pc_states;
 
-		// Set an x value where the detachment is infuenced by c-protein
-		double x_break = GSL_POSINF;
-		int x_break_ind = 4 + (no_of_c_isotypes * no_of_c_states);
-		double temp = gsl_vector_get(rate_parameters, x_break_ind);
-		
-		if (!gsl_isnan(temp))
-			x_break = temp;
-
-		if ((mybpc_state > 0) && (x < x_break))
+		// Code
+		if (mybpc_state > 0)
 		{
-			int mod_index = 4 + ((mybpc_iso - 1) * no_of_c_states) + (mybpc_state - 1);
+			int mod_index = 4 + ((mybpc_iso - 1) * 3 * no_of_c_states) + (3 * (mybpc_state - 1));
 			
-			modifier_d = gsl_vector_get(rate_parameters, mod_index);
+			modifier_k0 = gsl_vector_get(rate_parameters, mod_index);
 
-			modifier_k0 = exp(-(p_model->m_k_cb * x_ext * d) /
-				(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature)) /
-				exp(-(p_model->m_k_cb * x_ext * d * modifier_d) /
-					(1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
+			modifier_d = gsl_vector_get(rate_parameters, mod_index + 1);
+			modifier_x_wall = gsl_vector_get(rate_parameters, mod_index + 2);
 
+			beta = exp(-(p_model->m_k_cb * x_ext * d) / (1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature)) /
+				exp(-(p_model->m_k_cb * x_ext * d * modifier_d) / (1e18 * GSL_CONST_MKSA_BOLTZMANN * p_model->temperature));
+
+			k0 = k0 * modifier_k0 * beta;
 			d = d * modifier_d;
-
-			k0 = k0 * modifier_k0;
-
-			/*if (mybpc_state == 4)
-			{
-				printf("d: %g\t\tk0: %g\n", d, k0);
-			}*/
+			x_wall = x_wall * modifier_x_wall;
 		}
 		
 		// Code

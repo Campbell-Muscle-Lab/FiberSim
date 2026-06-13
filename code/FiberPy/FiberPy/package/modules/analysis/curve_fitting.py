@@ -6,6 +6,7 @@ Created on Wed Feb 12 17:20:25 2020
 """
 
 import numpy as np
+import pandas as pd
 
 from numpy.polynomial import Polynomial as poly
     
@@ -127,17 +128,25 @@ def fit_hyperbola(x, y):
     return d
 
 def fit_power_curve(x, y):
-    """ Fits power curve of form y = x*b*(((x_0+a)/(x+a))-1) to y data """
+    """ Fits power curve of form y = x * b * (((x_0 + a) /(x + a)) - 1) to y data """
+
+    # Do some conversions
+    if (isinstance(x, pd.Series)):
+        x = x.to_numpy()
+
+    if (isinstance(y, pd.Series)):
+        y = y.to_numpy()
     
     def y_power(x_data, x_0, a, b):
-        y = np.zeros(len(x_data))
-        for i,x in enumerate(x_data):
-            y[i] = x*b*(((x_0+a)/(x+a))-1)
-        return y
+        y2 = np.zeros(x_data.size)
+        for i, x in enumerate(x_data):
+            y2[i] = x_data[i]*b*(((x_0+a)/(x_data[i]+a))-1)
+        
+        return y2
     
     def neg_y_power(x, x_0, a, b):
-        y = -y_power(np.asarray([x]), x_0, a, b)
-        return y
+        neg_y = -y_power(np.asarray([x]), x_0, a, b)
+        return neg_y[0]
     
     try:
         popt, pcov = curve_fit(y_power, x, y,
@@ -149,13 +158,13 @@ def fit_power_curve(x, y):
     # Get max of curve
     r = minimize_scalar(neg_y_power, bounds=[0, np.amax(x)],
                        args=(popt[0],popt[1],popt[2]))
-    
+        
     d = dict()
     d['x_0'] = popt[0]
     d['a'] = popt[1]
     d['b'] = popt[2]
-    d['x_at_max_power'] = r['x'][0]
-    d['max_power'] = -r['fun'][0]
+    d['x_at_max_power'] = r['x']
+    d['max_power'] = -r['fun']
     d['x_fit'] = np.linspace(0, np.amax(x), 1000)
     d['y_fit'] = y_power(d['x_fit'], *popt)
     d['y_predict'] = y_power(x, *popt)

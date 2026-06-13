@@ -22,10 +22,23 @@ from pathlib import Path
 from ..protocols import protocols as prot
 from ..batch import batch
 
-# from .characterize_functions import characterize_fv_with_pCa_and_isometric_force
+from .characterize_utilities import \
+        create_sim_input_and_output_dirs, \
+        prepare_clean_dir, \
+        prepare_protocols, \
+        prepare_repeats, \
+        prepare_simulation_dir, \
+        return_base_dir, \
+        return_batch_figs_dict, \
+        return_hs_lengths, \
+        return_FiberCpp_exe_dict, \
+        return_model_file_strings, \
+        return_options_file_string, \
+        return_run_mode, \
+        update_and_write_model_file, \
+        update_setup_file_string_with_new_char
 
 from .twitch_loads import twitch_loads
-
 
 def characterize_model(json_analysis_file_string):
     """ Code takes a json struct that includes a model file, and run the
@@ -52,7 +65,7 @@ def characterize_model(json_analysis_file_string):
         (json_analysis_file_string, json_data) = \
             generate_model_files(json_analysis_file_string)
             
-        # Now neeed to reload the new data
+        # Now need to reload the new data
         anal_struct = json_data['FiberSim_setup']
    
     # Pull off the characterization tasks
@@ -428,6 +441,10 @@ def generate_model_files(json_analysis_file_string):
     
     # Delete the adjustments
     del(json_data['FiberSim_setup']['model']['manipulations'])
+
+    # Adjust the FiberCpp path
+    FiberCpp_exe_dict = return_FiberCpp_exe_dict(json_analysis_file_string)
+    json_data['FiberSim_setup']['FiberCpp_exe'] = FiberCpp_exe_dict
     
     # Generate a new setup file string
     generated_setup_file_string = os.path.join(generated_dir,
@@ -960,12 +977,8 @@ def deduce_fv_properties(json_analysis_file_string,
     
     # Turn the FiberCpp_exe into absolute paths because the new instruction file
     # will be in a different place
-    if (FiberCpp_exe_struct['relative_to'] == 'this_file'):
-        base_dir = Path(json_analysis_file_string).parent.absolute()
-        FiberCpp_exe_struct['relative_to'] = 'False'
-        FiberCpp_exe_struct['exe_file'] = \
-            os.path.join(base_dir, FiberCpp_exe_struct['exe_file'])
-    isometric_b['FiberCpp_exe'] = FiberCpp_exe_struct
+    FiberCpp_exe_dict = return_FiberCpp_exe_dict(json_analysis_file_string)
+    isometric_b['FiberCpp_exe'] = FiberCpp_exe_dict
 
     # Check for half-sarcomere lengths in the fv_struct
     # If none are specified, create an hsl array from the model file

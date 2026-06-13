@@ -808,9 +808,11 @@ void half_sarcomere::handle_hs_variation(model_hs_variation* p_hs_variation)
     }
 
 
-    if (variable.rfind("m_kinetics", 0) == 0)
+    if ((variable.rfind("m_kinetics", 0) == 0) || (variable.rfind("c_kinetics", 0) == 0))
     {
-        // Starts with m_kinetics
+        // Variable includes m_kinetics or c_kinetics
+
+        // Variables
         int isotype;
         int state;
         int transition;
@@ -820,6 +822,10 @@ void half_sarcomere::handle_hs_variation(model_hs_variation* p_hs_variation)
 
         double y;
         double new_y;
+
+        kinetic_scheme* p_kinetic_scheme;
+
+        // Code
 
         for (int i = 0; i < no_of_digits; i++)
         {
@@ -833,16 +839,27 @@ void half_sarcomere::handle_hs_variation(model_hs_variation* p_hs_variation)
         transition = digits[2] - 1;
         parameter_index = digits[3] - 1;
 
+        // Set the pointer
+        if (variable.rfind("m_kinetics", 0) == 0)
+        {
+            p_kinetic_scheme = p_fs_model->p_m_scheme[isotype];
+        }
+        else
+        {
+            p_kinetic_scheme = p_fs_model->p_c_scheme[isotype];
+        }
+
+
         // Pull off value
         y = gsl_vector_get(
-            p_fs_model->p_m_scheme[isotype]->p_m_states[state]->p_transitions[transition]->rate_parameters,
+            p_kinetic_scheme->p_m_states[state]->p_transitions[transition]->rate_parameters,
             parameter_index);
 
         new_y = y * gsl_vector_get(p_hs_variation->hs_multiplier, hs_id);
 
         // Set it
         gsl_vector_set(
-            p_fs_model->p_m_scheme[isotype]->p_m_states[state]->p_transitions[transition]->rate_parameters,
+            p_kinetic_scheme->p_m_states[state]->p_transitions[transition]->rate_parameters,
             parameter_index,
             new_y);
     }

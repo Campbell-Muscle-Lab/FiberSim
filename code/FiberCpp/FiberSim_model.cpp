@@ -493,7 +493,7 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     m_no_of_cb_states = 0;
     for (rapidjson::SizeType i = 0; i < m_ks.Size(); i++)
     {
-        p_m_scheme[i] = create_kinetic_scheme(m_ks[i]);
+        p_m_scheme[i] = create_kinetic_scheme(m_ks[i], "myosin");
         m_no_of_cb_states = GSL_MAX(m_no_of_cb_states, p_m_scheme[i]->no_of_states);
     }
 
@@ -550,7 +550,7 @@ void FiberSim_model::set_FiberSim_model_parameters_from_JSON_file_string(char JS
     c_no_of_pc_states = 0;
     for (rapidjson::SizeType i = 0; i < c_ks.Size(); i++)
     {
-        p_c_scheme[i] = create_kinetic_scheme(c_ks[i]);
+        p_c_scheme[i] = create_kinetic_scheme(c_ks[i], "mybpc");
         c_no_of_pc_states = GSL_MAX(c_no_of_pc_states, p_c_scheme[i]->no_of_states);
     }
 
@@ -620,7 +620,7 @@ void FiberSim_model::check_and_assign_double(const rapidjson::Value& doc, string
     printf("%s: %g\n", tag_string, *p_double);
 }
 
-kinetic_scheme* FiberSim_model::create_kinetic_scheme(const rapidjson::Value& ks)
+kinetic_scheme* FiberSim_model::create_kinetic_scheme(const rapidjson::Value& ks, string scheme_type)
 {
     //! Loads kinetic scheme
 
@@ -628,7 +628,7 @@ kinetic_scheme* FiberSim_model::create_kinetic_scheme(const rapidjson::Value& ks
     kinetic_scheme* p_scheme;
 
     // Create the kinetic scheme
-    p_scheme = new kinetic_scheme(ks, this, p_fs_options);
+    p_scheme = new kinetic_scheme(ks, this, p_fs_options, scheme_type);
 
     // Return the pointer
     return p_scheme;

@@ -850,7 +850,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
     # Drop rows with NaNs, first replace empty with nan
     r.replace('', np.nan, inplace=True)
     r.dropna(inplace=True)
-    
+
     # Now cycle through the curves fitting hybperbolas to each condition
     # This allows you to calculate force relative to isometric and
     # v relative to V_max
@@ -939,10 +939,11 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                        formatting['marker_size'],
                        fillstyle=formatting['fill_styles'][c_ind],
                         color = formatting['color_set'][c_ind])
-            
-            #x,y = cv.remove_outliers(rc['m_force'], rc['m_power'])
-            #pow_curve = cv.fit_power_curve(x, y)
+
+            print("going into pow_curve")            
             pow_curve = cv.fit_power_curve(rc['m_force'], rc['m_power'])
+
+            print("leaving from pow_curve")            
             
             ax_pow.plot(pow_curve['x_fit'], pow_curve['y_fit'],
                         color=ax_pow.lines[-1].get_color(),
@@ -954,8 +955,6 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                            fillstyle=formatting['fill_styles'][c_ind],
                            color = formatting['color_set'][c_ind])
             
-            # x,y = cv.remove_outliers(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'])
-            # rel_fv_curve = cv.fit_hyperbola(x, y)
             rel_fv_curve = cv.fit_hyperbola(rc['m_f_to_f_max'], rc['m_velocity_l0_per_s'])
             
             ax_rel_fv.plot(rel_fv_curve['x_fit'], rel_fv_curve['y_fit'],
@@ -967,9 +966,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                             formatting['marker_size'],
                             fillstyle=formatting['fill_styles'][c_ind],
                             color = formatting['color_set'][c_ind])
-            
-            # x,y = cv.remove_outliers(rc['m_f_to_f_max'], rc['m_rel_power'])
-            # rel_pow_curve = cv.fit_power_curve(x,y)
+
             rel_pow_curve = cv.fit_power_curve(rc['m_f_to_f_max'], rc['m_rel_power'])
             
             ax_rel_pow.plot(rel_pow_curve['x_fit'], rel_pow_curve['y_fit'],
@@ -1001,12 +998,14 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
                                          'pow_x_0': pow_curve['x_0'],
                                          'pow_a': pow_curve['a'],
                                          'pow_b': pow_curve['b'],
+                                         'x_at_max_power': pow_curve['x_at_max_power'],
                                          'rel_fv_x_0': rel_fv_curve['x_0'],
                                          'rel_fv_a': rel_fv_curve['a'],
                                          'rel_fv_b': rel_fv_curve['b'],
                                          'rel_pow_x_0': rel_pow_curve['x_0'],
                                          'rel_pow_a': rel_pow_curve['a'],
-                                         'rel_pow_b': rel_pow_curve['b']},
+                                         'rel_pow_b': rel_pow_curve['b'],
+                                         'x_at_max_rel_power': rel_pow_curve['x_at_max_power'],},
                                         index=[0])
             d_fits = pd.DataFrame({'fv_x_fit': fv_curve['x_fit'],
                                    'fv_y_fit': fv_curve['y_fit'],
@@ -1141,7 +1140,7 @@ def create_fv_and_power_figure(fig_data, batch_file_string):
         else:
             output_file_string = fig_data['output_data_file_string']
     
-        with pd.ExcelWriter(output_file_string, engine='openpyxl') as writer:
+        with pd.ExcelWriter(output_file_string, engine="openpyxl") as writer:
             r.to_excel(writer, sheet_name = 'simulation_data', index=False)
             if ('output_image_file' in fig_data):
                 for (i,c) in enumerate(curve_data['curve']):

@@ -46,7 +46,7 @@ def tidy_limits(vals, f=0.2):
     max_val = np.amax(vals)
     min_val = np.amin(vals)
     
-    lims = np.NaN * np.ones(2)
+    lims = np.nan * np.ones(2)
     
     try:
         for (i, v) in enumerate([min_val, max_val]):
