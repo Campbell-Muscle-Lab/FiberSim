@@ -1,6 +1,7 @@
 function collate_fv_curves
 
-top_data_dir = "../sim_data_45";
+top_data_dir = "../sim_data/test_pCa50";
+top_data_dir = "C:/Users/Ken/University of Kentucky/K. Campbell Grants - Submissions - Campbell/temp/test_45"
 excel_file_string = "isotonic/sim_output/fv_analysis.xlsx";
 field_strings = ["m_force", "m_f_to_f_max", ...
     "m_velocity_l0_per_s", "m_power", "m_rel_power"];
@@ -9,7 +10,7 @@ field2_strings = [...
     "rel_fv_x_0", "rel_fv_a", "rel_fv_b", ...
     "pow_x_0", "pow_a", "pow_b", "x_at_max_power", ...
     "rel_pow_x_0", "rel_pow_a", "rel_pow_b", "x_at_max_rel_power"]
-ofs = "../output/summary.xlsx";
+ofs = "../output/test_pCa50/summary.xlsx";
 
 nn = 10;
 
@@ -103,6 +104,11 @@ for i = 1 : n
     plot(x_fit, y_fit, '-', Color = cm);
 
 
+end
+
+for i = 1 : 2
+    subplot(subplots(i));
+    xlim([0 1])
 end
 
 x = output2.x_at_max_rel_power'

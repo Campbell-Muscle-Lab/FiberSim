@@ -38,6 +38,8 @@ from .characterize_utilities import \
         update_and_write_model_file, \
         update_setup_file_string_with_new_char
 
+from .twitch import twitch
+
 from .twitch_loads import twitch_loads
 
 def characterize_model(json_analysis_file_string):
@@ -78,7 +80,7 @@ def characterize_model(json_analysis_file_string):
             deduce_fv_properties(json_analysis_file_string,
                                  fv_struct =ch)
         
-        if ((ch['type'] == 'freeform') or (ch['type'] == 'twitch')):
+        if (ch['type'] == 'freeform'):
             deduce_freeform_properties(json_analysis_file_string,
                                        freeform_struct = ch)
         
@@ -86,6 +88,10 @@ def characterize_model(json_analysis_file_string):
             characterize_fv_with_pCa_and_isometric_force(
                 json_analysis_file_string,
                 ch)
+
+        if (ch['type'] == "twitch"):
+            twitch(json_analysis_file_string,
+                   char_index = char_id)
 
         if (ch['type'] == "twitch_loads"):
             twitch_loads(json_analysis_file_string,

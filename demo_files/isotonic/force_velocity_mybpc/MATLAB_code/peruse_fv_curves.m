@@ -1,6 +1,6 @@
 function peruse_fv_curves
 
-top_data_dir = "../sim_data_45";
+top_data_dir = "../sim_data/test_pCa50";
 excel_file_string = "isotonic/sim_output/fv_analysis.xlsx";
 field_strings = ["m_force", "m_f_to_f_max", ...
     "m_velocity_l0_per_s", "m_power", "m_rel_power"];
@@ -9,7 +9,7 @@ field2_strings = [...
     "rel_fv_x_0", "rel_fv_a", "rel_fv_b", ...
     "pow_x_0", "pow_a", "pow_b", "x_at_max_power", ...
     "rel_pow_x_0", "rel_pow_a", "rel_pow_b", "x_at_max_rel_power"]
-ifs = "../output/summary.xlsx";
+ifs = "../output/test_pCa50/summary.xlsx";
 pfs = "../generated/setup/parameter_values.xlsx"
 
 % Code
@@ -21,6 +21,13 @@ p.id = (1:size(p,1))';
 
 d = innerjoin(d, p, LeftKey = "sample_id", RightKey = "id");
 
+% Filter
+fs = ["fv_v_max_l0_per_s", "x_at_max_rel_power"];
+for i = 1 : numel(fs)
+    oi = find(isoutlier(d.(fs(i))));
+    d(oi, :) = []
+end
+
 % Look at v_max and x_max_power simultaneously
 z_v_max = zscore(d.fv_v_max_l0_per_s);
 z_x_max_p = zscore(d.x_at_max_rel_power);
@@ -30,13 +37,15 @@ vi = find( (z_v_max > 0) & (z_x_max_p > 0) )
 % [~, vim] = max(d.r(vi));
 % vi = vi(vim)
 
+mfa = 0.25
+
 figure(4);
 clf;
 hold on;
 scatter(z_v_max, z_x_max_p, 'bo');
 scatter(z_v_max(vi), z_x_max_p(vi), ...
     'r', 'filled', ...
-    MarkerFaceAlpha = 0.1);
+    MarkerFaceAlpha = mfa);
 xlabel('z score for x at max power')
 ylabel('z score for V_{max}')
 
@@ -68,9 +77,9 @@ for i = 1 : numel(cn)
     subplot(sp3(i));
     hold on;
     scatter(log10(x), y, 'b', 'filled', ...
-        MarkerFaceAlpha = 0.1)
+        MarkerFaceAlpha = mfa)
     scatter(log10(x(vi)), y(vi), 'r', 'filled', ...
-        MarkerFaceAlpha = 0.1)
+        MarkerFaceAlpha = 2*mfa)
     xlabel(x_field)
     ylabel(y_field)
 

@@ -35,11 +35,6 @@ def return_FiberCpp_exe_dict(json_analysis_file_string):
     # Extract the FiberCpp_exe struct
     FiberCpp_exe_dict = json_dict['FiberSim_setup']['FiberCpp_exe']
 
-    print('ff')
-    print(json_analysis_file_string)
-    print(json.dumps(FiberCpp_exe_dict, indent=4))
-
-
     # If we are in a relative mode, adapt the FiberCpp_exe for absolute paths
     # because the new simulations will be run from a different folder
 

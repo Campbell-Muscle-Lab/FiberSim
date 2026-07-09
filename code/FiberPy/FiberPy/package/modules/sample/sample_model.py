@@ -206,8 +206,9 @@ def generate_characterization_files(json_analysis_file_string):
         # in case we have to adapt the twitch protocol for the characterization
         for (char_id, ch) in enumerate(sample_characterize['FiberSim_setup']['characterization']):
             
-            if ('twitch_protocol' in ch):
-                tw_protocol = ch['twitch_protocol']
+            if (ch['type'] == 'twitch'):
+                if ('data' in ch['protocol']):
+                    tw_prot_data = ch['protocol']['data'][0]
 
             # Make an array of adjustments
             adjusts = []
@@ -225,7 +226,7 @@ def generate_characterization_files(json_analysis_file_string):
                     twitch_key = sample_adj['variable'].split('Ca_transient_')[-1]
                 
                     # Get the base value
-                    base_value = tw_protocol[twitch_key]
+                    base_value = tw_prot_data[twitch_key]
                 
                     # Now deduce the multiplier
                     span = sample_adj['factor_bounds'][1] - sample_adj['factor_bounds'][0]
@@ -238,10 +239,10 @@ def generate_characterization_files(json_analysis_file_string):
                     if ('factor_mode' in sample_adj) and (sample_adj['factor_mode'] == 'log'):
                         characterize_m = np.power(10, characterize_m)
                     
-                    tw_protocol[twitch_key] = characterize_m * base_value
+                    tw_prot_data[twitch_key] = characterize_m * base_value
                 
                     # Store the value
-                    par_values[sample_adj['variable']] = tw_protocol[twitch_key]
+                    par_values[sample_adj['variable']] = tw_prot_data[twitch_key]
                 
                     continue
             
@@ -346,6 +347,12 @@ def generate_characterization_files(json_analysis_file_string):
                 new_ch['sim_folder'] = str(Path(os.path.join(sim_dirs[char_id],
                                                              ('sample_%i' % (sample_counter + 1)))).
                                             absolute().resolve())
+
+                if ('protocol' in ch):
+                    if ('protocol_folder' in ch['protocol']):
+                        new_ch['protocol']['protocol_folder'] = \
+                            str(Path(os.path.join(new_ch['sim_folder'], ch['protocol']['protocol_folder'])).
+                                absolute().resolve())
            
             # Adjust the post-sim Python call
             if ('post_sim_Python_call' in ch):
