@@ -2,6 +2,8 @@ import os
 import json
 import copy
 
+import numpy as np
+
 from pathlib import Path
 import shutil
 
@@ -383,6 +385,11 @@ def prepare_protocols(json_analysis_file_string,
 
             prot_file_string = str(Path(prot_file_string).resolve())
 
+            # If delta_hsl has been specified, we need to create that
+            delta_hsl = []
+            if ('delta_hsl' in prot_data):
+                delta_hsl = return_delta_hsl(prot_data)
+
             p = prot.create_twitch_protocol(
                     time_step = prot_data['time_step_s'],
                     n_points = prot_data['n_points'],
@@ -391,7 +398,8 @@ def prepare_protocols(json_analysis_file_string,
                     stimulus_duration_s = prot_data['stimulus_duration_s'],
                     k_leak = prot_data['k_leak'],
                     k_act = prot_data['k_act'],
-                    k_serca = prot_data['k_serca'])
+                    k_serca = prot_data['k_serca'],
+                    dhsl = delta_hsl)
 
             prot.write_protocol_to_file(p, prot_file_string)
 
@@ -399,6 +407,28 @@ def prepare_protocols(json_analysis_file_string,
 
     # Return
     return prot_files
+
+def return_delta_hsl(prot_data):
+    """ Returns a numpy array with delta_hsl values defined by a protocol """
+
+    # Some organization
+    dhsl_dict = prot_data['delta_hsl']
+
+    # Now branch depending on mode
+    if (dhsl_dict['type'] == 'sine'):
+        delta_hsl = np.zeros(prot_data['n_points'])
+
+        dt = prot_data['time_step_s'] * np.ones(prot_data['n_points'])
+        t = np.cumsum(dt)
+
+        t_stop_s = dhsl_dict['t_start_s'] + dhsl_dict['t_duration_s']
+
+        for i in range(prot_data['n_points']):
+            if ( (t[i] >= dhsl_dict['t_start_s']) and (t[i] <= t_stop_s) ):
+                delta_hsl[i] = dhsl_dict['amplitude_nm'] * \
+                    np.sin((2 * np.pi * t[i] / dhsl_dict['period_s']) + dhsl_dict['phase'])
+
+    return delta_hsl
 
 def return_batch_figs_dict(json_analysis_file_string,
                            sim_output_dir,
