@@ -137,13 +137,25 @@ def generate_characterization_files(json_analysis_file_string):
 
     for sample_ind in range(no_of_samples):
 
-        char_setup_file = write_sample_setup_file(json_analysis_file_string,
+        (char_setup_file, df_sample) = write_sample_setup_file(json_analysis_file_string,
                                                   sample_ind,
                                                   sample_values[sample_ind],
                                                   samples_folder,
                                                   chars_folder)
 
+        # Save the char file
         char_files.append(char_setup_file)
+
+        # Save the samples
+        if (sample_ind == 0):
+            all_samples = df_sample
+        else:
+            all_samples = pd.concat([all_samples, df_sample], ignore_index=True)
+
+    # Save the sample data
+    sample_data_file_string = str(Path(os.path.join(samples_folder, 'sample_values.csv')).resolve().absolute())
+    print('Writing sample data to: %s' % sample_data_file_string)
+    all_samples.to_csv(sample_data_file_string, index=False)
 
     return(char_files)
                
@@ -260,6 +272,9 @@ def write_sample_setup_file(json_analysis_file_string,
 
     # Now span through the adjustments, creating an array of new ones
     new_adj = []
+
+    # Hold the variable and multiplier as we go
+    samples_dict = dict()
     
     for (adj_ind, adj) in enumerate(setup_dict['FiberSim_setup']['model']['manipulations']['adjustments']):
 
@@ -304,6 +319,13 @@ def write_sample_setup_file(json_analysis_file_string,
                         char_m = np.power(10, char_m)
                     setup_dict['FiberSim_setup']['characterization'][char_ind]['protocol']['data'][0][twitch_key] = \
                         char_m * base_value
+
+        # Now add the variable and the multiplier to the sampler dict
+        if not ('kinetics' in adj['variable']):
+            samples_dict[adj['variable']] = char_m
+        else:
+            var_name = ('%s_%i_%i_%i_%i' % (adj['variable'], adj['isotype'],adj['state'],adj['transition'],adj['parameter_number']))
+            samples_dict[var_name] = char_m
 
     # Replace the adjustments with the new ones
     setup_dict['FiberSim_setup']['model']['manipulations']['adjustments'] = new_adj
@@ -387,8 +409,12 @@ def write_sample_setup_file(json_analysis_file_string,
     with open(setup_file_string, 'w') as f:
         json.dump(setup_dict, f, indent=4)
 
+    # Turn the samples_dict into a dataframe
+    samples_dict
+    df_samples = pd.DataFrame(data = samples_dict, index=[0])
+
     # Return the setup_file_string
-    return setup_file_string
+    return (setup_file_string, df_samples) 
 
 
 def batch_command_strings(command_strings, figures_only=False):
